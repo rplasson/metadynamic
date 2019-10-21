@@ -28,6 +28,7 @@ class Finished(Exception):
 
     def __init__(self, detail=""):
         self.detail = detail
+        super().__init__()
 
     @property
     def message(self) -> str:
@@ -101,12 +102,12 @@ class Result:
         return self._format("table", field, num, mean)
 
     def lendist(self, field=None, num=None, mean=None):
-        return self._format("lendist", field, num)
+        return self._format("lendist", field, num, mean)
 
     def pooldist(self, field=None, num=None, mean=None):
         return self._format("pooldist", field, num, mean)
 
-    def end(self, num=None, mean=None):
+    def end(self, num=None):
         if num is None:
             return self.data["end"]
         return self.data["end"][num]
@@ -129,35 +130,38 @@ class Probalist:
         self._queue: List[Tuple[int, int]] = []
 
     def _updateprob(self, nlist: int, delta: float):
+        #print(f"Update {nlist} by {delta}")
         newproba = self._problist[nlist] + delta
         # reset to 0 probabilities that are too low (rounding errors correction)
         if newproba < self._minprob:
             delta += newproba
             newproba = 0.0
+            #print(f"...but reset to 0")
         self._problist[nlist] = newproba
         self.probtot += delta
 
     def unregister(self, obj: Reaction):
-        nlist = obj.nlist
-        npos = obj.npos
+        #print(f"kill {obj}")
+        nlist, npos = obj.proba_pos
         oldproba = self._map[nlist][npos]
         self._map[nlist][npos] = 0
         self._mapobj[nlist][npos] = None
         self._queue.append((nlist, npos))
         self._updateprob(nlist, -oldproba)
-        obj.registered = False
+        obj.unset_proba_pos()
 
     def update(self, obj: Reaction, proba: float):
+        #print(f"update {obj}")
         if obj.registered:
-            delta = proba - self._map[obj.nlist][obj.npos]
-            self._map[obj.nlist][obj.npos] = proba
-            self._updateprob(obj.nlist, delta)
+            nlist, npos = obj.proba_pos
+            delta = proba - self._map[nlist][npos]
+            self._map[nlist][npos] = proba
+            self._updateprob(nlist, delta)
         else:
             if self._queue:
-                obj.nlist, obj.npos = self._addfromqueue(obj, proba)
+                obj.set_proba_pos(self._addfromqueue(obj, proba))
             else:
-                obj.nlist, obj.npos = self._addfrommap(obj, proba)
-            obj.registered = True
+                obj.set_proba_pos(self._addfrommap(obj, proba))
             self._updateprob(obj.nlist, proba)
 
     def getproba(self, obj: Reaction) -> float:
@@ -188,54 +192,116 @@ class Probalist:
         return rlist, rpos
 
     def choose(self) -> Reaction:
+        # First choose a random line in the probability map
         try:
-            # First choose a random line in the probability map
             nlist = N.random.choice(self._nblist, p=self._problist / self.probtot)
-            # Then choose a random column in the chosen probability line
+        except ValueError as v:
+            raise RoundError(
+                f"(reason: {v}; probtot={self.probtot}=?={self._problist.sum()}; problist={self._problist})"
+            )
+        # Then choose a random column in the chosen probability line
+        try:
             return N.random.choice(
                 self._mapobj[nlist], p=self._map[nlist] / self._problist[nlist]
             )
-        except ValueError:
-            raise RoundError
+        except ValueError as v:
+            raise RoundError(
+                f"(reason: {v}; probtot={self._problist[nlist]}=?={self._map[nlist].sum()}; problist={self._map[nlist]})"
+            )
 
     def clean(self):
-        """(Re-)Compute probality for sums. 
+        """(Re-)Compute probality for sums.
            It is far slower than just updating individual probabilities,
            but the fast methods used in update function leads to accumulate small rounding
            errors.
            This functions is intended to be called regularly for cleaning
            these rounding errors."""
+        #old_problist = self._problist
+        #old_probtot = self.probtot
         self._problist = N.array([data.sum() for data in self._map])
         self.probtot = self._problist.sum()
+        #print(self.probtot - old_probtot, self._problist - old_problist)
 
 
-class ReacDescr:
+class Descr(str):
+    def __new__(cls, name, *vals, **kvals):
+        return str.__new__(cls, name)
+
+    def __init__(self, name: str):
+        self.name = name
+        super().__init__()
+
+    def __add__(self, other):
+        return self.__class__(super().__add__(other))
+
+    def __radd__(self, other):
+        return self.__add__(other)
+
+    def __getitem__(self, key):
+        return self.__class__(super().__getitem__(key))
+
+    @property
+    def categories(self) -> List[str]:
+        return []
+
+
+class CompDescr(Descr):
+    # Memoize properties? May be called often
+    @property
+    def ismono(self) -> bool:
+        return len(self) == 1
+
+    @property
+    def ispolym(self) -> bool:
+        return self.isalpha()
+
+    @property
+    def isact(self) -> bool:
+        return self[-1] == "*" and self[:-1].isalpha()
+
+    @property
+    def categories(self) -> List[str]:
+        res = []
+        if self.ispolym:
+            res.append("polym")
+            if self.ismono:
+                res.append("mono")
+        elif self.isact:
+            res.append("actpol")
+        return res
+
+
+class ReacDescr(Descr):
     kind = "X"
     nbreac = 0
 
     def __init__(
         self,
         name: str,
-        reactants: List[str],
-        catal: str,
+        reactants: List[CompDescr],
+        catal: CompDescr,
         pos: int,
         const: float,
         altconst: float,
         catconst: float,
     ):
-        self.reactants = reactants  # .copy()  Necessary? has parformance impact...
-        self.name = name
-        self.catal = catal
-        self._const = const
-        self._altconst = altconst
-        self._catconst = catconst
-        self.pos = pos
+        super().__init__(name)
+        self.reactants: List[CompDescr] = reactants
+        self.catal: CompDescr = catal
+        self._const: float = const
+        self._altconst: float = altconst
+        self._catconst: float = catconst
+        self.pos: int = pos
         self.checkdimer()
+
+    @property
+    def categories(self) -> List[str]:
+        return [self.kind]
 
     def checkdimer(self):
         self.dimer = False
 
-    def build_products(self) -> List[str]:
+    def build_products(self) -> List[CompDescr]:
         return []
 
     def build_const(self) -> float:
@@ -247,11 +313,8 @@ class ReacDescr:
     def nbalt(self) -> int:
         return 0
 
-    def __str__(self):
-        return self.name
-
     @staticmethod
-    def fullfrom(reactant: Chemical, system: System) -> List[ReacDescr]:
+    def fullfrom(reactant: Compound, system: System) -> List[ReacDescr]:
         return []
 
     @classmethod
@@ -272,52 +335,96 @@ class PolymDescr(ReacDescr):
     def checkdimer(self):
         self.dimer = self.reactants[0] == self.reactants[1]
 
-    def build_products(self) -> List[str]:
+    def build_products(self) -> List[CompDescr]:
         return [self.reactants[0] + self.reactants[1]]
 
     def nbalt(self) -> int:
-        return 1 if len(self.reactants[0]) == 1 else 0
+        return 1 if self.reactants[0].ismono else 0
 
     @staticmethod
-    def fullfrom(reactant: Chemical, system: System) -> List[ReacDescr]:
+    def fullfrom(reactant: Compound, system: System) -> List[ReacDescr]:
         first = lambda other: system.ruleset.reac_from_descr(
-            "P", [reactant.name, other], "", -1
+            "P", [reactant.description, other], "", -1
         )
         last = lambda other: system.ruleset.reac_from_descr(
-            "P", [other, reactant.name], "", -1
+            "P", [other, reactant.description], "", -1
         )
         return [
-            create(other) for other in system.comp_collect for create in (first, last)
+            create(other)
+            for other in system.comp_collect.cat_list("polym")
+            for create in (first, last)
         ]
 
 
-class ActpolymDescr(PolymDescr):
+class ActpolymDescr(ReacDescr):
     kind = "A"
 
+    def build_products(self) -> List[CompDescr]:
+        return [self.reactants[0][:-1] + self.reactants[1]]
+
     def nbalt(self) -> int:
-        name0 = self.reactants[0][0]
+        name0 = self.reactants[0][-2]
         name1 = self.reactants[1][0]
         return 0 if samecase(name0, name1) else 1
 
     @staticmethod
-    def fullfrom(reactant: Chemical, system: System) -> List[ReacDescr]:
-        res = [
-            system.ruleset.reac_from_descr("A", [other, reactant.name], "", -1)
-            for other in system.mono_collect
-        ]
-        if reactant.length == 1:
-            res += [
-                system.ruleset.reac_from_descr("A", [reactant.name, other], "", -1)
-                for other in system.comp_collect
+    def fullfrom(reactant: Compound, system: System) -> List[ReacDescr]:
+        if reactant in system.comp_collect.cat_list("polym"):
+            return [
+                system.ruleset.reac_from_descr(
+                    "A", [other, reactant.description], "", -1
+                )
+                for other in system.comp_collect.cat_list("actpol")
             ]
-        return res
+        if reactant in system.comp_collect.cat_list("actpol"):
+            return [
+                system.ruleset.reac_from_descr(
+                    "A", [reactant.description, other], "", -1
+                )
+                for other in system.comp_collect.cat_list("polym")
+            ]
+        return []
+
+
+class ActivationDescr(ReacDescr):
+    kind = "a"
+    nbreac = 1
+
+    def build_products(self) -> List[CompDescr]:
+        return [self.reactants[0] + "*"]
+
+    def nbalt(self) -> int:
+        return 0 if len(self.reactants[0]) == 1 else 1
+
+    @staticmethod
+    def fullfrom(reactant: Compound, system: System) -> List[ReacDescr]:
+        if reactant in system.comp_collect.cat_list("polym"):
+            return [system.ruleset.reac_from_descr("a", [reactant.description], "", "")]
+        return []
+
+
+class DectivationDescr(ReacDescr):
+    kind = "d"
+    nbreac = 1
+
+    def build_products(self) -> List[CompDescr]:
+        return [self.reactants[0][:-1]]
+
+    def nbalt(self) -> int:
+        return 0 if len(self.reactants[0]) == 2 else 1
+
+    @staticmethod
+    def fullfrom(reactant: Compound, system: System) -> List[ReacDescr]:
+        if reactant in system.comp_collect.cat_list("actpol"):
+            return [system.ruleset.reac_from_descr("d", [reactant.description], "", "")]
+        return []
 
 
 class HydroDescr(ReacDescr):
     kind = "H"
     nbreac = 1
 
-    def build_products(self) -> List[str]:
+    def build_products(self) -> List[CompDescr]:
         name = self.reactants[0]
         if not (1 <= self.pos < len(name)):
             raise ValueError(
@@ -331,9 +438,9 @@ class HydroDescr(ReacDescr):
         return 0 if samecase(right, left) else 1
 
     @staticmethod
-    def fullfrom(reactant: Chemical, system: System) -> List[ReacDescr]:
+    def fullfrom(reactant: Compound, system: System) -> List[ReacDescr]:
         return [
-            system.ruleset.reac_from_descr("H", [reactant.name], "", i)
+            system.ruleset.reac_from_descr("H", [reactant.description], "", i)
             for i in range(1, reactant.length)
         ]
 
@@ -342,7 +449,7 @@ class RacemDescr(ReacDescr):
     kind = "R"
     nbreac = 1
 
-    def build_products(self) -> List[str]:
+    def build_products(self) -> List[CompDescr]:
         name = self.reactants[0]
         pos = self.pos
         if not (0 <= pos < len(name)):
@@ -362,9 +469,9 @@ class RacemDescr(ReacDescr):
         return res
 
     @staticmethod
-    def fullfrom(reactant: Chemical, system: System) -> List[ReacDescr]:
+    def fullfrom(reactant: Compound, system: System) -> List[ReacDescr]:
         return [
-            system.ruleset.reac_from_descr("R", [reactant.name], "", i)
+            system.ruleset.reac_from_descr("R", [reactant.description], "", i)
             for i in range(reactant.length)
         ]
 
@@ -373,10 +480,10 @@ class EpimDescr(RacemDescr):
     kind = "E"
 
     @staticmethod
-    def fullfrom(reactant: Chemical, system: System) -> List[ReacDescr]:
-        if reactant.length == 1:
+    def fullfrom(reactant: Compound, system: System) -> List[ReacDescr]:
+        if reactant.description.ismono:
             return []
-        return [system.ruleset.reac_from_descr("E", [reactant.name], "", 0)]
+        return [system.ruleset.reac_from_descr("E", [reactant.description], "", 0)]
 
 
 class Ruleset:
@@ -424,7 +531,7 @@ class Ruleset:
         )  # keep .format() to avoid too much code in f"..."
         return self._newreac(name, kind, reactants, catal, pos)
 
-    def full_reac(self, reactant: Chemical, system: System) -> List[ReacDescr]:
+    def full_reac(self, reactant: Compound, system: System) -> List[ReacDescr]:
         return list(
             chain.from_iterable(
                 [
@@ -435,12 +542,12 @@ class Ruleset:
         )
 
     def _newreac(
-        self, name: str, kind: str, reactants: list, catal: str, pos: int
+        self, name: str, kind: str, reactants: List[str], catal: str, pos: int
     ) -> ReacDescr:
         return self.descrs[kind](
             name,
-            reactants,
-            catal,
+            [CompDescr(x) for x in reactants],
+            CompDescr(catal),
             pos,
             const=self.consts[kind],
             altconst=self.altconsts[kind],
@@ -454,34 +561,51 @@ class Ruleset:
             raise ValueError(f"'{badkeys}' are not recognized reaction types")
 
 
-class Reaction:
-    def __init__(self, description: ReacDescr, system: System):
+class Chemical:
+    def __init__(self, description: Descr, system: System):
         self._system = system
-        self._description = description
-        self._reactants = [self._system.get_compound(i) for i in description.reactants]
+        self.description = description
+
+    def __repr__(self):
+        return self.description.name
+
+
+class Reaction(Chemical):
+    def __init__(self, description: ReacDescr, system: System):
+        super().__init__(description, system)
+        self._reactants = [self._system.comp_collect[i] for i in description.reactants]
         self._products = description.build_products()
         self.const = description.build_const()
         self._started = False
         catal = description.catal
         if catal:
             self._catalized = True
-            self._catal = system.get_compound(catal)
+            self._catal = system.comp_collect[Descr(catal)]
         else:
             self._catalized = False
-        # self.nlist, self.npos = -1, -1 # Should be useless now (tested with self.registered)
-        self.registered = False
         self._set_reaccalc()
         self.register()
+        self.unset_proba_pos()
+
+    def set_proba_pos(self, proba_pos: Tuple[int, int], register: bool = True):
+        self.nlist, self.npos = proba_pos
+        self.registered = register
+
+    def unset_proba_pos(self):
+        self.set_proba_pos((-1, -1), False)
+
+    @property
+    def proba_pos(self) -> Tuple[int, int]:
+        return self.nlist, self.npos
 
     def destroy(self):
-        self._system.probalist.unregister(self)
-        # self.nlist, self.npos = -1, -1 # Should be useless now (tested with self.registered)
-        for comp in self._reactants:
-            comp.unregister_reaction(self)
-        if self._catalized:
-            self._catal.unregister_reaction(self)
-        if self._system.dropreac:
-            del self._system.reac_collect[str(self)]
+        if self.registered:
+            self._system.probalist.unregister(self)
+            for comp in self._reactants:
+                comp.unregister_reaction(self)
+            if self._catalized:
+                self._catal.unregister_reaction(self)
+            self._system.reac_collect.remove(self.description)
 
     def register(self):
         for comp in self._reactants:
@@ -497,22 +621,22 @@ class Reaction:
                 # Add details to the message
                 detail = f" from {self} (p={self.proba}, "
                 for comp in self._reactants:
-                    detail += f"[{comp.name}]={comp.pop} ,"
-                if self._catal:
-                    detail += f"catal[{self._catal.name}]={self._catal.pop})"
+                    detail += f"[{comp.description}]={comp.pop} ,"
+                if self._catalized:
+                    detail += f"catal[{self._catal.description}]={self._catal.pop})"
                 else:
                     detail += ")"
                 raise DecrZero(f.detail + detail)
         if not self._started:
             self._products = [
-                self._system.get_compound(name) for name in self._products
+                self._system.comp_collect[name] for name in self._products
             ]
             self._started = True
         for prod in self._products:
             prod.inc()
 
     def __repr__(self):
-        return self._description.name
+        return self.description.name
 
     def _order0(self) -> float:
         # Reaction ->
@@ -544,8 +668,8 @@ class Reaction:
         return self._uncatcalc() * self._catal.pop
 
     def _set_reaccalc(self):
-        order = self._description.nbreac
-        dimer = self._description.dimer
+        order = self.description.nbreac
+        dimer = self.description.dimer
         if order == 0:
             self._reaccalc = self._order0
         elif order == 1:
@@ -584,14 +708,15 @@ class Reaction:
 
     def addkept(self):
         if self._catal:
-            self._catal.addkept(self._description)
+            self._catal.addkept(self.description)
         for comp in self._reactants:
-            comp.addkept(self._description)
+            comp.addkept(self.description)
 
 
-class Chemical:
-    def __init__(self, name: str, system: System):
-        if name == "":
+class Compound(Chemical):
+    def __init__(self, description: CompDescr, system: System):
+        super().__init__(description, system)
+        if description == "":
             self._real = False
         else:
             self._real = True
@@ -599,11 +724,7 @@ class Chemical:
             self._system = system
             self._kept_descr: List[ReacDescr] = []
             self.pop = 0
-            self.name = name
-            self.length = len(name)
-
-    def __repr__(self):
-        return self.name
+            self.length = len(description)
 
     def __bool__(self):
         return self._real
@@ -611,16 +732,16 @@ class Chemical:
     def inc(self):
         self.pop += 1
         if self.pop == 1:
-            self._generate()
+            self._activate()
         self._upd_reac()
 
     def dec(self):
         if self.pop > 0:
             self.pop -= 1
         else:
-            raise DecrZero(self.name)
+            raise DecrZero(self.description)
         if self.pop == 0:
-            self._destroy()
+            self._unactivate()
         else:
             self._upd_reac()
 
@@ -628,36 +749,30 @@ class Chemical:
         if start != 0:
             if self.pop == 0:
                 self.pop = start
-                self._generate()
+                self._activate()
             else:
                 self.pop = start
             self._upd_reac()
         else:
             self.pop = 0
-            self._destroy()
+            self._unactivate()
 
-    def _generate(self):
-        if self.name not in self._system.comp_collect:
-            self._system.comp_collect[self.name] = self
-            if self.length == 1:
-                self._system.mono_collect[self.name] = self
-        for reac in self._reac_descr():
-            self._system.get_reaction(reac)
+    def _activate(self): # /!\ Clean activation/unactivation/register/unregister mess /!\ Check with v4
+        self._system.comp_collect.activate(self.description)
+        for reac in self.reac_descr():
+            self._system.reac_collect[reac]
+
+    def _unactivate(self):
+        for reac in self.reac_descr():
+            self._system.reac_collect[reac].destroy()
+        self._system.comp_collect.unactivate(self.description)
 
     def _upd_reac(self):
-        # copy as list because self._reactions to be changed in loop
+        # copy as list because self._reactions to be changed in loop. Elegant?...
         for reac in list(self._reactions):
             reac.update()
 
-    def _destroy(self):
-        # copy as list because self._reactions to be changed in loop
-        for reac in list(self._reactions):
-            reac.destroy()
-        del self._system.comp_collect[self.name]
-        if self.length == 1:
-            del self._system.mono_collect[self.name]
-
-    def _reac_descr(self) -> List[ReacDescr]:
+    def reac_descr(self) -> List[ReacDescr]:
         return self._kept_descr + self._system.ruleset.full_reac(self, self._system)
 
     def addkept(self, description: ReacDescr):
@@ -671,6 +786,68 @@ class Chemical:
             self._reactions.remove(reaction)
         except KeyError:
             pass
+
+
+class Collection:
+    _type = Chemical
+    _descrtype = Descr
+
+    def __init__(self, system: System, drop=False):
+        self._system = system
+        self.pool: Dict[Descr, Chemical] = {}
+        self.active: Dict[Descr, Chemical] = {}
+        self.categories: Dict[str, Set[Descr]] = {}
+        self.drop = drop
+
+    def __getitem__(self, description: str) -> Chemical:
+        if not isinstance(description, self._descrtype):
+            description = self._descrtype(description)
+        try:
+            return self.pool[description]
+        except KeyError:
+            newobj = self._type(description, self._system)
+            self.pool[description] = newobj
+            return newobj
+
+    def cat_list(self, category: str) -> Set[Descr]:
+        try:
+            return self.categories[category]
+        except KeyError:
+            return set()
+
+    def remove(self, description: Descr):
+        if self.drop:
+            del self.pool[description]
+
+    def activate(self, description: Descr):
+        if description not in self.active:
+            self.active[description] = self[description]
+        for catname in description.categories:
+            try:
+                self.categories[catname].add(description)
+            except KeyError:
+                self.categories[catname] = {description}
+
+    def unactivate(self, description: Descr):
+        try:
+            del self.active[description]
+        except KeyError:
+            pass
+        for cat in self.categories.values():
+            try:
+                cat.remove(description)
+            except KeyError:
+                pass
+
+
+class CollectofReaction(Collection):
+    _type = Reaction
+    _descrtype = ReacDescr
+
+
+class CollectofCompound(Collection):
+    _type = Compound
+    _descrtype = CompDescr
 
 
 class System:
@@ -697,7 +874,6 @@ class System:
             catconsts = {}
         self.ruleset = Ruleset(consts, altconsts, catconsts)
         self.runtime_init()
-        # self.proc_init()
         self.time = 0.0
         self.conc = conc
         self.dropreac = dropreac
@@ -707,16 +883,14 @@ class System:
         self.step = 0
         self._ptot = sum([pop * len(comp) for comp, pop in init.items()])
         self.vol = self._ptot / self.conc
-        self.pool_collect: Dict[str, Chemical] = {}  # full set of created compound
-        self.comp_collect: Dict[str, Chemical] = {}  # set of active compounds
-        self.mono_collect: Dict[str, Chemical] = {}  # set of monomer compounds
-        self.reac_collect: Dict[str, Reaction] = {}  # set of active reactions
+        self.comp_collect = CollectofCompound(self)
+        self.reac_collect = CollectofReaction(self, dropreac)  # set of active reactions
         self.probalist = Probalist(minprob=minprob)
         for compound, pop in init.items():
-            self.get_compound(compound).init_pop(pop)
+            self.comp_collect[compound].init_pop(pop)
         if save is None:
             save = []
-        self.set_run(tend, tstep, save, maxsteps, rtlim)
+        self.set_run(tend=tend, tstep=tstep, save=save, maxsteps=maxsteps, rtlim=rtlim)
 
     def runtime_init(self):
         self._ptime0 = process_time()
@@ -725,30 +899,24 @@ class System:
     def runtime(self) -> float:
         return process_time() - self._ptime0
 
-    # def proc_init(self):
-    # pass
-    # self._proc = Process(getpid()) ###Broken, cannot pickle anymore !!
-
     @property
     def memuse(self) -> float:
         return Process(getpid()).memory_info().rss / 1024 / 1024
-        ###Broken, cannot Process  pickle anymore !!
-        # return self._proc.memory_info().rss / 1024 / 1024
 
     def conc_of(self, compound: str) -> float:
         try:
-            return self.comp_collect[compound].pop / self.vol
+            return self.comp_collect.active[CompDescr(compound)].pop / self.vol
         except KeyError:  # compounds doesn't exist => conc=0
             return 0.0
 
     @property
     def poplist(self) -> dict:
-        return {comp: comp.pop for comp in self.comp_collect.values()}
+        return {comp: comp.pop for comp in self.comp_collect.active.values()}
 
     @property
     def lendist(self) -> dict:
         res: Dict[int, int] = {}
-        for comp in self.comp_collect.values():
+        for comp in self.comp_collect.active.values():
             length = comp.length
             pop = comp.pop
             if length not in res:
@@ -759,7 +927,7 @@ class System:
     @property
     def pooldist(self) -> dict:
         res: Dict[int, int] = {}
-        for comp in self.pool_collect.values():
+        for comp in self.comp_collect.pool.values():
             length = comp.length
             if length not in res:
                 res[length] = 0
@@ -771,13 +939,13 @@ class System:
         dist = {}
         dist["lendist"] = self.lendist
         dist["pooldist"] = self.pooldist
-        stat["nbcomp"] = len(self.comp_collect)
-        stat["nbreac"] = len(self.reac_collect)
-        stat["poolsize"] = len(self.pool_collect)
+        stat["nbcomp"] = len(self.comp_collect.active)
+        stat["nbreac"] = len(self.reac_collect.pool)
+        stat["poolsize"] = len(self.comp_collect.pool)
         stat["maxlength"] = max(dist["lendist"])
         return stat, dist
 
-    def process(self, tstop: float):
+    def _process(self, tstop: float):
         # Check if a cleanup should be done
         if self.autoclean:
             self.probalist.clean()
@@ -813,22 +981,17 @@ class System:
         table = P.DataFrame(index=lines)
         lendist = P.DataFrame()
         pooldist = P.DataFrame()
-        # if self._seed:
         N.random.seed(self._seed)  # necessary for multiprocessing from different seeds
         self.time = 0.0
         tnext = 0.0
         step = 0
         self.runtime_init()
-        # self.proc_init()
-        Process(getpid()).cpu_affinity(
-            [num % cpu_count()]
-        )  ###Broken, cannot Process  pickle anymore !!
-        # self._proc.cpu_affinity([num % cpu_count()])
+        Process(getpid()).cpu_affinity([num % cpu_count()])
         while True:
             try:
                 if output:
                     print(f"#{step} -> {tnext}")
-                self.process(tnext)
+                self._process(tnext)
                 stat, dist = self.statlist()
                 table[step] = (
                     [num, self.runtime, self.memuse, self.step, self.time]
@@ -861,12 +1024,12 @@ class System:
         if nbthread is None:
             nbthread = ctx.cpu_count()
         with ctx.Pool(nbthread) as pool:
-            ### Warning! self.run cannot be pickeled anymore...
             res = pool.map(self.run, range(nbthread))
         return Result(res)
 
     def set_run(
         self,
+        *,  # force to name arguments
         tend: float = None,
         tstep: float = None,
         save: list = None,
@@ -886,31 +1049,4 @@ class System:
 
     def addkept(self, reac: str):
         """reactions that are kept"""
-        self.get_reaction(self.ruleset.reac_from_name(reac)).addkept()
-
-    def get_compound(self, name: str) -> Chemical:
-        if name == "":
-            return Chemical("", self)
-        try:
-            return self.pool_collect[name]
-        except KeyError:
-            new_comp = Chemical(name, self)
-            self.pool_collect[name] = new_comp
-            return new_comp
-
-    def get_reaction(self, description: ReacDescr) -> Reaction:
-        try:
-            return self.reac_collect[description.name]
-        except KeyError:
-            new_reac = Reaction(description, self)
-            self.reac_collect[description.name] = new_reac
-            return new_reac
-
-
-# def multirun(compute, nbthread: int = None):  ### Check if still used somewhere...
-#    ctx = get_context("fork")
-#    if nbthread is None:
-#        nbthread = ctx.cpu_count()
-#    with ctx.Pool(nbthread) as pool:
-#        res = pool.map(compute, range(nbthread))
-#    return Result(res)
+        self.reac_collect[self.ruleset.reac_from_name(reac)].addkept()
