@@ -1037,8 +1037,9 @@ class System:
         dist["lendist"] = self.lendist
         dist["pooldist"] = self.pooldist
         stat["nbcomp"] = len(self.comp_collect.active)
-        stat["nbreac"] = len(self.reac_collect.pool)
+        stat["nbreac"] = len(self.reac_collect.active)
         stat["poolsize"] = len(self.comp_collect.pool)
+        stat["poolreac"] = len(self.reac_collect.pool)
         stat["maxlength"] = max(dist["lendist"])
         return stat, dist
 
@@ -1075,7 +1076,7 @@ class System:
         lines = (
             ["thread", "ptime", "memuse", "step", "time"]
             + self.param.save
-            + ["maxlength", "nbcomp", "poolsize", "nbreac"]
+            + ["maxlength", "nbcomp", "poolsize", "nbreac", "poolreac"]
         )
         table = P.DataFrame(index=lines)
         lendist = P.DataFrame()
@@ -1100,6 +1101,7 @@ class System:
                         stat["nbcomp"],
                         stat["poolsize"],
                         stat["nbreac"],
+                        stat["poolreac"],
                     ]
                 )
                 lendist = lendist.join(

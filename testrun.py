@@ -17,7 +17,7 @@ syst = System(
     consts={"P": 10.0, "H": 1.0, "E": 1.0},
     altconsts={"P": 10.0},
     catconsts={"P": 10000.0, "H": 10000.0},
-    dropreac=False,
+    dropreac=True,
     logfile=args.log,
     loglevel=args.level,
 )
