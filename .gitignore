@@ -3,3 +3,6 @@ testlog
 __pycache__
 utils.py~
 packages.pdf
+generic.py~
+proba.py~
+.mypy_cache/

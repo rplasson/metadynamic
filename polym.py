@@ -11,6 +11,7 @@ import numpy as N
 import pandas as P
 
 from utils import *
+from proba import Probaobj, Probalist
 
 D = TypeVar("D", "Descr", "ReacDescr", "CompDescr")
 C = TypeVar("C", "Chemical", "Reaction", "Compound")
@@ -64,111 +65,6 @@ class Result:
     def running_mean(data, length):
         """Running mean from https://stackoverflow.com/questions/13728392/moving-average-or-running-mean"""
         return N.convolve(data, N.ones((length,)) / length, mode="valid")
-
-
-class Probalist:
-    def __init__(self, minprob: float = 1e-10):
-        self._minprob = minprob
-        self._map = [N.array([])]
-        self._mapobj = [N.array([])]
-        self._nblist = 1
-        self._actlist = 0
-        self._problist = N.array([0.0])
-        self.probtot = 0.0
-        self._queue: Deque[Tuple[int, int]] = deque()
-
-    def _updateprob(self, nlist: int, delta: float) -> None:
-        newproba = self._problist[nlist] + delta
-        # reset to 0 probabilities that are too low (rounding errors correction)
-        if newproba < self._minprob:
-            delta += newproba
-            newproba = 0.0
-        self._problist[nlist] = newproba
-        self.probtot += delta
-
-    def unregister(self, obj: Reaction) -> None:
-        nlist, npos = obj.proba_pos
-        oldproba = self._map[nlist][npos]
-        self._map[nlist][npos] = 0
-        self._mapobj[nlist][npos] = None
-        self._queue.append((nlist, npos))
-        self._updateprob(nlist, -oldproba)
-        obj.unset_proba_pos()
-
-    def update(self, obj: Reaction, proba: float) -> None:
-        if obj.registered:
-            nlist, npos = obj.proba_pos
-            delta = proba - self._map[nlist][npos]
-            self._map[nlist][npos] = proba
-            self._updateprob(nlist, delta)
-        else:
-            if self._queue:
-                obj.set_proba_pos(self._addfromqueue(obj, proba))
-            else:
-                obj.set_proba_pos(self._addfrommap(obj, proba))
-            assert obj.nlist is not None
-            self._updateprob(obj.nlist, proba)
-
-    def getproba(self, obj: Reaction) -> float:
-        if obj.registered:
-            nlist, npos = obj.proba_pos
-            return self._map[nlist][npos]
-        return 0.0
-
-    def _addfrommap(self, newobj: Reaction, proba: float) -> Tuple[int, int]:
-        rpos = len(self._map[self._actlist])
-        if rpos <= self._nblist:
-            rlist = self._actlist
-            self._map[rlist] = N.append(self._map[rlist], proba)
-            self._mapobj[rlist] = N.append(self._mapobj[rlist], newobj)
-            return rlist, rpos
-        if len(self._map[0]) <= self._nblist:
-            self._actlist = 0
-        else:
-            self._actlist += 1
-            if self._actlist >= self._nblist:
-                self._map.append(N.array([]))
-                self._mapobj.append(N.array([]))
-                self._problist = N.append(self._problist, 0.0)
-                self._nblist += 1
-        return self._addfrommap(newobj, proba)
-
-    def _addfromqueue(self, newobj: Reaction, proba: float) -> Tuple[int, int]:
-        rlist, rpos = self._queue.popleft()
-        self._map[rlist][rpos] = proba
-        self._mapobj[rlist][rpos] = newobj
-        return rlist, rpos
-
-    def choose(self) -> Reaction:
-        # First choose a random line in the probability map
-        try:
-            nlist = N.random.choice(self._nblist, p=self._problist / self.probtot)
-        except ValueError as v:
-            raise RoundError(
-                f"(reason: {v}; probtot={self.probtot}=?={self._problist.sum()}; problist={self._problist})"
-            )
-        # Then choose a random column in the chosen probability line
-        try:
-            return N.random.choice(
-                self._mapobj[nlist], p=self._map[nlist] / self._problist[nlist]
-            )
-        except ValueError as v:
-            raise RoundError(
-                f"(reason: {v}; probtot={self._problist[nlist]}=?={self._map[nlist].sum()}; problist={self._map[nlist]})"
-            )
-
-    def clean(self) -> None:
-        """(Re-)Compute probality for sums.
-           It is far slower than just updating individual probabilities,
-           but the fast methods used in update function leads to accumulate small rounding
-           errors.
-           This functions is intended to be called regularly for cleaning
-           these rounding errors."""
-        # old_problist = self._problist
-        # old_probtot = self.probtot
-        self._problist = N.array([data.sum() for data in self._map])
-        self.probtot = self._problist.sum()
-
 
 class Descr:
     _descrtype = "Chemical Description"
@@ -543,6 +439,7 @@ class Reaction(Chemical[ReacDescr]):
 
     def __init__(self, description: ReacDescr, system: System):
         super().__init__(description, system)
+        self._probaobj = Probaobj(self)
         self._reactants: List[Compound] = [
             self.system.comp_collect[i.name] for i in description.reactants
         ]
@@ -559,27 +456,12 @@ class Reaction(Chemical[ReacDescr]):
         self._uncatcalc: Optional[Callable[[], float]] = None
         self._set_reaccalc()
         self.register()
-        self.unset_proba_pos()
         # self.system.log.debug(f"{self} created from {description}, transforms {self._reactants} into {self._productnames}")
 
-    def set_proba_pos(
-        self, proba_pos: Tuple[Optional[int], Optional[int]], register: bool = True
-    ) -> None:
-        self.nlist, self.npos = proba_pos
-        self.registered = register
-
-    def unset_proba_pos(self) -> None:
-        self.set_proba_pos(proba_pos=(None, None), register=False)
-
-    @property
-    def proba_pos(self) -> Tuple[int, int]:
-        assert self.nlist is not None and self.npos is not None
-        return self.nlist, self.npos
-
     def destroy(self) -> None:
-        if self.registered:
+        if self._probaobj.registered:
             # self.system.log.debug(f"Destroying {self}")
-            self.system.probalist.unregister(self)
+            self.system.probalist.unregister(self._probaobj)
             for comp in self._reactants:
                 comp.unregister_reaction(self)
             if self._catalized:
@@ -682,10 +564,10 @@ class Reaction(Chemical[ReacDescr]):
 
     @property
     def proba(self) -> float:
-        return self.system.probalist.getproba(self)
+        return self.system.probalist.getproba(self._probaobj)
 
     def update(self) -> None:
-        self.system.probalist.update(self, self.calcproba())
+        self.system.probalist.update(self._probaobj, self.calcproba())
 
     def addkept(self) -> None:
         if self._catal:
