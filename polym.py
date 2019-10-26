@@ -439,7 +439,8 @@ class Reaction(Chemical[ReacDescr]):
 
     def __init__(self, description: ReacDescr, system: System):
         super().__init__(description, system)
-        self._probaobj = Probaobj(self)
+        self._vol = system.param.vol
+        self._probaobj = Probaobj(self, system.probalist)
         self._reactants: List[Compound] = [
             self.system.comp_collect[i.name] for i in description.reactants
         ]
@@ -461,7 +462,7 @@ class Reaction(Chemical[ReacDescr]):
     def destroy(self) -> None:
         if self._probaobj.registered:
             # self.system.log.debug(f"Destroying {self}")
-            self.system.probalist.unregister(self._probaobj)
+            self._probaobj.unregister()
             for comp in self._reactants:
                 comp.unregister_reaction(self)
             if self._catalized:
@@ -539,17 +540,17 @@ class Reaction(Chemical[ReacDescr]):
         elif order == 2:
             if dimer:
                 self._reaccalc = self._order2dim
-                self.const = self.const / self.system.param.vol / 2.0
+                self.const = self.const / self._vol / 2.0
             else:
                 self._reaccalc = self._order2
-                self.const = self.const / self.system.param.vol
+                self.const = self.const / self._vol
         else:
             raise ValueError(
                 "Kinetic orders different from 0,1 or 2 are not supported (yet)"
             )
         if self._catalized:
             self._uncatcalc = self._reaccalc
-            self.const = self.const / self.system.param.vol
+            self.const = self.const / self._vol
             if self._catal in self._reactants:
                 if dimer:
                     self._reaccalc = self._autocatdim
@@ -564,10 +565,10 @@ class Reaction(Chemical[ReacDescr]):
 
     @property
     def proba(self) -> float:
-        return self.system.probalist.getproba(self._probaobj)
+        return self._probaobj.proba
 
     def update(self) -> None:
-        self.system.probalist.update(self._probaobj, self.calcproba())
+        self._probaobj.update(self.calcproba())
 
     def addkept(self) -> None:
         if self._catal:

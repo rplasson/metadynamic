@@ -1,0 +1,160 @@
+from typing import Any, Tuple, Optional, Deque
+from collections import deque
+
+import numpy as NP
+
+from utils import RoundError
+
+
+class Probaobj:
+    """Probalistic object, that can be used in a Probalist object
+    for Gillespie-like computation.
+
+    Each object to be stored in the probalist must contain one Probaobj object
+    """
+
+    def __init__(self, obj: Any, probalist: 'Probalist'):
+        self._probalist = probalist
+        self.nlist: Optional[int]
+        self.npos: Optional[int]
+        self.obj = obj
+        self.unset_proba_pos()
+
+    def set_proba_pos(self, nlist: int, npos: int) -> None:
+        self.nlist = nlist
+        self.npos = npos
+        self.registered = True
+
+    def unset_proba_pos(self) -> None:
+        self.nlist = None
+        self.npos = None
+        self.registered = False
+
+    @property
+    def proba_pos(self) -> Tuple[int, int]:
+        if self.registered:
+            assert self.nlist is not None and self.npos is not None
+            return self.nlist, self.npos
+        else:
+            raise ValueError("Unregistered")
+
+    def register(self, proba: float) -> None:
+        self._probalist.register(self, proba)
+
+    def update(self, proba: float) -> None:
+        self._probalist.update(self, proba)
+
+    def unregister(self) -> None:
+        self._probalist.unregister(self)
+
+    @property
+    def proba(self) -> float:
+        return self._probalist.getproba(self)
+
+
+class Probalist:
+    def __init__(self, minprob: float = 1e-10):
+        self._minprob = minprob
+        self._map = [NP.array([])]
+        self._mapobj = [NP.array([])]
+        self._nblist = 1
+        self._actlist = 0
+        self._problist = NP.array([0.0])
+        self.probtot = 0.0
+        self._queue: Deque[Tuple[int, int]] = deque()
+
+    def _updateprob(self, nlist: int, delta: float) -> None:
+        newproba = self._problist[nlist] + delta
+        # reset to 0 probabilities that are too low
+        # for rounding errors correction
+        if newproba < self._minprob:
+            delta += newproba
+            newproba = 0.0
+        self._problist[nlist] = newproba
+        self.probtot += delta
+
+    def register(self, probaobj: Probaobj, proba: float = 0.0) -> None:
+        if self._queue:
+            probaobj.set_proba_pos(*self._addfromqueue(probaobj, proba))
+        else:
+            probaobj.set_proba_pos(*self._addfrommap(probaobj, proba))
+        assert probaobj.nlist is not None
+        self._updateprob(probaobj.nlist, proba)
+
+    def unregister(self, probaobj: Probaobj) -> None:
+        nlist, npos = probaobj.proba_pos
+        oldproba = self._map[nlist][npos]
+        self._map[nlist][npos] = 0
+        self._mapobj[nlist][npos] = None
+        self._queue.append((nlist, npos))
+        self._updateprob(nlist, -oldproba)
+        probaobj.unset_proba_pos()
+
+    def update(self, probaobj: Probaobj, proba: float) -> None:
+        if probaobj.registered:
+            nlist, npos = probaobj.proba_pos
+            delta = proba - self._map[nlist][npos]
+            self._map[nlist][npos] = proba
+            self._updateprob(nlist, delta)
+        else:
+            self.register(probaobj, proba)
+
+    def getproba(self, probaobj: Probaobj) -> float:
+        if probaobj.registered:
+            nlist, npos = probaobj.proba_pos
+            return self._map[nlist][npos]
+        return 0.0
+
+    def _addfrommap(self, newobj: Probaobj, proba: float) -> Tuple[int, int]:
+        rpos = len(self._map[self._actlist])
+        if rpos <= self._nblist:
+            rlist = self._actlist
+            self._map[rlist] = NP.append(self._map[rlist], proba)
+            self._mapobj[rlist] = NP.append(self._mapobj[rlist], newobj.obj)
+            return rlist, rpos
+        if len(self._map[0]) <= self._nblist:
+            self._actlist = 0
+        else:
+            self._actlist += 1
+            if self._actlist >= self._nblist:
+                self._map.append(NP.array([]))
+                self._mapobj.append(NP.array([]))
+                self._problist = NP.append(self._problist, 0.0)
+                self._nblist += 1
+        return self._addfrommap(newobj, proba)
+
+    def _addfromqueue(self, newobj: Probaobj, proba: float) -> Tuple[int, int]:
+        rlist, rpos = self._queue.popleft()
+        self._map[rlist][rpos] = proba
+        self._mapobj[rlist][rpos] = newobj.obj
+        return rlist, rpos
+
+    def choose(self) -> Any:
+        # First choose a random line in the probability map
+        try:
+            nlist = NP.random.choice(self._nblist, p=self._problist / self.probtot)
+        except ValueError as v:
+            raise RoundError(
+                f"(reason: {v}; probtot={self.probtot}=?={self._problist.sum()}; problist={self._problist})"
+            )
+        # Then choose a random column in the chosen probability line
+        try:
+            return NP.random.choice(
+                self._mapobj[nlist], p=self._map[nlist] / self._problist[nlist]
+            )
+        except ValueError as v:
+            raise RoundError(
+                f"(reason: {v}; probtot={self._problist[nlist]}=?={self._map[nlist].sum()}; problist={self._map[nlist]})"
+            )
+
+    def clean(self) -> None:
+        """(Re-)Compute probality for sums.
+           It is far slower than just updating individual probabilities,
+           but the fast methods used in update function leads to accumulate small rounding
+           errors.
+           This functions is intended to be called regularly for cleaning
+           these rounding errors."""
+        # old_problist = self._problist
+        # old_probtot = self.probtot
+        self._problist = NP.array([data.sum() for data in self._map])
+        self.probtot = self._problist.sum()
