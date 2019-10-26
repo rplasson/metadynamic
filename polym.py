@@ -12,6 +12,7 @@ import pandas as P
 
 from utils import *
 from proba import Probaobj, Probalist
+from collector import Collect
 
 D = TypeVar("D", "Descr", "ReacDescr", "CompDescr")
 C = TypeVar("C", "Chemical", "Reaction", "Compound")
@@ -65,6 +66,7 @@ class Result:
     def running_mean(data, length):
         """Running mean from https://stackoverflow.com/questions/13728392/moving-average-or-running-mean"""
         return N.convolve(data, N.ones((length,)) / length, mode="valid")
+
 
 class Descr:
     _descrtype = "Chemical Description"
@@ -442,7 +444,7 @@ class Reaction(Chemical[ReacDescr]):
         self._vol = system.param.vol
         self._probaobj = Probaobj(self, system.probalist)
         self._reactants: List[Compound] = [
-            self.system.comp_collect[i.name] for i in description.reactants
+            system.comp_collect[i.name] for i in description.reactants
         ]
         self._productnames = description.build_products()
         self.const = description.build_const()
@@ -727,74 +729,12 @@ class Ruleset:
             raise ValueError(f"'{badkeys}' are not recognized reaction types")
 
 
-class Collect(Generic[C]):
-    def _create(self, name: str) -> C:
-        """Create the object <C> from its name. 
-        Must be implemented in subclasses"""
-        raise NotImplementedError
-
-    def __init__(self, system: System, drop: bool = False):
-        self.system = system
-        self.pool: Dict[str, C] = {}
-        self.active: Dict[str, C] = {}
-        self.categories: Dict[str, Set[C]] = {}
-        self.drop = drop
-        if drop:
-            self.active = (
-                self.pool
-            )  # /!\ Test it !!!! => avoid 2 dictionarie if drop is True
-
-    def __getitem__(self, name: str) -> C:
-        """ Return the object as described by its name
-            If it is the first call of the object, create it
-            Else, return the already created one"""
-        try:
-            return self.pool[name]
-        except KeyError:
-            newobj = self._create(name)
-            self.pool[name] = newobj
-            return newobj
-
-    def remove(self, name: str) -> None:
-        """Delete the object described by its name"""
-        if name in self.active:  # beware circular remove/unactivate call...
-            self.unactivate(name)
-        try:
-            del self.pool[name]
-        except KeyError:
-            pass  # find cleverer checks ?
-
-    def activate(self, name: str) -> None:
-        if name not in self.active:
-            chem = self[name]
-            self.active[name] = chem
-            for catname in chem.description.categories:
-                try:
-                    self.categories[catname].add(chem)
-                except KeyError:
-                    self.categories[catname] = {chem}
-
-    def unactivate(self, name: str) -> None:
-        try:
-            del self.active[name]
-        except KeyError:
-            pass
-        for cat in self.categories.values():
-            try:
-                cat.remove(self[name])
-            except KeyError:
-                pass
-
-    def cat_list(self, category: str) -> Set[C]:
-        try:
-            return self.categories[category]
-        except KeyError:
-            return set()
-
-
 class CollectofCompound(Collect[Compound]):
     def _create(self, name: str) -> Compound:
         return Compound(CompDescr(name), self.system)
+
+    def _categorize(self, obj: Compound):
+        return obj.description.categories
 
     def dist(self, lenweight: bool = False, full: bool = False) -> Dict[int, int]:
         res: Dict[int, int] = {}
@@ -812,6 +752,9 @@ class CollectofReaction(Collect[Reaction]):
     def _create(self, name: str) -> Reaction:
         assert isinstance(name, str), f"{name} is not a string..."
         return Reaction(self.ruleset.reac_from_name(name), self.system)
+
+    def _categorize(self, obj: Reaction):
+        return obj.description.categories
 
     def init_ruleset(
         self,
@@ -842,6 +785,7 @@ class CollectofReaction(Collect[Reaction]):
             for description in self.ruleset.full_reac(reactant)
         ]
 
+
 @dataclass
 class SysParam:
     conc: float = 0.1
@@ -853,8 +797,10 @@ class SysParam:
     vol: float = field(init=False)
     seed: Optional[int] = None
     save: List[str] = field(default_factory=list)
+
     def __post_init__(self):
-        self.vol = self.ptot/self.conc
+        self.vol = self.ptot / self.conc
+
 
 class System:
     def __init__(
@@ -964,8 +910,10 @@ class System:
         table = P.DataFrame(index=lines)
         lendist = P.DataFrame()
         pooldist = P.DataFrame()
-        N.random.seed(self.param.seed)  # necessary for multiprocessing from different seeds
-        self.log.connect(f"Reconnected from thread {num+1}", num+1)
+        N.random.seed(
+            self.param.seed
+        )  # necessary for multiprocessing from different seeds
+        self.log.connect(f"Reconnected from thread {num+1}", num + 1)
         self.time = 0.0
         tnext = 0.0
         step = 0

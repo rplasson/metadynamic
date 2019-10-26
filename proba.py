@@ -1,7 +1,6 @@
 from typing import Any, Tuple, Optional, Deque
 from collections import deque
-
-import numpy as NP
+from numpy import array, append, random
 
 from utils import RoundError
 
@@ -55,11 +54,11 @@ class Probaobj:
 class Probalist:
     def __init__(self, minprob: float = 1e-10):
         self._minprob = minprob
-        self._map = [NP.array([])]
-        self._mapobj = [NP.array([])]
-        self._nblist = 1
+        self._map = [array([])]
+        self._mapobj = [array([])]
+        self.npblist = 1
         self._actlist = 0
-        self._problist = NP.array([0.0])
+        self._problist = array([0.0])
         self.probtot = 0.0
         self._queue: Deque[Tuple[int, int]] = deque()
 
@@ -107,20 +106,20 @@ class Probalist:
 
     def _addfrommap(self, newobj: Probaobj, proba: float) -> Tuple[int, int]:
         rpos = len(self._map[self._actlist])
-        if rpos <= self._nblist:
+        if rpos <= self.npblist:
             rlist = self._actlist
-            self._map[rlist] = NP.append(self._map[rlist], proba)
-            self._mapobj[rlist] = NP.append(self._mapobj[rlist], newobj.obj)
+            self._map[rlist] = append(self._map[rlist], proba)
+            self._mapobj[rlist] = append(self._mapobj[rlist], newobj.obj)
             return rlist, rpos
-        if len(self._map[0]) <= self._nblist:
+        if len(self._map[0]) <= self.npblist:
             self._actlist = 0
         else:
             self._actlist += 1
-            if self._actlist >= self._nblist:
-                self._map.append(NP.array([]))
-                self._mapobj.append(NP.array([]))
-                self._problist = NP.append(self._problist, 0.0)
-                self._nblist += 1
+            if self._actlist >= self.npblist:
+                self._map.append(array([]))
+                self._mapobj.append(array([]))
+                self._problist = append(self._problist, 0.0)
+                self.npblist += 1
         return self._addfrommap(newobj, proba)
 
     def _addfromqueue(self, newobj: Probaobj, proba: float) -> Tuple[int, int]:
@@ -132,14 +131,14 @@ class Probalist:
     def choose(self) -> Any:
         # First choose a random line in the probability map
         try:
-            nlist = NP.random.choice(self._nblist, p=self._problist / self.probtot)
+            nlist = random.choice(self.npblist, p=self._problist / self.probtot)
         except ValueError as v:
             raise RoundError(
                 f"(reason: {v}; probtot={self.probtot}=?={self._problist.sum()}; problist={self._problist})"
             )
         # Then choose a random column in the chosen probability line
         try:
-            return NP.random.choice(
+            return random.choice(
                 self._mapobj[nlist], p=self._map[nlist] / self._problist[nlist]
             )
         except ValueError as v:
@@ -156,5 +155,5 @@ class Probalist:
            these rounding errors."""
         # old_problist = self._problist
         # old_probtot = self.probtot
-        self._problist = NP.array([data.sum() for data in self._map])
+        self._problist = array([data.sum() for data in self._map])
         self.probtot = self._problist.sum()

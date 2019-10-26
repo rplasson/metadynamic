@@ -6,3 +6,4 @@ packages.pdf
 generic.py~
 proba.py~
 .mypy_cache/
+collector.py~
