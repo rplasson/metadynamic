@@ -7,3 +7,7 @@ generic.py~
 proba.py~
 .mypy_cache/
 collector.py~
+build/
+dist/
+metadynamic.egg-info/
+setup.py~

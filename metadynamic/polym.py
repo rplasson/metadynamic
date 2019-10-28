@@ -10,9 +10,9 @@ from dataclasses import dataclass, replace, field
 import numpy as N
 import pandas as P
 
-from utils import *
-from proba import Probaobj, Probalist
-from collector import Collect
+from metadynamic.utils import *
+from metadynamic.proba import Probaobj, Probalist
+from metadynamic.collector import Collect
 
 D = TypeVar("D", "Descr", "ReacDescr", "CompDescr")
 C = TypeVar("C", "Chemical", "Reaction", "Compound")
@@ -147,7 +147,7 @@ class CompDescr(Descr):
         assert (
             0 <= pos < len(name)
         ), f"epimer position should be at least 0, at most the chain length minus one"
-        return name[:pos] + name[pos].swapcase() + name[pos + 1 :]
+        return name[:pos] + name[pos].swapcase() + name[pos + 1:]
 
     # @memoize_oneparam
     def extract(self, pos: int) -> str:

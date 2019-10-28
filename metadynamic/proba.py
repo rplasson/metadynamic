@@ -2,7 +2,7 @@ from typing import Any, Tuple, Optional, Deque
 from collections import deque
 from numpy import array, append, random
 
-from utils import RoundError
+from metadynamic.utils import RoundError
 
 
 class Probaobj:
