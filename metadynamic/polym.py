@@ -1,24 +1,32 @@
-from __future__ import annotations
-from multiprocessing import get_context, cpu_count, current_process
+from multiprocessing import get_context, cpu_count
 from itertools import repeat, chain
 from os import getpid
-from typing import *
+from typing import TypeVar, List, Optional, Callable, Generic, Dict, Any, Tuple, Set
 from psutil import Process
-from collections import deque
 from dataclasses import dataclass, replace, field
 
-import numpy as N
-import pandas as P
+from numpy import log, random
+from pandas import DataFrame
 
-from metadynamic.utils import *
+from metadynamic.ends import (
+    Finished,
+    DecrZero,
+    TimesUp,
+    RuntimeLim,
+    NotFound,
+    NoMore,
+    HappyEnding,
+    BadEnding,
+)
+from metadynamic.utils import Log, Timer, samecase
 from metadynamic.proba import Probaobj, Probalist
 from metadynamic.collector import Collect
 from metadynamic.processing import Result
 
 D = TypeVar("D", "Descr", "ReacDescr", "CompDescr")
 C = TypeVar("C", "Chemical", "Reaction", "Compound")
-T = TypeVar("T")
-A = TypeVar("A")
+# T = TypeVar("T")
+# A = TypeVar("A")
 R = TypeVar("R")
 
 
@@ -164,8 +172,8 @@ class ReacDescr(Descr):
 
     @classmethod
     def fullfrom(
-        cls, reactant: Compound, const: float, altconst: float, catconst: float
-    ) -> List[ReacDescr]:
+        cls, reactant: "Compound", const: float, altconst: float, catconst: float
+    ) -> List["ReacDescr"]:
         return []
 
     @classmethod
@@ -194,7 +202,7 @@ class PolymDescr(ReacDescr):
 
     @classmethod
     def fullfrom(
-        cls, reactant: Compound, const: float, altconst: float, catconst: float
+        cls, reactant: 'Compound', const: float, altconst: float, catconst: float
     ) -> List[ReacDescr]:
         first: Callable[[Compound], ReacDescr] = lambda other: cls(
             "",
@@ -235,7 +243,7 @@ class ActpolymDescr(ReacDescr):
 
     @classmethod
     def fullfrom(
-        cls, reactant: Compound, const: float, altconst: float, catconst: float
+        cls, reactant: 'Compound', const: float, altconst: float, catconst: float
     ) -> List[ReacDescr]:
         if reactant.description.ispolym:
             return [
@@ -278,7 +286,7 @@ class ActivationDescr(ReacDescr):
 
     @classmethod
     def fullfrom(
-        cls, reactant: Compound, const: float, altconst: float, catconst: float
+        cls, reactant: 'Compound', const: float, altconst: float, catconst: float
     ) -> List[ReacDescr]:
         if reactant.description.ispolym:
             return [
@@ -299,7 +307,7 @@ class DectivationDescr(ReacDescr):
 
     @classmethod
     def fullfrom(
-        cls, reactant: Compound, const: float, altconst: float, catconst: float
+        cls, reactant: 'Compound', const: float, altconst: float, catconst: float
     ) -> List[ReacDescr]:
         if reactant.description.isact:
             return [
@@ -324,7 +332,7 @@ class HydroDescr(ReacDescr):
 
     @classmethod
     def fullfrom(
-        cls, reactant: Compound, const: float, altconst: float, catconst: float
+        cls, reactant: 'Compound', const: float, altconst: float, catconst: float
     ) -> List[ReacDescr]:
         return [
             cls("", [reactant.description], None, i, const, altconst, catconst)
@@ -355,7 +363,7 @@ class RacemDescr(ReacDescr):
 
     @classmethod
     def fullfrom(
-        cls, reactant: Compound, const: float, altconst: float, catconst: float
+        cls, reactant: 'Compound', const: float, altconst: float, catconst: float
     ) -> List[ReacDescr]:
         return [
             cls("", [reactant.description], None, i, const, altconst, catconst)
@@ -368,7 +376,7 @@ class EpimDescr(RacemDescr):
 
     @classmethod
     def fullfrom(
-        cls, reactant: Compound, const: float, altconst: float, catconst: float
+        cls, reactant: 'Compound', const: float, altconst: float, catconst: float
     ) -> List[ReacDescr]:
         if reactant.description.ismono:
             return []
@@ -378,7 +386,7 @@ class EpimDescr(RacemDescr):
 class Chemical(Generic[D]):
     _descrtype = "Chemical"
 
-    def __init__(self, description: D, system: System):
+    def __init__(self, description: D, system: "System"):
         self.system = system
         self.description: D = description
         # self.system.log.debug(f"Creating {description} Chemical")
@@ -393,7 +401,7 @@ class Chemical(Generic[D]):
 class Reaction(Chemical[ReacDescr]):
     _descrtype = "Reaction"
 
-    def __init__(self, description: ReacDescr, system: System):
+    def __init__(self, description: ReacDescr, system: "System"):
         super().__init__(description, system)
         self._vol = system.param.vol
         self._probaobj = Probaobj(self, system.probalist)
@@ -536,7 +544,7 @@ class Reaction(Chemical[ReacDescr]):
 class Compound(Chemical[CompDescr]):
     _descrtype = "Compound"
 
-    def __init__(self, description: CompDescr, system: System):
+    def __init__(self, description: CompDescr, system: "System"):
         super().__init__(description, system)
         self._reactions: Set[Reaction] = set()
         self.system = system
@@ -648,7 +656,7 @@ class Ruleset:
     ) -> ReacDescr:
         return self._newreac("", kind, reactants, catal, pos)
 
-    def full_reac(self, reactant: Compound) -> List[ReacDescr]:
+    def full_reac(self, reactant: 'Compound') -> List[ReacDescr]:
         return list(
             chain.from_iterable(
                 [
@@ -687,7 +695,7 @@ class CollectofCompound(Collect[Compound]):
     def _create(self, name: str) -> Compound:
         return Compound(CompDescr(name), self.system)
 
-    def _categorize(self, obj: Compound):
+    def _categorize(self, obj: 'Compound'):
         return obj.description.categories
 
     def dist(self, lenweight: bool = False, full: bool = False) -> Dict[int, int]:
@@ -733,7 +741,7 @@ class CollectofReaction(Collect[Reaction]):
             self.ruleset.reac_from_descr(kind, reactants, catal, pos)
         )
 
-    def get_related(self, reactant: Compound) -> List[Reaction]:
+    def get_related(self, reactant: 'Compound') -> List[Reaction]:
         return [
             self.from_descr(description)
             for description in self.ruleset.full_reac(reactant)
@@ -850,21 +858,21 @@ class System:
             if self.probalist.probtot == 0:
                 raise NoMore(f"t={self.time}")
             # update time for next step
-            self.time += N.log(1 / N.random.rand()) / self.probalist.probtot
+            self.time += log(1 / random.rand()) / self.probalist.probtot
             self.step += 1
         self.log.warning(f"maxsteps per process (={self.param.maxsteps}) too low")
         return False
 
-    def run(self, num: int = 0) -> Tuple[P.DataFrame, int, int, str]:
+    def run(self, num: int = 0) -> Tuple[DataFrame, int, int, str]:
         lines = (
             ["thread", "ptime", "memuse", "step", "time"]
             + self.param.save
             + ["maxlength", "nbcomp", "poolsize", "nbreac", "poolreac"]
         )
-        table = P.DataFrame(index=lines)
-        lendist = P.DataFrame()
-        pooldist = P.DataFrame()
-        N.random.seed(
+        table = DataFrame(index=lines)
+        lendist = DataFrame()
+        pooldist = DataFrame()
+        random.seed(
             self.param.seed
         )  # necessary for multiprocessing from different seeds
         self.log.connect(f"Reconnected from thread {num+1}", num + 1)
@@ -890,10 +898,10 @@ class System:
                     ]
                 )
                 lendist = lendist.join(
-                    P.DataFrame.from_dict({step: dist["lendist"]}), how="outer"
+                    DataFrame.from_dict({step: dist["lendist"]}), how="outer"
                 ).fillna(0)
                 pooldist = pooldist.join(
-                    P.DataFrame.from_dict({step: dist["pooldist"]}), how="outer"
+                    DataFrame.from_dict({step: dist["pooldist"]}), how="outer"
                 ).fillna(0)
                 if finished:
                     tnext += self.param.tstep
