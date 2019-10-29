@@ -891,7 +891,7 @@ class System:
         self.time = 0.0
         tnext = 0.0
         step = 0
-        self.log.reset_timer()
+        # self.log.reset_timer()
         Process(getpid()).cpu_affinity([num % cpu_count()])
         while True:
             try:

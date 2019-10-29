@@ -12,4 +12,4 @@ def test_system() -> None:
     syst.set_param(save=["a", "A", "aa", "aA", "Aa", "AA"])
     res = syst.multirun(4)
     res.table().to_csv("testlog/test-thread-result.txt", sep=",")
-    print(res.the_end())
+    print(res.end())
