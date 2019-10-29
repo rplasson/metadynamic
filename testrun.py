@@ -25,7 +25,7 @@ syst.addkept("P.ba+ba.baba.")
 syst.addkept("H.baba.baba.2")
 
 syst.set_param(conc=1.0, seed=1234)
-syst.set_param(tend=1.0, tstep=0.05)
+syst.set_param(tend=0.5, tstep=0.05)
 syst.set_param(save=["a", "b", "c", "A", "B", "C"])
 
 table, lendist, pooldist, the_end = syst.run()

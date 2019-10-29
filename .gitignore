@@ -1,13 +1,9 @@
 classes.pdf
 testlog
 __pycache__
-utils.py~
 packages.pdf
-generic.py~
-proba.py~
 .mypy_cache/
-collector.py~
 build/
 dist/
 metadynamic.egg-info/
-setup.py~
+*~

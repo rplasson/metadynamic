@@ -13,59 +13,13 @@ import pandas as P
 from metadynamic.utils import *
 from metadynamic.proba import Probaobj, Probalist
 from metadynamic.collector import Collect
+from metadynamic.processing import Result
 
 D = TypeVar("D", "Descr", "ReacDescr", "CompDescr")
 C = TypeVar("C", "Chemical", "Reaction", "Compound")
 T = TypeVar("T")
 A = TypeVar("A")
 R = TypeVar("R")
-
-
-class Result:
-    def __init__(self, data):
-        res = N.array(data)
-        self.data = {
-            "table": res[:, 0],
-            "lendist": res[:, 1],
-            "pooldist": res[:, 2],
-            "end": res[:, 3],
-        }
-
-    def _format(self, name, field, num, mean=None):
-        if num is None or num == "m":
-            res = self.data[name].mean()
-        elif num == "s":
-            res = self.data[name].std()
-        elif num == "+":
-            res = self.data[name].mean() + self.data[name].std()
-        elif num == "-":
-            res = self.data[name].mean() - self.data[name].std()
-        else:
-            res = self.data[name][num]
-        if field is not None:
-            res = res.loc[field]
-        if mean:
-            res = self.running_mean(res, mean)
-        return res
-
-    def table(self, field=None, num=None, mean=None):
-        return self._format("table", field, num, mean)
-
-    def lendist(self, field=None, num=None, mean=None):
-        return self._format("lendist", field, num, mean)
-
-    def pooldist(self, field=None, num=None, mean=None):
-        return self._format("pooldist", field, num, mean)
-
-    def end(self, num=None):
-        if num is None:
-            return self.data["end"]
-        return self.data["end"][num]
-
-    @staticmethod
-    def running_mean(data, length):
-        """Running mean from https://stackoverflow.com/questions/13728392/moving-average-or-running-mean"""
-        return N.convolve(data, N.ones((length,)) / length, mode="valid")
 
 
 class Descr:
@@ -147,7 +101,7 @@ class CompDescr(Descr):
         assert (
             0 <= pos < len(name)
         ), f"epimer position should be at least 0, at most the chain length minus one"
-        return name[:pos] + name[pos].swapcase() + name[pos + 1:]
+        return name[:pos] + name[pos].swapcase() + name[pos + 1 :]
 
     # @memoize_oneparam
     def extract(self, pos: int) -> str:
@@ -816,7 +770,7 @@ class System:
         minprob: float = 1e-10,
     ):
         self.timer = Timer()
-        self.log = Log(self, logfile, loglevel)
+        self.log = Log(self.timer, logfile, loglevel)
         if altconsts is None:
             altconsts = {}
         if catconsts is None:
