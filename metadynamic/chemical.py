@@ -114,7 +114,9 @@ class CollectofReaction(Collect["Reaction"]):
     def _create(self, name: str) -> "Reaction":
         assert isinstance(name, str), f"{name} is not a string..."
         newreac = Reaction(self.ruleset.reac_from_name(name), self)
-        newreac.initialize(self.system.param.vol, self.system.Probalist, self.system.comp_collect)
+        newreac.initialize(
+            self.system.param.vol, self.system.probalist, self.system.comp_collect
+        )
         return newreac
 
     def _categorize(self, obj: "Reaction") -> List[str]:
@@ -132,7 +134,7 @@ class CollectofReaction(Collect["Reaction"]):
         try:
             return self.pool[description.name]
         except KeyError:
-            newobj = Reaction(description, self.system)
+            newobj = self._create(description.name)
             self.pool[description.name] = newobj
             return newobj
 
@@ -193,7 +195,7 @@ class Reaction(Chemical[ReacDescr, CollectofReaction]):
     def initialize(
         self, vol: float, probalist: Probalist, comp_collect: CollectofCompound
     ):
-        self._vol: float = 0.0
+        self._vol: float = vol
         self._probaobj: Probaobj = probalist.get_probaobj(self)
         self.comp_collect = comp_collect
         self._reactants: List[Compound] = [
@@ -330,15 +332,15 @@ class Compound(Chemical[CompDescr, CollectofCompound]):
     def initialize(self, reac_collect: CollectofReaction):
         self.reac_collect = reac_collect
         self._reactions: Set[Reaction] = set()
-        self._kept_descr: List[Reaction] = []
+        self._kept_descr: Set[Reaction] = set()
         self.pop = 0
         self.length = self.description.length
 
     def _finish_activation(self) -> None:
-        self.reac_set()
+        self._reactions = self._kept_descr | set(self.reac_collect.get_related(self))
 
     def _start_unactivation(self) -> None:
-        for reac in self.reac_set():
+        for reac in self._reactions:
             reac.unactivate()
 
     def _upd_reac(self) -> None:
@@ -346,11 +348,8 @@ class Compound(Chemical[CompDescr, CollectofCompound]):
         for reac in list(self._reactions):
             reac.update()
 
-    def reac_set(self) -> List[Reaction]:
-        return self._kept_descr + self.reac_collect.get_related(self)
-
-    def addkept(self, reac: Reaction) -> None:
-        self._kept_descr.append(reac)
+    def addkept(self, reaction: Reaction) -> None:
+        self._kept_descr.add(reaction)
 
     def register_reaction(self, reaction: Reaction) -> None:
         self._reactions.add(reaction)
