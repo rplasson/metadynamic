@@ -1,5 +1,5 @@
-from multiprocessing import get_context, cpu_count
-from itertools import repeat, chain
+from multiprocessing import get_context
+from itertools import repeat
 from os import getpid
 from typing import List, Optional, Dict, Any, Tuple, Type
 from psutil import Process
@@ -19,9 +19,12 @@ from metadynamic.ends import (
 )
 from metadynamic.logger import Log
 from metadynamic.proba import Probalist
-from metadynamic.collector import Collect
 from metadynamic.processing import Result
-from metadynamic.chemical import Compound, Reaction
+from metadynamic.chemical import (
+    Compound,
+    CollectofCompound,
+    CollectofReaction,
+)
 from metadynamic.description import ReacDescr, CompDescr
 
 # D = TypeVar("D", "Descr", "ReacDescr", "CompDescr")
@@ -29,142 +32,6 @@ from metadynamic.description import ReacDescr, CompDescr
 # T = TypeVar("T")
 # A = TypeVar("A")
 # R = TypeVar("R")
-
-
-class Ruleset:
-    def __init__(
-        self,
-        consts: Dict[str, float],
-        altconsts: Dict[str, float],
-        catconsts: Dict[str, float],
-    ):
-        # Test if bad keys were entered
-        self.testkinds(consts)
-        self.testkinds(altconsts)
-        self.testkinds(catconsts)
-        # set class variables
-        # dictionary copy may be useless... but only called once at startup thus is a no cost safety
-        self.consts = consts.copy()
-        kinds = set(self.consts.keys())
-        self.descrs: Dict[str, Type[ReacDescr]] = {
-            cls.kind: cls for cls in ReacDescr.subclasses() if cls.kind in kinds
-        }
-        self.altconsts = altconsts.copy()
-        self.catconsts = catconsts.copy()
-        # Missing keys in alt/cat are set to 1
-        for kind in kinds - altconsts.keys():
-            self.altconsts[kind] = 1
-        for kind in kinds - catconsts.keys():
-            self.catconsts[kind] = 1
-
-    def reac_from_name(self, description: str) -> ReacDescr:
-        try:
-            kind, reactants, catal, pos = description.split(".")
-        except ValueError:
-            raise ValueError(f"Badly formatted description {description}")
-        return self._newreac(
-            description,
-            kind,
-            reactants.split("+"),
-            catal,
-            -1 if pos == "" else int(pos),
-        )
-
-    def reac_from_descr(
-        self, kind: str, reactants: List[str], catal: str, pos: int
-    ) -> ReacDescr:
-        return self._newreac("", kind, reactants, catal, pos)
-
-    def full_reac(self, reactant: "Compound") -> List[ReacDescr]:
-        return list(
-            chain.from_iterable(
-                [
-                    descriptor.fullfrom(
-                        reactant,
-                        self.consts[kind],
-                        self.altconsts[kind],
-                        self.catconsts[kind],
-                    )
-                    for kind, descriptor in self.descrs.items()
-                ]
-            )
-        )
-
-    def _newreac(
-        self, name: str, kind: str, reactants: List[str], catal: str, pos: int
-    ) -> ReacDescr:
-        return self.descrs[kind](
-            name,
-            [CompDescr(x) for x in reactants],
-            CompDescr(catal),
-            pos,
-            const=self.consts[kind],
-            altconst=self.altconsts[kind],
-            catconst=self.catconsts[kind],
-        )
-
-    @classmethod
-    def testkinds(cls, dic: Dict[str, Any]) -> None:
-        badkeys = list(dic.keys() - ReacDescr.kinds())
-        if badkeys:
-            raise ValueError(f"'{badkeys}' are not recognized reaction types")
-
-
-class CollectofCompound(Collect[Compound]):
-    def _create(self, name: str) -> Compound:
-        return Compound(CompDescr(name), self.system)
-
-    def _categorize(self, obj: "Compound") -> List[str]:
-        return obj.description.categories
-
-    def dist(self, lenweight: bool = False, full: bool = False) -> Dict[int, int]:
-        res: Dict[int, int] = {}
-        search = self.pool if False else self.active
-        for comp in search.values():
-            length = comp.length
-            inc = comp.pop if lenweight else 1
-            if length not in res:
-                res[length] = 0
-            res[length] += inc
-        return res
-
-
-class CollectofReaction(Collect[Reaction]):
-    def _create(self, name: str) -> Reaction:
-        assert isinstance(name, str), f"{name} is not a string..."
-        return Reaction(self.ruleset.reac_from_name(name), self.system)
-
-    def _categorize(self, obj: Reaction) -> List[str]:
-        return obj.description.categories
-
-    def init_ruleset(
-        self,
-        consts: Dict[str, float],
-        altconsts: Dict[str, float],
-        catconsts: Dict[str, float],
-    ) -> None:
-        self.ruleset = Ruleset(consts, altconsts, catconsts)
-
-    def from_descr(self, description: ReacDescr) -> Reaction:
-        try:
-            return self.pool[description.name]
-        except KeyError:
-            newobj = Reaction(description, self.system)
-            self.pool[description.name] = newobj
-            return newobj
-
-    def describe(
-        self, kind: str, reactants: List[str], catal: str, pos: int
-    ) -> Reaction:
-        return self.from_descr(
-            self.ruleset.reac_from_descr(kind, reactants, catal, pos)
-        )
-
-    def get_related(self, reactant: "Compound") -> List[Reaction]:
-        return [
-            self.from_descr(description)
-            for description in self.ruleset.full_reac(reactant)
-        ]
 
 
 @dataclass
@@ -295,7 +162,7 @@ class System:
         self.time = 0.0
         tnext = 0.0
         step = 0
-        #Process(getpid()).cpu_affinity([num % cpu_count()])
+        # Process(getpid()).cpu_affinity([num % cpu_count()])
         while True:
             try:
                 self.log.info(f"#{step}: {self.time} -> {tnext}")

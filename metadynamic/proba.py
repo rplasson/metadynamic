@@ -157,3 +157,6 @@ class Probalist:
         # old_probtot = self.probtot
         self._problist = array([data.sum() for data in self._map])
         self.probtot = self._problist.sum()
+
+    def get_probaobj(self, obj: Any):
+        return Probaobj(obj, self)

@@ -1,18 +1,162 @@
-from typing import Generic, List, Optional, Callable, Set, TypeVar
+from itertools import chain
+from typing import Generic, List, Optional, Callable, Set, TypeVar, Dict, Type, Any
 
-from metadynamic.proba import Probaobj
+from metadynamic.collector import Collect
+from metadynamic.proba import Probaobj, Probalist
 from metadynamic.ends import Finished, DecrZero
 from metadynamic.description import ReacDescr, CompDescr
 
 D = TypeVar("D", "ReacDescr", "CompDescr")
+C = TypeVar("C", "CollectofReaction", "CollectofCompound")
 
 
-class Chemical(Generic[D]):
+class Ruleset:
+    def __init__(
+        self,
+        consts: Dict[str, float],
+        altconsts: Dict[str, float],
+        catconsts: Dict[str, float],
+    ):
+        # Test if bad keys were entered
+        self.testkinds(consts)
+        self.testkinds(altconsts)
+        self.testkinds(catconsts)
+        # set class variables
+        # dictionary copy may be useless... but only called once at startup thus is a no cost safety
+        self.consts = consts.copy()
+        kinds = set(self.consts.keys())
+        self.descrs: Dict[str, Type[ReacDescr]] = {
+            cls.kind: cls for cls in ReacDescr.subclasses() if cls.kind in kinds
+        }
+        self.altconsts = altconsts.copy()
+        self.catconsts = catconsts.copy()
+        # Missing keys in alt/cat are set to 1
+        for kind in kinds - altconsts.keys():
+            self.altconsts[kind] = 1
+        for kind in kinds - catconsts.keys():
+            self.catconsts[kind] = 1
+
+    def reac_from_name(self, description: str) -> ReacDescr:
+        try:
+            kind, reactants, catal, pos = description.split(".")
+        except ValueError:
+            raise ValueError(f"Badly formatted description {description}")
+        return self._newreac(
+            description,
+            kind,
+            reactants.split("+"),
+            catal,
+            -1 if pos == "" else int(pos),
+        )
+
+    def reac_from_descr(
+        self, kind: str, reactants: List[str], catal: str, pos: int
+    ) -> ReacDescr:
+        return self._newreac("", kind, reactants, catal, pos)
+
+    def full_reac(self, reactant: "Compound") -> List[ReacDescr]:
+        return list(
+            chain.from_iterable(
+                [
+                    descriptor.fullfrom(
+                        reactant,
+                        self.consts[kind],
+                        self.altconsts[kind],
+                        self.catconsts[kind],
+                    )
+                    for kind, descriptor in self.descrs.items()
+                ]
+            )
+        )
+
+    def _newreac(
+        self, name: str, kind: str, reactants: List[str], catal: str, pos: int
+    ) -> ReacDescr:
+        return self.descrs[kind](
+            name,
+            [CompDescr(x) for x in reactants],
+            CompDescr(catal),
+            pos,
+            const=self.consts[kind],
+            altconst=self.altconsts[kind],
+            catconst=self.catconsts[kind],
+        )
+
+    @classmethod
+    def testkinds(cls, dic: Dict[str, Any]) -> None:
+        badkeys = list(dic.keys() - ReacDescr.kinds())
+        if badkeys:
+            raise ValueError(f"'{badkeys}' are not recognized reaction types")
+
+
+class CollectofCompound(Collect["Compound"]):
+    def _create(self, name: str) -> "Compound":
+        newcomp = Compound(CompDescr(name), self)
+        newcomp.initialize(self.system.reac_collect)
+        return newcomp
+
+    def _categorize(self, obj: "Compound") -> List[str]:
+        return obj.description.categories
+
+    def dist(self, lenweight: bool = False, full: bool = False) -> Dict[int, int]:
+        res: Dict[int, int] = {}
+        search = self.pool if False else self.active
+        for comp in search.values():
+            length = comp.length
+            inc = comp.pop if lenweight else 1
+            if length not in res:
+                res[length] = 0
+            res[length] += inc
+        return res
+
+
+class CollectofReaction(Collect["Reaction"]):
+    def _create(self, name: str) -> "Reaction":
+        assert isinstance(name, str), f"{name} is not a string..."
+        newreac = Reaction(self.ruleset.reac_from_name(name), self)
+        newreac.initialize(self.system.param.vol, self.system.Probalist, self.system.comp_collect)
+        return newreac
+
+    def _categorize(self, obj: "Reaction") -> List[str]:
+        return obj.description.categories
+
+    def init_ruleset(
+        self,
+        consts: Dict[str, float],
+        altconsts: Dict[str, float],
+        catconsts: Dict[str, float],
+    ) -> None:
+        self.ruleset = Ruleset(consts, altconsts, catconsts)
+
+    def from_descr(self, description: ReacDescr) -> "Reaction":
+        try:
+            return self.pool[description.name]
+        except KeyError:
+            newobj = Reaction(description, self.system)
+            self.pool[description.name] = newobj
+            return newobj
+
+    def describe(
+        self, kind: str, reactants: List[str], catal: str, pos: int
+    ) -> "Reaction":
+        return self.from_descr(
+            self.ruleset.reac_from_descr(kind, reactants, catal, pos)
+        )
+
+    def get_related(self, reactant: "Compound") -> List["Reaction"]:
+        return [
+            self.from_descr(description)
+            for description in self.ruleset.full_reac(reactant)
+        ]
+
+
+class Chemical(Generic[D, C]):
     _descrtype = "Chemical"
 
-    def __init__(self, description: D, system: "System"):
-        self.system = system
+    def __init__(self, description: D, collect: C):
         self.description: D = description
+        self.collect: C = collect
+        self.activated: bool = False
 
     def __repr__(self) -> str:
         return f"{self._descrtype}: {self}"
@@ -20,52 +164,85 @@ class Chemical(Generic[D]):
     def __str__(self) -> str:
         return self.description.name
 
+    def activate(self) -> None:
+        if not self.activated:
+            self.collect.activate(self.description.name)
+            self._finish_activation()
+            self.activated = True
 
-class Reaction(Chemical[ReacDescr]):
+    def _finish_activation(self) -> None:
+        """To be implemented in derived class (if needed)
+        Will be processed *after* common activation procedure is performed"""
+        pass
+
+    def unactivate(self) -> None:
+        if self.activated:
+            self._start_unactivation()
+            self.collect.unactivate(self.description.name)
+            self.activated = False
+
+    def _start_unactivation(self) -> None:
+        """To be implemented in derived class (if needed)
+        Will be processed *before* common unactivation procedure is performed"""
+        pass
+
+
+class Reaction(Chemical[ReacDescr, CollectofReaction]):
     _descrtype = "Reaction"
 
-    def __init__(self, description: ReacDescr, system: "System"):
-        super().__init__(description, system)
-        self._vol = system.param.vol
-        self._probaobj = Probaobj(self, system.probalist)
+    def initialize(
+        self, vol: float, probalist: Probalist, comp_collect: CollectofCompound
+    ):
+        self._vol: float = 0.0
+        self._probaobj: Probaobj = probalist.get_probaobj(self)
+        self.comp_collect = comp_collect
         self._reactants: List[Compound] = [
-            system.comp_collect[i.name] for i in description.reactants
+            self.comp_collect[i.name] for i in self.description.reactants
         ]
-        self._productnames = description.build_products()
-        self.const = description.build_const()
-        self._started = False
-        catal = description.catal
+        self._productnames = self.description.build_products()
+        self.const = self.description.build_const()
+        catal = self.description.catal
         if catal:
             self._catalized = True
-            self._catal = system.comp_collect[catal.name]
+            self._catal = self.comp_collect[catal.name]
         else:
             self._catalized = False
         self._reaccalc: Optional[Callable[[], float]] = None
         self._uncatcalc: Optional[Callable[[], float]] = None
         self._set_reaccalc()
-        self.register()
-
-    def destroy(self) -> None:
-        if self._probaobj.registered:
-            self._probaobj.unregister()
-            for comp in self._reactants:
-                comp.unregister_reaction(self)
-            if self._catalized:
-                self._catal.unregister_reaction(self)
-            self.system.reac_collect.remove(self.description.name)
-
-    def register(self) -> None:
         for comp in self._reactants:
             comp.register_reaction(self)
         if self._catalized:
             self._catal.register_reaction(self)
 
+    def _start_unactivation(self) -> None:
+        self._probaobj.unregister()
+
+    def _finish_activation(self) -> None:
+        self._products = [self.comp_collect[name] for name in self._productnames]
+
+    @property
+    def proba(self) -> float:
+        return self._probaobj.proba
+
+    def update(self) -> None:
+        self._probaobj.update(self.calcproba())
+
     def process(self) -> None:
+        # If first time processed, activate
+        if not self.activated:
+            self.activate()
+        # Increment products
+        for prod in self._products:
+            prod.inc()
+        # Decrement reactants
         for reac in self._reactants:
             try:
                 reac.dec()
-            except Finished as f:
-                # Add details to the message
+            except Finished as end:
+                # Detected a simulation end for some (presumably) bad reason
+                # At this point, it implies (likely) decrementing from 0...
+                # Thus exit with max of information
                 detail = f" from {self} (p={self.proba}, "
                 for comp in self._reactants:
                     detail += f"[{comp.description}]={comp.pop} ,"
@@ -73,14 +250,7 @@ class Reaction(Chemical[ReacDescr]):
                     detail += f"catal[{self._catal.description}]={self._catal.pop})"
                 else:
                     detail += ")"
-                raise DecrZero(f.detail + detail)
-        if not self._started:
-            self._products = [
-                self.system.comp_collect[name] for name in self._productnames
-            ]
-            self._started = True
-        for prod in self._products:
-            prod.inc()
+                raise DecrZero(end.detail + detail)
 
     def _order0(self) -> float:
         # Reaction ->
@@ -147,13 +317,6 @@ class Reaction(Chemical[ReacDescr]):
         assert self._reaccalc is not None
         return 0.0 if self._reactants[0].pop == 0 else self._reaccalc()
 
-    @property
-    def proba(self) -> float:
-        return self._probaobj.proba
-
-    def update(self) -> None:
-        self._probaobj.update(self.calcproba())
-
     def addkept(self) -> None:
         if self._catal:
             self._catal.addkept(self)
@@ -161,21 +324,41 @@ class Reaction(Chemical[ReacDescr]):
             comp.addkept(self)
 
 
-class Compound(Chemical[CompDescr]):
+class Compound(Chemical[CompDescr, CollectofCompound]):
     _descrtype = "Compound"
 
-    def __init__(self, description: CompDescr, system: "System"):
-        super().__init__(description, system)
+    def initialize(self, reac_collect: CollectofReaction):
+        self.reac_collect = reac_collect
         self._reactions: Set[Reaction] = set()
-        self.system = system
         self._kept_descr: List[Reaction] = []
         self.pop = 0
-        self.length = description.length
+        self.length = self.description.length
+
+    def _finish_activation(self) -> None:
+        self.reac_set()
+
+    def _start_unactivation(self) -> None:
+        for reac in self.reac_set():
+            reac.unactivate()
+
+    def _upd_reac(self) -> None:
+        # copy as list because self._reactions to be changed in loop. Elegant?...
+        for reac in list(self._reactions):
+            reac.update()
+
+    def reac_set(self) -> List[Reaction]:
+        return self._kept_descr + self.reac_collect.get_related(self)
+
+    def addkept(self, reac: Reaction) -> None:
+        self._kept_descr.append(reac)
+
+    def register_reaction(self, reaction: Reaction) -> None:
+        self._reactions.add(reaction)
 
     def inc(self) -> None:
         self.pop += 1
         if self.pop == 1:
-            self._activate()
+            self.activate()
         self._upd_reac()
 
     def dec(self) -> None:
@@ -184,7 +367,7 @@ class Compound(Chemical[CompDescr]):
         else:
             raise DecrZero(self.description.name)
         if self.pop == 0:
-            self._unactivate()
+            self.unactivate()
         else:
             self._upd_reac()
 
@@ -192,41 +375,10 @@ class Compound(Chemical[CompDescr]):
         if start != 0:
             if self.pop == 0:
                 self.pop = start
-                self._activate()
+                self.activate()
             else:
                 self.pop = start
             self._upd_reac()
         else:
             self.pop = 0
-            self._unactivate()
-
-    def _activate(self) -> None:
-        self.system.comp_collect.activate(self.description.name)
-        self.reac_set()
-        # for reac in self.reac_set():
-        #    self.system.reac_collect[reac.name]
-
-    def _unactivate(self) -> None:
-        for reac in self.reac_set():
-            reac.destroy()
-        self.system.comp_collect.unactivate(self.description.name)
-
-    def _upd_reac(self) -> None:
-        # copy as list because self._reactions to be changed in loop. Elegant?...
-        for reac in list(self._reactions):
-            reac.update()
-
-    def reac_set(self) -> List[Reaction]:
-        return self._kept_descr + self.system.reac_collect.get_related(self)
-
-    def addkept(self, reac: Reaction) -> None:
-        self._kept_descr.append(reac)
-
-    def register_reaction(self, reaction: Reaction) -> None:
-        self._reactions.add(reaction)
-
-    def unregister_reaction(self, reaction: Reaction) -> None:
-        try:
-            self._reactions.remove(reaction)
-        except KeyError:
-            pass
+            self.unactivate()

@@ -1,4 +1,4 @@
-from typing import Generic, TypeVar, Dict, Set, List
+from typing import Generic, TypeVar, Dict, Set, List, Optional
 
 T = TypeVar("T")
 
@@ -8,7 +8,6 @@ class Collect(Generic[T]):
         self.system = system  # remove this dependency???
         self.pool: Dict[str, T] = {}
         self.categories: Dict[str, Set[T]] = {}
-        # /!\ Test drop !!!! => avoid 2 dictionarie if drop is True
         self.active: Dict[str, T] = self.pool if drop else {}
 
     def __getitem__(self, name: str) -> T:
@@ -31,25 +30,27 @@ class Collect(Generic[T]):
         self.pool[name] = newobj
         return newobj
 
-    def remove(self, name: str) -> None:
-        """Delete the object described by its name"""
-        if name in self.active:
-            self.unactivate(name)
-        try:
-            del self.pool[name]
-        except KeyError:
-            pass  # find cleverer checks ?
+    # def remove(self, name: str) -> None:
+    #     """Delete the object described by its name"""
+    #     if name in self.active:
+    #         self.unactivate(name)
+    #     try:
+    #         del self.pool[name]
+    #     except KeyError:
+    #         pass  # find cleverer checks ?
 
     def activate(self, name: str) -> None:
         """Put the object 'name' in the active section, then categorize it"""
+        obj = self[name]
+        # will fail if activate an duplicated object (i.e. 2 different objects with same name exists)
+        assert obj is self[name]
         if name not in self.active:
-            obj = self[name]
             self.active[name] = obj
-            for catname in self._categorize(obj):
-                try:
-                    self.categories[catname].add(obj)
-                except KeyError:
-                    self.categories[catname] = {obj}
+        for catname in self._categorize(obj):
+            try:
+                self.categories[catname].add(obj)
+            except KeyError:
+                self.categories[catname] = {obj}
 
     def unactivate(self, name: str) -> None:
         """Remove the object 'name' from the active section, then

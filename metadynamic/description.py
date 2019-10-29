@@ -197,7 +197,7 @@ class PolymDescr(ReacDescr):
         )
         return [
             create(other)
-            for other in reactant.system.comp_collect.cat_list("polym")
+            for other in reactant.collect.cat_list("polym")
             for create in (first, last)
         ]
 
@@ -229,7 +229,7 @@ class ActpolymDescr(ReacDescr):
                     altconst,
                     catconst,
                 )
-                for other in reactant.system.comp_collect.cat_list("actpol")
+                for other in reactant.collect.cat_list("actpol")
             ]
         if reactant.description.isact:
             return [
@@ -242,7 +242,7 @@ class ActpolymDescr(ReacDescr):
                     altconst,
                     catconst,
                 )
-                for other in reactant.system.comp_collect.cat_list("polym")
+                for other in reactant.collect.cat_list("polym")
             ]
         return []
 
