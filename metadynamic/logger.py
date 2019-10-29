@@ -78,6 +78,9 @@ class Log:
             self._logger.setLevel(self.level)
             self.debug(f"Connected to {filename}; reason: {reason}")
             self.connected = True
+        else:
+            self.reset_timer()
+            self.debug(f"Attempted to reconnect; reason: {reason}")
 
     def disconnect(self, reason: str = "unknown") -> None:
         if self.connected:
@@ -89,26 +92,23 @@ class Log:
             self._logger = BlackholeLogger()
             self._handler = None
             self.connected = False
+        else:
+            self.debug(f"Attempted to redisconnect; reason: {reason}")
+
+    def _format_msg(self, origin: str, msg: str) -> str:
+        return f"{origin}-{current_process().name} : {msg}   (rt={self.runtime()}, t={self.time()})"
 
     def debug(self, msg: str) -> None:
-        self._logger.debug(
-            f"DEBUG-{current_process().name} : {msg}   (rt={self.runtime()}, t={self.time()})"
-        )
+        self._logger.debug(self._format_msg("DEBUG", msg))
 
     def info(self, msg: str) -> None:
-        self._logger.info(
-            f"INFO-{current_process().name} : {msg}   (rt={self.runtime()}, t={self.time()})"
-        )
+        self._logger.info(self._format_msg("INFO", msg))
 
     def warning(self, msg: str) -> None:
-        self._logger.warning(
-            f"WARNING-{current_process().name} : {msg}   (rt={self.runtime()}, t={self.time()})"
-        )
+        self._logger.warning(self._format_msg("WARNING", msg))
 
     def error(self, msg: str) -> None:
-        self._logger.error(
-            f"ERROR-{current_process().name} : {msg}   (rt={self.runtime()}, t={self.time()})"
-        )
+        self._logger.error(self._format_msg("ERROR", msg))
 
     def runtime(self) -> float:
         return self._timer.time

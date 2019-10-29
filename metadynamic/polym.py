@@ -402,7 +402,6 @@ class Chemical(Generic[D]):
     def __init__(self, description: D, system: "System"):
         self.system = system
         self.description: D = description
-        # self.system.log.debug(f"Creating {description} Chemical")
 
     def __repr__(self) -> str:
         return f"{self._descrtype}: {self}"
@@ -434,11 +433,9 @@ class Reaction(Chemical[ReacDescr]):
         self._uncatcalc: Optional[Callable[[], float]] = None
         self._set_reaccalc()
         self.register()
-        # self.system.log.debug(f"{self} created from {description}, transforms {self._reactants} into {self._productnames}")
 
     def destroy(self) -> None:
         if self._probaobj.registered:
-            # self.system.log.debug(f"Destroying {self}")
             self._probaobj.unregister()
             for comp in self._reactants:
                 comp.unregister_reaction(self)
@@ -447,7 +444,6 @@ class Reaction(Chemical[ReacDescr]):
             self.system.reac_collect.remove(self.description.name)
 
     def register(self) -> None:
-        # self.system.log.debug(f"Registering {self}")
         for comp in self._reactants:
             comp.register_reaction(self)
         if self._catalized:
@@ -884,14 +880,11 @@ class System:
         table = DataFrame(index=lines)
         lendist = DataFrame()
         pooldist = DataFrame()
-        random.seed(
-            self.param.seed
-        )  # necessary for multiprocessing from different seeds
+        random.seed(self.param.seed)
         self.log.connect(f"Reconnected from thread {num+1}", num + 1)
         self.time = 0.0
         tnext = 0.0
         step = 0
-        # self.log.reset_timer()
         Process(getpid()).cpu_affinity([num % cpu_count()])
         while True:
             try:
