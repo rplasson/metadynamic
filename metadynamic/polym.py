@@ -1,7 +1,19 @@
 from multiprocessing import get_context, cpu_count
 from itertools import repeat, chain
 from os import getpid
-from typing import TypeVar, List, Optional, Callable, Generic, Dict, Any, Tuple, Set
+from typing import (
+    TypeVar,
+    List,
+    Optional,
+    Callable,
+    Generic,
+    Dict,
+    Any,
+    Tuple,
+    Set,
+    Type,
+    Iterator,
+)
 from psutil import Process
 from dataclasses import dataclass, replace, field
 
@@ -110,7 +122,7 @@ class CompDescr(Descr):
         assert (
             0 <= pos < len(name)
         ), f"epimer position should be at least 0, at most the chain length minus one"
-        return name[:pos] + name[pos].swapcase() + name[pos + 1:]
+        return name[:pos] + name[pos].swapcase() + name[pos + 1 :]
 
     # @memoize_oneparam
     def extract(self, pos: int) -> str:
@@ -178,13 +190,13 @@ class ReacDescr(Descr):
         return []
 
     @classmethod
-    def subclasses(cls):
+    def subclasses(cls) -> Iterator[Type["ReacDescr"]]:
         for subclass in cls.__subclasses__():
             yield from subclass.subclasses()
             yield subclass
 
     @classmethod
-    def kinds(cls):
+    def kinds(cls) -> Iterator[str]:
         return (subcls.kind for subcls in cls.subclasses())
 
 
@@ -628,7 +640,7 @@ class Ruleset:
         # dictionary copy may be useless... but only called once at startup thus is a no cost safety
         self.consts = consts.copy()
         kinds = set(self.consts.keys())
-        self.descrs = {
+        self.descrs: Dict[str, Type[ReacDescr]] = {
             cls.kind: cls for cls in ReacDescr.subclasses() if cls.kind in kinds
         }
         self.altconsts = altconsts.copy()
@@ -696,7 +708,7 @@ class CollectofCompound(Collect[Compound]):
     def _create(self, name: str) -> Compound:
         return Compound(CompDescr(name), self.system)
 
-    def _categorize(self, obj: "Compound"):
+    def _categorize(self, obj: "Compound") -> List[str]:
         return obj.description.categories
 
     def dist(self, lenweight: bool = False, full: bool = False) -> Dict[int, int]:
@@ -716,7 +728,7 @@ class CollectofReaction(Collect[Reaction]):
         assert isinstance(name, str), f"{name} is not a string..."
         return Reaction(self.ruleset.reac_from_name(name), self.system)
 
-    def _categorize(self, obj: Reaction):
+    def _categorize(self, obj: Reaction) -> List[str]:
         return obj.description.categories
 
     def init_ruleset(
@@ -761,7 +773,7 @@ class SysParam:
     seed: Optional[int] = None
     save: List[str] = field(default_factory=list)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.vol = self.ptot / self.conc
 
 
@@ -799,7 +811,7 @@ class System:
 
     @property
     def memuse(self) -> float:
-        return Process(getpid()).memory_info().rss / 1024 / 1024
+        return float(Process(getpid()).memory_info().rss) / 1024 / 1024
 
     def conc_of(self, compound: str) -> float:
         try:

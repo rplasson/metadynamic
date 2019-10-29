@@ -6,10 +6,10 @@ from typing import Optional
 
 
 class Timer:
-    def __init__(self):
+    def __init__(self) -> None:
         self.reset()
 
-    def reset(self):
+    def reset(self) -> None:
         self._ptime0 = process_time()
 
     @property
@@ -18,16 +18,17 @@ class Timer:
 
 
 class BlackholeLogger(Logger):
-    def debug(self, msg: str, *args, **kwargs):
+    '''a fake Logger object that does nothing'''
+    def debug(self, msg: str, *args, **kwargs) -> None:
         pass
 
-    def info(self, msg: str, *args, **kwargs):
+    def info(self, msg: str, *args, **kwargs) -> None:
         pass
 
-    def warning(self, msg: str, *args, **kwargs):
+    def warning(self, msg: str, *args, **kwargs) -> None:
         pass
 
-    def error(self, msg: str, *args, **kwargs):
+    def error(self, msg: str, *args, **kwargs) -> None:
         pass
 
 
@@ -43,7 +44,7 @@ class Log:
             basename, suf = filename.split(".")
             self.filenamethread: str = basename + "-{}." + suf
         self._timer: Timer = Timer()
-        self.filename: str = filename
+        self.filename: Optional[str] = filename
         self.level: str = level
         self.connected: bool = False
         self.connect("Logger creation")
