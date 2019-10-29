@@ -18,7 +18,8 @@ from metadynamic.ends import (
     HappyEnding,
     BadEnding,
 )
-from metadynamic.utils import Log, Timer, samecase
+from metadynamic.logger import Log
+from metadynamic.utils import samecase
 from metadynamic.proba import Probaobj, Probalist
 from metadynamic.collector import Collect
 from metadynamic.processing import Result
@@ -109,7 +110,7 @@ class CompDescr(Descr):
         assert (
             0 <= pos < len(name)
         ), f"epimer position should be at least 0, at most the chain length minus one"
-        return name[:pos] + name[pos].swapcase() + name[pos + 1 :]
+        return name[:pos] + name[pos].swapcase() + name[pos + 1:]
 
     # @memoize_oneparam
     def extract(self, pos: int) -> str:
@@ -202,7 +203,7 @@ class PolymDescr(ReacDescr):
 
     @classmethod
     def fullfrom(
-        cls, reactant: 'Compound', const: float, altconst: float, catconst: float
+        cls, reactant: "Compound", const: float, altconst: float, catconst: float
     ) -> List[ReacDescr]:
         first: Callable[[Compound], ReacDescr] = lambda other: cls(
             "",
@@ -243,7 +244,7 @@ class ActpolymDescr(ReacDescr):
 
     @classmethod
     def fullfrom(
-        cls, reactant: 'Compound', const: float, altconst: float, catconst: float
+        cls, reactant: "Compound", const: float, altconst: float, catconst: float
     ) -> List[ReacDescr]:
         if reactant.description.ispolym:
             return [
@@ -286,7 +287,7 @@ class ActivationDescr(ReacDescr):
 
     @classmethod
     def fullfrom(
-        cls, reactant: 'Compound', const: float, altconst: float, catconst: float
+        cls, reactant: "Compound", const: float, altconst: float, catconst: float
     ) -> List[ReacDescr]:
         if reactant.description.ispolym:
             return [
@@ -307,7 +308,7 @@ class DectivationDescr(ReacDescr):
 
     @classmethod
     def fullfrom(
-        cls, reactant: 'Compound', const: float, altconst: float, catconst: float
+        cls, reactant: "Compound", const: float, altconst: float, catconst: float
     ) -> List[ReacDescr]:
         if reactant.description.isact:
             return [
@@ -332,7 +333,7 @@ class HydroDescr(ReacDescr):
 
     @classmethod
     def fullfrom(
-        cls, reactant: 'Compound', const: float, altconst: float, catconst: float
+        cls, reactant: "Compound", const: float, altconst: float, catconst: float
     ) -> List[ReacDescr]:
         return [
             cls("", [reactant.description], None, i, const, altconst, catconst)
@@ -363,7 +364,7 @@ class RacemDescr(ReacDescr):
 
     @classmethod
     def fullfrom(
-        cls, reactant: 'Compound', const: float, altconst: float, catconst: float
+        cls, reactant: "Compound", const: float, altconst: float, catconst: float
     ) -> List[ReacDescr]:
         return [
             cls("", [reactant.description], None, i, const, altconst, catconst)
@@ -376,7 +377,7 @@ class EpimDescr(RacemDescr):
 
     @classmethod
     def fullfrom(
-        cls, reactant: 'Compound', const: float, altconst: float, catconst: float
+        cls, reactant: "Compound", const: float, altconst: float, catconst: float
     ) -> List[ReacDescr]:
         if reactant.description.ismono:
             return []
@@ -656,7 +657,7 @@ class Ruleset:
     ) -> ReacDescr:
         return self._newreac("", kind, reactants, catal, pos)
 
-    def full_reac(self, reactant: 'Compound') -> List[ReacDescr]:
+    def full_reac(self, reactant: "Compound") -> List[ReacDescr]:
         return list(
             chain.from_iterable(
                 [
@@ -695,7 +696,7 @@ class CollectofCompound(Collect[Compound]):
     def _create(self, name: str) -> Compound:
         return Compound(CompDescr(name), self.system)
 
-    def _categorize(self, obj: 'Compound'):
+    def _categorize(self, obj: "Compound"):
         return obj.description.categories
 
     def dist(self, lenweight: bool = False, full: bool = False) -> Dict[int, int]:
@@ -741,7 +742,7 @@ class CollectofReaction(Collect[Reaction]):
             self.ruleset.reac_from_descr(kind, reactants, catal, pos)
         )
 
-    def get_related(self, reactant: 'Compound') -> List[Reaction]:
+    def get_related(self, reactant: "Compound") -> List[Reaction]:
         return [
             self.from_descr(description)
             for description in self.ruleset.full_reac(reactant)
@@ -777,8 +778,7 @@ class System:
         autoclean: bool = True,
         minprob: float = 1e-10,
     ):
-        self.timer = Timer()
-        self.log = Log(self.timer, logfile, loglevel)
+        self.log = Log(logfile, loglevel)
         if altconsts is None:
             altconsts = {}
         if catconsts is None:
@@ -841,7 +841,7 @@ class System:
         # Check if end of time is nigh
         if self.time >= self.param.tend:
             raise TimesUp(f"t={self.time}")
-        if self.timer.time >= self.param.rtlim:
+        if self.log.runtime() >= self.param.rtlim:
             raise RuntimeLim(f"t={self.time}")
         # Then process self.maxsteps times
         for _ in repeat(None, self.param.maxsteps):
@@ -879,7 +879,7 @@ class System:
         self.time = 0.0
         tnext = 0.0
         step = 0
-        self.timer.reset()
+        self.log.reset_timer()
         Process(getpid()).cpu_affinity([num % cpu_count()])
         while True:
             try:
@@ -887,7 +887,7 @@ class System:
                 finished = self._process(tnext)
                 stat, dist = self.statlist()
                 table[step] = (
-                    [num, self.timer.time, self.memuse, self.step, self.time]
+                    [num, self.log.runtime(), self.memuse, self.step, self.time]
                     + [self.conc_of(comp) for comp in self.param.save]
                     + [
                         stat["maxlength"],
@@ -907,7 +907,7 @@ class System:
                     tnext += self.param.tstep
                 step += 1
             except Finished as the_end:
-                end = f"{the_end} ({self.timer.time} s)"
+                end = f"{the_end} ({self.log.runtime()} s)"
                 if isinstance(the_end, HappyEnding):
                     self.log.info(str(the_end))
                 elif isinstance(the_end, BadEnding):
