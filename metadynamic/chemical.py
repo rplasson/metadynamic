@@ -3,7 +3,7 @@ from typing import Generic, List, Optional, Callable, Set, TypeVar, Dict, Type, 
 
 from metadynamic.collector import Collect
 from metadynamic.proba import Probaobj, Probalist
-from metadynamic.ends import Finished, DecrZero
+from metadynamic.ends import DecrZero
 from metadynamic.description import ReacDescr, CompDescr
 
 D = TypeVar("D", "ReacDescr", "CompDescr")
@@ -228,7 +228,7 @@ class Reaction(Chemical[ReacDescr, CollectofReaction]):
         self._probaobj.unregister()
         return True
 
-    def _start_activation(self) -> None:
+    def _start_activation(self) -> bool:
         # Only activate if probability >0
         return self.calcproba() > 0.0
 
@@ -237,7 +237,11 @@ class Reaction(Chemical[ReacDescr, CollectofReaction]):
         return self._probaobj.proba
 
     def update(self) -> None:
-        self._probaobj.update(self.calcproba())
+        newproba = self.calcproba()
+        if newproba > 0.0:
+            self._probaobj.update(newproba)
+        else:
+            self.unactivate()
 
     def process(self) -> None:
         # If first time processed, activate
@@ -252,11 +256,10 @@ class Reaction(Chemical[ReacDescr, CollectofReaction]):
         for reac in self._reactants:
             try:
                 reac.dec()
-            except Finished as end:
-                # Detected a simulation end for some (presumably) bad reason
-                # At this point, it implies (likely) decrementing from 0...
+            except DecrZero as end:
+                # Decremented from 0...
                 # Thus exit with max of information
-                detail = f" from {self} (p={self.proba}, "
+                detail = f" from {self}, that is activated ({self.activated}) (p={self.proba}={self.calcproba()}, "
                 for comp in self._reactants:
                     detail += f"[{comp.description}]={comp.pop} ,"
                 if self._catalized:
