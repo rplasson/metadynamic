@@ -13,7 +13,7 @@ class Probaobj(Logged):
     Each object to be stored in the probalist must contain one Probaobj object
     """
 
-    def __init__(self, obj: Any, probalist: 'Probalist'):
+    def __init__(self, obj: Any, probalist: "Probalist"):
         self._probalist = probalist
         self.nlist: Optional[int]
         self.npos: Optional[int]

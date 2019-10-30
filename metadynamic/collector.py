@@ -24,7 +24,6 @@ class Collect(Generic[T], Logged):
         try:
             return self.pool[name]
         except KeyError:
-            self.log.debug(f"{self} created and returned new {name}")
             return self._add(name)
 
     def add(self, name: str) -> None:
@@ -38,15 +37,6 @@ class Collect(Generic[T], Logged):
         self.pool[name] = newobj
         self._initialize(newobj)
         return newobj
-
-    # def remove(self, name: str) -> None:
-    #     """Delete the object described by its name"""
-    #     if name in self.active:
-    #         self.unactivate(name)
-    #     try:
-    #         del self.pool[name]
-    #     except KeyError:
-    #         pass  # find cleverer checks ?
 
     def activate(self, name: str) -> None:
         """Put the object 'name' in the active section, then categorize it"""
@@ -66,13 +56,11 @@ class Collect(Generic[T], Logged):
            uncategorize it"""
         try:
             del self.active[name]
-            self.log.debug(f"{name} removed from {self}.active")
         except KeyError:
             pass
         for cat in self.categories.values():
             try:
                 cat.remove(self[name])
-                self.log.debug(f"{name} removed from {self}.{cat}")
             except KeyError:
                 pass
 
