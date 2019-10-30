@@ -14,7 +14,7 @@ class Descr:
         return []
 
     def __repr__(self) -> str:
-        return f"{self._descrtype}: self.name"
+        return f"{self._descrtype}: {self.name}"
 
     def __str__(self) -> str:
         return self.name
