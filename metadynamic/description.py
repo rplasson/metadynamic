@@ -113,7 +113,7 @@ class ReacDescr(Descr):
                 if self.nbreac == 1
                 else reactants[0].name + "+" + reactants[1].name
             )
-            name = f"{self.kind}.{reactantnames}.{catal if catal else ''}.{pos if pos else ''}"
+            name = f"{self.kind}.{reactantnames}.{catal if catal else ''}.{'' if pos is None else pos}"
         super().__init__(name)
         assert self.name[0] == self.kind, f"{self.name} created as {self.kind}"
         self.reactants: List[CompDescr] = reactants
