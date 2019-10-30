@@ -260,12 +260,14 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Logged):
             self._probaobj.update(newproba)
         else:
             self.unactivate()
+        assert self.proba == self.calcproba()
 
     def process(self) -> None:
         # If first time processed, activate
         # if not self.activated:
         #    self.activate()
         # Increment products
+        self.log.debug(f"Processing {self}, p={self.proba}={self.calcproba}, concs={[c.pop for c in self._reactants]}")
         if self._products is None:
             self._products = [self.comp_collect[name] for name in self._productnames]
         for prod in self._products:
@@ -374,10 +376,11 @@ class Compound(Chemical[CompDescr, CollectofCompound], Logged):
             reac.activate()
         return True
 
-    def _start_unactivation(self) -> bool:
-        for reac in self._reactions.copy():
-            reac.unactivate()
-        return True
+    #Only unactivate reaction from update
+    #def _start_unactivation(self) -> bool:
+    #    for reac in self._reactions.copy():
+    #        reac.unactivate()
+    #    return True
 
     def _upd_reac(self) -> None:
         # copy as list because self._reactions to be changed in loop. Elegant?...
