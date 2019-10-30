@@ -92,8 +92,10 @@ class Ruleset:
 class CollectofCompound(Collect["Compound"]):
     def _create(self, name: str) -> "Compound":
         newcomp = Compound(CompDescr(name), self)
-        newcomp.initialize(self.system.reac_collect)
         return newcomp
+
+    def _initialize(self, comp: "Compound") -> None:
+        comp.initialize(self.system.reac_collect)
 
     def _categorize(self, obj: "Compound") -> List[str]:
         return obj.description.categories
@@ -114,10 +116,12 @@ class CollectofReaction(Collect["Reaction"]):
     def _create(self, name: str) -> "Reaction":
         assert isinstance(name, str), f"{name} is not a string..."
         newreac = Reaction(self.ruleset.reac_from_name(name), self)
-        newreac.initialize(
+        return newreac
+
+    def _initialize(self, reac: "Reaction") -> None:
+        reac.initialize(
             self.system.param.vol, self.system.probalist, self.system.comp_collect
         )
-        return newreac
 
     def _categorize(self, obj: "Reaction") -> List[str]:
         return obj.description.categories
@@ -131,12 +135,12 @@ class CollectofReaction(Collect["Reaction"]):
         self.ruleset = Ruleset(consts, altconsts, catconsts)
 
     def from_descr(self, description: ReacDescr) -> "Reaction":
-        try:
-            return self.pool[description.name]
-        except KeyError:
-            newobj = self._create(description.name)
-            self.pool[description.name] = newobj
-            return newobj
+        # try:
+        return self[description.name]
+        # except KeyError:
+        #    newobj = self._create(description.name)
+        #    self.pool[description.name] = newobj
+        #    return newobj
 
     def describe(
         self, kind: str, reactants: List[str], catal: str, pos: int
@@ -168,25 +172,26 @@ class Chemical(Generic[D, C]):
 
     def activate(self) -> None:
         if not self.activated:
-            self.collect.activate(self.description.name)
-            self._finish_activation()
-            self.activated = True
+            if self._start_activation():
+                self.collect.activate(self.description.name)
+                self.activated = True
 
-    def _finish_activation(self) -> None:
+    def _start_activation(self) -> bool:
         """To be implemented in derived class (if needed)
-        Will be processed *after* common activation procedure is performed"""
-        pass
+        Will be processed *before* common activation procedure is performed
+        Return True if activation can be processed"""
+        return True
 
     def unactivate(self) -> None:
         if self.activated:
-            self._start_unactivation()
-            self.collect.unactivate(self.description.name)
-            self.activated = False
+            if self._start_unactivation():
+                self.collect.unactivate(self.description.name)
+                self.activated = False
 
-    def _start_unactivation(self) -> None:
+    def _start_unactivation(self) -> bool:
         """To be implemented in derived class (if needed)
         Will be processed *before* common unactivation procedure is performed"""
-        pass
+        return True
 
 
 class Reaction(Chemical[ReacDescr, CollectofReaction]):
@@ -216,12 +221,18 @@ class Reaction(Chemical[ReacDescr, CollectofReaction]):
             comp.register_reaction(self)
         if self._catalized:
             self._catal.register_reaction(self)
+        self.activate()
 
-    def _start_unactivation(self) -> None:
+    def _start_unactivation(self) -> bool:
         self._probaobj.unregister()
+        return True
 
-    def _finish_activation(self) -> None:
+    def _start_activation(self) -> None:
+        # Only activate if probability >0
+        if self.calcproba() == 0.0:
+            return False
         self._products = [self.comp_collect[name] for name in self._productnames]
+        return True
 
     @property
     def proba(self) -> float:
@@ -232,8 +243,8 @@ class Reaction(Chemical[ReacDescr, CollectofReaction]):
 
     def process(self) -> None:
         # If first time processed, activate
-        if not self.activated:
-            self.activate()
+        # if not self.activated:
+        #    self.activate()
         # Increment products
         for prod in self._products:
             prod.inc()
@@ -336,12 +347,16 @@ class Compound(Chemical[CompDescr, CollectofCompound]):
         self.pop = 0
         self.length = self.description.length
 
-    def _finish_activation(self) -> None:
+    def _start_activation(self) -> bool:
         self._reactions = self._kept_descr | set(self.reac_collect.get_related(self))
+        for reac in self._reactions:
+            reac.activate()
+        return True
 
-    def _start_unactivation(self) -> None:
+    def _start_unactivation(self) -> bool:
         for reac in self._reactions:
             reac.unactivate()
+        return True
 
     def _upd_reac(self) -> None:
         # copy as list because self._reactions to be changed in loop. Elegant?...

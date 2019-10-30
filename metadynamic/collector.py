@@ -28,6 +28,7 @@ class Collect(Generic[T]):
     def _add(self, name: str) -> T:
         newobj = self._create(name)
         self.pool[name] = newobj
+        self._initialize(newobj)
         return newobj
 
     # def remove(self, name: str) -> None:
@@ -74,6 +75,11 @@ class Collect(Generic[T]):
 
     def _create(self, name: str) -> T:
         """Create the object <T> from its name.
+        Must be implemented in subclasses"""
+        raise NotImplementedError
+
+    def _initialize(self, obj: T) -> None:
+        """Initialize the object <T> from its name.
         Must be implemented in subclasses"""
         raise NotImplementedError
 
