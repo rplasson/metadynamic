@@ -85,7 +85,7 @@ class CompDescr(Descr):
         assert (
             0 <= pos < len(name)
         ), f"epimer position should be at least 0, at most the chain length minus one"
-        return name[:pos] + name[pos].swapcase() + name[pos + 1:]
+        return name[:pos] + name[pos].swapcase() + name[pos + 1 :]
 
     # @memoize_oneparam
     def extract(self, pos: int) -> str:
@@ -180,7 +180,7 @@ class PolymDescr(ReacDescr):
     def fullfrom(
         cls, reactant: "Compound", const: float, altconst: float, catconst: float
     ) -> List[ReacDescr]:
-        first: Callable[['Compound'], ReacDescr] = lambda other: cls(
+        first: Callable[["Compound"], ReacDescr] = lambda other: cls(
             "",
             [reactant.description, other.description],
             None,
@@ -189,7 +189,7 @@ class PolymDescr(ReacDescr):
             altconst,
             catconst,
         )
-        last: Callable[['Compound'], ReacDescr] = lambda other: cls(
+        last: Callable[["Compound"], ReacDescr] = lambda other: cls(
             "",
             [other.description, reactant.description],
             None,
@@ -205,6 +205,7 @@ class PolymDescr(ReacDescr):
                 for create in (first, last)
             ]
         return []
+
 
 class ActpolymDescr(ReacDescr):
     kind = "A"
@@ -311,10 +312,12 @@ class HydroDescr(ReacDescr):
     def fullfrom(
         cls, reactant: "Compound", const: float, altconst: float, catconst: float
     ) -> List[ReacDescr]:
-        return [
-            cls("", [reactant.description], None, i, const, altconst, catconst)
-            for i in range(1, reactant.length)
-        ]
+        if reactant.description.ispolym:
+            return [
+                cls("", [reactant.description], None, i, const, altconst, catconst)
+                for i in range(1, reactant.length)
+            ]
+        return []
 
 
 class RacemDescr(ReacDescr):
@@ -342,10 +345,12 @@ class RacemDescr(ReacDescr):
     def fullfrom(
         cls, reactant: "Compound", const: float, altconst: float, catconst: float
     ) -> List[ReacDescr]:
-        return [
-            cls("", [reactant.description], None, i, const, altconst, catconst)
-            for i in range(reactant.length)
-        ]
+        if reactant.description.ispolym:
+            return [
+                cls("", [reactant.description], None, i, const, altconst, catconst)
+                for i in range(reactant.length)
+            ]
+        return []
 
 
 class EpimDescr(RacemDescr):
@@ -355,6 +360,6 @@ class EpimDescr(RacemDescr):
     def fullfrom(
         cls, reactant: "Compound", const: float, altconst: float, catconst: float
     ) -> List[ReacDescr]:
-        if reactant.description.ismono:
-            return []
-        return [cls("", [reactant.description], None, 0, const, altconst, catconst)]
+        if reactant.description.ispolym and not reactant.description.ismono:
+            return [cls("", [reactant.description], None, 0, const, altconst, catconst)]
+        return []
