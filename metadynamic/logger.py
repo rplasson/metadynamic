@@ -115,3 +115,11 @@ class Log:
 
     def reset_timer(self) -> None:
         self._timer.reset()
+
+
+class Logged:
+    log: Log
+
+    @classmethod
+    def setlogger(cls, filename: Optional[str] = None, level: str = "INFO"):
+        cls.log = Log(filename, level)

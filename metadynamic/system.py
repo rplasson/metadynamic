@@ -1,7 +1,7 @@
 from multiprocessing import get_context
 from itertools import repeat
 from os import getpid
-from typing import List, Optional, Dict, Any, Tuple, Type
+from typing import List, Optional, Dict, Tuple
 from psutil import Process
 from dataclasses import dataclass, replace, field
 
@@ -17,15 +17,13 @@ from metadynamic.ends import (
     HappyEnding,
     BadEnding,
 )
-from metadynamic.logger import Log
+from metadynamic.logger import Logged
 from metadynamic.proba import Probalist
 from metadynamic.processing import Result
 from metadynamic.chemical import (
-    Compound,
     CollectofCompound,
     CollectofReaction,
 )
-from metadynamic.description import ReacDescr, CompDescr
 
 # D = TypeVar("D", "Descr", "ReacDescr", "CompDescr")
 # C = TypeVar("C", "Chemical", "Reaction", "Compound")
@@ -50,7 +48,7 @@ class SysParam:
         self.vol = self.ptot / self.conc
 
 
-class System:
+class System(Logged):
     def __init__(
         self,
         init: Dict[str, int],
@@ -63,7 +61,7 @@ class System:
         autoclean: bool = True,
         minprob: float = 1e-10,
     ):
-        self.log = Log(logfile, loglevel)
+        self.setlogger(logfile, loglevel)
         if altconsts is None:
             altconsts = {}
         if catconsts is None:
