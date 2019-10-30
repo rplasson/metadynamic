@@ -92,7 +92,7 @@ class Ruleset:
 
 class CollectofCompound(Collect["Compound"], Logged):
     _colltype = "Compound"
-
+    
     def _create(self, name: str) -> "Compound":
         newcomp = Compound(CompDescr(name), self)
         return newcomp
@@ -117,7 +117,7 @@ class CollectofCompound(Collect["Compound"], Logged):
 
 class CollectofReaction(Collect["Reaction"], Logged):
     _colltype = "Reaction"
-
+    
     def _create(self, name: str) -> "Reaction":
         assert isinstance(name, str), f"{name} is not a string..."
         newreac = Reaction(self.ruleset.reac_from_name(name), self)
@@ -168,6 +168,7 @@ class Chemical(Generic[D, C], Logged):
         self.description: D = description
         self.collect: C = collect
         self.activated: bool = False
+        self.log.debug(f"Creating {self}")
 
     def __repr__(self) -> str:
         return f"{self._descrtype}: {self}"
@@ -176,10 +177,14 @@ class Chemical(Generic[D, C], Logged):
         return self.description.name
 
     def activate(self) -> None:
+        self.log.debug(f"Trying to activate {self}...")
         if not self.activated:
             if self._start_activation():
                 self.collect.activate(self.description.name)
                 self.activated = True
+                self.log.debug(f"{self} activation...done")
+                self._finish_activation()
+                self.log.debug(f"{self} activation...finished")
 
     def _start_activation(self) -> bool:
         """To be implemented in derived class (if needed)
@@ -187,10 +192,21 @@ class Chemical(Generic[D, C], Logged):
         Return True if activation can be processed"""
         return True
 
+    def _finish_activation(self):
+        """To be implemented in derived class (if needed)
+        Will be processed *after* common activation procedure is performed"""
+        pass
+
     def unactivate(self) -> None:
+        self.log.debug(f"Trying to unactivate {self}...")
+        # if self.activated:
+        # self.log.debug(f"OK, {self} is activated.")
         if self._start_unactivation():
+            self.log.debug(f"OK, {self} allowed to inactivate...")
             self.collect.unactivate(self.description.name)
+            self.log.debug(f"OK, {self} removed from {self.collect}...")
             self.activated = False
+            self.log.debug(f"{self} unactivation...done")
 
     def _start_unactivation(self) -> bool:
         """To be implemented in derived class (if needed)
@@ -226,11 +242,14 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Logged):
             comp.register_reaction(self)
         if self._catalized:
             self._catal.register_reaction(self)
-        # self.activate()
+        #self.activate()
 
     def _start_unactivation(self) -> bool:
+        assert self.calcproba() == 0.0
         if self._probaobj.registered:
             self._probaobj.unregister()
+            self.log.debug(f"{self} should be unregistered after _probaobj.unregister() : {self._probaobj.registered}")
+            assert self.proba == 0.0
             return True
         return False
 
@@ -246,17 +265,29 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Logged):
         newproba = self.calcproba()
         if newproba > 0.0:
             self._probaobj.update(newproba)
+            assert self.proba == self.calcproba()
         else:
             self.unactivate()
+            self.log.debug(f"{self} should be unregistered after unactivate(): {self._probaobj.registered}")
+            assert self.proba == 0.0
+            assert self.calcproba() == 0.0
 
     def process(self) -> None:
+        # If first time processed, activate
+        # if not self.activated:
+        #    self.activate()
+        # Increment products
+        self.log.debug(f"Processing {self}, p={self.proba}={self.calcproba}, concs={[c.pop for c in self._reactants]}")
         if self._products is None:
             self._products = [self.comp_collect[name] for name in self._productnames]
+        reactoupdate = set()
         for prod in self._products:
+            reactoupdate |= prod.reactions
             prod.inc()
         # Decrement reactants
         for reac in self._reactants:
             try:
+                reactoupdate |= reac.reactions
                 reac.dec()
             except DecrZero as end:
                 # Decremented from 0...
@@ -269,6 +300,8 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Logged):
                 else:
                     detail += ")"
                 raise DecrZero(end.detail + detail)
+        for reac in reactoupdate:
+            reac.update()
 
     def _order0(self) -> float:
         # Reaction ->
@@ -347,33 +380,27 @@ class Compound(Chemical[CompDescr, CollectofCompound], Logged):
 
     def initialize(self, reac_collect: CollectofReaction) -> None:
         self.reac_collect = reac_collect
-        self._reactions: Set[Reaction] = set()
+        self.reactions: Set[Reaction] = set()
         self._kept_descr: Set[Reaction] = set()
         self.pop = 0
         self.length = self.description.length
 
     def _finish_activation(self) -> bool:
-        self._reactions = self._kept_descr | set(self.reac_collect.get_related(self))
-        for reac in self._reactions:
+        self.reactions = self._kept_descr | set(self.reac_collect.get_related(self))
+        for reac in self.reactions:
             reac.activate()
         return True
-
-    def _upd_reac(self) -> None:
-        # copy as list because self._reactions to be changed in loop. Elegant?...
-        for reac in list(self._reactions):
-            reac.update()
 
     def addkept(self, reaction: Reaction) -> None:
         self._kept_descr.add(reaction)
 
     def register_reaction(self, reaction: Reaction) -> None:
-        self._reactions.add(reaction)
+        self.reactions.add(reaction)
 
     def inc(self) -> None:
         self.pop += 1
         if self.pop == 1:
             self.activate()
-        self._upd_reac()
 
     def dec(self) -> None:
         if self.pop > 0:
@@ -382,10 +409,7 @@ class Compound(Chemical[CompDescr, CollectofCompound], Logged):
             raise DecrZero(self.description.name)
         if self.pop == 0:
             self.unactivate()
-            for reac in list(self._reactions):
-                reac.unactivate()
-        else:
-            self._upd_reac()
+            self.log.debug(f"{self} reached 0, unactivated directly all related reactions")
 
     def init_pop(self, start: int) -> None:
         if start != 0:
@@ -394,7 +418,8 @@ class Compound(Chemical[CompDescr, CollectofCompound], Logged):
                 self.activate()
             else:
                 self.pop = start
-            self._upd_reac()
+            for reac in list(self.reactions):
+                reac.update()
         else:
             self.pop = 0
             self.unactivate()
