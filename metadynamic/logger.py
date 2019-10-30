@@ -121,5 +121,5 @@ class Logged:
     log: Log
 
     @classmethod
-    def setlogger(cls, filename: Optional[str] = None, level: str = "INFO"):
+    def setlogger(cls, filename: Optional[str] = None, level: str = "INFO") -> None:
         cls.log = Log(filename, level)

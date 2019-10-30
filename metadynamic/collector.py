@@ -1,9 +1,11 @@
-from typing import Generic, TypeVar, Dict, Set, List, Optional
+from typing import Generic, TypeVar, Dict, Set, List
+
+from metadynamic.logger import Logged
 
 T = TypeVar("T")
 
 
-class Collect(Generic[T]):
+class Collect(Generic[T], Logged):
     def __init__(self, system: "System", drop: bool = False):
         self.system = system  # remove this dependency???
         self.pool: Dict[str, T] = {}
@@ -16,7 +18,9 @@ class Collect(Generic[T]):
             Else, return the already created one"""
         try:
             return self.pool[name]
+            self.log.debug(f"{self} returned existing {name}")
         except KeyError:
+            self.log.debug(f"{self} created and returned new {name}")
             return self._add(name)
 
     def add(self, name: str) -> None:

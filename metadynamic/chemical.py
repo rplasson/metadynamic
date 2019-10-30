@@ -5,6 +5,7 @@ from metadynamic.collector import Collect
 from metadynamic.proba import Probaobj, Probalist
 from metadynamic.ends import DecrZero
 from metadynamic.description import ReacDescr, CompDescr
+from metadynamic.logger import Logged
 
 D = TypeVar("D", "ReacDescr", "CompDescr")
 C = TypeVar("C", "CollectofReaction", "CollectofCompound")
@@ -89,7 +90,7 @@ class Ruleset:
             raise ValueError(f"'{badkeys}' are not recognized reaction types")
 
 
-class CollectofCompound(Collect["Compound"]):
+class CollectofCompound(Collect["Compound"], Logged):
     def _create(self, name: str) -> "Compound":
         newcomp = Compound(CompDescr(name), self)
         return newcomp
@@ -112,7 +113,7 @@ class CollectofCompound(Collect["Compound"]):
         return res
 
 
-class CollectofReaction(Collect["Reaction"]):
+class CollectofReaction(Collect["Reaction"], Logged):
     def _create(self, name: str) -> "Reaction":
         assert isinstance(name, str), f"{name} is not a string..."
         newreac = Reaction(self.ruleset.reac_from_name(name), self)
@@ -156,13 +157,14 @@ class CollectofReaction(Collect["Reaction"]):
         ]
 
 
-class Chemical(Generic[D, C]):
+class Chemical(Generic[D, C], Logged):
     _descrtype = "Chemical"
 
     def __init__(self, description: D, collect: C):
         self.description: D = description
         self.collect: C = collect
         self.activated: bool = False
+        self.log.debug(f"Creating {self}")
 
     def __repr__(self) -> str:
         return f"{self._descrtype}: {self}"
@@ -171,10 +173,12 @@ class Chemical(Generic[D, C]):
         return self.description.name
 
     def activate(self) -> None:
+        self.log.debug(f"Trying to activate {self}...")
         if not self.activated:
             if self._start_activation():
                 self.collect.activate(self.description.name)
                 self.activated = True
+                self.log.debug(f"...done")
 
     def _start_activation(self) -> bool:
         """To be implemented in derived class (if needed)
@@ -183,10 +187,12 @@ class Chemical(Generic[D, C]):
         return True
 
     def unactivate(self) -> None:
+        self.log.debug(f"Trying to unactivate {self}...")
         if self.activated:
             if self._start_unactivation():
                 self.collect.unactivate(self.description.name)
                 self.activated = False
+                self.log.debug(f"...done")                
 
     def _start_unactivation(self) -> bool:
         """To be implemented in derived class (if needed)
@@ -194,12 +200,12 @@ class Chemical(Generic[D, C]):
         return True
 
 
-class Reaction(Chemical[ReacDescr, CollectofReaction]):
+class Reaction(Chemical[ReacDescr, CollectofReaction], Logged):
     _descrtype = "Reaction"
 
     def initialize(
         self, vol: float, probalist: Probalist, comp_collect: CollectofCompound
-    ):
+    ) -> None:
         self._vol: float = vol
         self._probaobj: Probaobj = probalist.get_probaobj(self)
         self.comp_collect = comp_collect
@@ -340,10 +346,10 @@ class Reaction(Chemical[ReacDescr, CollectofReaction]):
             comp.addkept(self)
 
 
-class Compound(Chemical[CompDescr, CollectofCompound]):
+class Compound(Chemical[CompDescr, CollectofCompound], Logged):
     _descrtype = "Compound"
 
-    def initialize(self, reac_collect: CollectofReaction):
+    def initialize(self, reac_collect: CollectofReaction) -> None:
         self.reac_collect = reac_collect
         self._reactions: Set[Reaction] = set()
         self._kept_descr: Set[Reaction] = set()

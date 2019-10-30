@@ -61,7 +61,7 @@ class System(Logged):
         autoclean: bool = True,
         minprob: float = 1e-10,
     ):
-        self.setlogger(logfile, loglevel)
+        Logged.setlogger(logfile, loglevel)
         if altconsts is None:
             altconsts = {}
         if catconsts is None:
