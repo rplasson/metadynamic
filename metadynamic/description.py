@@ -61,13 +61,13 @@ class CompDescr(Descr):
 
     @property
     # @memoize_property
-    def activate(self) -> str:
+    def actreac(self) -> str:
         assert not self.isact, f"{self} is already activated"
         return self.name + "*"
 
     @property
     # @memoize_property
-    def unactivate(self) -> str:
+    def unactreac(self) -> str:
         assert self.isact, f"{self} is not activated"
         return self.name[:-1]
 
@@ -212,7 +212,7 @@ class ActpolymDescr(ReacDescr):
     nbreac = 2
 
     def build_products(self) -> List[str]:
-        return [self.reactants[0].unactivate + self.reactants[1].name]
+        return [self.reactants[0].unactreac + self.reactants[1].name]
 
     def nbalt(self) -> int:
         name0 = self.reactants[0].extract(-2)
@@ -257,7 +257,7 @@ class ActivationDescr(ReacDescr):
     nbreac = 1
 
     def build_products(self) -> List[str]:
-        return [self.reactants[0].activate]
+        return [self.reactants[0].actreac]
 
     def nbalt(self) -> int:
         return 0 if self.reactants[0].ismono else 1
@@ -278,7 +278,7 @@ class DectivationDescr(ReacDescr):
     nbreac = 1
 
     def build_products(self) -> List[str]:
-        return [self.reactants[0].unactivate]
+        return [self.reactants[0].unactreac]
 
     def nbalt(self) -> int:
         return 0 if self.reactants[0].length == 2 else 1

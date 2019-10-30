@@ -6,11 +6,16 @@ T = TypeVar("T")
 
 
 class Collect(Generic[T], Logged):
+    _colltype = "Generic"
+
     def __init__(self, system: "System", drop: bool = False):
         self.system = system  # remove this dependency???
         self.pool: Dict[str, T] = {}
         self.categories: Dict[str, Set[T]] = {}
         self.active: Dict[str, T] = self.pool if drop else {}
+
+    def __repr__(self):
+        return f"<Collect of {len(self.pool)} {self._colltype}>"
 
     def __getitem__(self, name: str) -> T:
         """ Return the object as described by its name

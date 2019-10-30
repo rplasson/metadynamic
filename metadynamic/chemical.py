@@ -91,6 +91,8 @@ class Ruleset:
 
 
 class CollectofCompound(Collect["Compound"], Logged):
+    _colltype = "Compound"
+    
     def _create(self, name: str) -> "Compound":
         newcomp = Compound(CompDescr(name), self)
         return newcomp
@@ -114,6 +116,8 @@ class CollectofCompound(Collect["Compound"], Logged):
 
 
 class CollectofReaction(Collect["Reaction"], Logged):
+    _colltype = "Reaction"
+    
     def _create(self, name: str) -> "Reaction":
         assert isinstance(name, str), f"{name} is not a string..."
         newreac = Reaction(self.ruleset.reac_from_name(name), self)
@@ -178,7 +182,9 @@ class Chemical(Generic[D, C], Logged):
             if self._start_activation():
                 self.collect.activate(self.description.name)
                 self.activated = True
-                self.log.debug(f"...done")
+                self.log.debug(f"{self} activation...done")
+                self._finish_activation()
+                self.log.debug(f"{self} activation...finished")
 
     def _start_activation(self) -> bool:
         """To be implemented in derived class (if needed)
@@ -186,13 +192,18 @@ class Chemical(Generic[D, C], Logged):
         Return True if activation can be processed"""
         return True
 
+    def _finish_activation(self):
+        """To be implemented in derived class (if needed)
+        Will be processed *after* common activation procedure is performed"""
+        pass
+
     def unactivate(self) -> None:
         self.log.debug(f"Trying to unactivate {self}...")
         if self.activated:
             if self._start_unactivation():
                 self.collect.unactivate(self.description.name)
                 self.activated = False
-                self.log.debug(f"...done")                
+                self.log.debug(f"{self} unactivation...done")
 
     def _start_unactivation(self) -> bool:
         """To be implemented in derived class (if needed)
@@ -231,6 +242,7 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Logged):
         self.activate()
 
     def _start_unactivation(self) -> bool:
+        assert self.calcproba() == 0.0
         self._probaobj.unregister()
         return True
 
@@ -265,7 +277,7 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Logged):
             except DecrZero as end:
                 # Decremented from 0...
                 # Thus exit with max of information
-                detail = f" from {self}, that is activated ({self.activated}) (p={self.proba}={self.calcproba()}, "
+                detail = f" from {self}, that is activated? ({self.activated}) (p={self.proba}={self.calcproba()}, "
                 for comp in self._reactants:
                     detail += f"[{comp.description}]={comp.pop} ,"
                 if self._catalized:
@@ -356,7 +368,7 @@ class Compound(Chemical[CompDescr, CollectofCompound], Logged):
         self.pop = 0
         self.length = self.description.length
 
-    def _start_activation(self) -> bool:
+    def _finish_activation(self) -> bool:
         self._reactions = self._kept_descr | set(self.reac_collect.get_related(self))
         for reac in self._reactions:
             reac.activate()
