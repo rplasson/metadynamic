@@ -23,6 +23,9 @@ class Descr:
 class CompDescr(Descr):
     _descrtype = "Compound Description"
 
+    def __bool__(self):
+        return bool(self.name)
+
     # Check memoize effects
     @property
     # @memoize_property
@@ -177,7 +180,7 @@ class PolymDescr(ReacDescr):
     def fullfrom(
         cls, reactant: "Compound", const: float, altconst: float, catconst: float
     ) -> List[ReacDescr]:
-        first: Callable[[Compound], ReacDescr] = lambda other: cls(
+        first: Callable[['Compound'], ReacDescr] = lambda other: cls(
             "",
             [reactant.description, other.description],
             None,
@@ -186,7 +189,7 @@ class PolymDescr(ReacDescr):
             altconst,
             catconst,
         )
-        last: Callable[[Compound], ReacDescr] = lambda other: cls(
+        last: Callable[['Compound'], ReacDescr] = lambda other: cls(
             "",
             [other.description, reactant.description],
             None,
