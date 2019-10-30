@@ -207,6 +207,7 @@ class Reaction(Chemical[ReacDescr, CollectofReaction]):
             self.comp_collect[i.name] for i in self.description.reactants
         ]
         self._productnames = self.description.build_products()
+        self._products: Optional[List[Compound]] = None
         self.const = self.description.build_const()
         catal = self.description.catal
         if catal:
@@ -229,10 +230,7 @@ class Reaction(Chemical[ReacDescr, CollectofReaction]):
 
     def _start_activation(self) -> None:
         # Only activate if probability >0
-        if self.calcproba() == 0.0:
-            return False
-        self._products = [self.comp_collect[name] for name in self._productnames]
-        return True
+        return self.calcproba() > 0.0
 
     @property
     def proba(self) -> float:
@@ -246,6 +244,8 @@ class Reaction(Chemical[ReacDescr, CollectofReaction]):
         # if not self.activated:
         #    self.activate()
         # Increment products
+        if self._products is None:
+            self._products = [self.comp_collect[name] for name in self._productnames]
         for prod in self._products:
             prod.inc()
         # Decrement reactants
