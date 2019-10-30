@@ -3,9 +3,10 @@ from collections import deque
 from numpy import array, append, random
 
 from metadynamic.ends import RoundError
+from metadynamic.logger import Logged
 
 
-class Probaobj:
+class Probaobj(Logged):
     """Probalistic object, that can be used in a Probalist object
     for Gillespie-like computation.
 

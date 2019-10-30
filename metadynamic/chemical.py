@@ -199,11 +199,14 @@ class Chemical(Generic[D, C], Logged):
 
     def unactivate(self) -> None:
         self.log.debug(f"Trying to unactivate {self}...")
-        if self.activated:
-            if self._start_unactivation():
-                self.collect.unactivate(self.description.name)
-                self.activated = False
-                self.log.debug(f"{self} unactivation...done")
+        # if self.activated:
+        # self.log.debug(f"OK, {self} is activated.")
+        if self._start_unactivation():
+            self.log.debug(f"OK, {self} allowed to inactivate...")
+            self.collect.unactivate(self.description.name)
+            self.log.debug(f"OK, {self} removed from {self.collect}...")
+            self.activated = False
+            self.log.debug(f"{self} unactivation...done")
 
     def _start_unactivation(self) -> bool:
         """To be implemented in derived class (if needed)
@@ -243,8 +246,12 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Logged):
 
     def _start_unactivation(self) -> bool:
         assert self.calcproba() == 0.0
-        self._probaobj.unregister()
-        return True
+        if self._probaobj.registered:
+            self._probaobj.unregister()
+            self.log.debug(f"{self} should be unregistered after _probaobj.unregister() : {self._probaobj.registered}")
+            assert self.proba == 0.0
+            return True
+        return False
 
     def _start_activation(self) -> bool:
         # Only activate if probability >0
@@ -258,9 +265,12 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Logged):
         newproba = self.calcproba()
         if newproba > 0.0:
             self._probaobj.update(newproba)
+            assert self.proba == self.calcproba()
         else:
             self.unactivate()
-        assert self.proba == self.calcproba()
+            self.log.debug(f"{self} should be unregistered after unactivate(): {self._probaobj.registered}")
+            assert self.proba == 0.0
+            assert self.calcproba() == 0.0
 
     def process(self) -> None:
         # If first time processed, activate
@@ -406,6 +416,9 @@ class Compound(Chemical[CompDescr, CollectofCompound], Logged):
             raise DecrZero(self.description.name)
         if self.pop == 0:
             self.unactivate()
+            self.log.debug(f"{self} reached 0, unactivated directly all related reactions")
+            for reac in list(self._reactions):
+                reac.unactivate()
         else:
             self._upd_reac()
 

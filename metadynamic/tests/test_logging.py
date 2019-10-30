@@ -5,7 +5,7 @@ def test_system() -> None:
     syst = System(
         {"a": 3, "A": 6},
         consts={"P": 10.0, "A": 10.0, "H": 1.0, "E": 1.0, "a": 1.0, "d": 1.0, "R": 0.1},
-        dropreac=True,
+        dropreac=False,
         logfile="testlog/test_logging.log",
         loglevel="DEBUG"
     )

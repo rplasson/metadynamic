@@ -66,11 +66,13 @@ class Collect(Generic[T], Logged):
            uncategorize it"""
         try:
             del self.active[name]
+            self.log.debug(f"{name} removed from {self}.active")
         except KeyError:
             pass
         for cat in self.categories.values():
             try:
                 cat.remove(self[name])
+                self.log.debug(f"{name} removed from {self}.{cat}")
             except KeyError:
                 pass
 
