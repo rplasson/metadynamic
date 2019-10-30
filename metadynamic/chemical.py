@@ -239,7 +239,7 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Logged):
             comp.register_reaction(self)
         if self._catalized:
             self._catal.register_reaction(self)
-        self.activate()
+        #self.activate()
 
     def _start_unactivation(self) -> bool:
         assert self.calcproba() == 0.0
