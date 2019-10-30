@@ -168,7 +168,7 @@ class PolymDescr(ReacDescr):
     nbreac = 2
 
     def checkdimer(self) -> None:
-        self.dimer = self.reactants[0] == self.reactants[1]
+        self.dimer = self.reactants[0].name == self.reactants[1].name
 
     def build_products(self) -> List[str]:
         return [self.reactants[0].name + self.reactants[1].name]

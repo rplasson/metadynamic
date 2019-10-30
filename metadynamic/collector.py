@@ -23,7 +23,6 @@ class Collect(Generic[T], Logged):
             Else, return the already created one"""
         try:
             return self.pool[name]
-            self.log.debug(f"{self} returned existing {name}")
         except KeyError:
             self.log.debug(f"{self} created and returned new {name}")
             return self._add(name)
