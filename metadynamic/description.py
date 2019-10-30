@@ -198,12 +198,13 @@ class PolymDescr(ReacDescr):
             altconst,
             catconst,
         )
-        return [
-            create(other)
-            for other in reactant.collect.cat_list("polym")
-            for create in (first, last)
-        ]
-
+        if reactant.description.ispolym:
+            return [
+                create(other)
+                for other in reactant.collect.cat_list("polym")
+                for create in (first, last)
+            ]
+        return []
 
 class ActpolymDescr(ReacDescr):
     kind = "A"

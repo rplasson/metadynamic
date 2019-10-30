@@ -354,7 +354,7 @@ class Compound(Chemical[CompDescr, CollectofCompound]):
         return True
 
     def _start_unactivation(self) -> bool:
-        for reac in self._reactions:
+        for reac in self._reactions.copy():
             reac.unactivate()
         return True
 
