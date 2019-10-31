@@ -132,7 +132,7 @@ class CollectofReaction(Collect["Reaction"], Logged):
         return newreac
 
     def _initialize(self, reac: "Reaction") -> None:
-        reac.initialize(self.system.param.vol, self.system.probalist)
+        reac.initialize(self.system.probalist)
 
     def _categorize(self, obj: "Reaction") -> List[str]:
         return obj.description.categories
@@ -216,15 +216,9 @@ class Chemical(Generic[D, C], Logged, Collected):
         return True
 
     def unactivate(self) -> None:
-        # self.log.debug(f"Trying to unactivate {self}...")
-        # if self.activated:
-        # self.log.debug(f"OK, {self} is activated.")
         if self._start_unactivation():
-            # self.log.debug(f"OK, {self} allowed to inactivate...")
             self.collect.unactivate(self.description.name)
-            # self.log.debug(f"OK, {self} removed from {self.collect}...")
             self.activated = False
-            # self.log.debug(f"{self} unactivation...done")
 
     def _start_unactivation(self) -> bool:
         """To be implemented in derived class (if needed)
@@ -261,8 +255,8 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Logged, Collected):
     def collect(self) -> CollectofReaction:
         return Chemical.reac_collect
 
-    def initialize(self, vol: float, probalist: Probalist) -> None:
-        self._vol: float = vol
+    def initialize(self, probalist: Probalist) -> None:
+        self._vol: float = probalist.vol
         self._probaobj: Probaobj = probalist.get_probaobj(self)
         self.proba: float = 0.0
         self._reactants: List[Compound] = [
@@ -304,29 +298,12 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Logged, Collected):
                 # was activated, thus deactivate
                 self.unactivate()
                 self._probaobj.unregister()
-                # self.log.debug(
-                #    f"{self} should be unregistered after unactivate(): {self._probaobj.registered}"
-                # )
-                # assert self.proba == 0.0
-                # assert self.calcproba() == 0.0
                 for comp in self._reactants:
                     comp.unregister_reaction(self)
                 if self._catalized:
                     self._catal.unregister_reaction(self)
-            # assert self.proba == self.calcproba()
-        # self.log.debug(
-        #    f"Updated {self}, p={self.proba}={self.calcproba()}, concs={[c.pop for c in self._reactants]}"
-        # )
 
     def process(self) -> None:
-        # If first time processed, activate
-        # if not self.activated:
-        #    self.activate()
-        # Increment products
-        # self.log.debug(
-        #    f"Processing {self}, p={self.proba}={self.calcproba()}, concs={[c.pop for c in self._reactants]}"
-        # )
-        # assert self.proba == self.calcproba()
         if self._products is None:
             self._products = [self.comp_collect[name] for name in self._productnames]
         for prod in self._products:

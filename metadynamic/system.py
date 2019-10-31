@@ -76,7 +76,7 @@ class System(Logged):
         self.comp_collect = CollectofCompound(self)
         self.reac_collect = CollectofReaction(self, dropreac, categorize=False)  # set of active reactions
         self.reac_collect.init_ruleset(consts, altconsts, catconsts)
-        self.probalist = Probalist(minprob=minprob)
+        self.probalist = Probalist(vol=self.param.vol, minprob=minprob)
         for compound, pop in init.items():
             self.comp_collect[compound].init_pop(pop)
         Compound.trigger_update()
@@ -219,6 +219,7 @@ class System(Logged):
 
     def set_param(self, **kw):
         self.param = replace(self.param, **kw)
+        self.probalist.vol = self.param.vol # Need to update volume if changed!
 
     def addkept(self, reac: str) -> None:
         """reactions that are kept"""

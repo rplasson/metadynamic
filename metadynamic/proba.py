@@ -53,7 +53,8 @@ class Probaobj(Logged):
 
 
 class Probalist:
-    def __init__(self, minprob: float = 1e-10):
+    def __init__(self, vol: float = 1, minprob: float = 1e-10):
+        self.vol = vol
         self._minprob = minprob
         self._map = [array([])]
         self._mapobj = [array([])]
