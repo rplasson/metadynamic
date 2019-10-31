@@ -93,12 +93,16 @@ class Ruleset:
 class CollectofCompound(Collect["Compound"], Logged):
     _colltype = "Compound"
 
+    def __init__(self, system: "System", drop: bool = False, categorize: bool = True):
+        super().__init__(system, drop, categorize)
+        Collected.setcompcoll(self)
+
     def _create(self, name: str) -> "Compound":
-        newcomp = Compound(CompDescr(name), self)
+        newcomp = Compound(CompDescr(name))
         return newcomp
 
     def _initialize(self, comp: "Compound") -> None:
-        comp.initialize(self.system.reac_collect)
+        comp.initialize()
 
     def _categorize(self, obj: "Compound") -> List[str]:
         return obj.description.categories
@@ -118,15 +122,17 @@ class CollectofCompound(Collect["Compound"], Logged):
 class CollectofReaction(Collect["Reaction"], Logged):
     _colltype = "Reaction"
 
+    def __init__(self, system: "System", drop: bool = False, categorize: bool = True):
+        super().__init__(system, drop, categorize)
+        Collected.setreaccoll(self)
+
     def _create(self, name: str) -> "Reaction":
         assert isinstance(name, str), f"{name} is not a string..."
-        newreac = Reaction(self.ruleset.reac_from_name(name), self)
+        newreac = Reaction(self.ruleset.reac_from_name(name))
         return newreac
 
     def _initialize(self, reac: "Reaction") -> None:
-        reac.initialize(
-            self.system.param.vol, self.system.probalist, self.system.comp_collect
-        )
+        reac.initialize(self.system.param.vol, self.system.probalist)
 
     def _categorize(self, obj: "Reaction") -> List[str]:
         return obj.description.categories
@@ -161,13 +167,30 @@ class CollectofReaction(Collect["Reaction"], Logged):
         ]
 
 
-class Chemical(Generic[D, C], Logged):
+class Collected:
+    comp_collect: CollectofCompound
+    reac_collect: CollectofReaction
+
+    @classmethod
+    def setcompcoll(cls, comp_collect: CollectofCompound) -> None:
+        cls.comp_collect = comp_collect
+
+    @classmethod
+    def setreaccoll(cls, reac_collect: CollectofReaction) -> None:
+        cls.reac_collect = reac_collect
+
+
+class Chemical(Generic[D, C], Logged, Collected):
     _descrtype = "Chemical"
     _updatelist: Dict["Chemical[D, C]", int]
 
-    def __init__(self, description: D, collect: C):
+    @property
+    def collect(self) -> C:
+        """Should return the collection the object belongs to. ti be implemented in subclasses"""
+        raise NotImplementedError
+
+    def __init__(self, description: D):
         self.description: D = description
-        self.collect: C = collect
         self.activated: bool = False
         # self.log.debug(f"Creating {self}")
 
@@ -230,17 +253,18 @@ class Chemical(Generic[D, C], Logged):
         raise NotImplementedError
 
 
-class Reaction(Chemical[ReacDescr, CollectofReaction], Logged):
+class Reaction(Chemical[ReacDescr, CollectofReaction], Logged, Collected):
     _descrtype = "Reaction"
     _updatelist: Dict[Chemical[ReacDescr, CollectofReaction], int] = {}
 
-    def initialize(
-        self, vol: float, probalist: Probalist, comp_collect: CollectofCompound
-    ) -> None:
+    @property
+    def collect(self) -> CollectofReaction:
+        return Chemical.reac_collect
+
+    def initialize(self, vol: float, probalist: Probalist) -> None:
         self._vol: float = vol
         self._probaobj: Probaobj = probalist.get_probaobj(self)
-        self.proba: float = 0.
-        self.comp_collect = comp_collect
+        self.proba: float = 0.0
         self._reactants: List[Compound] = [
             self.comp_collect[i.name] for i in self.description.reactants
         ]
@@ -401,8 +425,11 @@ class Compound(Chemical[CompDescr, CollectofCompound], Logged):
     _descrtype = "Compound"
     _updatelist: Dict[Chemical[CompDescr, CollectofCompound], int] = {}
 
-    def initialize(self, reac_collect: CollectofReaction) -> None:
-        self.reac_collect = reac_collect
+    @property
+    def collect(self) -> CollectofCompound:
+        return Chemical.comp_collect
+
+    def initialize(self) -> None:
         self.reactions: Set[Reaction] = set()
         self.pop = 0
         self.length = self.description.length
