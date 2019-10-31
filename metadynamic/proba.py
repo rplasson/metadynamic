@@ -129,7 +129,7 @@ class Probalist:
         self._mapobj[rlist][rpos] = newobj.obj
         return rlist, rpos
 
-    def choose(self) -> [Any, float]:
+    def choose(self) -> Tuple[Any, float]:
         # First choose a random line in the probability map
         try:
             nlist = random.choice(self.npblist, p=self._problist / self.probtot)
@@ -163,5 +163,5 @@ class Probalist:
         return Probaobj(obj, self)
 
     @staticmethod
-    def seed(seed: int) -> None:
+    def seed(seed: Optional[int]) -> None:
         random.seed(seed)

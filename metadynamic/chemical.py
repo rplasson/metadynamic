@@ -232,7 +232,7 @@ class Chemical(Generic[D, C], Logged):
 
 class Reaction(Chemical[ReacDescr, CollectofReaction], Logged):
     _descrtype = "Reaction"
-    _updatelist: Dict["Reaction", int] = {}
+    _updatelist: Dict[Chemical[ReacDescr, CollectofReaction], int] = {}
 
     def initialize(
         self, vol: float, probalist: Probalist, comp_collect: CollectofCompound
@@ -399,7 +399,7 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Logged):
 
 class Compound(Chemical[CompDescr, CollectofCompound], Logged):
     _descrtype = "Compound"
-    _updatelist: Dict["Compound", int] = {}
+    _updatelist: Dict[Chemical[CompDescr, CollectofCompound], int] = {}
 
     def initialize(self, reac_collect: CollectofReaction) -> None:
         self.reac_collect = reac_collect
