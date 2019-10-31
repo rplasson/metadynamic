@@ -1,4 +1,4 @@
-from metadynamic.polym import System
+from metadynamic import System
 from numpy import savetxt
 from argparse import ArgumentParser
 
