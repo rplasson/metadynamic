@@ -1,6 +1,6 @@
 from typing import Any, Tuple, Optional, Deque
 from collections import deque
-from numpy import array, append, random
+from numpy import array, append, log, random
 
 from metadynamic.ends import RoundError
 from metadynamic.logger import Logged
@@ -129,7 +129,7 @@ class Probalist:
         self._mapobj[rlist][rpos] = newobj.obj
         return rlist, rpos
 
-    def choose(self) -> Any:
+    def choose(self) -> [Any, float]:
         # First choose a random line in the probability map
         try:
             nlist = random.choice(self.npblist, p=self._problist / self.probtot)
@@ -141,7 +141,7 @@ class Probalist:
         try:
             return random.choice(
                 self._mapobj[nlist], p=self._map[nlist] / self._problist[nlist]
-            )
+            ), log(1 / random.rand()) / self.probtot
         except ValueError as v:
             raise RoundError(
                 f"(reason: {v}; probtot={self._problist[nlist]}=?={self._map[nlist].sum()}; problist={self._map[nlist]})"
@@ -161,3 +161,7 @@ class Probalist:
 
     def get_probaobj(self, obj: Any):
         return Probaobj(obj, self)
+
+    @staticmethod
+    def seed(seed: int) -> None:
+        random.seed(seed)

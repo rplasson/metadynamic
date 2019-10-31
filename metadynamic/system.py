@@ -5,7 +5,6 @@ from typing import List, Optional, Dict, Tuple
 from psutil import Process
 from dataclasses import dataclass, replace, field
 
-from numpy import log, random
 from pandas import DataFrame
 
 from metadynamic.ends import (
@@ -136,7 +135,7 @@ class System(Logged):
             if self.time >= tstop:
                 return True
             # choose a random event
-            chosen = self.probalist.choose()
+            chosen, dt = self.probalist.choose()
             # check if there even was an event to choose
             if chosen is None:
                 raise NotFound(f"t={self.time}")
@@ -145,7 +144,7 @@ class System(Logged):
             if self.probalist.probtot == 0:
                 raise NoMore(f"t={self.time}")
             # update time for next step
-            self.time += log(1 / random.rand()) / self.probalist.probtot
+            self.time += dt
             self.step += 1
         self.log.warning(f"maxsteps per process (={self.param.maxsteps}) too low")
         return False
@@ -159,7 +158,7 @@ class System(Logged):
         table = DataFrame(index=lines)
         lendist = DataFrame()
         pooldist = DataFrame()
-        random.seed(self.param.seed)
+        self.probalist.seed(self.param.seed)
         self.log.connect(f"Reconnected from thread {num+1}", num + 1)
         self.time = 0.0
         tnext = 0.0
