@@ -262,6 +262,7 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Logged):
         return self.calcproba() > 0.0
 
     def update(self, change: int = 0) -> None:
+        self.activate()
         oldproba = self.proba
         self.proba = self.calcproba()
         if self.proba > 0.0:

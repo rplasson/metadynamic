@@ -75,7 +75,7 @@ class System(Logged):
         self.step = 0
         self.param = SysParam(ptot=sum([pop * len(comp) for comp, pop in init.items()]))
         self.comp_collect = CollectofCompound(self)
-        self.reac_collect = CollectofReaction(self, dropreac)  # set of active reactions
+        self.reac_collect = CollectofReaction(self, dropreac, categorize=False)  # set of active reactions
         self.reac_collect.init_ruleset(consts, altconsts, catconsts)
         self.probalist = Probalist(minprob=minprob)
         for compound, pop in init.items():

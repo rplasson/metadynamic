@@ -8,11 +8,12 @@ T = TypeVar("T")
 class Collect(Generic[T], Logged):
     _colltype = "Generic"
 
-    def __init__(self, system: "System", drop: bool = False):
+    def __init__(self, system: "System", drop: bool = False, categorize: bool = True):
         self.system = system  # remove this dependency???
         self.pool: Dict[str, T] = {}
         self.categories: Dict[str, Set[T]] = {}
         self.active: Dict[str, T] = self.pool if drop else {}
+        self.categorize = categorize
 
     def __repr__(self) -> str:
         return f"<Collect of {len(self.pool)} {self._colltype}>"
@@ -45,11 +46,12 @@ class Collect(Generic[T], Logged):
         assert obj is self[name]
         if name not in self.active:
             self.active[name] = obj
-        for catname in self._categorize(obj):
-            try:
-                self.categories[catname].add(obj)
-            except KeyError:
-                self.categories[catname] = {obj}
+        if self.categorize:
+            for catname in self._categorize(obj):
+                try:
+                    self.categories[catname].add(obj)
+                except KeyError:
+                    self.categories[catname] = {obj}
 
     def unactivate(self, name: str) -> None:
         """Remove the object 'name' from the active section, then
@@ -58,11 +60,12 @@ class Collect(Generic[T], Logged):
             del self.active[name]
         except KeyError:
             pass
-        for cat in self.categories.values():
-            try:
-                cat.remove(self[name])
-            except KeyError:
-                pass
+        if self.categorize:
+            for cat in self.categories.values():
+                try:
+                    cat.remove(self[name])
+                except KeyError:
+                    pass
 
     def cat_list(self, category: str) -> Set[T]:
         """Return all (active) objects from the specified 'categories'"""
