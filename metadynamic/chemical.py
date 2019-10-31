@@ -239,6 +239,7 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Logged):
     ) -> None:
         self._vol: float = vol
         self._probaobj: Probaobj = probalist.get_probaobj(self)
+        self.proba: float = 0.
         self.comp_collect = comp_collect
         self._reactants: List[Compound] = [
             self.comp_collect[i.name] for i in self.description.reactants
@@ -260,14 +261,10 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Logged):
         # Only activate if probability >0
         return self.calcproba() > 0.0
 
-    @property
-    def proba(self) -> float:
-        return self._probaobj.proba
-
     def update(self, change: int = 0) -> None:
         oldproba = self.proba
-        newproba = self.calcproba()
-        if newproba > 0.0:
+        self.proba = self.calcproba()
+        if self.proba > 0.0:
             if oldproba == 0.0:
                 # was unactivated, thus activate
                 self._probaobj.register()
@@ -275,7 +272,7 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Logged):
                     comp.register_reaction(self)
                 if self._catalized:
                     self._catal.register_reaction(self)
-            self._probaobj.update(newproba)
+            self._probaobj.update(self.proba)
             # assert self.proba == self.calcproba()
         else:
             if oldproba > 0.0:
