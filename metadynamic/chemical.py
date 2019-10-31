@@ -2,7 +2,7 @@ from itertools import chain
 from typing import Generic, List, Optional, Callable, Set, TypeVar, Dict, Type, Any
 
 from metadynamic.collector import Collect
-from metadynamic.proba import Probaobj, Probalist
+from metadynamic.proba import Probaobj, Probalistic
 from metadynamic.ends import DecrZero
 from metadynamic.description import ReacDescr, CompDescr
 from metadynamic.logger import Logged
@@ -119,7 +119,7 @@ class CollectofCompound(Collect["Compound"], Logged):
         return res
 
 
-class CollectofReaction(Collect["Reaction"], Logged):
+class CollectofReaction(Collect["Reaction"], Logged, Probalistic):
     _colltype = "Reaction"
 
     def __init__(self, system: "System", drop: bool = False, categorize: bool = True):
@@ -132,7 +132,7 @@ class CollectofReaction(Collect["Reaction"], Logged):
         return newreac
 
     def _initialize(self, reac: "Reaction") -> None:
-        reac.initialize(self.system.probalist)
+        reac.initialize()
 
     def _categorize(self, obj: "Reaction") -> List[str]:
         return obj.description.categories
@@ -247,7 +247,7 @@ class Chemical(Generic[D, C], Logged, Collected):
         raise NotImplementedError
 
 
-class Reaction(Chemical[ReacDescr, CollectofReaction], Logged, Collected):
+class Reaction(Chemical[ReacDescr, CollectofReaction], Logged, Collected, Probalistic):
     _descrtype = "Reaction"
     _updatelist: Dict[Chemical[ReacDescr, CollectofReaction], int] = {}
 
@@ -255,9 +255,9 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Logged, Collected):
     def collect(self) -> CollectofReaction:
         return Chemical.reac_collect
 
-    def initialize(self, probalist: Probalist) -> None:
-        self._vol: float = probalist.vol
-        self._probaobj: Probaobj = probalist.get_probaobj(self)
+    def initialize(self) -> None:
+        self._vol: float = self.probalist.vol
+        self._probaobj: Probaobj = self.probalist.get_probaobj(self)
         self.proba: float = 0.0
         self._reactants: List[Compound] = [
             self.comp_collect[i.name] for i in self.description.reactants

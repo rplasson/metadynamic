@@ -6,15 +6,22 @@ from metadynamic.ends import RoundError
 from metadynamic.logger import Logged
 
 
-class Probaobj(Logged):
+class Probalistic:
+    probalist: "Probalist"
+
+    @classmethod
+    def setprobalist(cls, vol: float = 1, minprob: float = 1e-10) -> None:
+        cls.probalist = Probalist(vol, minprob)
+
+
+class Probaobj(Logged, Probalistic):
     """Probalistic object, that can be used in a Probalist object
     for Gillespie-like computation.
 
     Each object to be stored in the probalist must contain one Probaobj object
     """
 
-    def __init__(self, obj: Any, probalist: "Probalist"):
-        self._probalist = probalist
+    def __init__(self, obj: Any):
         self.nlist: Optional[int]
         self.npos: Optional[int]
         self.obj = obj
@@ -39,17 +46,17 @@ class Probaobj(Logged):
             raise ValueError("Unregistered")
 
     def register(self, proba: float = 0) -> None:
-        self._probalist.register(self, proba)
+        self.probalist.register(self, proba)
 
     def update(self, proba: float) -> None:
-        self._probalist.update(self, proba)
+        self.probalist.update(self, proba)
 
     def unregister(self) -> None:
-        self._probalist.unregister(self)
+        self.probalist.unregister(self)
 
     @property
     def proba(self) -> float:
-        return self._probalist.getproba(self)
+        return self.probalist.getproba(self)
 
 
 class Probalist:
@@ -140,9 +147,12 @@ class Probalist:
             )
         # Then choose a random column in the chosen probability line
         try:
-            return random.choice(
-                self._mapobj[nlist], p=self._map[nlist] / self._problist[nlist]
-            ), log(1 / random.rand()) / self.probtot
+            return (
+                random.choice(
+                    self._mapobj[nlist], p=self._map[nlist] / self._problist[nlist]
+                ),
+                log(1 / random.rand()) / self.probtot,
+            )
         except ValueError as v:
             raise RoundError(
                 f"(reason: {v}; probtot={self._problist[nlist]}=?={self._map[nlist].sum()}; problist={self._map[nlist]})"
@@ -161,7 +171,7 @@ class Probalist:
         self.probtot = self._problist.sum()
 
     def get_probaobj(self, obj: Any):
-        return Probaobj(obj, self)
+        return Probaobj(obj)
 
     @staticmethod
     def seed(seed: Optional[int]) -> None:

@@ -17,7 +17,7 @@ from metadynamic.ends import (
     BadEnding,
 )
 from metadynamic.logger import Logged
-from metadynamic.proba import Probalist
+from metadynamic.proba import Probalistic
 from metadynamic.processing import Result
 from metadynamic.chemical import (
     CollectofCompound,
@@ -49,7 +49,7 @@ class SysParam:
         self.vol = self.ptot / self.conc
 
 
-class System(Logged):
+class System(Logged, Probalistic):
     def __init__(
         self,
         init: Dict[str, int],
@@ -76,7 +76,7 @@ class System(Logged):
         self.comp_collect = CollectofCompound(self)
         self.reac_collect = CollectofReaction(self, dropreac, categorize=False)  # set of active reactions
         self.reac_collect.init_ruleset(consts, altconsts, catconsts)
-        self.probalist = Probalist(vol=self.param.vol, minprob=minprob)
+        Probalistic.setprobalist(vol=self.param.vol, minprob=minprob)
         for compound, pop in init.items():
             self.comp_collect[compound].init_pop(pop)
         Compound.trigger_update()
