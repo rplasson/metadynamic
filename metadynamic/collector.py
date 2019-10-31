@@ -8,8 +8,7 @@ T = TypeVar("T")
 class Collect(Generic[T], Logged):
     _colltype = "Generic"
 
-    def __init__(self, system: "System", drop: bool = False, categorize: bool = True):
-        self.system = system  # remove this dependency???
+    def __init__(self, drop: bool = False, categorize: bool = True):
         self.pool: Dict[str, T] = {}
         self.categories: Dict[str, Set[T]] = {}
         self.active: Dict[str, T] = self.pool if drop else {}

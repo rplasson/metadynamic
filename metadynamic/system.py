@@ -73,10 +73,10 @@ class System(Logged, Probalistic):
         # If seed set, always restart from the same seed. For timing/debugging purpose
         self.step = 0
         self.param = SysParam(ptot=sum([pop * len(comp) for comp, pop in init.items()]))
-        self.comp_collect = CollectofCompound(self)
-        self.reac_collect = CollectofReaction(self, dropreac, categorize=False)  # set of active reactions
-        self.reac_collect.init_ruleset(consts, altconsts, catconsts)
         Probalistic.setprobalist(vol=self.param.vol, minprob=minprob)
+        self.comp_collect = CollectofCompound()
+        self.reac_collect = CollectofReaction(dropreac, categorize=False)  # set of active reactions
+        self.reac_collect.init_ruleset(consts, altconsts, catconsts)
         for compound, pop in init.items():
             self.comp_collect[compound].init_pop(pop)
         Compound.trigger_update()
