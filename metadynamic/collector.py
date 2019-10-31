@@ -25,19 +25,10 @@ class Collect(Generic[T], Logged):
         try:
             return self.pool[name]
         except KeyError:
-            return self._add(name)
-
-    def add(self, name: str) -> None:
-        """Add the object as described by its name, if not already done
-           Does nothing if already there."""
-        if name not in self.pool:
-            self._add(name)
-
-    def _add(self, name: str) -> T:
-        newobj = self._create(name)
-        self.pool[name] = newobj
-        self._initialize(newobj)
-        return newobj
+            newobj = self._create(name)
+            self.pool[name] = newobj
+            self._initialize(newobj)
+            return newobj
 
     def activate(self, name: str) -> None:
         """Put the object 'name' in the active section, then categorize it"""
