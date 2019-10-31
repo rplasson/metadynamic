@@ -23,6 +23,8 @@ from metadynamic.processing import Result
 from metadynamic.chemical import (
     CollectofCompound,
     CollectofReaction,
+    Compound,
+    Reaction
 )
 
 # D = TypeVar("D", "Descr", "ReacDescr", "CompDescr")
@@ -78,6 +80,8 @@ class System(Logged):
         self.probalist = Probalist(minprob=minprob)
         for compound, pop in init.items():
             self.comp_collect[compound].init_pop(pop)
+        Compound.trigger_update()
+        Reaction.trigger_update()
         self.log.info("System created")
 
     @property

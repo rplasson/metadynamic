@@ -14,7 +14,7 @@ class Collect(Generic[T], Logged):
         self.categories: Dict[str, Set[T]] = {}
         self.active: Dict[str, T] = self.pool if drop else {}
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Collect of {len(self.pool)} {self._colltype}>"
 
     def __getitem__(self, name: str) -> T:

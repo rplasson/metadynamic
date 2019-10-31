@@ -38,7 +38,7 @@ class Probaobj(Logged):
         else:
             raise ValueError("Unregistered")
 
-    def register(self, proba: float) -> None:
+    def register(self, proba: float = 0) -> None:
         self._probalist.register(self, proba)
 
     def update(self, proba: float) -> None:
@@ -91,13 +91,13 @@ class Probalist:
         probaobj.unset_proba_pos()
 
     def update(self, probaobj: Probaobj, proba: float) -> None:
-        if probaobj.registered:
-            nlist, npos = probaobj.proba_pos
-            delta = proba - self._map[nlist][npos]
-            self._map[nlist][npos] = proba
-            self._updateprob(nlist, delta)
-        else:
-            self.register(probaobj, proba)
+        assert probaobj.registered
+        nlist, npos = probaobj.proba_pos
+        delta = proba - self._map[nlist][npos]
+        self._map[nlist][npos] = proba
+        self._updateprob(nlist, delta)
+        # else:
+        #     self.register(probaobj, proba)
 
     def getproba(self, probaobj: Probaobj) -> float:
         if probaobj.registered:
