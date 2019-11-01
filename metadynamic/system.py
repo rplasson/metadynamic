@@ -20,6 +20,7 @@ from metadynamic.logger import Logged
 from metadynamic.proba import Probalistic
 from metadynamic.processing import Result
 from metadynamic.chemical import (
+    Collected,
     CollectofCompound,
     CollectofReaction,
     Compound,
@@ -49,7 +50,7 @@ class SysParam:
         self.vol = self.ptot / self.conc
 
 
-class System(Logged, Probalistic):
+class System(Logged, Probalistic, Collected):
     def __init__(
         self,
         init: Dict[str, int],
@@ -74,8 +75,8 @@ class System(Logged, Probalistic):
         self.step = 0
         self.param = SysParam(ptot=sum([pop * len(comp) for comp, pop in init.items()]))
         Probalistic.setprobalist(vol=self.param.vol, minprob=minprob)
-        self.comp_collect = CollectofCompound()
-        self.reac_collect = CollectofReaction(dropreac, categorize=False)  # set of active reactions
+        CollectofCompound()
+        CollectofReaction(dropreac, categorize=False)  # set of active reactions
         self.reac_collect.init_ruleset(consts, altconsts, catconsts)
         self.init = init
         self.initialized = False
@@ -124,7 +125,6 @@ class System(Logged, Probalistic):
                 self.comp_collect[compound].init_pop(pop)
             Compound.trigger_update()
             Reaction.trigger_update()
-            self.initialized = True
 
     def _process(self, tstop: float) -> bool:
         # Check if a cleanup should be done
@@ -142,6 +142,7 @@ class System(Logged, Probalistic):
                 return True
             # choose a random event
             chosen, dt = self.probalist.choose()
+            assert self.comp_collect is chosen.comp_collect
             # check if there even was an event to choose
             if chosen is None:
                 raise NotFound(f"t={self.time}")
@@ -161,12 +162,13 @@ class System(Logged, Probalistic):
             + self.param.save
             + ["maxlength", "nbcomp", "poolsize", "nbreac", "poolreac"]
         )
+        self.log.connect(f"Reconnected from thread {num+1}", num + 1)
+        self.log.info("Will initialize")
+        self.probalist.seed(self.param.seed)
+        self.initialize()
         table = DataFrame(index=lines)
         lendist = DataFrame()
         pooldist = DataFrame()
-        self.probalist.seed(self.param.seed)
-        self.initialize()
-        self.log.connect(f"Reconnected from thread {num+1}", num + 1)
         self.time = 0.0
         tnext = 0.0
         step = 0
@@ -187,6 +189,17 @@ class System(Logged, Probalistic):
                         stat["poolreac"],
                     ]
                 )
+                self.log.debug(str(
+                    [num, self.log.runtime(), self.memuse, self.step, self.time]
+                    + [self.conc_of(comp) for comp in self.param.save]
+                    + [
+                        stat["maxlength"],
+                        stat["nbcomp"],
+                        stat["poolsize"],
+                        stat["nbreac"],
+                        stat["poolreac"],
+                    ]
+                ))
                 lendist = lendist.join(
                     DataFrame.from_dict({step: dist["lendist"]}), how="outer"
                 ).fillna(0)
@@ -213,9 +226,6 @@ class System(Logged, Probalistic):
         return (table, lendist.astype(int), pooldist.astype(int), end)
 
     def multirun(self, nbthread: Optional[int] = None) -> Result:
-        self.log.info("Start multithread run")
-        self.log.disconnect(reason="Entering Multithreading environment")
-        self.initialize()
         ctx = get_context("fork")
         if nbthread is None:
             nbthread = ctx.cpu_count()
