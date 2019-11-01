@@ -201,29 +201,13 @@ class Chemical(Generic[D, C], Logged, Collected):
         return self.description.name
 
     def activate(self) -> None:
-        # self.log.debug(f"Trying to activate {self}...")
         if not self.activated:
-            if self._start_activation():
-                self.collect.activate(self.description.name)
-                self.activated = True
-                # self.log.debug(f"{self} activation...done")
-                # self.log.debug(f"{self} activation...finished")
-
-    def _start_activation(self) -> bool:
-        """To be implemented in derived class (if needed)
-        Will be processed *before* common activation procedure is performed
-        Return True if activation can be processed"""
-        return True
+            self.collect.activate(self.description.name)
+            self.activated = True
 
     def unactivate(self) -> None:
-        if self._start_unactivation():
-            self.collect.unactivate(self.description.name)
-            self.activated = False
-
-    def _start_unactivation(self) -> bool:
-        """To be implemented in derived class (if needed)
-        Will be processed *before* common unactivation procedure is performed"""
-        return True
+        self.collect.unactivate(self.description.name)
+        self.activated = False
 
     @classmethod
     def toupdate(cls, obj: "Chemical[D, C]", change: int = 0) -> None:
@@ -275,33 +259,31 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Logged, Collected, Probal
         self._uncatcalc: Optional[Callable[[], float]] = None
         self._set_reaccalc()
 
-    def _start_activation(self) -> bool:
-        # Only activate if probability >0
-        return self.calcproba() > 0.0
-
     def update(self, change: int = 0) -> None:
-        self.activate()
         oldproba = self.proba
         self.proba = self.calcproba()
-        if self.proba > 0.0:
-            if oldproba == 0.0:
-                # was unactivated, thus activate
-                self._probaobj.register()
-                for comp in self._reactants:
-                    comp.register_reaction(self)
-                if self._catalized:
-                    self._catal.register_reaction(self)
-            self._probaobj.update(self.proba)
-            # assert self.proba == self.calcproba()
-        else:
-            if oldproba > 0.0:
-                # was activated, thus deactivate
-                self.unactivate()
-                self._probaobj.unregister()
-                for comp in self._reactants:
-                    comp.unregister_reaction(self)
-                if self._catalized:
-                    self._catal.unregister_reaction(self)
+        # only perform update if something changed
+        if oldproba != self.proba:
+            if self.proba > 0.0:
+                if oldproba == 0.0:
+                    # was unactivated, thus activate
+                    self.activate()
+                    self._probaobj.register()
+                    for comp in self._reactants:
+                        comp.register_reaction(self)
+                    if self._catalized:
+                        self._catal.register_reaction(self)
+                self._probaobj.update(self.proba)
+                # assert self.proba == self.calcproba()
+            else:
+                if oldproba > 0.0:
+                    # was activated, thus deactivate
+                    self.unactivate()
+                    self._probaobj.unregister()
+                    for comp in self._reactants:
+                        comp.unregister_reaction(self)
+                    if self._catalized:
+                        self._catal.unregister_reaction(self)
 
     def process(self) -> None:
         if self._products is None:
