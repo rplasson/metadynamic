@@ -237,7 +237,7 @@ class Chemical(Generic[D, C], Logged, Collected):
     @classmethod
     def trigger_update(cls) -> None:
         """Trigger update events"""
-        # cls.log.debug(f"Will update {cls._updatelist} for {cls}")
+        # cls.log.debug(f"Will update {len(cls._updatelist)} objects for {cls}: {cls._updatelist.keys()}")
         for obj, change in cls._updatelist.items():
             obj.update(change)
         cls._updatelist = {}

@@ -77,10 +77,8 @@ class System(Logged, Probalistic):
         self.comp_collect = CollectofCompound()
         self.reac_collect = CollectofReaction(dropreac, categorize=False)  # set of active reactions
         self.reac_collect.init_ruleset(consts, altconsts, catconsts)
-        for compound, pop in init.items():
-            self.comp_collect[compound].init_pop(pop)
-        Compound.trigger_update()
-        Reaction.trigger_update()
+        self.init = init
+        self.initialized = False
         self.log.info("System created")
 
     @property
@@ -119,6 +117,14 @@ class System(Logged, Probalistic):
         stat["poolreac"] = len(self.reac_collect.pool)
         stat["maxlength"] = max(dist["lendist"])
         return stat, dist
+
+    def initialize(self) -> None:
+        if not self.initialized:
+            for compound, pop in self.init.items():
+                self.comp_collect[compound].init_pop(pop)
+            Compound.trigger_update()
+            Reaction.trigger_update()
+            self.initialized = True
 
     def _process(self, tstop: float) -> bool:
         # Check if a cleanup should be done
@@ -159,6 +165,7 @@ class System(Logged, Probalistic):
         lendist = DataFrame()
         pooldist = DataFrame()
         self.probalist.seed(self.param.seed)
+        self.initialize()
         self.log.connect(f"Reconnected from thread {num+1}", num + 1)
         self.time = 0.0
         tnext = 0.0
