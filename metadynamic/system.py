@@ -17,7 +17,7 @@ from metadynamic.ends import (
     BadEnding,
 )
 from metadynamic.logger import Logged
-from metadynamic.proba import Probalist
+from metadynamic.proba import Probalistic
 from metadynamic.processing import Result
 from metadynamic.chemical import (
     CollectofCompound,
@@ -49,7 +49,7 @@ class SysParam:
         self.vol = self.ptot / self.conc
 
 
-class System(Logged):
+class System(Logged, Probalistic):
     def __init__(
         self,
         init: Dict[str, int],
@@ -73,14 +73,12 @@ class System(Logged):
         # If seed set, always restart from the same seed. For timing/debugging purpose
         self.step = 0
         self.param = SysParam(ptot=sum([pop * len(comp) for comp, pop in init.items()]))
-        self.comp_collect = CollectofCompound(self)
-        self.reac_collect = CollectofReaction(self, dropreac, categorize=False)  # set of active reactions
+        Probalistic.setprobalist(vol=self.param.vol, minprob=minprob)
+        self.comp_collect = CollectofCompound()
+        self.reac_collect = CollectofReaction(dropreac, categorize=False)  # set of active reactions
         self.reac_collect.init_ruleset(consts, altconsts, catconsts)
-        self.probalist = Probalist(minprob=minprob)
-        for compound, pop in init.items():
-            self.comp_collect[compound].init_pop(pop)
-        Compound.trigger_update()
-        Reaction.trigger_update()
+        self.init = init
+        self.initialized = False
         self.log.info("System created")
 
     @property
@@ -119,6 +117,14 @@ class System(Logged):
         stat["poolreac"] = len(self.reac_collect.pool)
         stat["maxlength"] = max(dist["lendist"])
         return stat, dist
+
+    def initialize(self) -> None:
+        if not self.initialized:
+            for compound, pop in self.init.items():
+                self.comp_collect[compound].init_pop(pop)
+            Compound.trigger_update()
+            Reaction.trigger_update()
+            self.initialized = True
 
     def _process(self, tstop: float) -> bool:
         # Check if a cleanup should be done
@@ -159,6 +165,7 @@ class System(Logged):
         lendist = DataFrame()
         pooldist = DataFrame()
         self.probalist.seed(self.param.seed)
+        self.initialize()
         self.log.connect(f"Reconnected from thread {num+1}", num + 1)
         self.time = 0.0
         tnext = 0.0
@@ -208,6 +215,7 @@ class System(Logged):
     def multirun(self, nbthread: Optional[int] = None) -> Result:
         self.log.info("Start multithread run")
         self.log.disconnect(reason="Entering Multithreading environment")
+        self.initialize()
         ctx = get_context("fork")
         if nbthread is None:
             nbthread = ctx.cpu_count()
@@ -219,6 +227,7 @@ class System(Logged):
 
     def set_param(self, **kw):
         self.param = replace(self.param, **kw)
+        self.probalist.vol = self.param.vol # Need to update volume if changed!
 
     def addkept(self, reac: str) -> None:
         """reactions that are kept"""

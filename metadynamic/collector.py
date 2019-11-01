@@ -8,8 +8,7 @@ T = TypeVar("T")
 class Collect(Generic[T], Logged):
     _colltype = "Generic"
 
-    def __init__(self, system: "System", drop: bool = False, categorize: bool = True):
-        self.system = system  # remove this dependency???
+    def __init__(self, drop: bool = False, categorize: bool = True):
         self.pool: Dict[str, T] = {}
         self.categories: Dict[str, Set[T]] = {}
         self.active: Dict[str, T] = self.pool if drop else {}
@@ -25,19 +24,10 @@ class Collect(Generic[T], Logged):
         try:
             return self.pool[name]
         except KeyError:
-            return self._add(name)
-
-    def add(self, name: str) -> None:
-        """Add the object as described by its name, if not already done
-           Does nothing if already there."""
-        if name not in self.pool:
-            self._add(name)
-
-    def _add(self, name: str) -> T:
-        newobj = self._create(name)
-        self.pool[name] = newobj
-        self._initialize(newobj)
-        return newobj
+            newobj = self._create(name)
+            self.pool[name] = newobj
+            self._initialize(newobj)
+            return newobj
 
     def activate(self, name: str) -> None:
         """Put the object 'name' in the active section, then categorize it"""
