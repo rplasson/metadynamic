@@ -215,6 +215,7 @@ class System(Logged, Probalistic):
     def multirun(self, nbthread: Optional[int] = None) -> Result:
         self.log.info("Start multithread run")
         self.log.disconnect(reason="Entering Multithreading environment")
+        self.initialize()
         ctx = get_context("fork")
         if nbthread is None:
             nbthread = ctx.cpu_count()
