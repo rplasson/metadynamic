@@ -7,6 +7,7 @@ def test_system() -> None:
         consts={"P": 10.0, "A": 10.0, "H": 1.0, "E": 1.0, "a": 1.0, "d": 1.0, "R": 0.1},
         dropreac=True,
         logfile="testlog/test-thread.log",
+        loglevel="DEBUG",
     )
     syst.set_param(conc=1.0, tend=1.0, tstep=0.05)
     syst.set_param(save=["a", "A", "aa", "aA", "Aa", "AA"])
