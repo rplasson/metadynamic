@@ -104,8 +104,6 @@ class Probalist:
         delta = proba - self._map[nlist][npos]
         self._map[nlist][npos] = proba
         self._updateprob(nlist, delta)
-        # else:
-        #     self.register(probaobj, proba)
 
     def getproba(self, probaobj: Probaobj) -> float:
         if probaobj.registered:
