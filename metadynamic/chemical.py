@@ -6,6 +6,8 @@ from metadynamic.proba import Probaobj, Probalistic
 from metadynamic.ends import DecrZero
 from metadynamic.description import ReacDescr, CompDescr
 from metadynamic.logger import Logged
+from weakref import WeakSet
+
 
 D = TypeVar("D", "ReacDescr", "CompDescr")
 C = TypeVar("C", "CollectofReaction", "CollectofCompound")
@@ -370,6 +372,7 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Logged, Collected, Probal
 
 
 # Memory leak in this class? As compounds are kept in pool, they may retain link to dead reactions!
+# Weakrefs???
 class Compound(Chemical[CompDescr, CollectofCompound], Logged):
     _descrtype = "Compound"
     _updatelist: Dict[Chemical[CompDescr, CollectofCompound], int] = {}
@@ -379,7 +382,7 @@ class Compound(Chemical[CompDescr, CollectofCompound], Logged):
         return Chemical.comp_collect
 
     def initialize(self) -> None:
-        self.reactions: Set[Reaction] = set()
+        self.reactions: Set[Reaction] = WeakSet()
         self.pop = 0
         self.length = self.description.length
 
@@ -393,23 +396,21 @@ class Compound(Chemical[CompDescr, CollectofCompound], Logged):
         self.reactions.add(reaction)
 
     def scan_reaction(self) -> None:  # Check if is useful!
-        self.reactions = set(self.reac_collect.get_related(self))
+        self.reactions = WeakSet(self.reac_collect.get_related(self))
 
     def update(self, change: int = 0) -> None:
         if change != 0:
             # self.log.debug(f"Really updating {self}")
             pop0 = self.pop
-            impactedreac: Set[Reaction] = set()
+            impactedreac: Set[Reaction] = WeakSet()
             self.pop = pop0 + change
             if self.pop < 0:
                 raise DecrZero(self.description.name)
             if self.pop == 0:
-                for reac in list(self.reactions):
-                    reac.unactivate()
                 self.unactivate()
             elif pop0 == 0:
                 self.activate()
-                impactedreac = set(self.reac_collect.get_related(self))
+                impactedreac = WeakSet(self.reac_collect.get_related(self))
             impactedreac |= self.reactions
             for reac in impactedreac:
                 Reaction.toupdate(reac)
