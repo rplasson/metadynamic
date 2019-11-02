@@ -145,25 +145,14 @@ class CollectofReaction(Collect["Reaction"], Logged, Probalistic):
     ) -> None:
         self.ruleset = Ruleset(consts, altconsts, catconsts)
 
-    def from_descr(self, description: ReacDescr) -> "Reaction":
-        # try:
-        return self[description.name]
-        # except KeyError:
-        #    newobj = self._create(description.name)
-        #    self.pool[description.name] = newobj
-        #    return newobj
-
     def describe(
         self, kind: str, reactants: List[str], catal: str, pos: int
     ) -> "Reaction":
-        return self.from_descr(
-            self.ruleset.reac_from_descr(kind, reactants, catal, pos)
-        )
+        return self[self.ruleset.reac_from_descr(kind, reactants, catal, pos).name]
 
     def get_related(self, reactant: "Compound") -> List["Reaction"]:
         return [
-            self.from_descr(description)
-            for description in self.ruleset.full_reac(reactant)
+            self[description.name] for description in self.ruleset.full_reac(reactant)
         ]
 
 
