@@ -369,6 +369,7 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Logged, Collected, Probal
             comp.addkept(self)
 
 
+# Memory leak in this class? As compounds are kept in pool, they may retain link to dead reactions!
 class Compound(Chemical[CompDescr, CollectofCompound], Logged):
     _descrtype = "Compound"
     _updatelist: Dict[Chemical[CompDescr, CollectofCompound], int] = {}
@@ -403,6 +404,8 @@ class Compound(Chemical[CompDescr, CollectofCompound], Logged):
             if self.pop < 0:
                 raise DecrZero(self.description.name)
             if self.pop == 0:
+                for reac in list(self.reactions):
+                    reac.unactivate()
                 self.unactivate()
             elif pop0 == 0:
                 self.activate()
