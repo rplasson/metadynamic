@@ -1,5 +1,6 @@
 from typing import Any, Tuple, Optional, Deque
 from collections import deque
+from weakref import ref
 from numpy import array, append, log, random
 
 from metadynamic.ends import RoundError
@@ -24,7 +25,7 @@ class Probaobj(Logged, Probalistic):
     def __init__(self, obj: Any):
         self.nlist: Optional[int]
         self.npos: Optional[int]
-        self.obj = obj
+        self.obj = ref(obj)
         self.unset_proba_pos()
 
     def set_proba_pos(self, nlist: int, npos: int) -> None:
@@ -59,7 +60,7 @@ class Probaobj(Logged, Probalistic):
         return self.probalist.getproba(self)
 
 
-class Probalist:
+class Probalist(Logged):
     def __init__(self, vol: float = 1, minprob: float = 1e-10):
         self.vol = vol
         self._minprob = minprob
@@ -145,12 +146,12 @@ class Probalist:
             )
         # Then choose a random column in the chosen probability line
         try:
-            return (
-                random.choice(
-                    self._mapobj[nlist], p=self._map[nlist] / self._problist[nlist]
-                ),
-                log(1 / random.rand()) / self.probtot,
-            )
+            chosen = random.choice(
+                self._mapobj[nlist], p=self._map[nlist] / self._problist[nlist]
+            )()
+            if chosen is None:
+                self.log.error(f"Badly destroyed reaction in {[ (a,b) for a,b in zip(self._mapobj[nlist],self._map[nlist]) if a is not None and a() is None]}")
+            return (chosen, log(1 / random.rand()) / self.probtot)
         except ValueError as v:
             raise RoundError(
                 f"(reason: {v}; probtot={self._problist[nlist]}=?={self._map[nlist].sum()}; problist={self._map[nlist]})"
@@ -168,7 +169,7 @@ class Probalist:
         self._problist = array([data.sum() for data in self._map])
         self.probtot = self._problist.sum()
 
-    def get_probaobj(self, obj: Any):
+    def get_probaobj(self, obj: Any) -> Probaobj:
         return Probaobj(obj)
 
     @staticmethod
