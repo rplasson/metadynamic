@@ -142,7 +142,8 @@ class System(Logged, Probalistic, Collected):
                 return True
             # choose a random event
             chosen, dt = self.probalist.choose()
-            assert self.comp_collect is chosen.comp_collect
+            if chosen.description.name not in self.reac_collect.active:
+                self.log.error(f"Weird! {chosen} is not active... Is it in the pool? {chosen.description.name in self.reac_collect.pool}")
             # check if there even was an event to choose
             if chosen is None:
                 raise NotFound(f"t={self.time}")

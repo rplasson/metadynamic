@@ -1,5 +1,5 @@
 from itertools import chain
-from typing import Generic, List, Optional, Callable, Set, TypeVar, Dict, Type, Any
+from typing import Generic, List, Optional, Callable, TypeVar, Dict, Type, Any
 
 from metadynamic.collector import Collect
 from metadynamic.proba import Probaobj, Probalistic
@@ -382,7 +382,7 @@ class Compound(Chemical[CompDescr, CollectofCompound], Logged):
         return Chemical.comp_collect
 
     def initialize(self) -> None:
-        self.reactions: Set[Reaction] = WeakSet()
+        self.reactions: WeakSet[Reaction] = WeakSet()
         self.pop = 0
         self.length = self.description.length
 
@@ -402,7 +402,7 @@ class Compound(Chemical[CompDescr, CollectofCompound], Logged):
         if change != 0:
             # self.log.debug(f"Really updating {self}")
             pop0 = self.pop
-            impactedreac: Set[Reaction] = WeakSet()
+            impactedreac: WeakSet[Reaction] = WeakSet()
             self.pop = pop0 + change
             if self.pop < 0:
                 raise DecrZero(self.description.name)
