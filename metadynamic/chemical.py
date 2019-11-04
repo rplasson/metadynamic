@@ -6,7 +6,6 @@ from metadynamic.proba import Probaobj, Probalistic
 from metadynamic.ends import DecrZero
 from metadynamic.description import ReacDescr, CompDescr
 from metadynamic.logger import Logged
-from weakref import WeakSet
 
 
 D = TypeVar("D", "ReacDescr", "CompDescr")
@@ -375,7 +374,7 @@ class Compound(Chemical[CompDescr, CollectofCompound], Logged):
 
     def __init__(self, description: CompDescr):
         super().__init__(description)
-        self.reactions: WeakSet[Reaction] = WeakSet()
+        self.reactions: Set[Reaction] = set()
         self.pop = 0
         self.length = self.description.length
 
@@ -396,7 +395,7 @@ class Compound(Chemical[CompDescr, CollectofCompound], Logged):
                 )
 
     def scan_reaction(self) -> None:  # Check if is useful!
-        self.reactions = WeakSet(self.reac_collect.get_related(self))
+        self.reactions = set(self.reac_collect.get_related(self))
 
     def update(self, change: int = 0) -> None:
         if change != 0:

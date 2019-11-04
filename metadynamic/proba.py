@@ -1,6 +1,5 @@
 from typing import Any, Tuple, Optional, Deque
 from collections import deque
-from weakref import proxy
 from numpy import array, append, log, random
 
 from metadynamic.ends import RoundError
@@ -25,7 +24,7 @@ class Probaobj(Logged, Probalistic):
     def __init__(self, obj: Any):
         self.nlist: Optional[int]
         self.npos: Optional[int]
-        self.obj = proxy(obj)
+        self.obj = obj
         self.unset_proba_pos()
 
     def set_proba_pos(self, nlist: int, npos: int) -> None:
