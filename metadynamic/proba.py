@@ -1,6 +1,6 @@
 from typing import Any, Tuple, Optional, Deque
 from collections import deque
-from weakref import ref
+from weakref import proxy
 from numpy import array, append, log, random
 
 from metadynamic.ends import RoundError
@@ -25,7 +25,7 @@ class Probaobj(Logged, Probalistic):
     def __init__(self, obj: Any):
         self.nlist: Optional[int]
         self.npos: Optional[int]
-        self.obj = ref(obj)
+        self.obj = proxy(obj)
         self.unset_proba_pos()
 
     def set_proba_pos(self, nlist: int, npos: int) -> None:
@@ -148,7 +148,7 @@ class Probalist(Logged):
         try:
             chosen = random.choice(
                 self._mapobj[nlist], p=self._map[nlist] / self._problist[nlist]
-            )()
+            )
             if chosen is None:
                 self.log.error(f"Badly destroyed reaction in {[ (a,b) for a,b in zip(self._mapobj[nlist],self._map[nlist]) if a is not None and a() is None]}")
             return (chosen, log(1 / random.rand()) / self.probtot)

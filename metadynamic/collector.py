@@ -47,9 +47,10 @@ class Collect(Generic[T], Logged):
         """Remove the object 'name' from the active section, then
            uncategorize it"""
         try:
-            del self.active[name]
+            # del self.active[name]
+            self.active.pop(name)
         except KeyError:
-            pass
+            self.log.debug(f"Tried to unactivate twice {name}")
         if self.categorize:
             for cat in self.categories.values():
                 try:

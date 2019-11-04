@@ -212,7 +212,6 @@ class Chemical(Generic[D, C], Logged, Collected):
     @classmethod
     def trigger_update(cls) -> None:
         """Trigger update events"""
-        # cls.log.debug(f"Will update {len(cls._updatelist)} objects for {cls}: {cls._updatelist.keys()}")
         for obj, change in cls._updatelist.items():
             obj.update(change)
         cls._updatelist = {}
@@ -255,7 +254,7 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Logged, Collected, Probal
         self.proba = self.calcproba()
         # only perform update if something changed
         if oldproba != self.proba:
-            if self.proba > 0.0:
+            if self.proba != 0.0:
                 if oldproba == 0.0:
                     # was unactivated, thus activate
                     self.activate()
@@ -267,10 +266,10 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Logged, Collected, Probal
                 self._probaobj.update(self.proba)
                 # assert self.proba == self.calcproba()
             else:
-                if oldproba > 0.0:
+                if oldproba != 0.0:
                     # was activated, thus deactivate
-                    self.unactivate()
                     self._probaobj.unregister()
+                    self.unactivate()
                     for comp in self._reactants:
                         comp.unregister_reaction(self)
                     if self._catalized:
@@ -393,7 +392,10 @@ class Compound(Chemical[CompDescr, CollectofCompound], Logged):
         self.reactions.add(reaction)
 
     def unregister_reaction(self, reaction: Reaction) -> None:
-        self.reactions.add(reaction)
+        try:
+            self.reactions.remove(reaction)
+        except KeyError:
+            self.log.debug(f"Tried to unregister twice {reaction} from {self} (p={self.pop})")
 
     def scan_reaction(self) -> None:  # Check if is useful!
         self.reactions = WeakSet(self.reac_collect.get_related(self))
@@ -402,7 +404,7 @@ class Compound(Chemical[CompDescr, CollectofCompound], Logged):
         if change != 0:
             # self.log.debug(f"Really updating {self}")
             pop0 = self.pop
-            impactedreac: WeakSet[Reaction] = WeakSet()
+            # impactedreac: WeakSet[Reaction] = WeakSet()
             self.pop = pop0 + change
             if self.pop < 0:
                 raise DecrZero(self.description.name)
@@ -410,9 +412,10 @@ class Compound(Chemical[CompDescr, CollectofCompound], Logged):
                 self.unactivate()
             elif pop0 == 0:
                 self.activate()
-                impactedreac = WeakSet(self.reac_collect.get_related(self))
-            impactedreac |= self.reactions
-            for reac in impactedreac:
+                self.scan_reaction()
+                # impactedreac = WeakSet(self.reac_collect.get_related(self))
+            # impactedreac |= self.reactions
+            for reac in self.reactions:  # impactedreac:
                 Reaction.toupdate(reac)
 
     def inc(self) -> None:
