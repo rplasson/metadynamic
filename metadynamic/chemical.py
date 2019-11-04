@@ -103,8 +103,8 @@ class CollectofCompound(Collect["Compound"], Logged):
         newcomp = Compound(CompDescr(name))
         return newcomp
 
-    def _initialize(self, comp: "Compound") -> None:
-        comp.initialize()
+    # def _initialize(self, comp: "Compound") -> None:
+    #     comp.initialize()
 
     def _categorize(self, obj: "Compound") -> List[str]:
         return obj.description.categories
@@ -133,8 +133,8 @@ class CollectofReaction(Collect["Reaction"], Logged, Probalistic):
         newreac = Reaction(self.ruleset.reac_from_name(name))
         return newreac
 
-    def _initialize(self, reac: "Reaction") -> None:
-        reac.initialize()
+    # def _initialize(self, reac: "Reaction") -> None:
+    #     reac.initialize()
 
     def _categorize(self, obj: "Reaction") -> List[str]:
         return obj.description.categories
@@ -229,7 +229,8 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Logged, Collected, Probal
     def collect(self) -> CollectofReaction:
         return Chemical.reac_collect
 
-    def initialize(self) -> None:
+    def __init__(self, description: ReacDescr):
+        super().__init__(description)
         self._vol: float = self.probalist.vol
         self._probaobj: Probaobj = self.probalist.get_probaobj(self)
         self.proba: float = 0.0
@@ -380,7 +381,8 @@ class Compound(Chemical[CompDescr, CollectofCompound], Logged):
     def collect(self) -> CollectofCompound:
         return Chemical.comp_collect
 
-    def initialize(self) -> None:
+    def __init__(self, description: CompDescr):
+        super().__init__(description)
         self.reactions: WeakSet[Reaction] = WeakSet()
         self.pop = 0
         self.length = self.description.length

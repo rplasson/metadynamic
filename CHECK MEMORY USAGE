@@ -1,0 +1,3 @@
+ Note:
+having weak references in pool for "soft" keepreac (may reduce memory AND avoid too much creation/destruction of compounds, by retriving in pool weakly references reactions that were removed from active if asked before GC'd)
+
