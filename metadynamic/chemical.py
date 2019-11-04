@@ -389,7 +389,11 @@ class Compound(Chemical[CompDescr, CollectofCompound], Logged):
         try:
             self.reactions.remove(reaction)
         except KeyError:
-            self.log.debug(f"Tried to unregister twice {reaction} from {self} (p={self.pop})")
+            if not reaction.description.dimer:
+                # Only sensible reason for a double unregistration would be for dimer
+                self.log.debug(
+                    f"Tried to unregister twice {reaction} from {self} (p={self.pop})"
+                )
 
     def scan_reaction(self) -> None:  # Check if is useful!
         self.reactions = WeakSet(self.reac_collect.get_related(self))

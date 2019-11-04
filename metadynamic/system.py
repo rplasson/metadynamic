@@ -230,6 +230,7 @@ class System(Logged, Probalistic, Collected):
         ctx = get_context("fork")
         if nbthread is None:
             nbthread = ctx.cpu_count()
+        self.log.disconnect(reason="Entering Multithreading envoronment")
         with ctx.Pool(nbthread) as pool:
             res = pool.map(self.run, range(nbthread))
         self.log.connect(reason="Leaving Multithreading environment")
