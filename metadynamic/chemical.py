@@ -103,9 +103,6 @@ class CollectofCompound(Collect["Compound"], Logged):
         newcomp = Compound(CompDescr(name))
         return newcomp
 
-    # def _initialize(self, comp: "Compound") -> None:
-    #     comp.initialize()
-
     def _categorize(self, obj: "Compound") -> List[str]:
         return obj.description.categories
 
@@ -132,9 +129,6 @@ class CollectofReaction(Collect["Reaction"], Logged, Probalistic):
         assert isinstance(name, str), f"{name} is not a string..."
         newreac = Reaction(self.ruleset.reac_from_name(name))
         return newreac
-
-    # def _initialize(self, reac: "Reaction") -> None:
-    #     reac.initialize()
 
     def _categorize(self, obj: "Reaction") -> List[str]:
         return obj.description.categories
@@ -371,8 +365,6 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Logged, Collected, Probal
             comp.addkept(self)
 
 
-# Memory leak in this class? As compounds are kept in pool, they may retain link to dead reactions!
-# Weakrefs???
 class Compound(Chemical[CompDescr, CollectofCompound], Logged):
     _descrtype = "Compound"
     _updatelist: Dict[Chemical[CompDescr, CollectofCompound], int] = {}
@@ -406,7 +398,6 @@ class Compound(Chemical[CompDescr, CollectofCompound], Logged):
         if change != 0:
             # self.log.debug(f"Really updating {self}")
             pop0 = self.pop
-            # impactedreac: WeakSet[Reaction] = WeakSet()
             self.pop = pop0 + change
             if self.pop < 0:
                 raise DecrZero(self.description.name)
@@ -415,8 +406,6 @@ class Compound(Chemical[CompDescr, CollectofCompound], Logged):
             elif pop0 == 0:
                 self.activate()
                 self.scan_reaction()
-                # impactedreac = WeakSet(self.reac_collect.get_related(self))
-            # impactedreac |= self.reactions
             for reac in self.reactions:  # impactedreac:
                 Reaction.toupdate(reac)
 

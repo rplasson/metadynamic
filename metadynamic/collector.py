@@ -26,7 +26,6 @@ class Collect(Generic[T], Logged):
         except KeyError:
             newobj = self._create(name)
             self.pool[name] = newobj
-            # self._initialize(newobj)
             return newobj
 
     def activate(self, name: str) -> None:
@@ -69,11 +68,6 @@ class Collect(Generic[T], Logged):
         """Create the object <T> from its name.
         Must be implemented in subclasses"""
         raise NotImplementedError
-
-    # def _initialize(self, obj: T) -> None:
-    #     """Initialize the object <T> from its name.
-    #     Must be implemented in subclasses"""
-    #     raise NotImplementedError
 
     def _categorize(self, obj: T) -> List[str]:
         """List the categories of the object.
