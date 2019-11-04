@@ -1,7 +1,7 @@
 from typing import List, Optional, Iterator, Callable, Type
 
-from metadynamic.utils import samecase
-
+def samecase(one: str, two: str) -> bool:
+    return (one.islower() and two.islower()) or (one.isupper() and two.isupper())
 
 class Descr:
     _descrtype = "Chemical Description"
@@ -23,7 +23,7 @@ class Descr:
 class CompDescr(Descr):
     _descrtype = "Compound Description"
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return bool(self.name)
 
     # Check memoize effects

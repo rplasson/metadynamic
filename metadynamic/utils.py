@@ -26,8 +26,6 @@ def memoize_oneparam(f: Callable[[T, A], Any]) -> Callable[[T, A], Any]:
     return memoized
 
 
-def samecase(one: str, two: str) -> bool:
-    return (one.islower() and two.islower()) or (one.isupper() and two.isupper())
 
 
 # Still useful???
