@@ -65,7 +65,9 @@ class System(Logged, Probalistic, Collected):
         minprob: float = 1e-10,
         dropmode: str = "",
         gcperio: bool = True,
+        context: str = "fork",
     ):
+        self.context = context
         self.gcperio = gcperio
         if self.gcperio:
             gc.disable()
@@ -189,7 +191,7 @@ class System(Logged, Probalistic, Collected):
                 self.log.info(f"#{step}: {self.time} -> {tnext}")
                 finished = self._process(tnext)
                 stat, dist = self.statlist()
-                table[step] = (
+                res = (
                     [num, self.log.runtime(), self.memuse, self.step, self.time]
                     + [self.conc_of(comp) for comp in self.param.save]
                     + [
@@ -200,19 +202,8 @@ class System(Logged, Probalistic, Collected):
                         stat["poolreac"],
                     ]
                 )
-                self.log.debug(
-                    str(
-                        [num, self.log.runtime(), self.memuse, self.step, self.time]
-                        + [self.conc_of(comp) for comp in self.param.save]
-                        + [
-                            stat["maxlength"],
-                            stat["nbcomp"],
-                            stat["poolsize"],
-                            stat["nbreac"],
-                            stat["poolreac"],
-                        ]
-                    )
-                )
+                table[step] = res
+                self.log.debug(str(res))
                 lendist = lendist.join(
                     DataFrame.from_dict({step: dist["lendist"]}), how="outer"
                 ).fillna(0)
@@ -241,7 +232,7 @@ class System(Logged, Probalistic, Collected):
         return (table, lendist.astype(int), pooldist.astype(int), end)
 
     def multirun(self, nbthread: Optional[int] = None) -> Result:
-        ctx = get_context("fork")
+        ctx = get_context(self.context)
         if nbthread is None:
             nbthread = ctx.cpu_count()
         self.log.disconnect(reason="Entering Multithreading envoronment")
