@@ -25,7 +25,7 @@ from metadynamic.chemical import (
     CollectofCompound,
     CollectofReaction,
     Compound,
-    Reaction
+    Reaction,
 )
 
 # D = TypeVar("D", "Descr", "ReacDescr", "CompDescr")
@@ -63,9 +63,12 @@ class System(Logged, Probalistic, Collected):
         dropreac: bool = True,
         autoclean: bool = True,
         minprob: float = 1e-10,
-        dropmode: str = ""
+        dropmode: str = "",
+        gcperio: bool = True,
     ):
-        gc.disable()
+        self.gcperio = gcperio
+        if self.gcperio:
+            gc.disable()
         Logged.setlogger(logfile, loglevel)
         if altconsts is None:
             altconsts = {}
@@ -79,7 +82,9 @@ class System(Logged, Probalistic, Collected):
         self.param = SysParam(ptot=sum([pop * len(comp) for comp, pop in init.items()]))
         Probalistic.setprobalist(vol=self.param.vol, minprob=minprob)
         CollectofCompound()
-        CollectofReaction(dropreac, categorize=False, dropmode=dropmode)  # set of active reactions
+        CollectofReaction(
+            dropreac, categorize=False, dropmode=dropmode
+        )  # set of active reactions
         self.reac_collect.init_ruleset(consts, altconsts, catconsts)
         self.init = init
         self.initialized = False
@@ -146,7 +151,9 @@ class System(Logged, Probalistic, Collected):
             # choose a random event
             chosen, dt = self.probalist.choose()
             if chosen.description.name not in self.reac_collect.active:
-                self.log.error(f"Weird! {chosen} is not active... Is it in the pool? {chosen.description.name in self.reac_collect.pool}")
+                self.log.error(
+                    f"Weird! {chosen} is not active... Is it in the pool? {chosen.description.name in self.reac_collect.pool}"
+                )
             # check if there even was an event to choose
             if chosen is None:
                 raise NotFound(f"t={self.time}")
@@ -193,24 +200,27 @@ class System(Logged, Probalistic, Collected):
                         stat["poolreac"],
                     ]
                 )
-                self.log.debug(str(
-                    [num, self.log.runtime(), self.memuse, self.step, self.time]
-                    + [self.conc_of(comp) for comp in self.param.save]
-                    + [
-                        stat["maxlength"],
-                        stat["nbcomp"],
-                        stat["poolsize"],
-                        stat["nbreac"],
-                        stat["poolreac"],
-                    ]
-                ))
+                self.log.debug(
+                    str(
+                        [num, self.log.runtime(), self.memuse, self.step, self.time]
+                        + [self.conc_of(comp) for comp in self.param.save]
+                        + [
+                            stat["maxlength"],
+                            stat["nbcomp"],
+                            stat["poolsize"],
+                            stat["nbreac"],
+                            stat["poolreac"],
+                        ]
+                    )
+                )
                 lendist = lendist.join(
                     DataFrame.from_dict({step: dist["lendist"]}), how="outer"
                 ).fillna(0)
                 pooldist = pooldist.join(
                     DataFrame.from_dict({step: dist["pooldist"]}), how="outer"
                 ).fillna(0)
-                gc.collect()
+                if self.gcperio:
+                    gc.collect()
                 if finished:
                     tnext += self.param.tstep
                 step += 1
@@ -241,9 +251,9 @@ class System(Logged, Probalistic, Collected):
         self.log.info("Multithread run finished")
         return Result(res)
 
-    def set_param(self, **kw):
+    def set_param(self, **kw) -> None:
         self.param = replace(self.param, **kw)
-        self.probalist.vol = self.param.vol # Need to update volume if changed!
+        self.probalist.vol = self.param.vol  # Need to update volume if changed!
 
     def addkept(self, reac: str) -> None:
         """reactions that are kept"""

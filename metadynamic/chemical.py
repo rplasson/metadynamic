@@ -1,5 +1,5 @@
 from itertools import chain
-from typing import Generic, List, Optional, Callable, TypeVar, Dict, Type, Any
+from typing import Generic, List, Optional, Callable, TypeVar, Dict, Type, Any, Set
 
 from metadynamic.collector import Collect
 from metadynamic.proba import Probaobj, Probalistic

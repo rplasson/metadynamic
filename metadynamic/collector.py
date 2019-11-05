@@ -1,9 +1,17 @@
-from typing import Generic, TypeVar, Dict, Set, List
+from typing import Generic, TypeVar, Dict, Set, List, Union
 
 from metadynamic.logger import Logged
 from weakref import WeakValueDictionary
 
+K = TypeVar("K")
 T = TypeVar("T")
+
+
+class WeakDict(Generic[K, T], WeakValueDictionary):
+    pass
+
+
+WDict = Union[Dict[str, T], WeakDict[str, T]]
 
 
 class Collect(Generic[T], Logged):
@@ -11,13 +19,17 @@ class Collect(Generic[T], Logged):
 
     def __init__(self, drop: bool = False, categorize: bool = True, dropmode: str = ""):
         self.dropmode = dropmode if dropmode else "drop" if drop else "keep"
-        self.pool: Dict[str, T] = WeakValueDictionary() if self.dropmode == "soft" else {} 
+        self.pool: WDict[T]
+        if self.dropmode == "soft":
+            self.pool = WeakDict()
+        else:
+            self.pool = {}
         self.categories: Dict[str, Set[T]] = {}
-        self.active: Dict[
-            str, T
-        ] = self.pool if self.dropmode == "drop" else {} 
+        self.active: WDict[T] = self.pool if self.dropmode == "drop" else {}
         self.categorize = categorize
-        self.log.info(f"Created {self} as drop={self.dropmode}, with pool of type {type(self.pool)}. Is active=pool ? {self.active is self.pool}")
+        self.log.info(
+            f"Created {self} as drop={self.dropmode}, with pool of type {type(self.pool)}. Is active=pool ? {self.active is self.pool}"
+        )
 
     def __repr__(self) -> str:
         return f"<Collect of {len(self.pool)} {self._colltype}>"
