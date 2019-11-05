@@ -1,3 +1,4 @@
+import gc
 from multiprocessing import get_context
 from itertools import repeat
 from os import getpid
@@ -64,6 +65,7 @@ class System(Logged, Probalistic, Collected):
         minprob: float = 1e-10,
         dropmode: str = ""
     ):
+        gc.disable()
         Logged.setlogger(logfile, loglevel)
         if altconsts is None:
             altconsts = {}
@@ -208,6 +210,7 @@ class System(Logged, Probalistic, Collected):
                 pooldist = pooldist.join(
                     DataFrame.from_dict({step: dist["pooldist"]}), how="outer"
                 ).fillna(0)
+                gc.collect()
                 if finished:
                     tnext += self.param.tstep
                 step += 1
