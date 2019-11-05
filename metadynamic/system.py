@@ -5,6 +5,7 @@ from os import getpid
 from typing import List, Optional, Dict, Tuple
 from psutil import Process
 from dataclasses import dataclass, replace, field
+from json import load
 
 from pandas import DataFrame
 
@@ -28,67 +29,75 @@ from metadynamic.chemical import (
     Reaction,
 )
 
-# D = TypeVar("D", "Descr", "ReacDescr", "CompDescr")
-# C = TypeVar("C", "Chemical", "Reaction", "Compound")
-# T = TypeVar("T")
-# A = TypeVar("A")
-# R = TypeVar("R")
+
+class Readerclass:
+    _default_section: str = "Parameter"
+
+    @classmethod
+    def readfile(cls, filename: str, section: str = "") -> "Readerclass":
+        """Return a SysParam object, updated by the data from filename"""
+        if section == "":
+            section = cls._default_section
+        with open(filename) as json_data:
+            parameters = load(json_data)[section]
+        return cls(**parameters)
 
 
 @dataclass
-class SysParam:
+class SysParam(Readerclass):
+    _default_section = "System"
     conc: float = 0.1
     tend: float = 1.0
     tstep: float = 0.01
     rtlim: float = 900.0  # Limit to 15min runtime
     maxsteps: int = 10000
-    ptot: int = 100
+    ptot: int = field(init=False)
     vol: float = field(init=False)
     seed: Optional[int] = None
     save: List[str] = field(default_factory=list)
+    init: Dict[str, int] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
+        self.ptot = sum([pop * len(comp) for comp, pop in self.init.items()])
         self.vol = self.ptot / self.conc
+
+
+@dataclass
+class RunParam(Readerclass):
+    _default_section = "Run"
+    dropreac: bool = True
+    autoclean: bool = True
+    minprob: float = 1e-10
+    dropmode: str = ""
+    gcperio: bool = True
+    context: str = "fork"
+    consts: Dict[str, float] = field(default_factory=dict)
+    altconsts: Dict[str, float] = field(default_factory=dict)
+    catconsts: Dict[str, float] = field(default_factory=dict)
 
 
 class System(Logged, Probalistic, Collected):
     def __init__(
-        self,
-        init: Dict[str, int],
-        consts: Dict[str, float],
-        altconsts: Optional[Dict[str, float]] = None,
-        catconsts: Optional[Dict[str, float]] = None,
-        logfile: Optional[str] = None,
-        loglevel: str = "INFO",
-        dropreac: bool = True,
-        autoclean: bool = True,
-        minprob: float = 1e-10,
-        dropmode: str = "",
-        gcperio: bool = True,
-        context: str = "fork",
+        self, filename: str, logfile: Optional[str] = None, loglevel: str = "INFO"
     ):
-        self.context = context
-        self.gcperio = gcperio
-        if self.gcperio:
-            gc.disable()
         Logged.setlogger(logfile, loglevel)
-        if altconsts is None:
-            altconsts = {}
-        if catconsts is None:
-            catconsts = {}
+        self.param = SysParam.readfile(filename)
+        self.log.info(f"Parameters loaded: {self.param}")
+        self.runparam = RunParam.readfile(filename)
+        self.log.info(f"Run Parameters loaded: {self.runparam}")
+        if self.runparam.gcperio:
+            gc.disable()
         self.time = 0.0
-        self.dropreac = dropreac
-        self.autoclean = autoclean
         # If seed set, always restart from the same seed. For timing/debugging purpose
         self.step = 0
-        self.param = SysParam(ptot=sum([pop * len(comp) for comp, pop in init.items()]))
-        Probalistic.setprobalist(vol=self.param.vol, minprob=minprob)
+        Probalistic.setprobalist(vol=self.param.vol, minprob=self.runparam.minprob)
         CollectofCompound()
         CollectofReaction(
-            dropreac, categorize=False, dropmode=dropmode
-        )  # set of active reactions
-        self.reac_collect.init_ruleset(consts, altconsts, catconsts)
-        self.init = init
+            self.runparam.dropreac, categorize=False, dropmode=self.runparam.dropmode
+        )
+        self.reac_collect.init_ruleset(
+            self.runparam.consts, self.runparam.altconsts, self.runparam.catconsts
+        )
         self.initialized = False
         self.log.info("System created")
 
@@ -131,14 +140,14 @@ class System(Logged, Probalistic, Collected):
 
     def initialize(self) -> None:
         if not self.initialized:
-            for compound, pop in self.init.items():
+            for compound, pop in self.param.init.items():
                 self.comp_collect[compound].init_pop(pop)
             Compound.trigger_update()
             Reaction.trigger_update()
 
     def _process(self, tstop: float) -> bool:
         # Check if a cleanup should be done
-        if self.autoclean:
+        if self.runparam.autoclean:
             self.probalist.clean()
         # Check if end of time is nigh
         if self.time >= self.param.tend:
@@ -210,7 +219,7 @@ class System(Logged, Probalistic, Collected):
                 pooldist = pooldist.join(
                     DataFrame.from_dict({step: dist["pooldist"]}), how="outer"
                 ).fillna(0)
-                if self.gcperio:
+                if self.runparam.gcperio:
                     gc.collect()
                 if finished:
                     tnext += self.param.tstep
@@ -245,6 +254,7 @@ class System(Logged, Probalistic, Collected):
     def set_param(self, **kw) -> None:
         self.param = replace(self.param, **kw)
         self.probalist.vol = self.param.vol  # Need to update volume if changed!
+        self.log.info(f"Parameters changed: {self.param}")
 
     def addkept(self, reac: str) -> None:
         """reactions that are kept"""
