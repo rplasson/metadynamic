@@ -1,6 +1,7 @@
 from typing import Generic, TypeVar, Dict, Set, List
 
 from metadynamic.logger import Logged
+from weakref import WeakValueDictionary
 
 T = TypeVar("T")
 
@@ -8,11 +9,15 @@ T = TypeVar("T")
 class Collect(Generic[T], Logged):
     _colltype = "Generic"
 
-    def __init__(self, drop: bool = False, categorize: bool = True):
-        self.pool: Dict[str, T] = {}
+    def __init__(self, drop: bool = False, categorize: bool = True, dropmode: str = ""):
+        self.dropmode = dropmode if dropmode else "drop" if drop else "keep"
+        self.pool: Dict[str, T] = WeakValueDictionary() if self.dropmode == "soft" else {} 
         self.categories: Dict[str, Set[T]] = {}
-        self.active: Dict[str, T] = self.pool if drop else {}
+        self.active: Dict[
+            str, T
+        ] = self.pool if self.dropmode == "drop" else {} 
         self.categorize = categorize
+        self.log.info(f"Created {self} as drop={self.dropmode}, with pool of type {type(self.pool)}. Is active=pool ? {self.active is self.pool}")
 
     def __repr__(self) -> str:
         return f"<Collect of {len(self.pool)} {self._colltype}>"
@@ -25,6 +30,8 @@ class Collect(Generic[T], Logged):
             return self.pool[name]
         except KeyError:
             newobj = self._create(name)
+            if self.dropmode == "soft":
+                self.active[name] = newobj
             self.pool[name] = newobj
             return newobj
 

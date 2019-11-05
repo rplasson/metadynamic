@@ -62,6 +62,7 @@ class System(Logged, Probalistic, Collected):
         dropreac: bool = True,
         autoclean: bool = True,
         minprob: float = 1e-10,
+        dropmode: str = ""
     ):
         Logged.setlogger(logfile, loglevel)
         if altconsts is None:
@@ -76,7 +77,7 @@ class System(Logged, Probalistic, Collected):
         self.param = SysParam(ptot=sum([pop * len(comp) for comp, pop in init.items()]))
         Probalistic.setprobalist(vol=self.param.vol, minprob=minprob)
         CollectofCompound()
-        CollectofReaction(dropreac, categorize=False)  # set of active reactions
+        CollectofReaction(dropreac, categorize=False, dropmode=dropmode)  # set of active reactions
         self.reac_collect.init_ruleset(consts, altconsts, catconsts)
         self.init = init
         self.initialized = False
