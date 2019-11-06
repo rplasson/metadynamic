@@ -277,20 +277,7 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Logged, Collected, Probal
         # Decrement reactants
         for reac in self._reactants:
             reac.dec()
-        try:
-            Compound.trigger_update()
-        except DecrZero as end:
-            # Decremented from 0...
-            # Thus exit with max of information
-            detail = f" from {self}, that is activated? ({self.activated}) (p={self.proba}={self.calcproba()}, "
-            for comp in self._reactants:
-                detail += f"[{comp.description}]={comp.pop} ,"
-            if self._catalized:
-                detail += f"catal[{self._catal.description}]={self._catal.pop})"
-            else:
-                detail += ")"
-            raise DecrZero(end.detail + detail)
-        Reaction.trigger_update()
+        trigger_changes(self)
 
     def _order0(self) -> float:
         # Reaction ->
@@ -420,3 +407,26 @@ class Compound(Chemical[CompDescr, CollectofCompound], Logged):
 
     def init_pop(self, start: int) -> None:
         Compound.toupdate(self, start)
+
+
+def trigger_changes(fromreac: Optional[Reaction] = None) -> None:
+    try:
+        Compound.trigger_update()
+    except DecrZero as end:
+        if fromreac is None:
+            detail = end.detail
+        else:
+            # Decremented from 0...
+            # Thus exit with max of information
+            detail = (
+                end.detail
+                + f" from {fromreac}, that is activated? ({fromreac.activated}) (p={fromreac.proba}={fromreac.calcproba()}, "
+            )
+            for comp in fromreac._reactants:
+                detail += f"[{comp.description}]={comp.pop} ,"
+            if fromreac._catalized:
+                detail += f"catal[{fromreac._catal.description}]={fromreac._catal.pop})"
+            else:
+                detail += ")"
+        raise DecrZero(detail)
+    Reaction.trigger_update()

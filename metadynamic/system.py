@@ -25,8 +25,7 @@ from metadynamic.chemical import (
     Collected,
     CollectofCompound,
     CollectofReaction,
-    Compound,
-    Reaction,
+    trigger_changes,
 )
 
 
@@ -142,8 +141,7 @@ class System(Logged, Probalistic, Collected):
         if not self.initialized:
             for compound, pop in self.param.init.items():
                 self.comp_collect[compound].init_pop(pop)
-            Compound.trigger_update()
-            Reaction.trigger_update()
+            trigger_changes()
 
     def _process(self, tstop: float) -> bool:
         # Check if a cleanup should be done
@@ -241,7 +239,7 @@ class System(Logged, Probalistic, Collected):
         return (table, lendist.astype(int), pooldist.astype(int), end)
 
     def multirun(self, nbthread: Optional[int] = None) -> Result:
-        ctx = get_context(self.context)
+        ctx = get_context(self.runparam.context)
         if nbthread is None:
             nbthread = ctx.cpu_count()
         self.log.disconnect(reason="Entering Multithreading envoronment")
