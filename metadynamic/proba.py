@@ -172,5 +172,8 @@ class Probalist(Logged):
         return Probaobj(obj)
 
     @staticmethod
-    def seed(seed: Optional[int]) -> None:
-        random.seed(seed)
+    def seed(seed: int) -> None:
+        if seed == 0:
+            random.seed()
+        else:
+            random.seed(seed)

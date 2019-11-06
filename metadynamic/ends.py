@@ -53,3 +53,17 @@ class DecrZero(BadEnding):
 class RuntimeLim(Finished):
     num = 5
     error_message = "Runtime limit exceeded"
+
+
+class InputError(Finished):
+    pass
+
+
+class FileNotFound(InputError):
+    num = 6
+    error_message = "The provided file was not found."
+
+
+class BadFile(InputError):
+    num = 7
+    error_message = "The provided file is badly formed"

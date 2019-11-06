@@ -2,10 +2,8 @@ import gc
 from multiprocessing import get_context
 from itertools import repeat
 from os import getpid
-from typing import List, Optional, Dict, Tuple
+from typing import Optional, Dict, Tuple
 from psutil import Process
-from dataclasses import dataclass, replace, field
-from json import load
 
 from pandas import DataFrame
 
@@ -27,52 +25,7 @@ from metadynamic.chemical import (
     CollectofReaction,
     trigger_changes,
 )
-
-
-class Readerclass:
-    _default_section: str = "Parameter"
-
-    @classmethod
-    def readfile(cls, filename: str, section: str = "") -> "Readerclass":
-        """Return a SysParam object, updated by the data from filename"""
-        if section == "":
-            section = cls._default_section
-        with open(filename) as json_data:
-            parameters = load(json_data)[section]
-        return cls(**parameters)
-
-
-@dataclass
-class SysParam(Readerclass):
-    _default_section = "System"
-    conc: float = 0.1
-    tend: float = 1.0
-    tstep: float = 0.01
-    rtlim: float = 900.0  # Limit to 15min runtime
-    maxsteps: int = 10000
-    ptot: int = field(init=False)
-    vol: float = field(init=False)
-    seed: Optional[int] = None
-    save: List[str] = field(default_factory=list)
-    init: Dict[str, int] = field(default_factory=dict)
-
-    def __post_init__(self) -> None:
-        self.ptot = sum([pop * len(comp) for comp, pop in self.init.items()])
-        self.vol = self.ptot / self.conc
-
-
-@dataclass
-class RunParam(Readerclass):
-    _default_section = "Run"
-    dropreac: bool = True
-    autoclean: bool = True
-    minprob: float = 1e-10
-    dropmode: str = ""
-    gcperio: bool = True
-    context: str = "fork"
-    consts: Dict[str, float] = field(default_factory=dict)
-    altconsts: Dict[str, float] = field(default_factory=dict)
-    catconsts: Dict[str, float] = field(default_factory=dict)
+from metadynamic.inputs import SysParam, RunParam
 
 
 class System(Logged, Probalistic, Collected):
@@ -249,8 +202,9 @@ class System(Logged, Probalistic, Collected):
         self.log.info("Multithread run finished")
         return Result(res)
 
-    def set_param(self, **kw) -> None:
-        self.param = replace(self.param, **kw)
+    # Remove direct parameter settings, to rely on only changes in json file???
+    def set_param(self, **kwd) -> None:
+        self.param.set_param(**kwd)
         self.probalist.vol = self.param.vol  # Need to update volume if changed!
         self.log.info(f"Parameters changed: {self.param}")
 
