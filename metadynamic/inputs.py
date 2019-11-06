@@ -1,6 +1,8 @@
-from json import load
+from json import load, JSONDecodeError
 from typing import List, Dict
 from dataclasses import dataclass, field
+
+from metadynamic.ends import BadFile, FileNotFound
 
 
 class Readerclass:
@@ -16,8 +18,13 @@ class Readerclass:
         """Return a SysParam object, updated by the data from filename"""
         if section == "":
             section = cls._default_section
-        with open(filename) as json_data:
-            parameters = load(json_data)[section]
+        try:
+            with open(filename) as json_data:
+                parameters = load(json_data)[section]
+        except FileNotFoundError:
+            raise FileNotFound(f"Unknown file {filename}")
+        except JSONDecodeError as jerr:
+            raise BadFile(f"Bad JSON format: {jerr}")
         # Validate file entries
         err = ""
         list_param = cls.list_param()
@@ -28,7 +35,7 @@ class Readerclass:
                 if not isinstance(val, list_param[key]):
                     err += f"{key} parameter should be of type {list_param[key]}, not {type(val)}\n"
         if err != "":
-            raise ValueError("BadlyFormatted file:\n")
+            raise BadFile(err)
         # OK, initialize data
         return cls(**parameters)
 
