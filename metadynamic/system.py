@@ -36,9 +36,8 @@ class System(Logged, Probalistic, Collected):
         self.initialized = False
         Logged.setlogger(logfile, loglevel)
         self.param = SysParam.readfile(filename)
-        self.log.info(f"Parameters loaded: {self.param}")
         self.runparam = RunParam.readfile(filename)
-        self.log.info(f"Run Parameters loaded: {self.runparam}")
+        self.log.info("Parameter files loaded.")
 
     @property
     def memuse(self) -> float:
@@ -98,6 +97,7 @@ class System(Logged, Probalistic, Collected):
         for compound, pop in self.param.init.items():
             self.comp_collect[compound].init_pop(pop)
         trigger_changes()
+        self.log.info(f"Initialized with {self.param} and {self.runparam}")
         self.initialized = True
 
     def _process(self, tstop: float) -> bool:
@@ -116,10 +116,6 @@ class System(Logged, Probalistic, Collected):
                 return True
             # choose a random event
             chosen, dt = self.probalist.choose()
-            if chosen.description.name not in self.reac_collect.active:
-                self.log.error(
-                    f"Weird! {chosen} is not active... Is it in the pool? {chosen.description.name in self.reac_collect.pool}"
-                )
             # check if there even was an event to choose
             if chosen is None:
                 raise NotFound(f"t={self.time}")
@@ -133,13 +129,14 @@ class System(Logged, Probalistic, Collected):
         self.log.warning(f"maxsteps per process (={self.param.maxsteps}) too low")
         return False
 
-    def _run(self, num: int = 0) -> Tuple[DataFrame, int, int, str]:
+    def _run(self, num: int = -1) -> Tuple[DataFrame, int, int, str]:
         lines = (
             ["thread", "ptime", "memuse", "step", "time"]
             + self.param.save
             + ["maxlength", "nbcomp", "poolsize", "nbreac", "poolreac"]
         )
-        self.log.connect(f"Reconnected from thread {num+1}", num + 1)
+        if num >= 0:
+            self.log.connect(f"Reconnected from thread {num+1}", num + 1)
         if not self.initialized:
             self.log.info("Will initialize")
             self.initialize()
@@ -191,19 +188,21 @@ class System(Logged, Probalistic, Collected):
                 end = f"Run {num} interrupted! ({self.time} s)"
                 self.log.warning(end)
                 break
-        self.log.disconnect(f"Disconnected from thread {num}")
+        if num >= 0:
+            self.log.disconnect(f"Disconnected from thread {num}")
         return (table, lendist.astype(int), pooldist.astype(int), end)
 
     def run(self) -> Result:
         if self.runparam.nbthread == 1:
+            self.log.info("Launching single run.")
             return Result([self._run()])
+        self.log.info("Launching threaded run.")
         return self.multirun(self.runparam.nbthread)
 
     def multirun(self, nbthread: int = -1) -> Result:
         ctx = get_context(self.runparam.context)
         if nbthread == -1:
             nbthread = ctx.cpu_count()
-        self.log.disconnect(reason="Launching multithreading...")
         self.log.disconnect(reason="Launching multithreading...")
         with ctx.Pool(nbthread) as pool:
             running = pool.map_async(self._run, range(nbthread))
@@ -218,7 +217,6 @@ class System(Logged, Probalistic, Collected):
                 self.log.info(end)
         return Result(res)
 
-    # Remove direct parameter settings, to rely on only changes in json file???
     def set_param(self, **kwd) -> None:
         if self.initialized:
             raise InitError("Parameter set after initialization")

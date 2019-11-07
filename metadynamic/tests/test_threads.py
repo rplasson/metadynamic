@@ -3,6 +3,8 @@ from metadynamic import System
 
 def test_system() -> None:
     syst = System("metadynamic/tests/simplesyst.json", logfile="testlog/test-thread.log")
-    res = syst.multirun(4)
+    syst.runparam.set_param(nbthread=4)
+    res = syst.run()
     res.table().to_csv("testlog/test-thread-result.txt", sep=",")
-    print(res.end())
+    syst.log.info(f"Finished: {res.end()}")
+    syst.log.disconnect()

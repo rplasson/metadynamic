@@ -50,7 +50,7 @@ class Readerclass:
     def set_param(self, **kwd):
         list_param = self.list_param()
         for key, val in kwd.items():
-            setattr(self, key, list_param()[key](val))
+            setattr(self, key, list_param[key](val))
         self.__post_init__()
 
 
