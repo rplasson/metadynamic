@@ -211,7 +211,6 @@ class System(Logged, Probalistic, Collected):
                 res = running.get()
                 end = f"Multirun interrupted!"
                 self.log.info(end)
-        self.log.connect(reason="Leaving Multithreading environment")
         return Result(res)
 
     # Remove direct parameter settings, to rely on only changes in json file???
