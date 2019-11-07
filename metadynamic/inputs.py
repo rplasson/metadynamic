@@ -81,6 +81,7 @@ class RunParam(Readerclass):
     minprob: float = 1e-10
     dropmode: str = ""
     gcperio: bool = True
+    nbthread: int = 1
     context: str = "fork"
     consts: Dict[str, float] = field(default_factory=dict)
     altconsts: Dict[str, float] = field(default_factory=dict)

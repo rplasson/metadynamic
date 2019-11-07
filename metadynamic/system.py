@@ -133,7 +133,7 @@ class System(Logged, Probalistic, Collected):
         self.log.warning(f"maxsteps per process (={self.param.maxsteps}) too low")
         return False
 
-    def run(self, num: int = 0) -> Tuple[DataFrame, int, int, str]:
+    def _run(self, num: int = 0) -> Tuple[DataFrame, int, int, str]:
         lines = (
             ["thread", "ptime", "memuse", "step", "time"]
             + self.param.save
@@ -194,14 +194,19 @@ class System(Logged, Probalistic, Collected):
         self.log.disconnect(f"Disconnected from thread {num}")
         return (table, lendist.astype(int), pooldist.astype(int), end)
 
-    def multirun(self, nbthread: Optional[int] = None) -> Result:
+    def run(self) -> Result:
+        if self.runparam.nbthread == 1:
+            return Result([self._run()])
+        return self.multirun(self.runparam.nbthread)
+
+    def multirun(self, nbthread: int = -1) -> Result:
         ctx = get_context(self.runparam.context)
-        if nbthread is None:
+        if nbthread == -1:
             nbthread = ctx.cpu_count()
         self.log.disconnect(reason="Launching multithreading...")
         self.log.disconnect(reason="Launching multithreading...")
         with ctx.Pool(nbthread) as pool:
-            running = pool.map_async(self.run, range(nbthread))
+            running = pool.map_async(self._run, range(nbthread))
             self.log.connect(reason="...Multithreading launched")
             try:
                 self.log.debug("Trying to get result")
