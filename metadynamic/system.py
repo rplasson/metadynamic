@@ -188,8 +188,8 @@ class System(Logged, Probalistic, Collected):
                     self.log.warning(str(the_end))
                 break
             except KeyboardInterrupt:
-                end = f"Interrupted! ({self.time} s)"
-                self.log.error(end)
+                end = f"Run {num} interrupted! ({self.time} s)"
+                self.log.warning(end)
                 break
         self.log.disconnect(f"Disconnected from thread {num}")
         return (table, lendist.astype(int), pooldist.astype(int), end)
@@ -198,11 +198,19 @@ class System(Logged, Probalistic, Collected):
         ctx = get_context(self.runparam.context)
         if nbthread is None:
             nbthread = ctx.cpu_count()
-        self.log.disconnect(reason="Entering Multithreading envoronment")
+        self.log.disconnect(reason="Launching multithreading...")
         with ctx.Pool(nbthread) as pool:
-            res = pool.map(self.run, range(nbthread))
+            running = pool.map_async(self.run, range(nbthread))
+            self.log.connect(reason="...Multithreading launched")
+            try:
+                self.log.debug("Trying to get result")
+                res = running.get()
+            except KeyboardInterrupt:
+                self.log.debug("Interrupted, get (incomplete) result as is")
+                res = running.get()
+                end = f"Multirun interrupted!"
+                self.log.info(end)
         self.log.connect(reason="Leaving Multithreading environment")
-        self.log.info("Multithread run finished")
         return Result(res)
 
     # Remove direct parameter settings, to rely on only changes in json file???

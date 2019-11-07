@@ -13,7 +13,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 syst = System("aped.json", logfile=args.log, loglevel=args.level)
-table, lendist, pooldist, the_end = syst.multirun(4)
+res = syst.multirun(4)
 
-table.to_csv(args.output, sep=",")
-print(the_end)
+res.table().to_csv(args.output, sep=",")
+print(res.end())

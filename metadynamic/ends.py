@@ -89,4 +89,5 @@ class BadJSON(BadFile):
 
 class InitError(Aborted):
     num = 9
-    error_message = "Error during iniitialization"
+    error_message = "Error during initialization"
+
