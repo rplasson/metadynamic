@@ -1,3 +1,6 @@
+# General exceptions
+
+
 class Finished(Exception):
     num = -1
     error_message = "Stopped for unknown reason"
@@ -17,12 +20,26 @@ class Finished(Exception):
         return f"End ({self.num}): {self.message}"
 
 
+# Exception categories
+
+
 class HappyEnding(Finished):
     pass
 
 
 class BadEnding(Finished):
     pass
+
+
+class Aborted(Finished):
+    pass
+
+
+class InputError(Finished):
+    pass
+
+
+# Exceptions expected to be raised
 
 
 class TimesUp(HappyEnding):
@@ -50,13 +67,9 @@ class DecrZero(BadEnding):
     error_message = "Tried to decrement unpopulated species"
 
 
-class RuntimeLim(Finished):
+class RuntimeLim(Aborted):
     num = 5
     error_message = "Runtime limit exceeded"
-
-
-class InputError(Finished):
-    pass
 
 
 class FileNotFound(InputError):
@@ -67,3 +80,13 @@ class FileNotFound(InputError):
 class BadFile(InputError):
     num = 7
     error_message = "The provided file is badly formed"
+
+
+class BadJSON(BadFile):
+    num = 8
+    error_message = "Bad JSON format"
+
+
+class InitError(Aborted):
+    num = 9
+    error_message = "Error during iniitialization"

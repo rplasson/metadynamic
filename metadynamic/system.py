@@ -15,6 +15,7 @@ from metadynamic.ends import (
     NoMore,
     HappyEnding,
     BadEnding,
+    InitError,
 )
 from metadynamic.logger import Logged
 from metadynamic.proba import Probalistic
@@ -32,26 +33,12 @@ class System(Logged, Probalistic, Collected):
     def __init__(
         self, filename: str, logfile: Optional[str] = None, loglevel: str = "INFO"
     ):
+        self.initialized = False
         Logged.setlogger(logfile, loglevel)
         self.param = SysParam.readfile(filename)
         self.log.info(f"Parameters loaded: {self.param}")
         self.runparam = RunParam.readfile(filename)
         self.log.info(f"Run Parameters loaded: {self.runparam}")
-        if self.runparam.gcperio:
-            gc.disable()
-        self.time = 0.0
-        # If seed set, always restart from the same seed. For timing/debugging purpose
-        self.step = 0
-        Probalistic.setprobalist(vol=self.param.vol, minprob=self.runparam.minprob)
-        CollectofCompound()
-        CollectofReaction(
-            self.runparam.dropreac, categorize=False, dropmode=self.runparam.dropmode
-        )
-        self.reac_collect.init_ruleset(
-            self.runparam.consts, self.runparam.altconsts, self.runparam.catconsts
-        )
-        self.initialized = False
-        self.log.info("System created")
 
     @property
     def memuse(self) -> float:
@@ -91,10 +78,27 @@ class System(Logged, Probalistic, Collected):
         return stat, dist
 
     def initialize(self) -> None:
-        if not self.initialized:
-            for compound, pop in self.param.init.items():
-                self.comp_collect[compound].init_pop(pop)
-            trigger_changes()
+        if self.initialized:
+            raise InitError("Double Initialization")
+        if self.runparam.gcperio:
+            gc.disable()
+        self.time = 0.0
+        # If seed set, always restart from the same seed. For timing/debugging purpose
+        self.step = 0
+        Probalistic.setprobalist(vol=self.param.vol, minprob=self.runparam.minprob)
+        self.probalist.seed(self.param.seed)
+        CollectofCompound()
+        CollectofReaction(
+            self.runparam.dropreac, categorize=False, dropmode=self.runparam.dropmode
+        )
+        self.reac_collect.init_ruleset(
+            self.runparam.consts, self.runparam.altconsts, self.runparam.catconsts
+        )
+        self.log.info("System created")
+        for compound, pop in self.param.init.items():
+            self.comp_collect[compound].init_pop(pop)
+        trigger_changes()
+        self.initialized = True
 
     def _process(self, tstop: float) -> bool:
         # Check if a cleanup should be done
@@ -136,13 +140,12 @@ class System(Logged, Probalistic, Collected):
             + ["maxlength", "nbcomp", "poolsize", "nbreac", "poolreac"]
         )
         self.log.connect(f"Reconnected from thread {num+1}", num + 1)
-        self.log.info("Will initialize")
-        self.probalist.seed(self.param.seed)
-        self.initialize()
+        if not self.initialized:
+            self.log.info("Will initialize")
+            self.initialize()
         table = DataFrame(index=lines)
         lendist = DataFrame()
         pooldist = DataFrame()
-        self.time = 0.0
         tnext = 0.0
         step = 0
         # Process(getpid()).cpu_affinity([num % cpu_count()])
@@ -204,8 +207,9 @@ class System(Logged, Probalistic, Collected):
 
     # Remove direct parameter settings, to rely on only changes in json file???
     def set_param(self, **kwd) -> None:
+        if self.initialized:
+            raise InitError("Parameter set after initialization")
         self.param.set_param(**kwd)
-        self.probalist.vol = self.param.vol  # Need to update volume if changed!
         self.log.info(f"Parameters changed: {self.param}")
 
     def addkept(self, reac: str) -> None:

@@ -2,7 +2,7 @@ from json import load, JSONDecodeError
 from typing import List, Dict
 from dataclasses import dataclass, field
 
-from metadynamic.ends import BadFile, FileNotFound
+from metadynamic.ends import BadFile, FileNotFound, BadJSON
 
 
 class Readerclass:
@@ -24,7 +24,7 @@ class Readerclass:
         except FileNotFoundError:
             raise FileNotFound(f"Unknown file {filename}")
         except JSONDecodeError as jerr:
-            raise BadFile(f"Bad JSON format: {jerr}")
+            raise BadJSON(f"({jerr})")
         # Validate file entries
         err = ""
         list_param = cls.list_param()
