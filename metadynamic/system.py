@@ -199,6 +199,7 @@ class System(Logged, Probalistic, Collected):
         if nbthread is None:
             nbthread = ctx.cpu_count()
         self.log.disconnect(reason="Launching multithreading...")
+        self.log.disconnect(reason="Launching multithreading...")
         with ctx.Pool(nbthread) as pool:
             running = pool.map_async(self.run, range(nbthread))
             self.log.connect(reason="...Multithreading launched")
@@ -210,6 +211,7 @@ class System(Logged, Probalistic, Collected):
                 res = running.get()
                 end = f"Multirun interrupted!"
                 self.log.info(end)
+        self.log.connect(reason="Leaving Multithreading environment")
         return Result(res)
 
     # Remove direct parameter settings, to rely on only changes in json file???
