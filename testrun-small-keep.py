@@ -1,5 +1,4 @@
 from metadynamic import System
-from numpy import savetxt
 from argparse import ArgumentParser
 
 parser = ArgumentParser(description="Test multithread.")

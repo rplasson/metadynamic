@@ -1,19 +1,20 @@
 from json import load, JSONDecodeError
-from typing import List, Dict
+from typing import List, Dict, Type
 from dataclasses import dataclass, field
 
 from metadynamic.ends import BadFile, FileNotFound, BadJSON
 
 
+@dataclass
 class Readerclass:
     _default_section: str = "Parameter"
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         pass
 
     @classmethod
     def readfile(
-        cls, filename: str, section: str = "", checktype=True
+        cls, filename: str, section: str = "", checktype: bool = True
     ) -> "Readerclass":
         """Return a SysParam object, updated by the data from filename"""
         if section == "":
@@ -47,7 +48,7 @@ class Readerclass:
             if key[0] != "_"
         }
 
-    def set_param(self, **kwd):
+    def set_param(self, **kwd) -> None:
         list_param = self.list_param()
         for key, val in kwd.items():
             setattr(self, key, list_param[key](val))

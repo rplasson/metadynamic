@@ -35,8 +35,8 @@ class System(Logged, Probalistic, Collected):
     ):
         self.initialized = False
         Logged.setlogger(logfile, loglevel)
-        self.param = SysParam.readfile(filename)
-        self.runparam = RunParam.readfile(filename)
+        self.param: SysParam = SysParam.readfile(filename)
+        self.runparam: RunParam = RunParam.readfile(filename)
         self.log.info("Parameter files loaded.")
 
     @property

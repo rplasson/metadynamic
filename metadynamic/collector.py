@@ -1,7 +1,7 @@
 from typing import Generic, TypeVar, Dict, Set, List, Union
+from weakref import WeakValueDictionary
 
 from metadynamic.logger import Logged
-from weakref import WeakValueDictionary
 
 K = TypeVar("K")
 T = TypeVar("T")
@@ -50,7 +50,7 @@ class Collect(Generic[T], Logged):
     def activate(self, name: str) -> None:
         """Put the object 'name' in the active section, then categorize it"""
         obj = self[name]
-        # will fail if activate an duplicated object (i.e. 2 different objects with same name exists)
+        # will fail if activate an duplicated object (i.e. 2 different objects/same name exists)
         assert obj is self[name]
         if name not in self.active:
             self.active[name] = obj

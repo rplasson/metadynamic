@@ -44,5 +44,6 @@ class Result:
 
     @staticmethod
     def running_mean(data, length):
-        """Running mean from https://stackoverflow.com/questions/13728392/moving-average-or-running-mean"""
+        """Running mean from
+           https://stackoverflow.com/questions/13728392/moving-average-or-running-mean"""
         return convolve(data, ones((length,)) / length, mode="valid")

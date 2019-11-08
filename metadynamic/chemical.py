@@ -108,7 +108,7 @@ class CollectofCompound(Collect["Compound"], Logged):
 
     def dist(self, lenweight: bool = False, full: bool = False) -> Dict[int, int]:
         res: Dict[int, int] = {}
-        search = self.pool if False else self.active
+        search = self.active if full is False else self.pool
         for comp in search.values():
             length = comp.length
             inc = comp.pop if lenweight else 1
@@ -421,7 +421,8 @@ def trigger_changes(fromreac: Optional[Reaction] = None) -> None:
             # Thus exit with max of information
             detail = (
                 end.detail
-                + f" from {fromreac}, that is activated? ({fromreac.activated}) (p={fromreac.proba}={fromreac.calcproba()}, "
+                + f" from {fromreac}, that is activated? ({fromreac.activated})"
+                + f" (p={fromreac.proba}={fromreac.calcproba()}, "
             )
             for comp in fromreac._reactants:
                 detail += f"[{comp.description}]={comp.pop} ,"

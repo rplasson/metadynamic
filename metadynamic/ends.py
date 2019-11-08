@@ -82,7 +82,7 @@ class BadFile(InputError):
     error_message = "The provided file is badly formed"
 
 
-class BadJSON(BadFile):
+class BadJSON(InputError):
     num = 8
     error_message = "Bad JSON format"
 
@@ -90,4 +90,3 @@ class BadJSON(BadFile):
 class InitError(Aborted):
     num = 9
     error_message = "Error during initialization"
-

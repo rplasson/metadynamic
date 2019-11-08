@@ -1,7 +1,9 @@
 from typing import List, Optional, Iterator, Callable, Type
 
+
 def samecase(one: str, two: str) -> bool:
     return (one.islower() and two.islower()) or (one.isupper() and two.isupper())
+
 
 class Descr:
     _descrtype = "Chemical Description"
@@ -85,7 +87,7 @@ class CompDescr(Descr):
         assert (
             0 <= pos < len(name)
         ), f"epimer position should be at least 0, at most the chain length minus one"
-        return name[:pos] + name[pos].swapcase() + name[pos + 1 :]
+        return name[:pos] + name[pos].swapcase() + name[pos + 1:]
 
     # @memoize_oneparam
     def extract(self, pos: int) -> str:
