@@ -28,7 +28,7 @@ class Collect(Generic[T], Logged):
         self.active: WDict[T] = self.pool if self.dropmode == "drop" else {}
         self.categorize = categorize
         self.log.info(
-            f"Created {self} as drop={self.dropmode}, with pool of type {type(self.pool)}. Is active=pool ? {self.active is self.pool}"
+            f"Created {self} as drop={self.dropmode}, with pool of type {type(self.pool)}"
         )
 
     def __repr__(self) -> str:
