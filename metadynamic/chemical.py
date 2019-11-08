@@ -94,8 +94,9 @@ class Ruleset:
 class CollectofCompound(Collect["Compound"], Logged):
     _colltype = "Compound"
 
-    def __init__(self, drop: bool = False, categorize: bool = True, dropmode: str = ""):
-        super().__init__(drop, categorize)
+    def __init__(self, categorize: bool = True, dropmode: str = ""):
+        # Ignore the categorize option, as this should lead to error?
+        super().__init__(categorize, dropmode)
         Collected.setcompcoll(self)
 
     def _create(self, name: str) -> "Compound":
@@ -120,8 +121,8 @@ class CollectofCompound(Collect["Compound"], Logged):
 class CollectofReaction(Collect["Reaction"], Logged, Probalistic):
     _colltype = "Reaction"
 
-    def __init__(self, drop: bool = False, categorize: bool = True, dropmode: str = ""):
-        super().__init__(drop, categorize, dropmode)
+    def __init__(self, categorize: bool = True, dropmode: str = ""):
+        super().__init__(categorize, dropmode)
         Collected.setreaccoll(self)
 
     def _create(self, name: str) -> "Reaction":

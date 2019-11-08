@@ -76,7 +76,6 @@ class SysParam(Readerclass):
 @dataclass
 class RunParam(Readerclass):
     _default_section = "Run"
-    dropreac: bool = True
     autoclean: bool = True
     minprob: float = 1e-10
     dropmode: str = ""

@@ -17,8 +17,8 @@ WDict = Union[Dict[str, T], WeakDict[str, T]]
 class Collect(Generic[T], Logged):
     _colltype = "Generic"
 
-    def __init__(self, drop: bool = False, categorize: bool = True, dropmode: str = ""):
-        self.dropmode = dropmode if dropmode else "drop" if drop else "keep"
+    def __init__(self, categorize: bool = True, dropmode: str = "drop"):
+        self.dropmode = dropmode
         self.pool: WDict[T]
         if self.dropmode == "soft":
             self.pool = WeakDict()

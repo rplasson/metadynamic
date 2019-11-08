@@ -87,9 +87,7 @@ class System(Logged, Probalistic, Collected):
         Probalistic.setprobalist(vol=self.param.vol, minprob=self.runparam.minprob)
         self.probalist.seed(self.param.seed)
         CollectofCompound()
-        CollectofReaction(
-            self.runparam.dropreac, categorize=False, dropmode=self.runparam.dropmode
-        )
+        CollectofReaction(categorize=False, dropmode=self.runparam.dropmode)
         self.reac_collect.init_ruleset(
             self.runparam.consts, self.runparam.altconsts, self.runparam.catconsts
         )
