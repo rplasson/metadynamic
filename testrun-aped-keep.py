@@ -11,8 +11,8 @@ parser.add_argument(
 
 args = parser.parse_args()
 
-syst = System("test.json", logfile=args.log, loglevel=args.level)
-syst.runparam.set_param(dropmode="drop")
+syst = System("aped.json", logfile=args.log, loglevel=args.level)
+syst.runparam.set_param(dropmode="keep")
 res = syst.run()
 
 res.table().to_csv(args.output, sep=",")
