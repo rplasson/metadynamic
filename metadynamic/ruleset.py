@@ -1,5 +1,6 @@
 from typing import Callable, List, Any
 from itertools import product
+from dataclasses import dataclass
 
 # from functools import partial, cached_property from 3.8 only
 # from functools import reduce
@@ -35,22 +36,29 @@ class Descriptor:
 
 
 class ReacDescr:
-    def __init__(self, rule, reactantnames, prodbuilder, constbuilder):
+    def __init__(self, rule, reactantnames):
         self.rule = rule
         self.reactantnames = reactantnames
-        self._prodbuilder = prodbuilder
-        self._constbuilder = constbuilder
 
     def builprod(self):
-        return self._prodbuilder(self.reactantnames)
+        return self.rule.prodbuilder(self.reactantnames)
 
     # Which best place for storing k???
     def buildconst(self, k):
-        return self._constbuilder(k)
+        return self.rule.constbuilder(k)
 
     @property
     def name(self):
-        return f"{self.rule}:{'+'.join(self.reactantnames)}"
+        return f"{self.rule.name}:{'+'.join(self.reactantnames)}"
+
+
+@dataclass
+class Rule:
+    name: str
+    reactants: List[str]
+    prodbuilder: Callable[[List[str]], str]
+    constbuilder: Callable[List[str], List[float]]
+    descr: str
 
 
 class Ruleset(Collected):
@@ -59,10 +67,7 @@ class Ruleset(Collected):
         self.categories = {}
         for catname in descriptor.catlist:
             self.categories[catname] = set()
-        self.reactants = {}
-        self.prodbuilder = {}
-        self.constbuilder = {}
-        self.rules = set()
+        self.rules = {}
 
     def add_rule(
         self,
@@ -70,11 +75,15 @@ class Ruleset(Collected):
         reactants: List[str],
         prodbuilder: Callable[[List[str]], str],
         constbuilder: Callable[List[str], List[float]],
+        descr: str = "",
     ):
-        self.rules.add(rulename)
-        self.reactants[rulename] = reactants
-        self.prodbuilder[rulename] = prodbuilder
-        self.constbuilder[rulename] = constbuilder
+        self.rules[rulename] = Rule(
+            name=rulename,
+            reactants=reactants,
+            prodbuilder=prodbuilder,
+            constbuilder=constbuilder,
+            descr=descr,
+        )
         for reac in reactants:
             try:
                 self.categories[reac].add(rulename)
@@ -94,15 +103,14 @@ class Ruleset(Collected):
         for rule in self.rules:
             res = set()
             # get the list of reactant type for the rule
-            for reaclist in self.reactants[rule]:
+            for reaclist in rule.reactants:
                 # Then scan all possible combinations, with fixing name in each possible pos
                 for pos, reacname in enumerate(reaclist):
                     if reacname in categories:
                         res |= set(
                             product(
                                 *[
-                                    [name]
-                                    if pos2 == pos
+                                    [name] if pos2 == pos
                                     # expect comp_collect.categories to return str
                                     # collector will have to be adapted
                                     else self.comp_collect.categories[catname]
@@ -111,12 +119,7 @@ class Ruleset(Collected):
                             )
                         )
             # Then create all possible reaction descriptions
-            result += [
-                ReacDescr(
-                    rule, reactantnames, self.prodbuilder[rule], self.constbuilder[rule]
-                )
-                for reactantnames in res
-            ]
+            result += [ReacDescr(rule, reactantnames) for reactantnames in res]
         # Finally return all build reac decription for each rule
         return result
 
@@ -165,6 +168,17 @@ def kpol(names, k) -> float:
     return k[0] if samecase(names[0][-1], names[1][0]) else k[1]
 
 
+def cut(names, pos):
+    tocut = names[0]
+    # if other names, they are catalysts
+    return tocut[:pos], tocut[pos:]
+
+
+def khyd(names, k, pos) -> float:
+    tocut = names[0]
+    return k[0] if samecase(tocut[pos - 1], tocut[pos]) else k[1]
+
+
 # Define a specific ruleset
 
 chemdescriptor = Descriptor()
@@ -173,5 +187,6 @@ chemdescriptor.add_cat("polym", ispolym)
 chemdescriptor.add_cat("actpol", isact)
 chemdescriptor.add_prop("length", length)
 
-ruleset = Ruleset()
-ruleset.add_rule("Polym", ["polym", "polym"], joiner_direct, kpol)
+ruleset = Ruleset(chemdescriptor)
+ruleset.add_rule("P", ["polym", "polym"], joiner_direct, kpol, "Polymerization")
+ruleset.add_rule("H", ["polym"], cut, khyd, "Hydrolysis")  # /!\ need parameter (pos)
