@@ -68,7 +68,7 @@ class CompDescr(Descr):
         return self.name + "*"
 
     @property
-    # @memoize_property
+    # @memoize_property  # == functools.cached_property from 3.8.
     def unactreac(self) -> str:
         assert self.isact, f"{self} is not activated"
         return self.name[:-1]

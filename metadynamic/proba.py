@@ -141,7 +141,9 @@ class Probalist(Logged):
             nlist = random.choice(self.npblist, p=self._problist / self.probtot)
         except ValueError as v:
             raise RoundError(
-                f"(reason: {v}; probtot={self.probtot}=?={self._problist.sum()}; problist={self._problist})"
+                f"(reason: {v}; "
+                f"probtot={self.probtot}=?={self._problist.sum()}; "
+                f"problist={self._problist})"
             )
         # Then choose a random column in the chosen probability line
         try:
@@ -149,11 +151,18 @@ class Probalist(Logged):
                 self._mapobj[nlist], p=self._map[nlist] / self._problist[nlist]
             )
             if chosen is None:
-                self.log.error(f"Badly destroyed reaction in {[ (a,b) for a,b in zip(self._mapobj[nlist],self._map[nlist]) if a is not None and a() is None]}")
+                explanation = [
+                    (a, b)
+                    for a, b in zip(self._mapobj[nlist], self._map[nlist])
+                    if a is not None and a() is None
+                ]
+                self.log.error(f"Badly destroyed reaction in {explanation}")
             return (chosen, log(1 / random.rand()) / self.probtot)
         except ValueError as v:
             raise RoundError(
-                f"(reason: {v}; probtot={self._problist[nlist]}=?={self._map[nlist].sum()}; problist={self._map[nlist]})"
+                f"(reason: {v}; "
+                f"probtot={self._problist[nlist]}=?={self._map[nlist].sum()}; "
+                f"problist={self._map[nlist]})"
             )
 
     def clean(self) -> None:
