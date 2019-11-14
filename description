@@ -1,0 +1,1 @@
+metadynamic is a package for performing Gillespie stochastic chemical modelling, with the dynamic creation of new compounds and reaction during the simulation is running, from a set of rules (e.g. a rule can be: two molecules can be attached for creating a new one).
