@@ -18,29 +18,39 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-from typing import Callable, List, Any
+from typing import Callable, List, Any, Dict, KeysView, Tuple, Set, Iterable
 from itertools import product
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 # from functools import partial, cached_property from 3.8 only
 # from functools import reduce
 
 
-from metadynamic.collector import Collected
+from metadynamic.chemical import Collected
+from metadynamic.ends import InitError
+
+# Type alias
+Categorizer = Callable[[str], bool]
+Propertizer = Callable[[str], Any]
+ProdBuilder = Callable[[List[str], int], List[str]]  # reactants, variant -> products
+ConstBuilder = Callable[
+    [List[str], List[float], int], float
+]  # reactants, parameters, variant -> constant
+VariantBuilder = Callable[[List[str]], Iterable[int]]  # reactants -> variants
+Builder = Tuple[ProdBuilder, ConstBuilder, VariantBuilder]
 
 
 class Descriptor:
     def __init__(self):
-        self.cat_dict = {}
-        self.prop_dict = {}
+        self.cat_dict: Dict[str, Categorizer] = {}
+        self.prop_dict: Dict[str, Propertizer] = {}
 
     @property
-    def catlist(self):
+    def catlist(self) -> KeysView[str]:
         return self.cat_dict.keys()
 
-    @property
-    def prop(self, propname):
-        return self.prop_dict[propname]()
+    def prop(self, propname, name) -> Any:
+        return self.prop_dict[propname](name)
 
     def categories(self, name) -> List[str]:
         return [catname for catname, rule in self.cat_dict.items() if rule(name)]
@@ -48,10 +58,10 @@ class Descriptor:
     def __repr__(self) -> str:
         return f"Descriptor: {self.cat_dict.keys()}"
 
-    def add_cat(self, catname: str, rule: Callable[[str], bool]) -> None:
+    def add_cat(self, catname: str, rule: Categorizer) -> None:
         self.cat_dict[catname] = rule
 
-    def add_prop(self, propname: str, func: Callable[[None], Any]) -> None:
+    def add_prop(self, propname: str, func: Propertizer) -> None:
         self.prop_dict[propname] = func
 
 
@@ -76,33 +86,45 @@ class ReacDescr:
 class Rule:
     name: str
     reactants: List[str]
-    prodbuilder: Callable[[List[str]], str]
-    constbuilder: Callable[List[str], List[float]]
+    builder: Builder
     descr: str
+    constants: List[float] = field(default_factory=list)
+    initialized: bool = False
+
+    def set_constants(self, const_list: List[float]) -> None:
+        self.constants = const_list
+        self.initialized = True
+
+    def __call__(self, reactants: List[str]) -> List[Tuple[List[str], float]]:
+        if not self.initialized:
+            raise InitError("Rule {self} used before constant initialization")
+        res = []
+        for variant in self.builder[2](reactants):
+            res.append(
+                (
+                    self.builder[0](reactants, variant),
+                    self.builder[1](reactants, self.constants, variant),
+                )
+            )
+        return res
+
+    def __str__(self):
+        return self.descr
 
 
 class Ruleset(Collected):
     def __init__(self, descriptor: Descriptor):
-        self.descriptor = descriptor
-        self.categories = {}
+        self.descriptor: Descriptor = descriptor
+        self.categories: Dict[str, Set[str]] = {}
         for catname in descriptor.catlist:
             self.categories[catname] = set()
-        self.rules = {}
+        self.rules: Dict[str, Rule] = {}
 
     def add_rule(
-        self,
-        rulename: str,
-        reactants: List[str],
-        prodbuilder: Callable[[List[str]], str],
-        constbuilder: Callable[List[str], List[float]],
-        descr: str = "",
+        self, rulename: str, reactants: List[str], builder: Builder, descr: str,
     ):
         self.rules[rulename] = Rule(
-            name=rulename,
-            reactants=reactants,
-            prodbuilder=prodbuilder,
-            constbuilder=constbuilder,
-            descr=descr,
+            name=rulename, reactants=reactants, builder=builder, descr=descr,
         )
         for reac in reactants:
             try:
@@ -110,27 +132,27 @@ class Ruleset(Collected):
             except KeyError:
                 raise ValueError(f"Unrecognize category {reac}")
 
-    def get_related(self, name: str):
+    def get_related(self, comp_name: str) -> List[ReacDescr]:
         # Maybe memoize the list of rule for a given list of categories...
         # rule_related = reduce(
         #    lambda x, y: x | y,
-        #    [self.categories[catname] for catname in self.descriptor.categories(name)],
+        #    [self.categories[catname] for catname in self.descriptor.categories(comp_name)],
         # )
         # or simply use self.rules??? Far less overhead, maybe not much perf loss.
-        categories = self.descriptor.categories(name)
+        categories = self.descriptor.categories(comp_name)
         # Will look fot the list of reactions for each rule
-        result = []
+        result: List[ReacDescr] = []
         for rule in self.rules:
-            res = set()
+            res: Set[ReacDescr] = set()
             # get the list of reactant type for the rule
             for reaclist in rule.reactants:
-                # Then scan all possible combinations, with fixing name in each possible pos
+                # Then scan all possible combinations, with fixing comp_name in each possible pos
                 for pos, reacname in enumerate(reaclist):
                     if reacname in categories:
                         res |= set(
                             product(
-                                *[
-                                    [name] if pos2 == pos
+                                [  # Check /!\
+                                    [comp_name] if pos2 == pos
                                     # expect comp_collect.categories to return str
                                     # collector will have to be adapted
                                     else self.comp_collect.categories[catname]
@@ -166,37 +188,52 @@ def length(name: str) -> int:
         return len(name)
     if isact(name):
         return len(name) - 1
+    return 0
 
 
-# Functions for rulesets
+# ProdBuilder
 
 
-def joiner(names, sep):
-    return sep.join(names)
+def joiner(names: List[str], sep: str) -> List[str]:
+    return [sep.join(names)]
 
 
 # joiner_direct = partial(joiner, sep="") from python 3.8 only
-def joiner_direct(names):
-    return "".join(names)
+def joiner_direct(names: List[str], variant: int = -1) -> List[str]:
+    return ["".join(names)]
+
+
+def cut(names: List[str], pos: int) -> List[str]:
+    tocut = names[0]
+    # if other names, they are catalysts
+    return [tocut[:pos], tocut[pos:]]
+
+
+# ConstBuilder
 
 
 def samecase(one: str, two: str) -> bool:
     return (one.islower() and two.islower()) or (one.isupper() and two.isupper())
 
 
-def kpol(names, k) -> float:
+def kpol(names: List[str], k: List[float], variant: int = 0) -> float:
     return k[0] if samecase(names[0][-1], names[1][0]) else k[1]
 
 
-def cut(names, pos):
-    tocut = names[0]
-    # if other names, they are catalysts
-    return tocut[:pos], tocut[pos:]
-
-
-def khyd(names, k, pos) -> float:
-    tocut = names[0]
+def khyd(names: List[str], k: List[float], pos: int) -> float:
+    tocut: str = names[0]
     return k[0] if samecase(tocut[pos - 1], tocut[pos]) else k[1]
+
+
+# VariantBuilder
+
+
+def novariant(reactants: List[str]) -> Iterable[int]:
+    return [0]
+
+
+def intervariant(reactants: List[str]) -> Iterable[int]:
+    return range(len(reactants[0]) - 1)
 
 
 # Define a specific ruleset
@@ -208,5 +245,9 @@ chemdescriptor.add_cat("actpol", isact)
 chemdescriptor.add_prop("length", length)
 
 ruleset = Ruleset(chemdescriptor)
-ruleset.add_rule("P", ["polym", "polym"], joiner_direct, kpol, "Polymerization")
-ruleset.add_rule("H", ["polym"], cut, khyd, "Hydrolysis")  # /!\ need parameter (pos)
+ruleset.add_rule(
+    "P", ["polym", "polym"], (joiner_direct, kpol, novariant), "Polymerization"
+)
+ruleset.add_rule(
+    "H", ["polym"], (cut, khyd, intervariant), "Hydrolysis"
+)  # /!\ need parameter (pos)
