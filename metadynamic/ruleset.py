@@ -46,7 +46,7 @@ Builder = Tuple[ProdBuilder, ConstBuilder, VariantBuilder]
 
 
 class Descriptor:
-    def __init__(self):
+    def __init__(self) -> None:
         self.cat_dict: Dict[str, Categorizer] = {}
         self.prop_dict: Dict[str, Propertizer] = {}
 
@@ -54,10 +54,10 @@ class Descriptor:
     def catlist(self) -> KeysView[str]:
         return self.cat_dict.keys()
 
-    def prop(self, propname, name) -> Any:
+    def prop(self, propname: str, name: str) -> Any:
         return self.prop_dict[propname](name)
 
-    def categories(self, name) -> List[str]:
+    def categories(self, name: str) -> List[str]:
         return [catname for catname, rule in self.cat_dict.items() if rule(name)]
 
     def __repr__(self) -> str:
@@ -71,19 +71,19 @@ class Descriptor:
 
 
 class ReacDescr:
-    def __init__(self, rule, reactantnames):
-        self.rule = rule
-        self.reactantnames = reactantnames
+    def __init__(self, rule: "Rule", reactantnames: List[str]):
+        self.rule: Rule = rule
+        self.reactantnames: List[str] = reactantnames
 
-    def builprod(self):
-        return self.rule.prodbuilder(self.reactantnames)
+    def builprod(self, variant: int) -> List[str]:
+        return self.rule.builder[0](self.reactantnames, variant)
 
     # Which best place for storing k???
-    def buildconst(self, k):
-        return self.rule.constbuilder(k)
+    def buildconst(self, k: List[float], variant: int) -> float:
+        return self.rule.builder[1](self.reactantnames, k, variant)
 
     @property
-    def name(self):
+    def name(self) -> str:
         return f"{self.rule.name}:{'+'.join(self.reactantnames)}"
 
 
@@ -113,7 +113,7 @@ class Rule:
             )
         return res
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.descr
 
 
@@ -127,7 +127,7 @@ class Ruleset(Collected):
 
     def add_rule(
         self, rulename: str, reactants: List[str], builder: Builder, descr: str,
-    ):
+    ) -> None:
         self.rules[rulename] = Rule(
             name=rulename, reactants=reactants, builder=builder, descr=descr,
         )
@@ -245,7 +245,6 @@ def lenvariant(reactants: List[str]) -> Iterable[int]:
     return range(len(reactants[0]))
 
 
-
 # Define a specific ruleset
 
 chemdescriptor = Descriptor()
@@ -258,6 +257,4 @@ ruleset = Ruleset(chemdescriptor)
 ruleset.add_rule(
     "P", ["polym", "polym"], (joiner_direct, kpol, novariant), "Polymerization"
 )
-ruleset.add_rule(
-    "H", ["polym"], (cut, khyd, intervariant), "Hydrolysis"
-)
+ruleset.add_rule("H", ["polym"], (cut, khyd, intervariant), "Hydrolysis")
