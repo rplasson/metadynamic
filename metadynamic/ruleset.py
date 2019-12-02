@@ -144,27 +144,28 @@ class Ruleset(Collected):
         #    [self.categories[catname] for catname in self.descriptor.categories(comp_name)],
         # )
         # or simply use self.rules??? Far less overhead, maybe not much perf loss.
-        categories = self.descriptor.categories(comp_name)
+
+        # get the categories to which belongs comp_name
+        comp_categories = self.descriptor.categories(comp_name)
         # Will look fot the list of reactions for each rule
         result: List[ReacDescr] = []
         for rule in self.rules.values():
-            res: Set[List[str]] = set()
-            # get the list of reactant type for the rule
-            for reaclist in rule.reactants:
-                # Then scan all possible combinations, with fixing comp_name in each possible pos
-                for pos, reacname in enumerate(reaclist):
-                    if reacname in categories:
-                        res |= set(
-                            product(
-                                [  # Check /!\ ... bad ...
-                                    [comp_name] if pos2 == pos
-                                    # expect comp_collect.categories to return str
-                                    # collector will have to be adapted
-                                    else self.comp_collect.categories[catname]
-                                    for pos2, catname in enumerate(reaclist)
-                                ]
-                            )
+            res: Set[Tuple[str]] = set()
+            for pos, reactant_category in enumerate(rule.reactants):
+                if reactant_category in comp_categories:
+                    # Then scan all possible combinations, with fixing comp_name in each possible pos
+                    res = res | {  # Maybe simple add each new tuple to res.
+                        tuple(reactants)
+                        for reactants in product(
+                            *[
+                                [comp_name]
+                                if pos2 == pos
+                                #  need to adapt comp_collect ...
+                                else self.comp_collect.categories[other_category]
+                                for pos2, other_category in enumerate(rule.reactants)
+                            ]
                         )
+                    }
             # Then create all possible reaction descriptions
             result += [ReacDescr(rule, reactantnames) for reactantnames in res]
         # Finally return all build reac decription for each rule
