@@ -1,9 +1,13 @@
-from typing import Any, Tuple, Optional, Deque
+from typing import Any, Tuple, Deque
 from collections import deque
 from numpy import array, append, log, random
 
 from metadynamic.ends import RoundError
 from metadynamic.logger import Logged
+from metadynamic.inval import InvalidInt, isvalid
+
+
+invalidint: int = InvalidInt()
 
 
 class Probalistic:
@@ -22,8 +26,8 @@ class Probaobj(Logged, Probalistic):
     """
 
     def __init__(self, obj: Any):
-        self.nlist: Optional[int]
-        self.npos: Optional[int]
+        self.nlist: int
+        self.npos: int
         self.obj = obj
         self.unset_proba_pos()
 
@@ -33,14 +37,13 @@ class Probaobj(Logged, Probalistic):
         self.registered = True
 
     def unset_proba_pos(self) -> None:
-        self.nlist = None
-        self.npos = None
+        self.nlist = invalidint
+        self.npos = invalidint
         self.registered = False
 
     @property
     def proba_pos(self) -> Tuple[int, int]:
         if self.registered:
-            assert self.nlist is not None and self.npos is not None
             return self.nlist, self.npos
         else:
             raise ValueError("Unregistered")
@@ -86,7 +89,7 @@ class Probalist(Logged):
             probaobj.set_proba_pos(*self._addfromqueue(probaobj, proba))
         else:
             probaobj.set_proba_pos(*self._addfrommap(probaobj, proba))
-        assert probaobj.nlist is not None
+        assert isvalid(probaobj.nlist)
         self._updateprob(probaobj.nlist, proba)
 
     def unregister(self, probaobj: Probaobj) -> None:
