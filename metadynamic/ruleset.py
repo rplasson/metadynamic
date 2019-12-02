@@ -22,12 +22,17 @@ from typing import Callable, List, Any, Dict, KeysView, Tuple, Set, Iterable
 from itertools import product
 from dataclasses import dataclass, field
 
+
 # from functools import partial, cached_property from 3.8 only
 # from functools import reduce
 
 
 from metadynamic.chemical import Collected
 from metadynamic.ends import InitError
+from metadynamic.inval import InvalidInt
+
+invalidint = InvalidInt()
+
 
 # Type alias
 Categorizer = Callable[[str], bool]
@@ -142,8 +147,8 @@ class Ruleset(Collected):
         categories = self.descriptor.categories(comp_name)
         # Will look fot the list of reactions for each rule
         result: List[ReacDescr] = []
-        for rule in self.rules:
-            res: Set[ReacDescr] = set()
+        for rule in self.rules.values():
+            res: Set[List[str]] = set()
             # get the list of reactant type for the rule
             for reaclist in rule.reactants:
                 # Then scan all possible combinations, with fixing comp_name in each possible pos
@@ -151,7 +156,7 @@ class Ruleset(Collected):
                     if reacname in categories:
                         res |= set(
                             product(
-                                [  # Check /!\
+                                [  # Check /!\ ... bad ...
                                     [comp_name] if pos2 == pos
                                     # expect comp_collect.categories to return str
                                     # collector will have to be adapted
@@ -216,7 +221,7 @@ def samecase(one: str, two: str) -> bool:
     return (one.islower() and two.islower()) or (one.isupper() and two.isupper())
 
 
-def kpol(names: List[str], k: List[float], variant: int = 0) -> float:
+def kpol(names: List[str], k: List[float], variant: int = invalidint) -> float:
     return k[0] if samecase(names[0][-1], names[1][0]) else k[1]
 
 
@@ -229,11 +234,16 @@ def khyd(names: List[str], k: List[float], pos: int) -> float:
 
 
 def novariant(reactants: List[str]) -> Iterable[int]:
-    return [0]
+    return [invalidint]
 
 
 def intervariant(reactants: List[str]) -> Iterable[int]:
     return range(len(reactants[0]) - 1)
+
+
+def lenvariant(reactants: List[str]) -> Iterable[int]:
+    return range(len(reactants[0]))
+
 
 
 # Define a specific ruleset
@@ -250,4 +260,4 @@ ruleset.add_rule(
 )
 ruleset.add_rule(
     "H", ["polym"], (cut, khyd, intervariant), "Hydrolysis"
-)  # /!\ need parameter (pos)
+)
