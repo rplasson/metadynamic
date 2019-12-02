@@ -47,11 +47,12 @@ from metadynamic.chemical import (
     trigger_changes,
 )
 from metadynamic.inputs import SysParam, RunParam
+from metadynamic.inval import InvalidStr
 
 
 class System(Logged, Probalistic, Collected):
     def __init__(
-        self, filename: str, logfile: Optional[str] = None, loglevel: str = "INFO"
+        self, filename: str, logfile: str = InvalidStr(), loglevel: str = "INFO"
     ):
         self.initialized = False
         Logged.setlogger(logfile, loglevel)

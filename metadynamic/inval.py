@@ -14,58 +14,46 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 
-from typing import Any, Generic, TypeVar
-
-T = TypeVar("T")
+from typing import Any
 
 
-class Invalid(Generic[T]):
+class InvalidError(ValueError):
+    pass
+
+
+class Invalid:
     _invalrepr = "Invalid Object"
+    _invalstr = ""
 
     def __bool__(self) -> bool:
         return False
 
     def __str__(self) -> str:
-        return self._invalrepr
+        return self._invalstr
 
     def __repr__(self) -> str:
         return self._invalrepr
 
-    def validate(self) -> T:
-        raise NotImplementedError
-
 
 def isvalid(obj: Any) -> bool:
-    if isinstance(obj, Invalid):
-        return False
-    return True
+    return not isinstance(obj, Invalid)
 
 
-class InvalInt(Invalid[int], int):
+class InvalidInt(Invalid, int):
     _invalrepr = "Invalid int"
-    def validate(self) -> int:
-        return int(self)
 
 
-class InvalFloat(Invalid[float], float):
+class InvalidFloat(Invalid, float):
     _invalrepr = "Invalid float"
 
 
-invalint = InvalInt()
-invalfloat = InvalFloat()
+class InvalidStr(Invalid, str):
+    _invalrepr = "Invalid string"
 
 
-def testint(a: int = invalint) -> None:
-    assert isinstance(a, int)
-    if isvalid(a):
-        print(a)
-    else:
-        print("Give a value")
+def invalfactory(baseclass, name):
+    class InvalidClass(Invalid, baseclass):
+        _invalrepr = name
 
+    return InvalidClass
 
-def testfloat(a: float = invalfloat) -> None:
-    assert isinstance(a, float)
-    if isvalid(a):
-        print(a)
-    else:
-        print("Give a value")

@@ -22,7 +22,13 @@ from multiprocessing import current_process
 from time import process_time
 from logging import getLogger, FileHandler, StreamHandler, Handler, Logger
 from datetime import datetime
-from typing import Optional, Union
+from typing import Union
+
+from metadynamic.inval import InvalidStr, InvalidInt, Invalid, isvalid
+
+
+class InvalidHandler(Invalid, Handler):
+    _invalrepr = "Invalid Handler"
 
 
 class Timer:
@@ -61,7 +67,7 @@ class BlackholeLogger:
     def error(self, msg: str) -> None:
         pass
 
-    def removeHandler(self, handler: Optional[Handler]) -> None:
+    def removeHandler(self, handler: Handler) -> None:
         pass
 
 
@@ -70,30 +76,32 @@ class Log:
     def time() -> str:
         return datetime.now().strftime("%H:%M:%S, %d/%m/%y")
 
-    def __init__(self, filename: Optional[str] = None, level: str = "INFO"):
-        if filename:
+    def __init__(self, filename: str = InvalidStr(), level: str = "INFO"):
+        if isvalid(filename):
             if filename.count(".") != 1:
                 raise ValueError("Please enter filename as 'filename.log'")
             basename, suf = filename.split(".")
             self.filenamethread: str = basename + "-{}." + suf
-        self.filename: Optional[str] = filename
+        self.filename: str = filename
         self._timer: Timer
         self._logger: Union[Logger, BlackholeLogger]
-        self._handler: Optional[Handler]
+        self._handler: Handler
         self.level: str = level
         self.connected: bool = False
         self.connect("Logger creation")
 
-    def connect(self, reason: str = "unknown", thread: Optional[int] = None) -> None:
+    def connect(self, reason: str = "unknown", thread: int = InvalidInt()) -> None:
         if not self.connected:
             self._timer = Timer()
             filename = (
                 self.filenamethread.format(thread)
-                if thread and self.filename
+                if isvalid(thread) and isvalid(self.filename)
                 else self.filename
             )
             self._logger = getLogger("Polymer Log")
-            self._handler = FileHandler(filename) if filename else StreamHandler()
+            self._handler = (
+                FileHandler(filename) if isvalid(filename) else StreamHandler()
+            )
             self._logger.addHandler(self._handler)
             self._logger.setLevel(self.level)
             self.debug(f"Connected to {filename}; reason: {reason}")
@@ -106,11 +114,10 @@ class Log:
         if self.connected:
             self.debug(f"Disconnecting; reason: {reason}")
             self._timer = DummyTimer()
-            assert self._handler is not None
             self._logger.removeHandler(self._handler)
             self._handler.close()
             self._logger = BlackholeLogger()
-            self._handler = None
+            self._handler = InvalidHandler()
             self.connected = False
         else:
             self.debug(f"Attempted to redisconnect; reason: {reason}")
@@ -141,5 +148,5 @@ class Logged:
     log: Log
 
     @classmethod
-    def setlogger(cls, filename: Optional[str] = None, level: str = "INFO") -> None:
+    def setlogger(cls, filename: str = InvalidStr(), level: str = "INFO") -> None:
         cls.log = Log(filename, level)
