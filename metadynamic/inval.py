@@ -51,9 +51,4 @@ class InvalidStr(Invalid, str):
     _invalrepr = "Invalid string"
 
 
-def invalfactory(baseclass, name):
-    class InvalidClass(Invalid, baseclass):
-        _invalrepr = name
-
-    return InvalidClass
 
