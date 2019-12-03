@@ -43,12 +43,18 @@ class InvalidInt(Invalid, int):
     _invalrepr = "Invalid int"
 
 
+invalidint = InvalidInt()
+
+
 class InvalidFloat(Invalid, float):
     _invalrepr = "Invalid float"
+
+
+invalidfloat = InvalidFloat()
 
 
 class InvalidStr(Invalid, str):
     _invalrepr = "Invalid string"
 
 
-
+invalidstr = InvalidStr()

@@ -24,11 +24,14 @@ from logging import getLogger, FileHandler, StreamHandler, Handler, Logger
 from datetime import datetime
 from typing import Union
 
-from metadynamic.inval import InvalidStr, InvalidInt, Invalid, isvalid
+from metadynamic.inval import invalidstr, invalidint, Invalid, isvalid
 
 
 class InvalidHandler(Invalid, Handler):
     _invalrepr = "Invalid Handler"
+
+
+invalidhandler = InvalidHandler()
 
 
 class Timer:
@@ -76,7 +79,7 @@ class Log:
     def time() -> str:
         return datetime.now().strftime("%H:%M:%S, %d/%m/%y")
 
-    def __init__(self, filename: str = InvalidStr(), level: str = "INFO"):
+    def __init__(self, filename: str = invalidstr, level: str = "INFO"):
         if isvalid(filename):
             if filename.count(".") != 1:
                 raise ValueError("Please enter filename as 'filename.log'")
@@ -90,7 +93,7 @@ class Log:
         self.connected: bool = False
         self.connect("Logger creation")
 
-    def connect(self, reason: str = "unknown", thread: int = InvalidInt()) -> None:
+    def connect(self, reason: str = "unknown", thread: int = invalidint) -> None:
         if not self.connected:
             self._timer = Timer()
             filename = (
@@ -117,7 +120,7 @@ class Log:
             self._logger.removeHandler(self._handler)
             self._handler.close()
             self._logger = BlackholeLogger()
-            self._handler = InvalidHandler()
+            self._handler = invalidhandler
             self.connected = False
         else:
             self.debug(f"Attempted to redisconnect; reason: {reason}")
@@ -148,5 +151,5 @@ class Logged:
     log: Log
 
     @classmethod
-    def setlogger(cls, filename: str = InvalidStr(), level: str = "INFO") -> None:
+    def setlogger(cls, filename: str = invalidstr, level: str = "INFO") -> None:
         cls.log = Log(filename, level)
