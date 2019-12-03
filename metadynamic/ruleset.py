@@ -29,21 +29,24 @@ from dataclasses import dataclass, field
 
 from metadynamic.chemical import Collected
 from metadynamic.ends import InitError
-from metadynamic.inval import InvalidInt
-
-invalidint = InvalidInt()
+from metadynamic.inval import invalidint
 
 
 # Type alias
+Compset = Tuple[str, ...]
 Categorizer = Callable[[str], bool]
 Propertizer = Callable[[str], Any]
 # reactants, variant -> products
-ProdBuilder = Callable[[Tuple[str, ...], int], Tuple[str, ...]]
+ProdBuilder = Callable[[Compset, int], Compset]
 # reactants, parameters, variant -> constant
-ConstBuilder = Callable[[Tuple[str, ...], Tuple[float, ...], int], float]
+ConstBuilder = Callable[[Compset, Tuple[float, ...], int], float]
 # reactants -> variants
-VariantBuilder = Callable[[Tuple[str, ...]], Iterable[int]]
+VariantBuilder = Callable[[Compset], Iterable[int]]
 Builder = Tuple[ProdBuilder, ConstBuilder, VariantBuilder]
+# rule, reactants, variant
+ReacDescr = Tuple[str, Compset, int]
+# products, constant
+ReacProp = Tuple[Compset, float]
 
 
 class Descriptor:
@@ -71,27 +74,10 @@ class Descriptor:
         self.prop_dict[propname] = func
 
 
-class ReacDescr:
-    def __init__(self, rule: "Rule", reactantnames: Tuple[str, ...]):
-        self.rule: Rule = rule
-        self.reactantnames: Tuple[str, ...] = reactantnames
-
-    def builprod(self, variant: int) -> Tuple[str, ...]:
-        return self.rule.builder[0](self.reactantnames, variant)
-
-    # Which best place for storing k???
-    def buildconst(self, k: Tuple[float, ...], variant: int) -> float:
-        return self.rule.builder[1](self.reactantnames, k, variant)
-
-    @property
-    def name(self) -> str:
-        return f"{self.rule.name}:{'+'.join(self.reactantnames)}"
-
-
 @dataclass
 class Rule:
     name: str
-    reactants: Tuple[str, ...]
+    reactants: Compset
     builder: Builder
     descr: str
     constants: Tuple[float, ...] = field(default_factory=tuple)
@@ -101,20 +87,12 @@ class Rule:
         self.constants = const_list
         self.initialized = True
 
-    def __call__(
-        self, reactants: Tuple[str, ...]
-    ) -> List[Tuple[Tuple[str, ...], float]]:
+    def __call__(self, reactants: Compset, variant: int) -> ReacProp:
         if not self.initialized:
             raise InitError("Rule {self} used before constant initialization")
-        res = []
-        for variant in self.builder[2](reactants):
-            res.append(
-                (
-                    self.builder[0](reactants, variant),
-                    self.builder[1](reactants, self.constants, variant),
-                )
-            )
-        return res
+        products: Compset = self.builder[0](reactants, variant)
+        constant: float = self.builder[1](reactants, self.constants, variant)
+        return products, constant
 
     def __str__(self) -> str:
         return self.descr
@@ -129,7 +107,7 @@ class Ruleset(Collected):
         self.rules: Dict[str, Rule] = {}
 
     def add_rule(
-        self, rulename: str, reactants: Tuple[str, ...], builder: Builder, descr: str,
+        self, rulename: str, reactants: Compset, builder: Builder, descr: str,
     ) -> None:
         self.rules[rulename] = Rule(
             name=rulename, reactants=reactants, builder=builder, descr=descr,
@@ -140,7 +118,7 @@ class Ruleset(Collected):
             except KeyError:
                 raise ValueError(f"Unrecognize category {reac}")
 
-    def get_related(self, comp_name: str) -> List[ReacDescr]:
+    def get_related(self, comp_name: str) -> Set[ReacDescr]:
         # Maybe memoize the list of rule for a given list of categories...
         # rule_related = reduce(
         #    lambda x, y: x | y,
@@ -151,9 +129,8 @@ class Ruleset(Collected):
         # get the categories to which belongs comp_name
         comp_categories = self.descriptor.categories(comp_name)
         # Will look fot the list of reactions for each rule
-        result: List[ReacDescr] = []
-        for rule in self.rules.values():
-            res: Set[Tuple[str, ...]] = set()
+        for rulename, rule in self.rules.items():
+            res: Set[ReacDescr] = set()
             for pos, reactant_category in enumerate(rule.reactants):
                 if reactant_category in comp_categories:
                     # Then scan all possible combinations, with fixing comp_name in each possible pos
@@ -166,11 +143,23 @@ class Ruleset(Collected):
                                 for pos2, other_category in enumerate(rule.reactants)
                             ]
                         ):
-                            res.add(tuple(reactants))
-            # Then create all possible reaction descriptions (to be fixed)
-            result += [ReacDescr(rule, reactantnames) for reactantnames in res]
-        # Finally return all build reac decription for each rule
-        return result
+                            for variant in rule.builder[2](reactants):
+                                res.add((rulename, reactants, variant))
+        return res
+
+    def get_reaction(
+        self, reacdescr: ReacDescr, parameters: Tuple[float, ...]
+    ) -> ReacProp:
+        rulename: str
+        reactantnames: Compset
+        variant: float
+        rulename, reactantnames, variant = reacdescr
+        return self.rules[rulename](reactantnames, variant)
+
+# For naming a reaction... to be moved in chemical (instead of reacdescr.name ?)
+#    @property
+#    def name(self) -> str:
+#        return f"{self.rule.name}:{'+'.join(self.reactantnames)}"
 
 
 # Functions for descriptor
@@ -206,31 +195,31 @@ def isactmono(name: str) -> bool:
 
 
 def joiner(sep: str) -> ProdBuilder:
-    def joinersep(names: Tuple[str, ...], variant: int = invalidint) -> Tuple[str, ...]:
+    def joinersep(names: Compset, variant: int = invalidint) -> Compset:
         return (sep.join(names),)
 
     return joinersep
 
 
-def cut(names: Tuple[str, ...], variant: int) -> Tuple[str, ...]:
+def cut(names: Compset, variant: int) -> Compset:
     tocut = names[0]
     # if other names, they are catalysts
     return tocut[:variant], tocut[variant:]
 
 
-def act_polym(names: Tuple[str, ...], variant: int = invalidint) -> Tuple[str, ...]:
+def act_polym(names: Compset, variant: int = invalidint) -> Compset:
     return (names[0][:-1] + names[1],)
 
 
-def activ(names: Tuple[str, ...], variant: int = invalidint) -> Tuple[str, ...]:
+def activ(names: Compset, variant: int = invalidint) -> Compset:
     return (names[0] + "*",)
 
 
-def deactiv(names: Tuple[str, ...], variant: int = invalidint) -> Tuple[str, ...]:
+def deactiv(names: Compset, variant: int = invalidint) -> Compset:
     return (names[0][:-1],)
 
 
-def epimer(names: Tuple[str, ...], variant: int) -> Tuple[str, ...]:
+def epimer(names: Compset, variant: int) -> Compset:
     return (
         names[0][:variant] + names[0][variant].swapcase() + names[0][variant + 1 :],
     )
@@ -243,26 +232,24 @@ def samecase(one: str, two: str) -> bool:
     return (one.islower() and two.islower()) or (one.isupper() and two.isupper())
 
 
-def kfastmono(
-    names: Tuple[str, ...], k: Tuple[float, ...], variant: int = invalidint
-) -> float:
+def kfastmono(names: Compset, k: Tuple[float, ...], variant: int = invalidint) -> float:
     return k[0] * k[1] if length(names[0]) == 1 else k[0]
 
 
-def khyd(names: Tuple[str, ...], k: Tuple[float, ...], pos: int) -> float:
+def khyd(names: Compset, k: Tuple[float, ...], pos: int) -> float:
     tocut: str = names[0]
     return k[0] if samecase(tocut[pos - 1], tocut[pos]) else k[1] * k[0]
 
 
 def kactselect(
-    names: Tuple[str, ...], k: Tuple[float, ...], variant: int = invalidint
+    names: Compset, k: Tuple[float, ...], variant: int = invalidint
 ) -> float:
     frag0 = names[0][-2]
     frag1 = names[1][0]
     return k[0] if samecase(frag0, frag1) else k[0] * k[1]
 
 
-def kmidselect(names: Tuple[str, ...], k: Tuple[float, ...], variant: int) -> float:
+def kmidselect(names: Compset, k: Tuple[float, ...], variant: int) -> float:
     name = names[0]
     res = k[0]
     if variant < (length(name) - 1) and samecase(name[variant], name[variant + 1]):
@@ -275,20 +262,20 @@ def kmidselect(names: Tuple[str, ...], k: Tuple[float, ...], variant: int) -> fl
 # VariantBuilder
 
 
-def novariant(reactants: Tuple[str, ...]) -> Iterable[int]:
+def novariant(reactants: Compset) -> Iterable[int]:
     return (invalidint,)
 
 
-def intervariant(reactants: Tuple[str, ...]) -> Iterable[int]:
+def intervariant(reactants: Compset) -> Iterable[int]:
     return range(length(reactants[0]) - 1)
 
 
-def lenvariant(reactants: Tuple[str, ...]) -> Iterable[int]:
+def lenvariant(reactants: Compset) -> Iterable[int]:
     return range(length(reactants[0]))
 
 
 def singlevariant(num: int) -> VariantBuilder:
-    def singlevariantn(reactants: Tuple[str, ...]) -> Iterable[int]:
+    def singlevariantn(reactants: Compset) -> Iterable[int]:
         return (num,)
 
     return singlevariantn
