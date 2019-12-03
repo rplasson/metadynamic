@@ -37,11 +37,12 @@ invalidint = InvalidInt()
 # Type alias
 Categorizer = Callable[[str], bool]
 Propertizer = Callable[[str], Any]
-ProdBuilder = Callable[[List[str], int], List[str]]  # reactants, variant -> products
-ConstBuilder = Callable[
-    [List[str], List[float], int], float
-]  # reactants, parameters, variant -> constant
-VariantBuilder = Callable[[List[str]], Iterable[int]]  # reactants -> variants
+# reactants, variant -> products
+ProdBuilder = Callable[[Tuple[str, ...], int], Tuple[str, ...]]
+# reactants, parameters, variant -> constant
+ConstBuilder = Callable[[Tuple[str, ...], Tuple[float, ...], int], float]
+# reactants -> variants
+VariantBuilder = Callable[[Tuple[str, ...]], Iterable[int]]
 Builder = Tuple[ProdBuilder, ConstBuilder, VariantBuilder]
 
 
@@ -71,15 +72,15 @@ class Descriptor:
 
 
 class ReacDescr:
-    def __init__(self, rule: "Rule", reactantnames: List[str]):
+    def __init__(self, rule: "Rule", reactantnames: Tuple[str, ...]):
         self.rule: Rule = rule
-        self.reactantnames: List[str] = reactantnames
+        self.reactantnames: Tuple[str, ...] = reactantnames
 
-    def builprod(self, variant: int) -> List[str]:
+    def builprod(self, variant: int) -> Tuple[str, ...]:
         return self.rule.builder[0](self.reactantnames, variant)
 
     # Which best place for storing k???
-    def buildconst(self, k: List[float], variant: int) -> float:
+    def buildconst(self, k: Tuple[float, ...], variant: int) -> float:
         return self.rule.builder[1](self.reactantnames, k, variant)
 
     @property
@@ -90,17 +91,19 @@ class ReacDescr:
 @dataclass
 class Rule:
     name: str
-    reactants: List[str]
+    reactants: Tuple[str, ...]
     builder: Builder
     descr: str
-    constants: List[float] = field(default_factory=list)
+    constants: Tuple[float, ...] = field(default_factory=tuple)
     initialized: bool = False
 
-    def set_constants(self, const_list: List[float]) -> None:
+    def set_constants(self, const_list: Tuple[float, ...]) -> None:
         self.constants = const_list
         self.initialized = True
 
-    def __call__(self, reactants: List[str]) -> List[Tuple[List[str], float]]:
+    def __call__(
+        self, reactants: Tuple[str, ...]
+    ) -> List[Tuple[Tuple[str, ...], float]]:
         if not self.initialized:
             raise InitError("Rule {self} used before constant initialization")
         res = []
@@ -126,7 +129,7 @@ class Ruleset(Collected):
         self.rules: Dict[str, Rule] = {}
 
     def add_rule(
-        self, rulename: str, reactants: List[str], builder: Builder, descr: str,
+        self, rulename: str, reactants: Tuple[str, ...], builder: Builder, descr: str,
     ) -> None:
         self.rules[rulename] = Rule(
             name=rulename, reactants=reactants, builder=builder, descr=descr,
@@ -150,23 +153,21 @@ class Ruleset(Collected):
         # Will look fot the list of reactions for each rule
         result: List[ReacDescr] = []
         for rule in self.rules.values():
-            res: Set[Tuple[str]] = set()
+            res: Set[Tuple[str, ...]] = set()
             for pos, reactant_category in enumerate(rule.reactants):
                 if reactant_category in comp_categories:
                     # Then scan all possible combinations, with fixing comp_name in each possible pos
-                    res = res | {  # Maybe simple add each new tuple to res.
-                        tuple(reactants)
+                    for pos2, other_category in enumerate(rule.reactants):
                         for reactants in product(
                             *[
-                                [comp_name]
-                                if pos2 == pos
+                                [comp_name] if pos2 == pos
                                 #  need to adapt comp_collect ...
                                 else self.comp_collect.categories[other_category]
                                 for pos2, other_category in enumerate(rule.reactants)
                             ]
-                        )
-                    }
-            # Then create all possible reaction descriptions
+                        ):
+                            res.add(tuple(reactants))
+            # Then create all possible reaction descriptions (to be fixed)
             result += [ReacDescr(rule, reactantnames) for reactantnames in res]
         # Finally return all build reac decription for each rule
         return result
@@ -197,22 +198,42 @@ def length(name: str) -> int:
     return 0
 
 
+def isactmono(name: str) -> bool:
+    return isact(name) and len(name) == 2
+
+
 # ProdBuilder
 
 
-def joiner(names: List[str], sep: str) -> List[str]:
-    return [sep.join(names)]
+def joiner(sep: str) -> ProdBuilder:
+    def joinersep(names: Tuple[str, ...], variant: int = invalidint) -> Tuple[str, ...]:
+        return (sep.join(names),)
+
+    return joinersep
 
 
-# joiner_direct = partial(joiner, sep="") from python 3.8 only
-def joiner_direct(names: List[str], variant: int = -1) -> List[str]:
-    return ["".join(names)]
-
-
-def cut(names: List[str], pos: int) -> List[str]:
+def cut(names: Tuple[str, ...], variant: int) -> Tuple[str, ...]:
     tocut = names[0]
     # if other names, they are catalysts
-    return [tocut[:pos], tocut[pos:]]
+    return tocut[:variant], tocut[variant:]
+
+
+def act_polym(names: Tuple[str, ...], variant: int = invalidint) -> Tuple[str, ...]:
+    return (names[0][:-1] + names[1],)
+
+
+def activ(names: Tuple[str, ...], variant: int = invalidint) -> Tuple[str, ...]:
+    return (names[0] + "*",)
+
+
+def deactiv(names: Tuple[str, ...], variant: int = invalidint) -> Tuple[str, ...]:
+    return (names[0][:-1],)
+
+
+def epimer(names: Tuple[str, ...], variant: int) -> Tuple[str, ...]:
+    return (
+        names[0][:variant] + names[0][variant].swapcase() + names[0][variant + 1 :],
+    )
 
 
 # ConstBuilder
@@ -222,28 +243,55 @@ def samecase(one: str, two: str) -> bool:
     return (one.islower() and two.islower()) or (one.isupper() and two.isupper())
 
 
-def kpol(names: List[str], k: List[float], variant: int = invalidint) -> float:
-    return k[0] if samecase(names[0][-1], names[1][0]) else k[1]
+def kfastmono(
+    names: Tuple[str, ...], k: Tuple[float, ...], variant: int = invalidint
+) -> float:
+    return k[0] * k[1] if length(names[0]) == 1 else k[0]
 
 
-def khyd(names: List[str], k: List[float], pos: int) -> float:
+def khyd(names: Tuple[str, ...], k: Tuple[float, ...], pos: int) -> float:
     tocut: str = names[0]
-    return k[0] if samecase(tocut[pos - 1], tocut[pos]) else k[1]
+    return k[0] if samecase(tocut[pos - 1], tocut[pos]) else k[1] * k[0]
+
+
+def kactselect(
+    names: Tuple[str, ...], k: Tuple[float, ...], variant: int = invalidint
+) -> float:
+    frag0 = names[0][-2]
+    frag1 = names[1][0]
+    return k[0] if samecase(frag0, frag1) else k[0] * k[1]
+
+
+def kmidselect(names: Tuple[str, ...], k: Tuple[float, ...], variant: int) -> float:
+    name = names[0]
+    res = k[0]
+    if variant < (length(name) - 1) and samecase(name[variant], name[variant + 1]):
+        res *= k[1]
+    if (variant > 0) and samecase(name[variant], name[variant - 1]):
+        res *= k[1]
+    return res
 
 
 # VariantBuilder
 
 
-def novariant(reactants: List[str]) -> Iterable[int]:
-    return [invalidint]
+def novariant(reactants: Tuple[str, ...]) -> Iterable[int]:
+    return (invalidint,)
 
 
-def intervariant(reactants: List[str]) -> Iterable[int]:
-    return range(len(reactants[0]) - 1)
+def intervariant(reactants: Tuple[str, ...]) -> Iterable[int]:
+    return range(length(reactants[0]) - 1)
 
 
-def lenvariant(reactants: List[str]) -> Iterable[int]:
-    return range(len(reactants[0]))
+def lenvariant(reactants: Tuple[str, ...]) -> Iterable[int]:
+    return range(length(reactants[0]))
+
+
+def singlevariant(num: int) -> VariantBuilder:
+    def singlevariantn(reactants: Tuple[str, ...]) -> Iterable[int]:
+        return (num,)
+
+    return singlevariantn
 
 
 # Define a specific ruleset
@@ -252,10 +300,55 @@ chemdescriptor = Descriptor()
 chemdescriptor.add_cat("mono", ismono)
 chemdescriptor.add_cat("polym", ispolym)
 chemdescriptor.add_cat("actpol", isact)
+chemdescriptor.add_cat("actmono", isactmono)
 chemdescriptor.add_prop("length", length)
 
 ruleset = Ruleset(chemdescriptor)
 ruleset.add_rule(
-    "P", ["polym", "polym"], (joiner_direct, kpol, novariant), "Polymerization"
+    rulename="P",
+    reactants=("polym", "polym"),
+    builder=(joiner(""), kfastmono, novariant),
+    descr="Polymerization",
 )
-ruleset.add_rule("H", ["polym"], (cut, khyd, intervariant), "Hydrolysis")
+ruleset.add_rule(
+    rulename="A",
+    reactants=("actpol", "polym"),
+    builder=(act_polym, kactselect, novariant),
+    descr="Activated Polymerization",
+)
+ruleset.add_rule(
+    rulename="M",
+    reactants=("actmono", "polym"),
+    builder=(act_polym, kactselect, novariant),
+    descr="Activated Monomer Polymerization",
+)
+ruleset.add_rule(
+    rulename="a",
+    reactants=("polym",),
+    builder=(activ, kfastmono, novariant),
+    descr="Activation",
+)
+ruleset.add_rule(
+    rulename="d",
+    reactants=("actpol",),
+    builder=(deactiv, kfastmono, novariant),
+    descr="Deactivation",
+)
+ruleset.add_rule(
+    rulename="H",
+    reactants=("polym",),
+    builder=(cut, khyd, intervariant),
+    descr="Hydrolysis",
+)
+ruleset.add_rule(
+    rulename="R",
+    reactants=("polym",),
+    builder=(epimer, kmidselect, lenvariant),
+    descr="Epimerization",
+)
+ruleset.add_rule(
+    rulename="E",
+    reactants=("polym",),
+    builder=(epimer, kmidselect, singlevariant(0)),
+    descr="Epimerization at first end",
+)
