@@ -61,8 +61,8 @@ class Descriptor:
     def prop(self, propname: str, name: str) -> Any:
         return self.prop_dict[propname](name)
 
-    def categories(self, name: str) -> List[str]:
-        return [catname for catname, rule in self.cat_dict.items() if rule(name)]
+    def categories(self, name: str) -> Set[str]:
+        return {catname for catname, rule in self.cat_dict.items() if rule(name)}
 
     def __repr__(self) -> str:
         return f"Descriptor: {self.cat_dict.keys()}"
@@ -119,28 +119,37 @@ class Ruleset(Collected):
                 raise ValueError(f"Unrecognize category {reac}")
 
     def initialize(self, paramdict: Dict[str, Paramset]) -> None:
-        for rulename, parameters in paramdict:
+        for rulename, parameters in paramdict.items():
             self.rules[rulename].set_constants(parameters)
 
     def get_related(self, comp_name: str) -> Set[ReacDescr]:
         # get the categories to which belongs comp_name
         comp_categories = self.descriptor.categories(comp_name)
-        # Will look fot the list of reactions for each rule
+        res: Set[ReacDescr] = set()
+        # Scan all registered rules
         for rulename, rule in self.rules.items():
-            res: Set[ReacDescr] = set()
-            for pos, reactant_category in enumerate(rule.reactants):
-                if reactant_category in comp_categories:
-                    # Then scan all possible combinations, with fixing comp_name in each possible pos
-                    for pos2, other_category in enumerate(rule.reactants):
-                        for reactants in product(
+            # Check if the compound is concerned by the rule
+            # necessary? avoid to scan further, but => overhead...
+            if comp_categories & set(rule.reactants):
+                # scan all the rules reactant
+                for pos, reactant_category in enumerate(rule.reactants):
+                    # Check if the compound can be in this pos
+                    if reactant_category in comp_categories:
+                        # OK => scan all possible combinations, with fixing comp_name in this pos
+                        combinations = product(
                             *[
+                                # fixed position => original compound
                                 [comp_name] if pos2 == pos
-                                #  need to adapt comp_collect ...
+                                # other positions => scam all other concerned compounds
                                 else self.comp_collect.categories[other_category]
                                 for pos2, other_category in enumerate(rule.reactants)
                             ]
-                        ):
+                        )
+                        # Then for each combination...
+                        for reactants in combinations:
+                            # ...Compute all variants...
                             for variant in rule.builder[2](reactants):
+                                # ...and add them to the result...
                                 res.add((rulename, reactants, variant))
         return res
 
