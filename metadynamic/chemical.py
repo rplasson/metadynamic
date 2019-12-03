@@ -61,8 +61,8 @@ class Ruleset:
     def reac_from_name(self, description: str) -> ReacDescr:
         try:
             kind, reactants, catal, pos = description.split(".")
-        except ValueError:
-            raise ValueError(f"Badly formatted description {description}")
+        except ValueError as valerr:
+            raise ValueError(f"Badly formatted description {description} ({valerr})")
         return self._newreac(
             description,
             kind,
