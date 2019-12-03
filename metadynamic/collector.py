@@ -44,7 +44,7 @@ class Collect(Generic[T], Logged):
             self.pool = WeakDict()
         else:
             self.pool = {}
-        self.categories: Dict[str, Set[T]] = {}
+        self.categories: Dict[str, Set[str]] = {}
         self.active: WDict[T] = self.pool if self.dropmode == "drop" else {}
         self.categorize = categorize
         self.log.info(
@@ -77,9 +77,9 @@ class Collect(Generic[T], Logged):
         if self.categorize:
             for catname in self._categorize(obj):
                 try:
-                    self.categories[catname].add(obj)
+                    self.categories[catname].add(name)
                 except KeyError:
-                    self.categories[catname] = {obj}
+                    self.categories[catname] = {name}
 
     def unactivate(self, name: str) -> None:
         """Remove the object 'name' from the active section, then
@@ -92,11 +92,11 @@ class Collect(Generic[T], Logged):
         if self.categorize:
             for cat in self.categories.values():
                 try:
-                    cat.remove(self[name])
+                    cat.remove(name)
                 except KeyError:
                     pass
 
-    def cat_list(self, category: str) -> Set[T]:
+    def cat_list(self, category: str) -> Set[str]:
         """Return all (active) objects from the specified 'categories'"""
         try:
             return self.categories[category]
