@@ -1,4 +1,4 @@
-from metadynamic import invalidint
+from metadynamic.inval import invalidint
 from metadynamic.ruleset import (
     Categorizer,
     Propertizer,

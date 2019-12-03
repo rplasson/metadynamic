@@ -87,7 +87,7 @@ class Rule:
         self.constants = const_list
         self.initialized = True
 
-    def __call__(self, reactants: Compset, variant: int) -> ReacProp:
+    def build(self, reactants: Compset, variant: int) -> ReacProp:
         if not self.initialized:
             raise InitError("Rule {self} used before constant initialization")
         products: Compset = self.builder[0](reactants, variant)
@@ -118,14 +118,11 @@ class Ruleset(Collected):
             except KeyError:
                 raise ValueError(f"Unrecognize category {reac}")
 
-    def get_related(self, comp_name: str) -> Set[ReacDescr]:
-        # Maybe memoize the list of rule for a given list of categories...
-        # rule_related = reduce(
-        #    lambda x, y: x | y,
-        #    [self.categories[catname] for catname in self.descriptor.categories(comp_name)],
-        # )
-        # or simply use self.rules??? Far less overhead, maybe not much perf loss.
+    def initialize(self, paramdict: Dict[str, Paramset]) -> None:
+        for rulename, parameters in paramdict:
+            self.rules[rulename].set_constants(parameters)
 
+    def get_related(self, comp_name: str) -> Set[ReacDescr]:
         # get the categories to which belongs comp_name
         comp_categories = self.descriptor.categories(comp_name)
         # Will look fot the list of reactions for each rule
@@ -147,12 +144,12 @@ class Ruleset(Collected):
                                 res.add((rulename, reactants, variant))
         return res
 
-    def get_reaction(self, reacdescr: ReacDescr, parameters: Paramset) -> ReacProp:
+    def get_reaction(self, reacdescr: ReacDescr) -> ReacProp:
         rulename: str
         reactantnames: Compset
         variant: float
         rulename, reactantnames, variant = reacdescr
-        return self.rules[rulename](reactantnames, variant)
+        return self.rules[rulename].build(reactantnames, variant)
 
 
 # For naming a reaction... to be moved in chemical (instead of reacdescr.name ?)
