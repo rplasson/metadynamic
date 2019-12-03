@@ -32,14 +32,15 @@ from metadynamic.ends import InitError
 from metadynamic.inval import invalidint
 
 
-# Type alias
+# Type alias (~~ data struct)
 Compset = Tuple[str, ...]
+Paramset = Tuple[float, ...]
 Categorizer = Callable[[str], bool]
 Propertizer = Callable[[str], Any]
 # reactants, variant -> products
 ProdBuilder = Callable[[Compset, int], Compset]
 # reactants, parameters, variant -> constant
-ConstBuilder = Callable[[Compset, Tuple[float, ...], int], float]
+ConstBuilder = Callable[[Compset, Paramset, int], float]
 # reactants -> variants
 VariantBuilder = Callable[[Compset], Iterable[int]]
 Builder = Tuple[ProdBuilder, ConstBuilder, VariantBuilder]
@@ -80,10 +81,10 @@ class Rule:
     reactants: Compset
     builder: Builder
     descr: str
-    constants: Tuple[float, ...] = field(default_factory=tuple)
+    constants: Paramset = field(default_factory=tuple)
     initialized: bool = False
 
-    def set_constants(self, const_list: Tuple[float, ...]) -> None:
+    def set_constants(self, const_list: Paramset) -> None:
         self.constants = const_list
         self.initialized = True
 
@@ -147,14 +148,13 @@ class Ruleset(Collected):
                                 res.add((rulename, reactants, variant))
         return res
 
-    def get_reaction(
-        self, reacdescr: ReacDescr, parameters: Tuple[float, ...]
-    ) -> ReacProp:
+    def get_reaction(self, reacdescr: ReacDescr, parameters: Paramset) -> ReacProp:
         rulename: str
         reactantnames: Compset
         variant: float
         rulename, reactantnames, variant = reacdescr
         return self.rules[rulename](reactantnames, variant)
+
 
 # For naming a reaction... to be moved in chemical (instead of reacdescr.name ?)
 #    @property
@@ -162,67 +162,40 @@ class Ruleset(Collected):
 #        return f"{self.rule.name}:{'+'.join(self.reactantnames)}"
 
 
-# Functions for descriptor
+# Categorizer
 
+ismono: Categorizer = lambda name: len(name) == 1
+ispolym: Categorizer = lambda name: name.isalpha()
+isact: Categorizer = lambda name: name[-1] == "*" and name[:-1].isalpha()
+isactmono: Categorizer = lambda name: isact(name) and len(name) == 2
 
-def ismono(name: str) -> bool:
-    return len(name) == 1
+# Propertizer
 
-
-def ispolym(name: str) -> bool:
-    return name.isalpha()
-
-
-def isact(name: str) -> bool:
-    return name[-1] == "*" and name[:-1].isalpha()
-
-
-def length(name: str) -> int:
-    if ismono(name):
-        return 1
-    if ispolym(name):
-        return len(name)
-    if isact(name):
-        return len(name) - 1
-    return 0
-
-
-def isactmono(name: str) -> bool:
-    return isact(name) and len(name) == 2
+length: Propertizer = lambda name: (
+    1
+    if ismono(name)
+    else len(name)
+    if ispolym(name)
+    else len(name) - 1
+    if isact(name)
+    else 0
+)
 
 
 # ProdBuilder
 
 
 def joiner(sep: str) -> ProdBuilder:
-    def joinersep(names: Compset, variant: int = invalidint) -> Compset:
-        return (sep.join(names),)
-
-    return joinersep
+    return lambda names, variant: (sep.join(names),)
 
 
-def cut(names: Compset, variant: int) -> Compset:
-    tocut = names[0]
-    # if other names, they are catalysts
-    return tocut[:variant], tocut[variant:]
-
-
-def act_polym(names: Compset, variant: int = invalidint) -> Compset:
-    return (names[0][:-1] + names[1],)
-
-
-def activ(names: Compset, variant: int = invalidint) -> Compset:
-    return (names[0] + "*",)
-
-
-def deactiv(names: Compset, variant: int = invalidint) -> Compset:
-    return (names[0][:-1],)
-
-
-def epimer(names: Compset, variant: int) -> Compset:
-    return (
-        names[0][:variant] + names[0][variant].swapcase() + names[0][variant + 1 :],
-    )
+cut: ProdBuilder = lambda names, variant: (names[0][:variant], names[0][variant:])
+act_polym: ProdBuilder = lambda names, variant: (names[0][:-1] + names[1],)
+activ: ProdBuilder = lambda names, variant: (names[0] + "*",)
+deactiv: ProdBuilder = lambda names, variant: (names[0][:-1],)
+epimer: ProdBuilder = lambda names, variant: (
+    names[0][:variant] + names[0][variant].swapcase() + names[0][variant + 1 :],
+)
 
 
 # ConstBuilder
@@ -232,24 +205,18 @@ def samecase(one: str, two: str) -> bool:
     return (one.islower() and two.islower()) or (one.isupper() and two.isupper())
 
 
-def kfastmono(names: Compset, k: Tuple[float, ...], variant: int = invalidint) -> float:
-    return k[0] * k[1] if length(names[0]) == 1 else k[0]
+kfastmono: ConstBuilder = lambda names, k, variant: (
+    k[0] * k[1] if length(names[0]) == 1 else k[0]
+)
+khyd: ConstBuilder = lambda names, k, variant: (
+    k[0] if samecase(names[0][variant - 1], names[0][variant]) else k[1] * k[0]
+)
+kactselect: ConstBuilder = lambda names, k, variant: (
+    k[0] if samecase(names[0][-2], names[1][0]) else k[0] * k[1]
+    )
 
 
-def khyd(names: Compset, k: Tuple[float, ...], pos: int) -> float:
-    tocut: str = names[0]
-    return k[0] if samecase(tocut[pos - 1], tocut[pos]) else k[1] * k[0]
-
-
-def kactselect(
-    names: Compset, k: Tuple[float, ...], variant: int = invalidint
-) -> float:
-    frag0 = names[0][-2]
-    frag1 = names[1][0]
-    return k[0] if samecase(frag0, frag1) else k[0] * k[1]
-
-
-def kmidselect(names: Compset, k: Tuple[float, ...], variant: int) -> float:
+def kmidselect(names: Compset, k: Paramset, variant: int) -> float:
     name = names[0]
     res = k[0]
     if variant < (length(name) - 1) and samecase(name[variant], name[variant + 1]):
@@ -261,24 +228,13 @@ def kmidselect(names: Compset, k: Tuple[float, ...], variant: int) -> float:
 
 # VariantBuilder
 
-
-def novariant(reactants: Compset) -> Iterable[int]:
-    return (invalidint,)
-
-
-def intervariant(reactants: Compset) -> Iterable[int]:
-    return range(length(reactants[0]) - 1)
-
-
-def lenvariant(reactants: Compset) -> Iterable[int]:
-    return range(length(reactants[0]))
+novariant: VariantBuilder = lambda reactants: (invalidint,)
+intervariant: VariantBuilder = lambda reactants: range(length(reactants[0]) - 1)
+lenvariant: VariantBuilder = lambda reactants: range(length(reactants[0]))
 
 
 def singlevariant(num: int) -> VariantBuilder:
-    def singlevariantn(reactants: Compset) -> Iterable[int]:
-        return (num,)
-
-    return singlevariantn
+    return lambda reactants: (num,)
 
 
 # Define a specific ruleset
