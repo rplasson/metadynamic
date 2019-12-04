@@ -18,12 +18,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-from typing import Generic, TypeVar, Dict, Set, List, Union
+from typing import Generic, TypeVar, Dict, Set, List, Union, Hashable
 from weakref import WeakValueDictionary
 
 from metadynamic.logger import Logged
 
-K = TypeVar("K")
+K = TypeVar("K", bound=Hashable)
 T = TypeVar("T")
 
 
@@ -31,21 +31,21 @@ class WeakDict(Generic[K, T], WeakValueDictionary):
     pass
 
 
-WDict = Union[Dict[str, T], WeakDict[str, T]]
+WDict = Union[Dict[K, T], WeakDict[K, T]]
 
 
-class Collect(Generic[T], Logged):
+class Collect(Generic[K, T], Logged):
     _colltype = "Generic"
 
     def __init__(self, categorize: bool = True, dropmode: str = "drop"):
         self.dropmode = dropmode
-        self.pool: WDict[T]
+        self.pool: WDict[K, T]
         if self.dropmode == "soft":
             self.pool = WeakDict()
         else:
             self.pool = {}
-        self.categories: Dict[str, Set[str]] = {}
-        self.active: WDict[T] = self.pool if self.dropmode == "drop" else {}
+        self.categories: Dict[str, Set[K]] = {}
+        self.active: WDict[K, T] = self.pool if self.dropmode == "drop" else {}
         self.categorize = categorize
         self.log.info(
             f"Created {self} as drop={self.dropmode}, with pool of type {type(self.pool)}"
@@ -54,57 +54,57 @@ class Collect(Generic[T], Logged):
     def __repr__(self) -> str:
         return f"<Collect of {len(self.pool)} {self._colltype}>"
 
-    def __getitem__(self, name: str) -> T:
-        """ Return the object as described by its name
+    def __getitem__(self, key: K) -> T:
+        """ Return the object as described by its key
             If it is the first call of the object, create it
             Else, return the already created one"""
         try:
-            return self.pool[name]
+            return self.pool[key]
         except KeyError:
-            newobj = self._create(name)
+            newobj = self._create(key)
             if self.dropmode == "soft":
-                self.active[name] = newobj
-            self.pool[name] = newobj
+                self.active[key] = newobj
+            self.pool[key] = newobj
             return newobj
 
-    def activate(self, name: str) -> None:
-        """Put the object 'name' in the active section, then categorize it"""
-        obj = self[name]
-        # will fail if activate an duplicated object (i.e. 2 different objects/same name exists)
-        assert obj is self[name]
-        if name not in self.active:
-            self.active[name] = obj
+    def activate(self, key: K) -> None:
+        """Put the object 'key' in the active section, then categorize it"""
+        obj = self[key]
+        # will fail if activate an duplicated object (i.e. 2 different objects/same key exists)
+        assert obj is self[key]
+        if key not in self.active:
+            self.active[key] = obj
         if self.categorize:
-            for catname in self._categorize(obj):
+            for catkey in self._categorize(obj):
                 try:
-                    self.categories[catname].add(name)
+                    self.categories[catkey].add(key)
                 except KeyError:
-                    self.categories[catname] = {name}
+                    self.categories[catkey] = {key}
 
-    def unactivate(self, name: str) -> None:
-        """Remove the object 'name' from the active section, then
+    def unactivate(self, key: K) -> None:
+        """Remove the object 'key' from the active section, then
            uncategorize it"""
         try:
-            # del self.active[name]
-            self.active.pop(name)
+            # del self.active[key]
+            self.active.pop(key)
         except KeyError:
-            self.log.debug(f"Tried to unactivate twice {name}")
+            self.log.debug(f"Tried to unactivate twice {key}")
         if self.categorize:
             for cat in self.categories.values():
                 try:
-                    cat.remove(name)
+                    cat.remove(key)
                 except KeyError:
                     pass
 
-    def cat_list(self, category: str) -> Set[str]:
+    def cat_list(self, category: str) -> Set[K]:
         """Return all (active) objects from the specified 'categories'"""
         try:
             return self.categories[category]
         except KeyError:
             return set()
 
-    def _create(self, name: str) -> T:
-        """Create the object <T> from its name.
+    def _create(self, key: K) -> T:
+        """Create the object <T> from its key.
         Must be implemented in subclasses"""
         raise NotImplementedError
 
