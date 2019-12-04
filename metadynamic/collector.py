@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-from typing import Generic, TypeVar, Dict, Set, List, Union, Hashable
+from typing import Generic, TypeVar, Dict, Set, Union, Hashable
 from weakref import WeakValueDictionary
 
 from metadynamic.logger import Logged
@@ -108,7 +108,7 @@ class Collect(Generic[K, T], Logged):
         Must be implemented in subclasses"""
         raise NotImplementedError
 
-    def _categorize(self, obj: T) -> List[str]:
+    def _categorize(self, obj: T) -> Set[str]:
         """List the categories of the object.
         Must be implemented in subclasses"""
         raise NotImplementedError
