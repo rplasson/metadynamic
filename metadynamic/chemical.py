@@ -24,15 +24,21 @@ from typing import Generic, List, Optional, Callable, TypeVar, Dict, Type, Any, 
 from metadynamic.collector import Collect
 from metadynamic.proba import Probaobj, Probalistic
 from metadynamic.ends import DecrZero
-from metadynamic.description import ReacDescr, CompDescr
 from metadynamic.logger import Logged
+from metadynamic.ruleset import Ruled, ReacDescr
+
+
+# For naming a reaction... to be moved in chemical (instead of reacdescr.name ?)
+#    @property
+#    def name(self) -> str:
+#        return f"{self.rule.name}:{'+'.join(self.reactantnames)}"
 
 
 D = TypeVar("D", "ReacDescr", "CompDescr")
 C = TypeVar("C", "CollectofReaction", "CollectofCompound")
 
 
-class Ruleset:
+class OldRuleset:
     def __init__(
         self,
         consts: Dict[str, float],
@@ -111,7 +117,7 @@ class Ruleset:
             raise ValueError(f"'{badkeys}' are not recognized reaction types")
 
 
-class CollectofCompound(Collect["Compound"], Logged):
+class CollectofCompound(Collect[str, "Compound"], Logged):
     _colltype = "Compound"
 
     def __init__(self, categorize: bool = True, dropmode: str = ""):
@@ -138,10 +144,10 @@ class CollectofCompound(Collect["Compound"], Logged):
         return res
 
 
-class CollectofReaction(Collect["Reaction"], Logged, Probalistic):
+class CollectofReaction(Collect[ReacDescr, "Reaction"], Logged, Probalistic):
     _colltype = "Reaction"
 
-    def __init__(self, categorize: bool = True, dropmode: str = ""):
+    def __init__(self, categorize: bool = False, dropmode: str = ""):
         super().__init__(categorize, dropmode)
         Collected.setreaccoll(self)
 
@@ -152,19 +158,6 @@ class CollectofReaction(Collect["Reaction"], Logged, Probalistic):
 
     def _categorize(self, obj: "Reaction") -> List[str]:
         return obj.description.categories
-
-    def init_ruleset(
-        self,
-        consts: Dict[str, float],
-        altconsts: Dict[str, float],
-        catconsts: Dict[str, float],
-    ) -> None:
-        self.ruleset = Ruleset(consts, altconsts, catconsts)
-
-    def describe(
-        self, kind: str, reactants: List[str], catal: str, pos: int
-    ) -> "Reaction":
-        return self[self.ruleset.reac_from_descr(kind, reactants, catal, pos).name]
 
     def get_related(self, reactant: "Compound") -> List["Reaction"]:
         return [
@@ -177,22 +170,20 @@ class Collected:
     reac_collect: CollectofReaction
 
     @classmethod
-    def setcompcoll(cls, comp_collect: CollectofCompound) -> None:
-        cls.comp_collect = comp_collect
-
-    @classmethod
-    def setreaccoll(cls, reac_collect: CollectofReaction) -> None:
-        cls.reac_collect = reac_collect
+    def setcollections(
+        cls,
+        categorize_comp: bool = True,
+        dropmode_comp: str = "",
+        categorize_reac: bool = False,
+        dropmode_reac: str = "",
+    ) -> None:
+        cls.comp_collect = CollectofCompound(categorize_comp, dropmode_comp)
+        cls.reac_collect = CollectofReaction(categorize_reac, dropmode_reac)
 
 
 class Chemical(Generic[D, C], Logged, Collected):
     _descrtype = "Chemical"
     _updatelist: Dict["Chemical[D, C]", int]
-
-    @property
-    def collect(self) -> C:
-        """Should return the collection the object belongs to. ti be implemented in subclasses"""
-        raise NotImplementedError
 
     def __init__(self, description: D):
         self.description: D = description
@@ -385,9 +376,6 @@ class Compound(Chemical[CompDescr, CollectofCompound], Logged):
         self.reactions: Set[Reaction] = set()
         self.pop = 0
         self.length = self.description.length
-
-    def addkept(self, reaction: Reaction) -> None:
-        pass  # to be removed. Will create an "explicit" reac description instead
 
     def register_reaction(self, reaction: Reaction) -> None:
         self.reactions.add(reaction)

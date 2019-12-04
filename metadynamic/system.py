@@ -41,12 +41,7 @@ from metadynamic.logger import Logged
 from metadynamic.proba import Probalistic
 from metadynamic.processing import Result
 from metadynamic.ruleset import Ruled
-from metadynamic.chemical import (
-    Collected,
-    CollectofCompound,
-    CollectofReaction,
-    trigger_changes,
-)
+from metadynamic.chemical import Collected, trigger_changes
 from metadynamic.inputs import SysParam, RunParam
 from metadynamic.inval import invalidstr
 
@@ -108,8 +103,8 @@ class System(Logged, Probalistic, Collected, Ruled):
         self.step = 0
         Probalistic.setprobalist(vol=self.param.vol, minprob=self.runparam.minprob)
         self.probalist.seed(self.param.seed)
-        CollectofCompound()
-        CollectofReaction(categorize=False, dropmode=self.runparam.dropmode)
+        # Add all options for collections
+        Collected.setcollections(dropmode_reac=self.runparam.dropmode)
         Ruled.setrules(self.runparam.rulemodel, self.runparam.consts)
         self.log.info("System created")
         for compound, pop in self.param.init.items():
