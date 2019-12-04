@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-from typing import Callable, List, Any, Dict, KeysView, Tuple, Set, Iterable
+from typing import Callable, Any, Dict, KeysView, Tuple, Set, Iterable
 from itertools import product
 from dataclasses import dataclass, field
 
@@ -47,6 +47,7 @@ Builder = Tuple[ProdBuilder, ConstBuilder, VariantBuilder]
 ReacDescr = Tuple[str, Compset, int]
 # products, constant
 ReacProp = Tuple[Compset, float]
+ChemDescr = str
 
 
 class Descriptor:
@@ -98,7 +99,7 @@ class Rule:
         return self.descr
 
 
-class Ruleset(Collected):
+class Ruleset:
     def __init__(self, descriptor: Descriptor):
         self.descriptor: Descriptor = descriptor
         self.categories: Dict[str, Set[str]] = {}
@@ -122,7 +123,7 @@ class Ruleset(Collected):
         for rulename, parameters in paramdict.items():
             self.rules[rulename].set_constants(parameters)
 
-    def get_related(self, comp_name: str) -> Set[ReacDescr]:
+    def get_related(self, comp_name: str, coll_cat: Dict[str, Set[str]]) -> Set[ReacDescr]:
         # get the categories to which belongs comp_name
         comp_categories = self.descriptor.categories(comp_name)
         res: Set[ReacDescr] = set()
@@ -141,7 +142,7 @@ class Ruleset(Collected):
                                 # fixed position => original compound
                                 [comp_name] if pos2 == pos
                                 # other positions => scam all other concerned compounds
-                                else self.comp_collect.categories[other_category]
+                                else coll_cat[other_category]
                                 for pos2, other_category in enumerate(rule.reactants)
                             ]
                         )
