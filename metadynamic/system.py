@@ -22,7 +22,7 @@ import gc
 from multiprocessing import get_context
 from itertools import repeat
 from os import getpid
-from typing import Optional, Dict, Tuple
+from typing import Dict, Tuple
 from psutil import Process
 
 from pandas import DataFrame
@@ -40,6 +40,7 @@ from metadynamic.ends import (
 from metadynamic.logger import Logged
 from metadynamic.proba import Probalistic
 from metadynamic.processing import Result
+from metadynamic.ruleset import Ruled
 from metadynamic.chemical import (
     Collected,
     CollectofCompound,
@@ -50,7 +51,7 @@ from metadynamic.inputs import SysParam, RunParam
 from metadynamic.inval import invalidstr
 
 
-class System(Logged, Probalistic, Collected):
+class System(Logged, Probalistic, Collected, Ruled):
     def __init__(
         self, filename: str, logfile: str = invalidstr, loglevel: str = "INFO"
     ):
@@ -109,9 +110,7 @@ class System(Logged, Probalistic, Collected):
         self.probalist.seed(self.param.seed)
         CollectofCompound()
         CollectofReaction(categorize=False, dropmode=self.runparam.dropmode)
-        self.reac_collect.init_ruleset(
-            self.runparam.consts, self.runparam.altconsts, self.runparam.catconsts
-        )
+        Ruled.setrules(self.runparam.rulemodel, self.runparam.consts)
         self.log.info("System created")
         for compound, pop in self.param.init.items():
             self.comp_collect[compound].init_pop(pop)

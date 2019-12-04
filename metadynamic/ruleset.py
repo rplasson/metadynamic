@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-from typing import Callable, Any, Dict, KeysView, Tuple, Set, Iterable
+from typing import Callable, Any, Dict, KeysView, Tuple, Set, Iterable, List
 from itertools import product
 from importlib import import_module
 from dataclasses import dataclass, field
@@ -33,7 +33,7 @@ from metadynamic.ends import InitError
 
 # Type alias (~~ data struct)
 Compset = Tuple[str, ...]
-Paramset = Tuple[float, ...]
+Paramset = List[float]
 Categorizer = Callable[[str], bool]
 Propertizer = Callable[[str], Any]
 # reactants, variant -> products
@@ -81,7 +81,7 @@ class Rule:
     reactants: Compset
     builder: Builder
     descr: str
-    constants: Paramset = field(default_factory=tuple)
+    constants: Paramset = field(default_factory=list)
     initialized: bool = False
 
     def set_constants(self, const_list: Paramset) -> None:

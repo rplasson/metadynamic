@@ -19,7 +19,7 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 from json import load, JSONDecodeError
-from typing import List, Dict
+from typing import List, Dict, Tuple
 from dataclasses import dataclass, field
 
 from metadynamic.ends import BadFile, FileNotFound, BadJSON
@@ -103,6 +103,5 @@ class RunParam(Readerclass):
     gcperio: bool = True
     nbthread: int = 1
     context: str = "fork"
-    consts: Dict[str, float] = field(default_factory=dict)
-    altconsts: Dict[str, float] = field(default_factory=dict)
-    catconsts: Dict[str, float] = field(default_factory=dict)
+    rulemodel: str = "metadynamic.polymers"
+    consts: Dict[str, List[float]] = field(default_factory=dict)
