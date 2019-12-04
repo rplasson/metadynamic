@@ -20,6 +20,7 @@
 
 from typing import Callable, Any, Dict, KeysView, Tuple, Set, Iterable
 from itertools import product
+from importlib import import_module
 from dataclasses import dataclass, field
 
 
@@ -27,7 +28,6 @@ from dataclasses import dataclass, field
 # from functools import reduce
 
 
-from metadynamic.chemical import Collected
 from metadynamic.ends import InitError
 
 
@@ -107,13 +107,9 @@ class Ruleset:
             self.categories[catname] = set()
         self.rules: Dict[str, Rule] = {}
 
-    def add_rule(
-        self, rulename: str, reactants: Compset, builder: Builder, descr: str,
-    ) -> None:
-        self.rules[rulename] = Rule(
-            name=rulename, reactants=reactants, builder=builder, descr=descr,
-        )
-        for reac in reactants:
+    def add_rule(self, rulename: str, rule: Rule) -> None:
+        self.rules[rulename] = rule
+        for reac in rule.reactants:
             try:
                 self.categories[reac].add(rulename)
             except KeyError:
@@ -123,7 +119,9 @@ class Ruleset:
         for rulename, parameters in paramdict.items():
             self.rules[rulename].set_constants(parameters)
 
-    def get_related(self, comp_name: str, coll_cat: Dict[str, Set[str]]) -> Set[ReacDescr]:
+    def get_related(
+        self, comp_name: str, coll_cat: Dict[str, Set[str]]
+    ) -> Set[ReacDescr]:
         # get the categories to which belongs comp_name
         comp_categories = self.descriptor.categories(comp_name)
         res: Set[ReacDescr] = set()
@@ -162,7 +160,53 @@ class Ruleset:
         return self.rules[rulename].build(reactantnames, variant)
 
 
-# For naming a reaction... to be moved in chemical (instead of reacdescr.name ?)
-#    @property
-#    def name(self) -> str:
-#        return f"{self.rule.name}:{'+'.join(self.reactantnames)}"
+class Model:
+    def __init__(self):
+        self.descriptor = Descriptor()
+        self.rules: Dict[str, Rule]
+
+    def add_cat(self, catname: str, rule: Categorizer) -> None:
+        self.descriptor.add_cat(catname, rule)
+
+    def add_prop(self, propname: str, func: Propertizer) -> None:
+        self.descriptor.add_prop(propname, func)
+
+    def add_rule(
+        self, rulename: str, reactants: Compset, builder: Builder, descr: str,
+    ) -> None:
+        self.rules[rulename] = Rule(
+            name=rulename, reactants=reactants, builder=builder, descr=descr,
+        )
+
+
+class Ruled:
+    ruleset: Ruleset
+    descriptor: Descriptor
+    model: Model
+
+    @classmethod
+    def setrules(cls, modelpath: str, paramdict: Dict[str, Paramset]) -> None:
+        """The set of rules must be set from a python file that can be reached
+        from 'modelpath'.
+        This file must contain a Model object named 'model'."""
+        try:
+            cls.model = import_module(modelpath).model
+        except AttributeError:
+            raise InitError(
+                f"The given modelpath '{modelpath}' must contain a Model object named 'model'"
+            )
+        try:
+            cls.descriptor = cls.model.descriptor
+        except AttributeError:
+            raise InitError(
+                f"the object 'model' from {modelpath} must be of type Model"
+            )
+        cls.ruleset = Ruleset(cls.descriptor)
+        for rulename in paramdict:
+            try:
+                cls.ruleset.add_rule(rulename, cls.model.rules[rulename])
+            except KeyError:
+                raise InitError(
+                    f"The rule named '{rulename}' is not defined in '{modelpath}'"
+                )
+        cls.ruleset.initialize(paramdict)

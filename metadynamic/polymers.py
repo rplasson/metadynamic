@@ -7,8 +7,7 @@ from metadynamic.ruleset import (
     VariantBuilder,
     Compset,
     Paramset,
-    Descriptor,
-    Ruleset,
+    Model,
 )
 
 # Categorizer
@@ -89,59 +88,62 @@ def singlevariant(num: int) -> VariantBuilder:
     return lambda reactants: (num,)
 
 
-# Define a specific ruleset
+# Define a specific ruleset model
 
-chemdescriptor = Descriptor()
-chemdescriptor.add_cat("mono", ismono)
-chemdescriptor.add_cat("polym", ispolym)
-chemdescriptor.add_cat("actpol", isact)
-chemdescriptor.add_cat("actmono", isactmono)
-chemdescriptor.add_prop("length", length)
 
-ruleset = Ruleset(chemdescriptor)
-ruleset.add_rule(
+model = Model()
+
+model.add_cat("mono", ismono)
+model.add_cat("polym", ispolym)
+model.add_cat("actpol", isact)
+model.add_cat("actmono", isactmono)
+
+model.add_prop("length", length)
+
+
+model.add_rule(
     rulename="P",
     reactants=("polym", "polym"),
     builder=(joiner(""), kfastmono, novariant),
     descr="Polymerization",
 )
-ruleset.add_rule(
+model.add_rule(
     rulename="A",
     reactants=("actpol", "polym"),
     builder=(act_polym, kactselect, novariant),
     descr="Activated Polymerization",
 )
-ruleset.add_rule(
+model.add_rule(
     rulename="M",
     reactants=("actmono", "polym"),
     builder=(act_polym, kactselect, novariant),
     descr="Activated Monomer Polymerization",
 )
-ruleset.add_rule(
+model.add_rule(
     rulename="a",
     reactants=("polym",),
     builder=(activ, kfastmono, novariant),
     descr="Activation",
 )
-ruleset.add_rule(
+model.add_rule(
     rulename="d",
     reactants=("actpol",),
     builder=(deactiv, kfastmono, novariant),
     descr="Deactivation",
 )
-ruleset.add_rule(
+model.add_rule(
     rulename="H",
     reactants=("polym",),
     builder=(cut, khyd, intervariant),
     descr="Hydrolysis",
 )
-ruleset.add_rule(
+model.add_rule(
     rulename="R",
     reactants=("polym",),
     builder=(epimer, kmidselect, lenvariant),
     descr="Epimerization",
 )
-ruleset.add_rule(
+model.add_rule(
     rulename="E",
     reactants=("polym",),
     builder=(epimer, kmidselect, singlevariant(0)),
