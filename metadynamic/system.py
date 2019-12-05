@@ -69,17 +69,16 @@ class System(Logged, Probalistic, Collected, Ruled):
     @property
     def poplist(self) -> Dict[str, int]:
         return {
-            comp.description.name: comp.pop
-            for comp in self.comp_collect.active.values()
+            comp.description: comp.pop for comp in self.comp_collect.active.values()
         }
 
     @property
     def lendist(self) -> Dict[int, int]:
-        return self.comp_collect.dist(lenweight=True, full=False)
+        return self.comp_collect.dist("length", lenweight=True, full=False)
 
     @property
     def pooldist(self) -> Dict[int, int]:
-        return self.comp_collect.dist(lenweight=False, full=True)
+        return self.comp_collect.dist("length", lenweight=False, full=True)
 
     def statlist(self) -> Tuple[Dict[str, int], Dict[str, Dict[int, int]]]:
         stat = {}
@@ -235,7 +234,3 @@ class System(Logged, Probalistic, Collected, Ruled):
             raise InitError("Parameter set after initialization")
         self.param.set_param(**kwd)
         self.log.info(f"Parameters changed: {self.param}")
-
-    def addkept(self, reac: str) -> None:
-        """reactions that are kept"""
-        self.reac_collect[reac].addkept()
