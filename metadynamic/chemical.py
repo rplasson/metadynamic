@@ -20,6 +20,7 @@
 
 # from itertools import chain
 from typing import Generic, List, Optional, Callable, TypeVar, Dict, Any, Set, Hashable
+from math import factorial
 
 from metadynamic.collector import Collect
 from metadynamic.proba import Probaobj, Probalistic
@@ -27,6 +28,22 @@ from metadynamic.ends import DecrZero
 from metadynamic.logger import Logged
 from metadynamic.ruleset import Ruled, ReacDescr
 from metadynamic.inval import isvalid, Invalid, invalidlist
+
+
+class Memcalc:
+    def __init__(self, func: Callable[[int], int]):
+        self.results: Dict[int, int] = {}
+        self.func = func
+
+    def __call__(self, val: int) -> int:
+        try:
+            return self.results[val]
+        except KeyError:
+            self.results[val] = self.func(val)
+            return self.results[val]
+
+
+fact = Memcalc(factorial)
 
 
 # For naming a reaction... to be moved in chemical (instead of reacdescr.name ?)
@@ -149,19 +166,29 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Probalistic):
 
     def __init__(self, description: ReacDescr):
         super().__init__(description)
-        self._vol: float = self.probalist.vol
         self._probaobj: Probaobj = self.probalist.get_probaobj(self)
         self.proba: float = 0.0
         self.reactants: List[Compound] = [
             self.comp_collect[reactant] for reactant in self.description[1]
         ]
-        self._productnames, self.const, stoechio = self.ruleset.buildreac(
+        self._productnames, const, stoechio = self.ruleset.buildreac(
             self.description
         )
         self.stoechio: Dict[Compound, int] = {
             self.comp_collect[reacname]: stoechnum
             for reacname, stoechnum in stoechio.items()
         }
+        self.order = sum(self.stoechio.values())
+        # stochastic rate between n reactions must be divided by V^(n-1)
+        # (k <-> concentration, stoch rate <-> number of particles)
+        self.const = const/self.probalist.vol**(self.order-1)
+        # stochastic rate implying 2 distinct compounds is to be diveded by two
+        # as it is not proportional to X.X, nor X.(X-1), but X.(X-1)/2,
+        # for order N, it is X.(X-1)...(X-n+1)/n!
+        # the n1 part is only computed here.
+        for partorder in self.stoechio.values():
+            if partorder > 1:
+                self.const /= fact(partorder)
         self._products: List[Compound] = invalidlist
 
     def _activate(self) -> None:
@@ -216,7 +243,7 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Probalistic):
         res: float = self.const
         for reactant, stoechnum in self.stoechio.items():
             res *= self._ordern(reactant.pop, stoechnum)
-        return res  #  /!\ result MUST be also normalized by se;f._vol and (check) some 2 factor in case of dimers...
+        return res
 
 
 class Compound(Chemical[str, CollectofCompound]):
