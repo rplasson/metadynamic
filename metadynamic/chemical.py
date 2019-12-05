@@ -94,7 +94,6 @@ class Collected:
 class Chemical(Generic[K, C], Logged, Collected, Ruled):
     _descrtype = "Chemical"
     _updatelist: Dict["Chemical[K, C]", int]
-    collect: C
 
     def __init__(self, description: K):
         self.description: K = description
@@ -109,12 +108,19 @@ class Chemical(Generic[K, C], Logged, Collected, Ruled):
 
     def activate(self) -> None:
         if not self.activated:
-            self.collect.activate(self.description)
+            self._activate()
             self.activated = True
 
+    def _activate(self) -> None:
+        raise NotImplementedError
+            
     def unactivate(self) -> None:
-        self.collect.unactivate(self.description)
-        self.activated = False
+        if self.activated:
+            self._unactivate()
+            self.activated = False
+
+    def _unactivate(self) -> None:
+        raise NotImplementedError
 
     @classmethod
     def toupdate(cls, obj: "Chemical[K, C]", change: int = 0) -> None:
@@ -140,7 +146,6 @@ class Chemical(Generic[K, C], Logged, Collected, Ruled):
 class Reaction(Chemical[ReacDescr, CollectofReaction], Probalistic):
     _descrtype = "Reaction"
     _updatelist: Dict[Chemical[ReacDescr, CollectofReaction], int] = {}
-    collect: CollectofReaction = Chemical.reac_collect
 
     def __init__(self, description: ReacDescr):
         super().__init__(description)
@@ -155,6 +160,12 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Probalistic):
         )
         self._products: List[Compound] = invalidlist
 
+    def _activate(self) -> None:
+        return self.reac_collect.activate(self.description)
+
+    def _unactivate(self) -> None:
+        return self.reac_collect.unactivate(self.description)
+        
     def update(self, change: int = 0) -> None:
         oldproba = self.proba
         self.proba = self.calcproba()
@@ -207,7 +218,6 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Probalistic):
 class Compound(Chemical[str, CollectofCompound]):
     _descrtype = "Compound"
     _updatelist: Dict[Chemical[str, CollectofCompound], int] = {}
-    collect: CollectofCompound = Chemical.comp_collect
 
     def __str__(self) -> str:
         #  Already a string, conversion useless, thus overload
@@ -219,6 +229,12 @@ class Compound(Chemical[str, CollectofCompound]):
         self.pop = 0
         # self.length = self.descriptor("length", description)
 
+    def _activate(self) -> None:
+        return self.comp_collect.activate(self.description)
+
+    def _unactivate(self) -> None:
+        return self.comp_collect.unactivate(self.description)
+        
     def register_reaction(self, reaction: Reaction) -> None:
         self.reactions.add(reaction)
 
@@ -232,7 +248,7 @@ class Compound(Chemical[str, CollectofCompound]):
 
     def scan_reaction(self) -> None:  # Check if is useful!
         reac_descr = set(
-            self.collect.ruleset.get_related(self.description, self.collect.categories)
+            self.ruleset.get_related(self.description, self.comp_collect.categories)
         )
         self.reactions = {self.reac_collect[descr] for descr in reac_descr}
 
