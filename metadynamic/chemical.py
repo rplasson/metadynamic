@@ -94,6 +94,7 @@ class Collected:
 class Chemical(Generic[K, C], Logged, Collected, Ruled):
     _descrtype = "Chemical"
     _updatelist: Dict["Chemical[K, C]", int]
+    collect: C
 
     def __init__(self, description: K):
         self.description: K = description
@@ -105,10 +106,6 @@ class Chemical(Generic[K, C], Logged, Collected, Ruled):
 
     def __str__(self) -> str:
         return str(self.description)
-
-    @property
-    def collect(self) -> C:
-        raise NotImplementedError
 
     def activate(self) -> None:
         if not self.activated:
@@ -143,10 +140,7 @@ class Chemical(Generic[K, C], Logged, Collected, Ruled):
 class Reaction(Chemical[ReacDescr, CollectofReaction], Probalistic):
     _descrtype = "Reaction"
     _updatelist: Dict[Chemical[ReacDescr, CollectofReaction], int] = {}
-
-    @property
-    def collect(self) -> CollectofReaction:
-        return Chemical.reac_collect
+    collect: CollectofReaction = Chemical.reac_collect
 
     def __init__(self, description: ReacDescr):
         super().__init__(description)
@@ -213,14 +207,11 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Probalistic):
 class Compound(Chemical[str, CollectofCompound]):
     _descrtype = "Compound"
     _updatelist: Dict[Chemical[str, CollectofCompound], int] = {}
+    collect: CollectofCompound = Chemical.comp_collect
 
     def __str__(self) -> str:
         #  Already a string, conversion useless, thus overload
         return self.description
-
-    @property
-    def collect(self) -> CollectofCompound:
-        return self.comp_collect
 
     def __init__(self, description: str):
         super().__init__(description)
