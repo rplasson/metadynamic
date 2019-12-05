@@ -26,6 +26,7 @@ from metadynamic.proba import Probaobj, Probalistic
 from metadynamic.ends import DecrZero
 from metadynamic.logger import Logged
 from metadynamic.ruleset import Ruled, ReacDescr
+from metadynamic.inval import isvalid, Invalid, invalidlist
 
 
 # For naming a reaction... to be moved in chemical (instead of reacdescr.name ?)
@@ -169,7 +170,7 @@ class Collected:
         cls.reac_collect = CollectofReaction(categorize_reac, dropmode_reac)
 
 
-class Chemical(Generic[K, C], Logged, Collected):
+class Chemical(Generic[K, C], Logged, Collected, Ruled):
     _descrtype = "Chemical"
     _updatelist: Dict["Chemical[K, C]", int]
 
@@ -232,20 +233,12 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Probalistic):
         self._probaobj: Probaobj = self.probalist.get_probaobj(self)
         self.proba: float = 0.0
         self._reactants: List[Compound] = [
-            self.comp_collect[i.name] for i in self.description.reactants
+            self.comp_collect[reactant] for reactant in self.description[1]
         ]
-        self._productnames = self.description.build_products()
-        self._products: Optional[List[Compound]] = None
-        self.const = self.description.build_const()
-        catal = self.description.catal
-        if catal:
-            self._catalized = True
-            self._catal = self.comp_collect[catal.name]
-        else:
-            self._catalized = False
-        self._reaccalc: Optional[Callable[[], float]] = None
-        self._uncatcalc: Optional[Callable[[], float]] = None
-        self._set_reaccalc()
+        self._productnames, self.const, self.stoechio = self.ruleset.buildreac(
+            self.description
+        )
+        self._products: List[Compound] = invalidlist
 
     def update(self, change: int = 0) -> None:
         oldproba = self.proba
@@ -259,8 +252,6 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Probalistic):
                     self._probaobj.register()
                     for comp in self._reactants:
                         comp.register_reaction(self)
-                    if self._catalized:
-                        self._catal.register_reaction(self)
                 self._probaobj.update(self.proba)
                 # assert self.proba == self.calcproba()
             else:
@@ -270,11 +261,9 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Probalistic):
                     self.unactivate()
                     for comp in self._reactants:
                         comp.unregister_reaction(self)
-                    if self._catalized:
-                        self._catal.unregister_reaction(self)
 
     def process(self) -> None:
-        if self._products is None:
+        if not isvalid(self._products):
             self._products = [self.comp_collect[name] for name in self._productnames]
         for prod in self._products:
             prod.inc()
@@ -283,70 +272,21 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Probalistic):
             reac.dec()
         trigger_changes(self)
 
-    def _order0(self) -> float:
-        # Reaction ->
-        return self.const
-
-    def _order1(self) -> float:
-        # Reaction A ->
-        return self.const * self._reactants[0].pop
-
-    def _order2dim(self) -> float:
-        pop0 = self._reactants[0].pop
-        # Reaction A + A ->
-        return self.const * pop0 * (pop0 - 1)
-
-    def _order2(self) -> float:
-        # Reaction A + B ->
-        return self.const * self._reactants[0].pop * self._reactants[1].pop
-
-    def _autocatdim(self) -> float:
-        # Reaction A + A -[A]->
-        assert self._uncatcalc is not None
-        return self._uncatcalc() * (self._catal.pop - 2)
-
-    def _autocat(self) -> float:
-        # Reaction A (+other...)  -[A}->
-        assert self._uncatcalc is not None
-        return self._uncatcalc() * (self._catal.pop - 1)
-
-    def _cat(self) -> float:
-        # Reaction (other...) -[B]->
-        assert self._uncatcalc is not None
-        return self._uncatcalc() * self._catal.pop
-
-    def _set_reaccalc(self) -> None:
-        order = self.description.nbreac
-        dimer = self.description.dimer
-        if order == 0:
-            self._reaccalc = self._order0
-        elif order == 1:
-            self._reaccalc = self._order1
-        elif order == 2:
-            if dimer:
-                self._reaccalc = self._order2dim
-                self.const = self.const / self._vol / 2.0
-            else:
-                self._reaccalc = self._order2
-                self.const = self.const / self._vol
-        else:
-            raise ValueError(
-                "Kinetic orders different from 0,1 or 2 are not supported (yet)"
-            )
-        if self._catalized:
-            self._uncatcalc = self._reaccalc
-            self.const = self.const / self._vol
-            if self._catal in self._reactants:
-                if dimer:
-                    self._reaccalc = self._autocatdim
-                else:
-                    self._reaccalc = self._autocat
-            else:
-                self._reaccalc = self._cat
+    @staticmethod
+    def _ordern(pop: int, order: int) -> int:
+        # check if use of reduce can increase perf
+        res = 1
+        for i in range(order):
+            res *= pop
+            pop -= 1
+        return res
 
     def calcproba(self) -> float:
-        assert self._reaccalc is not None
-        return 0.0 if self._reactants[0].pop == 0 else self._reaccalc()
+        # check if reduce can increase perf
+        res: float = self.const
+        for reac, stoechnum in self.stoechio.items:
+            res *= self._ordern(reac, stoechnum)
+        return res  #  /!\ result MUST be also normalized by se;f._vol and (check) some 2 factor in case of dimers...
 
 
 class Compound(Chemical[str, CollectofCompound]):
@@ -410,11 +350,18 @@ class Compound(Chemical[str, CollectofCompound]):
         Compound.toupdate(self, start)
 
 
-def trigger_changes(fromreac: Optional[Reaction] = None) -> None:
+class InvalidReaction(Invalid, Reaction):
+    _invalrepr = "Invalid Reaction"
+
+
+invalidreaction = InvalidReaction(("", set(), 0))
+
+
+def trigger_changes(fromreac: Reaction = invalidreaction) -> None:
     try:
         Compound.trigger_update()
     except DecrZero as end:
-        if fromreac is None:
+        if isvalid(fromreac):
             detail = end.detail
         else:
             # Decremented from 0...
@@ -426,8 +373,6 @@ def trigger_changes(fromreac: Optional[Reaction] = None) -> None:
             )
             for comp in fromreac._reactants:
                 detail += f"[{comp.description}]={comp.pop} ,"
-            if fromreac._catalized:
-                detail += f"catal[{fromreac._catal.description}]={fromreac._catal.pop})"
             else:
                 detail += ")"
         raise DecrZero(detail)

@@ -45,8 +45,8 @@ VariantBuilder = Callable[[Compset], Iterable[int]]
 Builder = Tuple[ProdBuilder, ConstBuilder, VariantBuilder]
 # rule, reactants, variant
 ReacDescr = Tuple[str, Compset, int]
-# products, constant
-ReacProp = Tuple[Compset, float]
+# products, constant, stoechiometry
+ReacProp = Tuple[Compset, float, Dict[str:int]]
 ChemDescr = str
 
 
@@ -88,12 +88,16 @@ class Rule:
         self.constants = const_list
         self.initialized = True
 
-    def build(self, reactants: Compset, variant: int) -> ReacProp:
+    def build(self, description: ReacDescr) -> ReacProp:
+        _, reactants, variant = description
         if not self.initialized:
             raise InitError("Rule {self} used before constant initialization")
         products: Compset = self.builder[0](reactants, variant)
         constant: float = self.builder[1](reactants, self.constants, variant)
-        return products, constant
+        stoechiometry: Dict[str, int] = {
+            reac: reactants.count(reac) for reac in set(reactants)
+        }
+        return products, constant, stoechiometry
 
     def __str__(self) -> str:
         return self.descr
@@ -152,12 +156,8 @@ class Ruleset:
                                 res.add((rulename, reactants, variant))
         return res
 
-    def get_reaction(self, reacdescr: ReacDescr) -> ReacProp:
-        rulename: str
-        reactantnames: Compset
-        variant: float
-        rulename, reactantnames, variant = reacdescr
-        return self.rules[rulename].build(reactantnames, variant)
+    def buildreac(self, reacdescr: ReacDescr) -> ReacProp:
+        return self.rules[reacdescr[0]].build(reacdescr)
 
 
 class Model:

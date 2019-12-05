@@ -58,3 +58,10 @@ class InvalidStr(Invalid, str):
 
 
 invalidstr = InvalidStr()
+
+
+class InvalidList(Invalid, list):
+    _invalrepr = "Invalid list"
+
+
+invalidlist = InvalidList()
