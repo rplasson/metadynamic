@@ -20,6 +20,7 @@
 
 from typing import Generic, TypeVar, Dict, Set, Union, Hashable
 from weakref import WeakValueDictionary
+from collections import defaultdict
 
 from metadynamic.logger import Logged
 
@@ -44,7 +45,7 @@ class Collect(Generic[K, T], Logged):
             self.pool = WeakDict()
         else:
             self.pool = {}
-        self.categories: Dict[str, Set[K]] = {}
+        self.categories: Dict[str, Set[K]] = defaultdict(set)
         self.active: WDict[K, T] = self.pool if self.dropmode == "drop" else {}
         self.categorize = categorize
         self.log.info(

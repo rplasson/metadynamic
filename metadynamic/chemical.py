@@ -166,30 +166,31 @@ class Reaction(Chemical[ReacDescr], Probalistic):
 
     def __init__(self, description: ReacDescr):
         super().__init__(description)
-        self._probaobj: Probaobj = self.probalist.get_probaobj(self)
-        self.proba: float = 0.0
-        self.reactants: List[Compound] = [
-            self.comp_collect[reactant] for reactant in self.description[1]
-        ]
-        self._productnames, const, stoechio = self.ruleset.buildreac(
-            self.description
-        )
-        self.stoechio: Dict[Compound, int] = {
-            self.comp_collect[reacname]: stoechnum
-            for reacname, stoechnum in stoechio.items()
-        }
-        order = sum(self.stoechio.values())
-        # stochastic rate between n reactions must be divided by V^(n-1)
-        # (k <-> concentration, stoch rate <-> number of particles)
-        self.const = const/self.probalist.vol**(order-1)
-        # stochastic rate implying 2 distinct compounds is to be diveded by two
-        # as it is not proportional to X.X, nor X.(X-1), but X.(X-1)/2,
-        # for order N, it is X.(X-1)...(X-n+1)/n!
-        # the n1 part is only computed here.
-        for partorder in self.stoechio.values():
-            if partorder > 1:
-                self.const /= fact(partorder)
-        self._products: List[Compound] = invalidlist
+        if description[0] != "":  # If name is empty => invalid reaction, no process to be done
+            self._probaobj: Probaobj = self.probalist.get_probaobj(self)
+            self.proba: float = 0.0
+            self.reactants: List[Compound] = [
+                self.comp_collect[reactant] for reactant in self.description[1]
+            ]
+            self._productnames, const, stoechio = self.ruleset.buildreac(
+                self.description
+            )
+            self.stoechio: Dict[Compound, int] = {
+                self.comp_collect[reacname]: stoechnum
+                for reacname, stoechnum in stoechio.items()
+            }
+            order = sum(self.stoechio.values())
+            # stochastic rate between n reactions must be divided by V^(n-1)
+            # (k <-> concentration, stoch rate <-> number of particles)
+            self.const = const/self.probalist.vol**(order-1)
+            # stochastic rate implying 2 distinct compounds is to be diveded by two
+            # as it is not proportional to X.X, nor X.(X-1), but X.(X-1)/2,
+            # for order N, it is X.(X-1)...(X-n+1)/n!
+            # the n1 part is only computed here.
+            for partorder in self.stoechio.values():
+                if partorder > 1:
+                    self.const /= fact(partorder)
+            self._products: List[Compound] = invalidlist
 
     def _activate(self) -> None:
         return self.reac_collect.activate(self.description)
@@ -319,7 +320,7 @@ def trigger_changes(fromreac: Reaction = invalidreaction) -> None:
     try:
         Compound.trigger_update()
     except DecrZero as end:
-        if isvalid(fromreac):
+        if not isvalid(fromreac):
             detail = end.detail
         else:
             # Decremented from 0...

@@ -169,7 +169,7 @@ class Ruleset:
 class Model:
     def __init__(self) -> None:
         self.descriptor = Descriptor()
-        self.rules: Dict[str, Rule]
+        self.rules: Dict[str, Rule] = {}
 
     def add_cat(self, catname: str, rule: Categorizer) -> None:
         self.descriptor.add_cat(catname, rule)
