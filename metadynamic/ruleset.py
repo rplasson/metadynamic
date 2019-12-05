@@ -46,7 +46,7 @@ Builder = Tuple[ProdBuilder, ConstBuilder, VariantBuilder]
 # rule, reactants, variant
 ReacDescr = Tuple[str, Compset, int]
 # products, constant, stoechiometry
-ReacProp = Tuple[Compset, float, Dict[str:int]]
+ReacProp = Tuple[Compset, float, Dict[str,int]]
 ChemDescr = str
 
 

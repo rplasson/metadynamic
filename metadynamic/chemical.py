@@ -284,7 +284,7 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Probalistic):
     def calcproba(self) -> float:
         # check if reduce can increase perf
         res: float = self.const
-        for reac, stoechnum in self.stoechio.items:
+        for reac, stoechnum in self.stoechio.items():
             res *= self._ordern(reac, stoechnum)
         return res  #  /!\ result MUST be also normalized by se;f._vol and (check) some 2 factor in case of dimers...
 
@@ -313,11 +313,9 @@ class Compound(Chemical[str, CollectofCompound]):
         try:
             self.reactions.remove(reaction)
         except KeyError:
-            if not reaction.description.dimer:
-                # Only sensible reason for a double unregistration would be for dimer
-                self.log.debug(
-                    f"Tried to unregister twice {reaction} from {self} (p={self.pop})"
-                )
+            self.log.debug(
+                f"Tried to unregister twice {reaction} from {self} (p={self.pop})"
+            )
 
     def scan_reaction(self) -> None:  # Check if is useful!
         reac_descr = set(
