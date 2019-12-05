@@ -80,7 +80,7 @@ def kmidselect(names: Compset, k: Paramset, variant: int) -> float:  # ConstBuil
 # VariantBuilder
 
 novariant: VariantBuilder = lambda reactants: (invalidint,)
-intervariant: VariantBuilder = lambda reactants: range(length(reactants[0]) - 1)
+intervariant: VariantBuilder = lambda reactants: range(1,length(reactants[0]))
 lenvariant: VariantBuilder = lambda reactants: range(length(reactants[0]))
 
 

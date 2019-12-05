@@ -19,7 +19,7 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # from itertools import chain
-from typing import Generic, List, Optional, Callable, TypeVar, Dict, Any, Set, Hashable
+from typing import Generic, List, Callable, TypeVar, Dict, Any, Set, Hashable
 from math import factorial
 
 from metadynamic.collector import Collect
@@ -257,6 +257,8 @@ class Compound(Chemical[str]):
 
     def __init__(self, description: str):
         super().__init__(description)
+        if self.description == "":
+            self.log.error("Created empty compound!!!")
         self.reactions: Set[Reaction] = set()
         self.pop = 0
         # self.length = self.descriptor("length", description)

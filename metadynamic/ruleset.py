@@ -29,6 +29,7 @@ from dataclasses import dataclass, field
 
 
 from metadynamic.ends import InitError
+from metadynamic.logger import Logged
 
 
 # Type alias (~~ data struct)
@@ -80,7 +81,7 @@ class Descriptor:
 
 
 @dataclass
-class Rule:
+class Rule(Logged):
     name: str
     reactants: Compset
     builder: Builder
@@ -97,6 +98,8 @@ class Rule:
         if not self.initialized:
             raise InitError("Rule {self} used before constant initialization")
         products: Compset = self.builder[0](reactants, variant)
+        if "" in products:
+            raise InitError(f"Reaction {description} lead to null compund: {products}")
         constant: float = self.builder[1](reactants, self.constants, variant)
         stoechiometry: Dict[str, int] = {
             reac: reactants.count(reac) for reac in set(reactants)
