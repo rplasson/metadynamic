@@ -17,10 +17,3 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
-
-from .version import __version__
-from .system import System
-
-# if somebody does "from somepackage import *", this is what they will
-# be able to access:
-__all__ = ["System"]

@@ -13,3 +13,6 @@ create_activate_deactivate_order.txt
 devel-notes/
 memprof/
 *.dat
+metadynamic.srctrlbm
+metadynamic.srctrldb
+metadynamic.srctrlprj

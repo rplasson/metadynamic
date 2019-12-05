@@ -1,9 +1,10 @@
-from typing import Any, Tuple, Optional, Deque
+from typing import Any, Tuple, Deque
 from collections import deque
 from numpy import array, append, log, random
 
 from metadynamic.ends import RoundError
 from metadynamic.logger import Logged
+from metadynamic.inval import invalidint, isvalid
 
 
 class Probalistic:
@@ -22,8 +23,8 @@ class Probaobj(Logged, Probalistic):
     """
 
     def __init__(self, obj: Any):
-        self.nlist: Optional[int]
-        self.npos: Optional[int]
+        self.nlist: int
+        self.npos: int
         self.obj = obj
         self.unset_proba_pos()
 
@@ -33,14 +34,13 @@ class Probaobj(Logged, Probalistic):
         self.registered = True
 
     def unset_proba_pos(self) -> None:
-        self.nlist = None
-        self.npos = None
+        self.nlist = invalidint
+        self.npos = invalidint
         self.registered = False
 
     @property
     def proba_pos(self) -> Tuple[int, int]:
         if self.registered:
-            assert self.nlist is not None and self.npos is not None
             return self.nlist, self.npos
         else:
             raise ValueError("Unregistered")
@@ -86,7 +86,7 @@ class Probalist(Logged):
             probaobj.set_proba_pos(*self._addfromqueue(probaobj, proba))
         else:
             probaobj.set_proba_pos(*self._addfrommap(probaobj, proba))
-        assert probaobj.nlist is not None
+        assert isvalid(probaobj.nlist)
         self._updateprob(probaobj.nlist, proba)
 
     def unregister(self, probaobj: Probaobj) -> None:
@@ -141,7 +141,9 @@ class Probalist(Logged):
             nlist = random.choice(self.npblist, p=self._problist / self.probtot)
         except ValueError as v:
             raise RoundError(
-                f"(reason: {v}; probtot={self.probtot}=?={self._problist.sum()}; problist={self._problist})"
+                f"(reason: {v}; "
+                f"probtot={self.probtot}=?={self._problist.sum()}; "
+                f"problist={self._problist})"
             )
         # Then choose a random column in the chosen probability line
         try:
@@ -149,11 +151,18 @@ class Probalist(Logged):
                 self._mapobj[nlist], p=self._map[nlist] / self._problist[nlist]
             )
             if chosen is None:
-                self.log.error(f"Badly destroyed reaction in {[ (a,b) for a,b in zip(self._mapobj[nlist],self._map[nlist]) if a is not None and a() is None]}")
+                explanation = [
+                    (a, b)
+                    for a, b in zip(self._mapobj[nlist], self._map[nlist])
+                    if a is not None and a() is None
+                ]
+                self.log.error(f"Badly destroyed reaction in {explanation}")
             return (chosen, log(1 / random.rand()) / self.probtot)
         except ValueError as v:
             raise RoundError(
-                f"(reason: {v}; probtot={self._problist[nlist]}=?={self._map[nlist].sum()}; problist={self._map[nlist]})"
+                f"(reason: {v}; "
+                f"probtot={self._problist[nlist]}=?={self._map[nlist].sum()}; "
+                f"problist={self._map[nlist]})"
             )
 
     def clean(self) -> None:

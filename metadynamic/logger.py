@@ -1,8 +1,37 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
+# Copyright 2019 by Raphaël Plasson
+#
+# This file is part of metadynamic
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, see <http://www.gnu.org/licenses/>.
+
 from multiprocessing import current_process
 from time import process_time
 from logging import getLogger, FileHandler, StreamHandler, Handler, Logger
 from datetime import datetime
-from typing import Optional, Union
+from typing import Union
+
+from metadynamic.inval import invalidstr, invalidint, Invalid, isvalid
+
+
+class InvalidHandler(Invalid, Handler):
+    _invalrepr = "Invalid Handler"
+
+
+invalidhandler = InvalidHandler()
 
 
 class Timer:
@@ -41,7 +70,7 @@ class BlackholeLogger:
     def error(self, msg: str) -> None:
         pass
 
-    def removeHandler(self, handler: Optional[Handler]) -> None:
+    def removeHandler(self, handler: Handler) -> None:
         pass
 
 
@@ -50,30 +79,32 @@ class Log:
     def time() -> str:
         return datetime.now().strftime("%H:%M:%S, %d/%m/%y")
 
-    def __init__(self, filename: Optional[str] = None, level: str = "INFO"):
-        if filename:
+    def __init__(self, filename: str = invalidstr, level: str = "INFO"):
+        if isvalid(filename):
             if filename.count(".") != 1:
                 raise ValueError("Please enter filename as 'filename.log'")
             basename, suf = filename.split(".")
             self.filenamethread: str = basename + "-{}." + suf
-        self.filename: Optional[str] = filename
+        self.filename: str = filename
         self._timer: Timer
         self._logger: Union[Logger, BlackholeLogger]
-        self._handler: Optional[Handler]
+        self._handler: Handler
         self.level: str = level
         self.connected: bool = False
         self.connect("Logger creation")
 
-    def connect(self, reason: str = "unknown", thread: Optional[int] = None) -> None:
+    def connect(self, reason: str = "unknown", thread: int = invalidint) -> None:
         if not self.connected:
             self._timer = Timer()
             filename = (
                 self.filenamethread.format(thread)
-                if thread and self.filename
+                if isvalid(thread) and isvalid(self.filename)
                 else self.filename
             )
             self._logger = getLogger("Polymer Log")
-            self._handler = FileHandler(filename) if filename else StreamHandler()
+            self._handler = (
+                FileHandler(filename) if isvalid(filename) else StreamHandler()
+            )
             self._logger.addHandler(self._handler)
             self._logger.setLevel(self.level)
             self.debug(f"Connected to {filename}; reason: {reason}")
@@ -86,11 +117,10 @@ class Log:
         if self.connected:
             self.debug(f"Disconnecting; reason: {reason}")
             self._timer = DummyTimer()
-            assert self._handler is not None
             self._logger.removeHandler(self._handler)
             self._handler.close()
             self._logger = BlackholeLogger()
-            self._handler = None
+            self._handler = invalidhandler
             self.connected = False
         else:
             self.debug(f"Attempted to redisconnect; reason: {reason}")
@@ -121,5 +151,5 @@ class Logged:
     log: Log
 
     @classmethod
-    def setlogger(cls, filename: Optional[str] = None, level: str = "INFO") -> None:
+    def setlogger(cls, filename: str = invalidstr, level: str = "INFO") -> None:
         cls.log = Log(filename, level)

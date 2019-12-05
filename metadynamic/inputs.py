@@ -1,8 +1,30 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
+# Copyright 2019 by Raphaël Plasson
+#
+# This file is part of metadynamic
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, see <http://www.gnu.org/licenses/>.
+
 from json import load, JSONDecodeError
-from typing import List, Dict, Type
+from typing import List, Dict, TypeVar, Type
 from dataclasses import dataclass, field
 
 from metadynamic.ends import BadFile, FileNotFound, BadJSON
+
+R = TypeVar("R", bound="Readerclass")
 
 
 @dataclass
@@ -14,8 +36,8 @@ class Readerclass:
 
     @classmethod
     def readfile(
-        cls, filename: str, section: str = "", checktype: bool = True
-    ) -> "Readerclass":
+        cls: Type[R], filename: str, section: str = "", checktype: bool = True
+    ) -> R:
         """Return a SysParam object, updated by the data from filename"""
         if section == "":
             section = cls._default_section
@@ -83,6 +105,5 @@ class RunParam(Readerclass):
     gcperio: bool = True
     nbthread: int = 1
     context: str = "fork"
-    consts: Dict[str, float] = field(default_factory=dict)
-    altconsts: Dict[str, float] = field(default_factory=dict)
-    catconsts: Dict[str, float] = field(default_factory=dict)
+    rulemodel: str = "metadynamic.polymers"
+    consts: Dict[str, List[float]] = field(default_factory=dict)

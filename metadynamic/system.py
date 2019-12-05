@@ -1,8 +1,28 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
+# Copyright 2019 by Raphaël Plasson
+#
+# This file is part of metadynamic
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, see <http://www.gnu.org/licenses/>.
+
 import gc
 from multiprocessing import get_context
 from itertools import repeat
 from os import getpid
-from typing import Optional, Dict, Tuple
+from typing import Dict, Tuple
 from psutil import Process
 
 from pandas import DataFrame
@@ -20,18 +40,15 @@ from metadynamic.ends import (
 from metadynamic.logger import Logged
 from metadynamic.proba import Probalistic
 from metadynamic.processing import Result
-from metadynamic.chemical import (
-    Collected,
-    CollectofCompound,
-    CollectofReaction,
-    trigger_changes,
-)
+from metadynamic.ruleset import Ruled
+from metadynamic.chemical import Collected, trigger_changes
 from metadynamic.inputs import SysParam, RunParam
+from metadynamic.inval import invalidstr
 
 
-class System(Logged, Probalistic, Collected):
+class System(Logged, Probalistic, Collected, Ruled):
     def __init__(
-        self, filename: str, logfile: Optional[str] = None, loglevel: str = "INFO"
+        self, filename: str, logfile: str = invalidstr, loglevel: str = "INFO"
     ):
         self.initialized = False
         Logged.setlogger(logfile, loglevel)
@@ -52,17 +69,16 @@ class System(Logged, Probalistic, Collected):
     @property
     def poplist(self) -> Dict[str, int]:
         return {
-            comp.description.name: comp.pop
-            for comp in self.comp_collect.active.values()
+            comp.description: comp.pop for comp in self.comp_collect.active.values()
         }
 
     @property
     def lendist(self) -> Dict[int, int]:
-        return self.comp_collect.dist(lenweight=True, full=False)
+        return self.comp_collect.dist("length", lenweight=True, full=False)
 
     @property
     def pooldist(self) -> Dict[int, int]:
-        return self.comp_collect.dist(lenweight=False, full=True)
+        return self.comp_collect.dist("length", lenweight=False, full=True)
 
     def statlist(self) -> Tuple[Dict[str, int], Dict[str, Dict[int, int]]]:
         stat = {}
@@ -86,11 +102,9 @@ class System(Logged, Probalistic, Collected):
         self.step = 0
         Probalistic.setprobalist(vol=self.param.vol, minprob=self.runparam.minprob)
         self.probalist.seed(self.param.seed)
-        CollectofCompound()
-        CollectofReaction(categorize=False, dropmode=self.runparam.dropmode)
-        self.reac_collect.init_ruleset(
-            self.runparam.consts, self.runparam.altconsts, self.runparam.catconsts
-        )
+        # Add all options for collections
+        Collected.setcollections(dropmode_reac=self.runparam.dropmode)
+        Ruled.setrules(self.runparam.rulemodel, self.runparam.consts)
         self.log.info("System created")
         for compound, pop in self.param.init.items():
             self.comp_collect[compound].init_pop(pop)
@@ -220,7 +234,3 @@ class System(Logged, Probalistic, Collected):
             raise InitError("Parameter set after initialization")
         self.param.set_param(**kwd)
         self.log.info(f"Parameters changed: {self.param}")
-
-    def addkept(self, reac: str) -> None:
-        """reactions that are kept"""
-        self.reac_collect[reac].addkept()
