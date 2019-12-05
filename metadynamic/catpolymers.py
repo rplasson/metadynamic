@@ -11,7 +11,7 @@ from metadynamic.polymers import (
     ispolym,
 )
 
-# Necessary/useful for avinding clash between polymers/catpolymers model???
+# Necessary/useful for avinding clash between polymers/catpolymers model?
 model = deepcopy(model)
 
 # Example of catalized polymer by a dimer

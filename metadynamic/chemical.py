@@ -39,85 +39,6 @@ K = TypeVar("K", bound=Hashable)
 C = TypeVar("C", "CollectofCompound", "CollectofReaction")
 
 
-# class OldRuleset:
-#     def __init__(
-#         self,
-#         consts: Dict[str, float],
-#         altconsts: Dict[str, float],
-#         catconsts: Dict[str, float],
-#     ):
-#         # Test if bad keys were entered
-#         self.testkinds(consts)
-#         self.testkinds(altconsts)
-#         self.testkinds(catconsts)
-#         # set class variables
-#         # dictionary copy may be useless... but only called once at startup thus is a no cost safety
-#         self.consts = consts.copy()
-#         kinds = set(self.consts.keys())
-#         self.descrs: Dict[str, Type[ReacDescr]] = {
-#             cls.kind: cls for cls in ReacDescr.subclasses() if cls.kind in kinds
-#         }
-#         self.altconsts = altconsts.copy()
-#         self.catconsts = catconsts.copy()
-#         # Missing keys in alt/cat are set to 1
-#         for kind in kinds - altconsts.keys():
-#             self.altconsts[kind] = 1
-#         for kind in kinds - catconsts.keys():
-#             self.catconsts[kind] = 1
-
-#     def reac_from_name(self, description: str) -> ReacDescr:
-#         try:
-#             kind, reactants, catal, pos = description.split(".")
-#         except ValueError as valerr:
-#             raise ValueError(f"Badly formatted description {description} ({valerr})")
-#         return self._newreac(
-#             description,
-#             kind,
-#             reactants.split("+"),
-#             catal,
-#             -1 if pos == "" else int(pos),
-#         )
-
-#     def reac_from_descr(
-#         self, kind: str, reactants: List[str], catal: str, pos: int
-#     ) -> ReacDescr:
-#         return self._newreac("", kind, reactants, catal, pos)
-
-#     def full_reac(self, reactant: "Compound") -> List[ReacDescr]:
-#         return list(
-#             chain.from_iterable(
-#                 [
-#                     descriptor.fullfrom(
-#                         reactant,
-#                         self.consts[kind],
-#                         self.altconsts[kind],
-#                         self.catconsts[kind],
-#                     )
-#                     for kind, descriptor in self.descrs.items()
-#                 ]
-#             )
-#         )
-
-#     def _newreac(
-#         self, name: str, kind: str, reactants: List[str], catal: str, pos: int
-#     ) -> ReacDescr:
-#         return self.descrs[kind](
-#             name,
-#             [CompDescr(x) for x in reactants],
-#             CompDescr(catal),
-#             pos,
-#             const=self.consts[kind],
-#             altconst=self.altconsts[kind],
-#             catconst=self.catconsts[kind],
-#         )
-
-#     @classmethod
-#     def testkinds(cls, dic: Dict[str, Any]) -> None:
-#         badkeys = list(dic.keys() - ReacDescr.kinds())
-#         if badkeys:
-#             raise ValueError(f"'{badkeys}' are not recognized reaction types")
-
-
 class CollectofCompound(Collect[str, "Compound"], Logged, Ruled):
     _colltype = "Compound"
 
@@ -183,7 +104,7 @@ class Chemical(Generic[K, C], Logged, Collected, Ruled):
         return f"{self._descrtype}: {self}"
 
     def __str__(self) -> str:
-        raise NotImplementedError
+        return str(self.description)
 
     @property
     def collect(self) -> C:
@@ -294,6 +215,7 @@ class Compound(Chemical[str, CollectofCompound]):
     _updatelist: Dict[Chemical[str, CollectofCompound], int] = {}
 
     def __str__(self) -> str:
+        #  Already a string, conversion useless, thus overload
         return self.description
 
     @property

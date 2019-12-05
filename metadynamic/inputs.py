@@ -19,7 +19,7 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 from json import load, JSONDecodeError
-from typing import List, Dict, Tuple
+from typing import List, Dict
 from dataclasses import dataclass, field
 
 from metadynamic.ends import BadFile, FileNotFound, BadJSON

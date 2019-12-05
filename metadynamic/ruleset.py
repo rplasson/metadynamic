@@ -69,9 +69,13 @@ class Descriptor:
         return f"Descriptor: {self.cat_dict.keys()}"
 
     def add_cat(self, catname: str, rule: Categorizer) -> None:
+        if catname in self.cat_dict:
+            raise KeyError(f"Category {catname} already defined")
         self.cat_dict[catname] = rule
 
     def add_prop(self, propname: str, func: Propertizer) -> None:
+        if propname in self.prop_dict:
+            raise KeyError(f"Propert {propname} already defined")
         self.prop_dict[propname] = func
 
 
@@ -112,6 +116,8 @@ class Ruleset:
         self.rules: Dict[str, Rule] = {}
 
     def add_rule(self, rulename: str, rule: Rule) -> None:
+        if rulename in self.rules:
+            raise KeyError(f"Rule {rulename} already defined")   
         self.rules[rulename] = rule
         for reac in rule.reactants:
             try:

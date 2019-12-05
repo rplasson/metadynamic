@@ -12,8 +12,8 @@ from metadynamic.ruleset import (
 
 # Categorizer
 
-ismono: Categorizer = lambda name: len(name) == 1
 ispolym: Categorizer = lambda name: name.isalpha()
+ismono: Categorizer = lambda name: ispolym(name) and len(name) == 1
 isact: Categorizer = lambda name: name[-1] == "*" and name[:-1].isalpha()
 isactmono: Categorizer = lambda name: isact(name) and len(name) == 2
 
