@@ -108,9 +108,9 @@ class Collected:
         cls.reac_collect = CollectofReaction(categorize_reac, dropmode_reac)
 
 
-class Chemical(Generic[K, C], Logged, Collected, Ruled):
+class Chemical(Generic[K], Logged, Collected, Ruled):
     _descrtype = "Chemical"
-    _updatelist: Dict["Chemical[K, C]", int]
+    _updatelist: Dict["Chemical[K]", int]
 
     def __init__(self, description: K):
         self.description: K = description
@@ -140,7 +140,7 @@ class Chemical(Generic[K, C], Logged, Collected, Ruled):
         raise NotImplementedError
 
     @classmethod
-    def toupdate(cls, obj: "Chemical[K, C]", change: int = 0) -> None:
+    def toupdate(cls, obj: "Chemical[K]", change: int = 0) -> None:
         """Add object to update"""
         try:
             cls._updatelist[obj] += change
@@ -160,9 +160,9 @@ class Chemical(Generic[K, C], Logged, Collected, Ruled):
         raise NotImplementedError
 
 
-class Reaction(Chemical[ReacDescr, CollectofReaction], Probalistic):
+class Reaction(Chemical[ReacDescr], Probalistic):
     _descrtype = "Reaction"
-    _updatelist: Dict[Chemical[ReacDescr, CollectofReaction], int] = {}
+    _updatelist: Dict[Chemical[ReacDescr], int] = {}
 
     def __init__(self, description: ReacDescr):
         super().__init__(description)
@@ -178,10 +178,10 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Probalistic):
             self.comp_collect[reacname]: stoechnum
             for reacname, stoechnum in stoechio.items()
         }
-        self.order = sum(self.stoechio.values())
+        order = sum(self.stoechio.values())
         # stochastic rate between n reactions must be divided by V^(n-1)
         # (k <-> concentration, stoch rate <-> number of particles)
-        self.const = const/self.probalist.vol**(self.order-1)
+        self.const = const/self.probalist.vol**(order-1)
         # stochastic rate implying 2 distinct compounds is to be diveded by two
         # as it is not proportional to X.X, nor X.(X-1), but X.(X-1)/2,
         # for order N, it is X.(X-1)...(X-n+1)/n!
@@ -246,9 +246,9 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Probalistic):
         return res
 
 
-class Compound(Chemical[str, CollectofCompound]):
+class Compound(Chemical[str]):
     _descrtype = "Compound"
-    _updatelist: Dict[Chemical[str, CollectofCompound], int] = {}
+    _updatelist: Dict[Chemical[str], int] = {}
 
     def __str__(self) -> str:
         #  Already a string, conversion useless, thus overload
@@ -312,7 +312,7 @@ class InvalidReaction(Invalid, Reaction):
     _invalrepr = "Invalid Reaction"
 
 
-invalidreaction = InvalidReaction(("", set(), 0))
+invalidreaction = InvalidReaction(("", (), 0))
 
 
 def trigger_changes(fromreac: Reaction = invalidreaction) -> None:

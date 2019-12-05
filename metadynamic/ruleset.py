@@ -167,7 +167,7 @@ class Ruleset:
 
 
 class Model:
-    def __init__(self):
+    def __init__(self) -> None:
         self.descriptor = Descriptor()
         self.rules: Dict[str, Rule]
 
