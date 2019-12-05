@@ -113,7 +113,7 @@ class Chemical(Generic[K, C], Logged, Collected, Ruled):
 
     def _activate(self) -> None:
         raise NotImplementedError
-            
+
     def unactivate(self) -> None:
         if self.activated:
             self._unactivate()
@@ -152,12 +152,16 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Probalistic):
         self._vol: float = self.probalist.vol
         self._probaobj: Probaobj = self.probalist.get_probaobj(self)
         self.proba: float = 0.0
-        self._reactants: List[Compound] = [
+        self.reactants: List[Compound] = [
             self.comp_collect[reactant] for reactant in self.description[1]
         ]
-        self._productnames, self.const, self.stoechio = self.ruleset.buildreac(
+        self._productnames, self.const, stoechio = self.ruleset.buildreac(
             self.description
         )
+        self.stoechio: Dict[Compound, int] = {
+            self.comp_collect[reacname]: stoechnum
+            for reacname, stoechnum in stoechio.items()
+        }
         self._products: List[Compound] = invalidlist
 
     def _activate(self) -> None:
@@ -165,7 +169,7 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Probalistic):
 
     def _unactivate(self) -> None:
         return self.reac_collect.unactivate(self.description)
-        
+
     def update(self, change: int = 0) -> None:
         oldproba = self.proba
         self.proba = self.calcproba()
@@ -176,7 +180,7 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Probalistic):
                     # was unactivated, thus activate
                     self.activate()
                     self._probaobj.register()
-                    for comp in self._reactants:
+                    for comp in self.reactants:
                         comp.register_reaction(self)
                 self._probaobj.update(self.proba)
                 # assert self.proba == self.calcproba()
@@ -185,7 +189,7 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Probalistic):
                     # was activated, thus deactivate
                     self._probaobj.unregister()
                     self.unactivate()
-                    for comp in self._reactants:
+                    for comp in self.reactants:
                         comp.unregister_reaction(self)
 
     def process(self) -> None:
@@ -194,7 +198,7 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Probalistic):
         for prod in self._products:
             prod.inc()
         # Decrement reactants
-        for reac in self._reactants:
+        for reac in self.reactants:
             reac.dec()
         trigger_changes(self)
 
@@ -210,8 +214,8 @@ class Reaction(Chemical[ReacDescr, CollectofReaction], Probalistic):
     def calcproba(self) -> float:
         # check if reduce can increase perf
         res: float = self.const
-        for reac, stoechnum in self.stoechio.items():
-            res *= self._ordern(reac, stoechnum)
+        for reactant, stoechnum in self.stoechio.items():
+            res *= self._ordern(reactant.pop, stoechnum)
         return res  #  /!\ result MUST be also normalized by se;f._vol and (check) some 2 factor in case of dimers...
 
 
@@ -234,7 +238,7 @@ class Compound(Chemical[str, CollectofCompound]):
 
     def _unactivate(self) -> None:
         return self.comp_collect.unactivate(self.description)
-        
+
     def register_reaction(self, reaction: Reaction) -> None:
         self.reactions.add(reaction)
 
@@ -298,7 +302,7 @@ def trigger_changes(fromreac: Reaction = invalidreaction) -> None:
                 + f" from {fromreac}, that is activated? ({fromreac.activated})"
                 + f" (p={fromreac.proba}={fromreac.calcproba()}, "
             )
-            for comp in fromreac._reactants:
+            for comp in fromreac.reactants:
                 detail += f"[{comp.description}]={comp.pop} ,"
             else:
                 detail += ")"
