@@ -19,10 +19,12 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 from json import load, JSONDecodeError
-from typing import List, Dict
+from typing import List, Dict, TypeVar, Type
 from dataclasses import dataclass, field
 
 from metadynamic.ends import BadFile, FileNotFound, BadJSON
+
+R = TypeVar("R", bound="Readerclass")
 
 
 @dataclass
@@ -34,8 +36,8 @@ class Readerclass:
 
     @classmethod
     def readfile(
-        cls, filename: str, section: str = "", checktype: bool = True
-    ) -> "Readerclass":
+        cls: Type[R], filename: str, section: str = "", checktype: bool = True
+    ) -> R:
         """Return a SysParam object, updated by the data from filename"""
         if section == "":
             section = cls._default_section
