@@ -57,7 +57,10 @@ def samecase(one: str, two: str) -> bool:
 
 
 kfastmono: ConstBuilder = lambda names, k, variant: (
-    k[0] * k[1] if length(names[0]) == 1 else k[0]
+    k[0] if length(names[0]) == 1 else k[0] * k[1]
+)
+kslowmono: ConstBuilder = lambda names, k, variant: (
+    k[0] if length(names[0]) != 1 else k[0] * k[1]
 )
 khyd: ConstBuilder = lambda names, k, variant: (
     k[0] if samecase(names[0][variant - 1], names[0][variant]) else k[1] * k[0]
@@ -104,7 +107,7 @@ model.add_prop("length", length)
 model.add_rule(
     rulename="P",
     reactants=("polym", "polym"),
-    builder=(joiner(""), kfastmono, novariant),
+    builder=(joiner(""), kslowmono, novariant),
     descr="Polymerization",
 )
 model.add_rule(

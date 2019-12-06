@@ -18,8 +18,8 @@
 	"rulemodel" : "metadynamic.polymers",
 	"consts" :{
 	    "P": [10.0 , 10.0],
-	    "H": [1.0  , 0.0],
-	    "E": [1.0  , 0.0]
+	    "H": [1.0  , 1.0],
+	    "E": [1.0  , 1.0]
 	},
 	"dropmode" : "drop"
     }
