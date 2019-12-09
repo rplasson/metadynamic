@@ -120,7 +120,7 @@ class Ruleset(Logged):
 
     def add_rule(self, rulename: str, rule: Rule) -> None:
         if rulename in self.rules:
-            raise KeyError(f"Rule {rulename} already defined")   
+            raise KeyError(f"Rule {rulename} already defined")
         self.rules[rulename] = rule
         for reac in rule.reactants:
             try:

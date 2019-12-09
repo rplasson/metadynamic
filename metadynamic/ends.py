@@ -20,14 +20,14 @@
 
 """General exceptions to be used in metadynamic code
 
-Exception categories inherit from Finished: 
+Exception categories inherit from Finished:
 HappyEnding, BadEnding, Aborted, InputError
 
-All exceptions intended to be used are derived from one 
+All exceptions intended to be used are derived from one
 of these categories. indicating the general context of the
 exception.
  - HappyEnding is intended for normal end of the computation
- - Aborted is intended to signal that the computation ended earlier 
+ - Aborted is intended to signal that the computation ended earlier
    than expected, but lead to a nonetheless correct result
  - HappyEnding is intended to signal that something when wrong during
    the computation
