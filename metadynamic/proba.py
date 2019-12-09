@@ -7,7 +7,7 @@ from metadynamic.logger import Logged
 from metadynamic.inval import invalidint, isvalid
 
 
-class Probalistic:
+class Probalistic(Logged):
     probalist: "Probalist"
 
     @classmethod
@@ -15,7 +15,7 @@ class Probalistic:
         cls.probalist = Probalist(vol, minprob)
 
 
-class Probaobj(Logged, Probalistic):
+class Probaobj(Probalistic):
     """Probalistic object, that can be used in a Probalist object
     for Gillespie-like computation.
 

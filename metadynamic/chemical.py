@@ -43,7 +43,7 @@ class Memcalc:
             return self.results[val]
 
 
-fact = Memcalc(factorial)
+fact = Memcalc(factorial)  # only use the value of order! (but often), with order rarely above 3...
 
 
 # For naming a reaction... to be moved in chemical (instead of reacdescr.name ?)
@@ -56,7 +56,7 @@ K = TypeVar("K", bound=Hashable)
 C = TypeVar("C", "CollectofCompound", "CollectofReaction")
 
 
-class CollectofCompound(Collect[str, "Compound"], Logged, Ruled):
+class CollectofCompound(Collect[str, "Compound"]):
     _colltype = "Compound"
 
     def _create(self, name: str) -> "Compound":
@@ -81,7 +81,7 @@ class CollectofCompound(Collect[str, "Compound"], Logged, Ruled):
         return res
 
 
-class CollectofReaction(Collect[ReacDescr, "Reaction"], Logged, Probalistic, Ruled):
+class CollectofReaction(Collect[ReacDescr, "Reaction"]):
     _colltype = "Reaction"
 
     def _create(self, description: ReacDescr) -> "Reaction":
@@ -92,7 +92,7 @@ class CollectofReaction(Collect[ReacDescr, "Reaction"], Logged, Probalistic, Rul
         return {obj.description[0]}
 
 
-class Collected:
+class Collected(Ruled):
     comp_collect: CollectofCompound
     reac_collect: CollectofReaction
 
@@ -108,7 +108,7 @@ class Collected:
         cls.reac_collect = CollectofReaction(categorize_reac, dropmode_reac)
 
 
-class Chemical(Generic[K], Logged, Collected, Ruled):
+class Chemical(Generic[K], Collected):
     _descrtype = "Chemical"
     _updatelist: Dict["Chemical[K]", int]
 

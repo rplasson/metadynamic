@@ -22,7 +22,9 @@ from typing import Generic, TypeVar, Dict, Set, Union, Hashable
 from weakref import WeakValueDictionary
 from collections import defaultdict
 
-from metadynamic.logger import Logged
+# from metadynamic.logger import Logged
+from metadynamic.ruleset import Ruled
+
 
 K = TypeVar("K", bound=Hashable)
 T = TypeVar("T")
@@ -35,7 +37,7 @@ class WeakDict(Generic[K, T], WeakValueDictionary):
 WDict = Union[Dict[K, T], WeakDict[K, T]]
 
 
-class Collect(Generic[K, T], Logged):
+class Collect(Generic[K, T], Ruled):
     _colltype = "Generic"
 
     def __init__(self, categorize: bool = True, dropmode: str = "drop"):

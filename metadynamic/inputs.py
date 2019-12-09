@@ -23,12 +23,13 @@ from typing import List, Dict, TypeVar, Type
 from dataclasses import dataclass, field
 
 from metadynamic.ends import BadFile, FileNotFound, BadJSON
+from metadynamic.logger import Logged
 
 R = TypeVar("R", bound="Readerclass")
 
 
 @dataclass
-class Readerclass:
+class Readerclass(Logged):
     _default_section: str = "Parameter"
 
     def __post_init__(self) -> None:

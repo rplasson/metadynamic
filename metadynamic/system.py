@@ -46,7 +46,7 @@ from metadynamic.inputs import SysParam, RunParam
 from metadynamic.inval import invalidstr
 
 
-class System(Logged, Probalistic, Collected, Ruled):
+class System(Probalistic, Collected):
     def __init__(
         self, filename: str, logfile: str = invalidstr, loglevel: str = "INFO"
     ):

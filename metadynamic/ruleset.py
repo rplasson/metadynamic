@@ -47,11 +47,11 @@ Builder = Tuple[ProdBuilder, ConstBuilder, VariantBuilder]
 # rule, reactants, variant
 ReacDescr = Tuple[str, Compset, int]
 # products, constant, stoechiometry
-ReacProp = Tuple[Compset, float, Dict[str,int]]
+ReacProp = Tuple[Compset, float, Dict[str, int]]
 ChemDescr = str
 
 
-class Descriptor:
+class Descriptor(Logged):
     def __init__(self) -> None:
         self.cat_dict: Dict[str, Categorizer] = {}
         self.prop_dict: Dict[str, Propertizer] = {}
@@ -110,7 +110,7 @@ class Rule(Logged):
         return self.descr
 
 
-class Ruleset:
+class Ruleset(Logged):
     def __init__(self, descriptor: Descriptor):
         self.descriptor: Descriptor = descriptor
         self.categories: Dict[str, Set[str]] = {}
@@ -169,7 +169,7 @@ class Ruleset:
         return self.rules[reacdescr[0]].build(reacdescr)
 
 
-class Model:
+class Model(Logged):
     def __init__(self) -> None:
         self.descriptor = Descriptor()
         self.rules: Dict[str, Rule] = {}
@@ -188,7 +188,7 @@ class Model:
         )
 
 
-class Ruled:
+class Ruled(Logged):
     ruleset: Ruleset
     descriptor: Descriptor
     model: Model
