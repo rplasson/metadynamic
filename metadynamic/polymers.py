@@ -50,6 +50,12 @@ length: Propertizer = lambda name: (
     else 0
 )
 
+asym: Propertizer = lambda name: (
+    sum(map(str.isupper, name)) - sum(map(str.islower, name))
+)
+
+isright: Categorizer = lambda name: asym(name) > 0
+isleft: Categorizer = lambda name: asym(name) < 0
 
 # ProdBuilder
 
@@ -93,7 +99,9 @@ kactselect: ConstBuilder = lambda names, k, variant: (
 
 def kmidselect(names: Compset, k: Paramset, variant: int) -> float:  # ConstBuilder
     name = names[0]
-    samebefore: bool = variant < (length(name) - 1) and samecase(name[variant], name[variant + 1])
+    samebefore: bool = variant < (length(name) - 1) and samecase(
+        name[variant], name[variant + 1]
+    )
     sameafter: bool = (variant > 0) and samecase(name[variant], name[variant - 1])
     if samebefore:
         if sameafter:
@@ -126,8 +134,11 @@ model.add_cat("polym", ispolym)
 model.add_cat("longpol", islongpol)
 model.add_cat("actpol", isact)
 model.add_cat("actmono", isactmono)
+model.add_cat("left", isleft)
+model.add_cat("right", isright)
 
 model.add_prop("length", length)
+model.add_prop("asym", asym)
 
 
 model.add_rule(
