@@ -36,6 +36,7 @@ ispolym: Categorizer = lambda name: name.isalpha()
 ismono: Categorizer = lambda name: ispolym(name) and len(name) == 1
 isact: Categorizer = lambda name: name[-1] == "*" and name[:-1].isalpha()
 isactmono: Categorizer = lambda name: isact(name) and len(name) == 2
+islongpol: Categorizer = lambda name: ispolym(name) and len(name) > 1
 
 # Propertizer
 
@@ -122,6 +123,7 @@ model = Model()
 
 model.add_cat("mono", ismono)
 model.add_cat("polym", ispolym)
+model.add_cat("longpol", islongpol)
 model.add_cat("actpol", isact)
 model.add_cat("actmono", isactmono)
 
@@ -166,13 +168,13 @@ model.add_rule(
 )
 model.add_rule(
     rulename="R",
-    reactants=("polym",),
+    reactants=("longpol",),
     builder=(epimer, kmidselect, lenvariant),
     descr="Epimerization",
 )
 model.add_rule(
     rulename="E",
-    reactants=("polym",),
+    reactants=("longpol",),
     builder=(epimer, kmidselect, singlevariant(0)),
     descr="Epimerization at first end",
 )
