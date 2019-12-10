@@ -192,6 +192,8 @@ class Reaction(Chemical[ReacDescr], Probalistic):
                 if partorder > 1:
                     self.const /= fact(partorder)
             self._products: List[Compound] = invalidlist
+            # Initial setup (necessary?)
+            # self.update()  #  Nope, activated from Compound ... check order of activation (simplify??)
 
     def _activate(self) -> None:
         return self.reac_collect.activate(self.description)
