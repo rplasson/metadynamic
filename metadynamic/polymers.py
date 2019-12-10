@@ -92,12 +92,16 @@ kactselect: ConstBuilder = lambda names, k, variant: (
 
 def kmidselect(names: Compset, k: Paramset, variant: int) -> float:  # ConstBuilder
     name = names[0]
-    res = k[0]
-    if variant < (length(name) - 1) and samecase(name[variant], name[variant + 1]):
-        res *= k[1]
-    if (variant > 0) and samecase(name[variant], name[variant - 1]):
-        res *= k[1]
-    return res
+    samebefore: bool = variant < (length(name) - 1) and samecase(name[variant], name[variant + 1])
+    sameafter: bool = (variant > 0) and samecase(name[variant], name[variant - 1])
+    if samebefore:
+        if sameafter:
+            return k[2]
+        else:
+            return k[1]
+    if sameafter:
+        return k[1]
+    return k[0]
 
 
 # VariantBuilder
