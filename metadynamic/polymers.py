@@ -50,9 +50,20 @@ length: Propertizer = lambda name: (
     else 0
 )
 
-asym: Propertizer = lambda name: (
-    sum(map(str.isupper, name)) - sum(map(str.islower, name))
-)
+
+def asym(name: str) -> int:  # Propertizer
+    res = 0
+    for char in name:
+        if char.isupper():
+            res += 1
+        elif char.islower():
+            res -= 1
+    return res
+
+
+# asym: Propertizer = lambda name: (
+#    sum(map(str.isupper, name)) - sum(map(str.islower, name))
+# )  ### Slower.
 
 isright: Categorizer = lambda name: asym(name) > 0
 isleft: Categorizer = lambda name: asym(name) < 0
@@ -128,6 +139,9 @@ def singlevariant(num: int) -> VariantBuilder:
 
 
 model = Model()
+
+
+# Maybe only add necessary properties/categories on used model ? on demand?
 
 model.add_cat("mono", ismono)
 model.add_cat("polym", ispolym)
