@@ -1,0 +1,27 @@
+{
+    "System" : {
+	"init" :
+	{
+	    "a": 500,
+	    "A": 500,
+	    "b": 1000,
+	    "c": 1000
+	},
+	"conc" : 1.0,
+	"tend" : 0.5,
+	"tstep" : 0.05,
+	"save" : ["a", "b", "c", "A", "B", "C"],
+	"seed" : 1234,
+	"rtlim" : 600.0
+    },
+    "Run" : {
+	"rulemodel" : "metadynamic.polymers",
+	"consts" :{
+	    "P": [10.0 , 10.0],
+	    "H": [1.0  , 1.0],
+	    "E": [1.0  , 1.0]
+	},
+	"dropmode" : "drop",
+	"gcperio" : false
+    }
+}
