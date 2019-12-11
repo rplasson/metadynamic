@@ -170,7 +170,7 @@ class Reaction(Chemical[ReacDescr], Probalistic):
         if description[0] != "":
             self._probaobj: Probaobj = self.probalist.get_probaobj(self)
             self.proba: float = 0.0
-            self._productnames, const, stoechio = self.ruleset.buildreac(
+            stoechreac, self._stoechproduct, const,  = self.ruleset.buildreac(
                 self.description
             )
             self.stoechio: List[Tuple[Compound, int]] = []
@@ -178,7 +178,7 @@ class Reaction(Chemical[ReacDescr], Probalistic):
             # stochastic rate between n reactions must be divided by V^(n-1)
             # (k <-> concentration, stoch rate <-> number of particles)
             self.const = const
-            for reacname, stoechnum in stoechio:
+            for reacname, stoechnum in stoechreac:
                 self.stoechio.append((self.comp_collect[reacname], stoechnum))
                 order += stoechnum
                 # stochastic rate implying 2 distinct compounds is to be diveded by two
@@ -188,7 +188,7 @@ class Reaction(Chemical[ReacDescr], Probalistic):
                 if stoechnum > 1:
                     self.const /= fact(stoechnum)
             self.const /= self.probalist.vol ** (order - 1)
-            self._products: List[Compound] = invalidlist
+            self.tobeinitialized = True
             # Initial setup (necessary?)
             # self.update()  #  Nope, activated from Compound ... check order of activation (simplify??)
 
@@ -221,10 +221,11 @@ class Reaction(Chemical[ReacDescr], Probalistic):
                         comp.unregister_reaction(self)
 
     def process(self) -> None:
-        if not isvalid(self._products):
-            self._products = [self.comp_collect[name] for name in self._productnames]
-        for prod in self._products:
-            prod.inc()
+        if self.tobeinitialized:
+            self.products = [(self.comp_collect[name], order) for name, order in self._stoechproduct]
+            self.tobeinitialized = False
+        for prod, order in self.products:
+            prod.change_pop(order)
         # Decrement reactants
         for reac, order in self.stoechio:
             reac.change_pop(-order)

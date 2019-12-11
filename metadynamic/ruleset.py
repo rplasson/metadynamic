@@ -48,7 +48,7 @@ Builder = Tuple[ProdBuilder, ConstBuilder, VariantBuilder]
 # rule, reactants, variant
 ReacDescr = Tuple[str, Compset, int]
 # products, constant, stoechiometry
-ReacProp = Tuple[Compset, float, Stoechio]
+ReacProp = Tuple[Stoechio, Stoechio, float]
 ChemDescr = str
 
 
@@ -102,10 +102,21 @@ class Rule(Logged):
         if "" in products:
             raise InitError(f"Reaction {description} lead to null compund: {products}")
         constant: float = self.builder[1](reactants, self.constants, variant)
-        return products, constant, self.getstoechio(reactants)
+        return self.getstoechio(reactants), self.getstoechio(products), constant
 
     @staticmethod
     def getstoechio(compounds: Compset) -> Stoechio:
+        #  Extend common cases for faster computations
+        length = len(compounds)
+        if length == 1:
+            return ((compounds[0], 1),)
+        if length == 2:
+            c0 = compounds[0]
+            c1 = compounds[1]
+            if c0 == c1:
+                return ((c0, 2),)
+            return ((c0, 1), (c1, 1))
+        # General computation from order 3
         return ((reac, compounds.count(reac)) for reac in set(compounds))
 
     def __str__(self) -> str:
