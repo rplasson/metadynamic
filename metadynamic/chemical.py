@@ -25,7 +25,7 @@ from math import factorial
 from metadynamic.collector import Collect
 from metadynamic.proba import Probaobj, Probalistic
 from metadynamic.ends import DecrZero
-from metadynamic.ruleset import Ruled, ReacDescr
+from metadynamic.ruleset import Ruled, ReacDescr, Stoechio
 from metadynamic.inval import isvalid, Invalid, invalidlist
 
 
@@ -178,7 +178,7 @@ class Reaction(Chemical[ReacDescr], Probalistic):
             # stochastic rate between n reactions must be divided by V^(n-1)
             # (k <-> concentration, stoch rate <-> number of particles)
             self.const = const
-            for reacname, stoechnum in stoechio.items():
+            for reacname, stoechnum in stoechio:
                 self.stoechio.append((self.comp_collect[reacname], stoechnum))
                 order += stoechnum
                 # stochastic rate implying 2 distinct compounds is to be diveded by two

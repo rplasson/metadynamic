@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-from typing import Callable, Any, Dict, KeysView, Tuple, Set, Iterable, List
+from typing import Callable, Any, Dict, KeysView, Tuple, Set, Iterable, List, Generator
 from itertools import product
 from importlib import import_module
 from dataclasses import dataclass, field
@@ -35,6 +35,7 @@ from metadynamic.logger import Logged
 # Type alias (~~ data struct)
 Compset = Tuple[str, ...]
 Paramset = List[float]
+Stoechio = Generator[Tuple[str, int], None, None]
 Categorizer = Callable[[str], bool]
 Propertizer = Callable[[str], Any]
 # reactants, variant -> products
@@ -47,7 +48,7 @@ Builder = Tuple[ProdBuilder, ConstBuilder, VariantBuilder]
 # rule, reactants, variant
 ReacDescr = Tuple[str, Compset, int]
 # products, constant, stoechiometry
-ReacProp = Tuple[Compset, float, Dict[str, int]]
+ReacProp = Tuple[Compset, float, Stoechio]
 ChemDescr = str
 
 
@@ -101,10 +102,11 @@ class Rule(Logged):
         if "" in products:
             raise InitError(f"Reaction {description} lead to null compund: {products}")
         constant: float = self.builder[1](reactants, self.constants, variant)
-        stoechiometry: Dict[str, int] = {
-            reac: reactants.count(reac) for reac in set(reactants)
-        }
-        return products, constant, stoechiometry
+        return products, constant, self.getstoechio(reactants)
+
+    @staticmethod
+    def getstoechio(compounds: Compset) -> Stoechio:
+        return ((reac, compounds.count(reac)) for reac in set(compounds))
 
     def __str__(self) -> str:
         return self.descr
