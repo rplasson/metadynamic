@@ -19,7 +19,7 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # from itertools import chain
-from typing import Generic, List, Callable, TypeVar, Dict, Any, Set, Hashable
+from typing import Generic, List, Callable, TypeVar, Dict, Any, Set, Hashable, Tuple
 from math import factorial
 
 from metadynamic.collector import Collect
@@ -176,21 +176,21 @@ class Reaction(Chemical[ReacDescr], Probalistic):
             self._productnames, const, stoechio = self.ruleset.buildreac(
                 self.description
             )
-            self.stoechio: Dict[Compound, int] = {
-                self.comp_collect[reacname]: stoechnum
-                for reacname, stoechnum in stoechio.items()
-            }
-            order = sum(self.stoechio.values())
+            self.stoechio: List[Tuple[Compound, int]] = []
+            order: int = 0
             # stochastic rate between n reactions must be divided by V^(n-1)
             # (k <-> concentration, stoch rate <-> number of particles)
-            self.const = const / self.probalist.vol ** (order - 1)
-            # stochastic rate implying 2 distinct compounds is to be diveded by two
-            # as it is not proportional to X.X, nor X.(X-1), but X.(X-1)/2,
-            # for order N, it is X.(X-1)...(X-n+1)/n!
-            # the n1 part is only computed here.
-            for partorder in self.stoechio.values():
-                if partorder > 1:
-                    self.const /= fact(partorder)
+            self.const = const
+            for reacname, stoechnum in stoechio.items():
+                self.stoechio.append((self.comp_collect[reacname], stoechnum))
+                order += stoechnum
+                # stochastic rate implying 2 distinct compounds is to be diveded by two
+                # as it is not proportional to X.X, nor X.(X-1), but X.(X-1)/2,
+                # for order N, it is X.(X-1)...(X-n+1)/n!
+                # the n1 part is only computed here.
+                if stoechnum > 1:
+                    self.const /= fact(stoechnum)
+            self.const /= self.probalist.vol ** (order - 1)
             self._products: List[Compound] = invalidlist
             # Initial setup (necessary?)
             # self.update()  #  Nope, activated from Compound ... check order of activation (simplify??)
@@ -239,7 +239,7 @@ class Reaction(Chemical[ReacDescr], Probalistic):
     def calcproba(self) -> float:
         # check if reduce can increase perf
         res: float = self.const
-        for reactant, stoechnum in self.stoechio.items():
+        for reactant, stoechnum in self.stoechio:
             res *= self._ordern(reactant.pop, stoechnum)
         return res
 
