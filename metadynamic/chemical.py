@@ -296,12 +296,6 @@ class Compound(Chemical[str]):
             for reac in self.reactions:  # impactedreac:
                 Reaction.toupdate(reac)
 
-    def inc(self) -> None:
-        Compound.toupdate(self, +1)
-
-    def dec(self) -> None:
-        Compound.toupdate(self, -1)
-
     def change_pop(self, start: int) -> None:
         Compound.toupdate(self, start)
 

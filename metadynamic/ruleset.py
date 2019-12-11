@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-from typing import Callable, Any, Dict, KeysView, Tuple, Set, Iterable, List, Generator
+from typing import Callable, Any, Dict, KeysView, Tuple, Set, Iterable, List
 from itertools import product
 from importlib import import_module
 from dataclasses import dataclass, field
@@ -35,7 +35,7 @@ from metadynamic.logger import Logged
 # Type alias (~~ data struct)
 Compset = Tuple[str, ...]
 Paramset = List[float]
-Stoechio = Generator[Tuple[str, int], None, None]
+Stoechio = Iterable[Tuple[str, int]]
 Categorizer = Callable[[str], bool]
 Propertizer = Callable[[str], Any]
 # reactants, variant -> products
