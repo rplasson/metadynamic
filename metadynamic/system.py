@@ -107,7 +107,7 @@ class System(Probalistic, Collected):
         Ruled.setrules(self.runparam.rulemodel, self.runparam.consts)
         self.log.info("System created")
         for compound, pop in self.param.init.items():
-            self.comp_collect[compound].init_pop(pop)
+            self.comp_collect[compound].change_pop(pop)
         trigger_changes()
         self.log.info(f"Initialized with {self.param} and {self.runparam}")
         self.initialized = True

@@ -170,9 +170,6 @@ class Reaction(Chemical[ReacDescr], Probalistic):
         if description[0] != "":
             self._probaobj: Probaobj = self.probalist.get_probaobj(self)
             self.proba: float = 0.0
-            self.reactants: List[Compound] = [
-                self.comp_collect[reactant] for reactant in self.description[1]
-            ]
             self._productnames, const, stoechio = self.ruleset.buildreac(
                 self.description
             )
@@ -229,8 +226,8 @@ class Reaction(Chemical[ReacDescr], Probalistic):
         for prod in self._products:
             prod.inc()
         # Decrement reactants
-        for reac in self.reactants:
-            reac.dec()
+        for reac, order in self.stoechio:
+            reac.change_pop(-order)
         trigger_changes(self)
 
     def _ordern(self, pop: int, order: int) -> int:
@@ -304,7 +301,7 @@ class Compound(Chemical[str]):
     def dec(self) -> None:
         Compound.toupdate(self, -1)
 
-    def init_pop(self, start: int) -> None:
+    def change_pop(self, start: int) -> None:
         Compound.toupdate(self, start)
 
 
@@ -329,7 +326,7 @@ def trigger_changes(fromreac: Reaction = invalidreaction) -> None:
                 + f" from {fromreac}, that is activated? ({fromreac.activated})"
                 + f" (p={fromreac.proba}={fromreac.calcproba()}, "
             )
-            for comp in fromreac.reactants:
+            for comp, _ in fromreac.stoechio:
                 detail += f"[{comp.description}]={comp.pop} ,"
             else:
                 detail += ")"
