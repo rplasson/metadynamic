@@ -233,14 +233,8 @@ class Reaction(Chemical[ReacDescr], Probalistic):
             reac.dec()
         trigger_changes(self)
 
-    @staticmethod
-    def _ordern(pop: int, order: int) -> int:
-        # check if use of reduce can increase perf
-        res = 1
-        for i in range(order):
-            res *= pop
-            pop -= 1
-        return res
+    def _ordern(self, pop: int, order: int) -> int:
+        return pop if order == 1 else pop * self._ordern(pop - 1, order - 1)
 
     def calcproba(self) -> float:
         # check if reduce can increase perf
