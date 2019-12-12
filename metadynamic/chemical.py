@@ -214,7 +214,6 @@ class Reaction(Chemical[ReacDescr], Probalistic):
                     # was unactivated, thus activate
                     self.activate()
                 self._probaobj.update(self.proba)
-                # assert self.proba == self.calcproba()
             else:
                 if oldproba != 0.0:
                     # was activated, thus deactivate

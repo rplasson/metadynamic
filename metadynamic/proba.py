@@ -110,8 +110,8 @@ class Probalist(Logged):
             probaobj.set_proba_pos(*self._addfromqueue(probaobj, proba))
         else:
             probaobj.set_proba_pos(*self._addfrommap(probaobj, proba))
-        assert isvalid(probaobj.nlist)
-        self._updateprob(probaobj.nlist, proba)
+        # assert isvalid(probaobj.nlist)
+        # self._updateprob(probaobj.nlist, proba)
 
     def unregister(self, probaobj: Probaobj) -> None:
         nlist, npos = probaobj.proba_pos
