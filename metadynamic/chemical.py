@@ -259,6 +259,7 @@ class Compound(Chemical[str]):
 
     def _activate(self) -> None:
         self.comp_collect.activate(self.description)
+        self.scan_reaction()
 
     def _unactivate(self) -> None:
         self.comp_collect.unactivate(self.description)
@@ -291,7 +292,6 @@ class Compound(Chemical[str]):
                 self.unactivate()
             elif pop0 == 0:
                 self.activate()
-                self.scan_reaction()
             for reac in self.reactions:  # impactedreac:
                 Reaction.toupdate(reac)
 
