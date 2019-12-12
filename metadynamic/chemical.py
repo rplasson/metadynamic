@@ -193,10 +193,10 @@ class Reaction(Chemical[ReacDescr], Probalistic):
             # self.update()  #  Nope, activated from Compound ... check order of activation (simplify??)
 
     def _activate(self) -> None:
-        return self.reac_collect.activate(self.description)
+        self.reac_collect.activate(self.description)
 
     def _unactivate(self) -> None:
-        return self.reac_collect.unactivate(self.description)
+        self.reac_collect.unactivate(self.description)
 
     def update(self, change: int = 0) -> None:
         oldproba = self.proba
@@ -240,6 +240,7 @@ class Reaction(Chemical[ReacDescr], Probalistic):
         for reactant, stoechnum in self.stoechio:
             self.proba *= self._ordern(reactant.pop, stoechnum)
 
+
 class Compound(Chemical[str]):
     _descrtype = "Compound"
     _updatelist: Dict[Chemical[str], int] = {}
@@ -257,10 +258,10 @@ class Compound(Chemical[str]):
         # self.length = self.descriptor("length", description)
 
     def _activate(self) -> None:
-        return self.comp_collect.activate(self.description)
+        self.comp_collect.activate(self.description)
 
     def _unactivate(self) -> None:
-        return self.comp_collect.unactivate(self.description)
+        self.comp_collect.unactivate(self.description)
 
     def register_reaction(self, reaction: Reaction) -> None:
         self.reactions.add(reaction)
