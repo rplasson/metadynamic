@@ -194,9 +194,15 @@ class Reaction(Chemical[ReacDescr], Probalistic):
 
     def _activate(self) -> None:
         self.reac_collect.activate(self.description)
+        self._probaobj.register()
+        for comp, _ in self.stoechio:
+            comp.register_reaction(self)
 
     def _unactivate(self) -> None:
+        self._probaobj.unregister()
         self.reac_collect.unactivate(self.description)
+        for comp, _ in self.stoechio:
+            comp.unregister_reaction(self)
 
     def update(self, change: int = 0) -> None:
         oldproba = self.proba
@@ -207,18 +213,12 @@ class Reaction(Chemical[ReacDescr], Probalistic):
                 if oldproba == 0.0:
                     # was unactivated, thus activate
                     self.activate()
-                    self._probaobj.register()
-                    for comp, _ in self.stoechio:
-                        comp.register_reaction(self)
                 self._probaobj.update(self.proba)
                 # assert self.proba == self.calcproba()
             else:
                 if oldproba != 0.0:
                     # was activated, thus deactivate
-                    self._probaobj.unregister()
                     self.unactivate()
-                    for comp, _ in self.stoechio:
-                        comp.unregister_reaction(self)
 
     def process(self) -> None:
         if self.tobeinitialized:
