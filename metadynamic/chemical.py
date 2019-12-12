@@ -25,8 +25,8 @@ from math import factorial
 from metadynamic.collector import Collect
 from metadynamic.proba import Probaobj, Probalistic
 from metadynamic.ends import DecrZero
-from metadynamic.ruleset import Ruled, ReacDescr, Stoechio
-from metadynamic.inval import isvalid, Invalid, invalidlist
+from metadynamic.ruleset import Ruled, ReacDescr
+from metadynamic.inval import isvalid, Invalid
 
 
 class Memcalc:
@@ -200,7 +200,7 @@ class Reaction(Chemical[ReacDescr], Probalistic):
 
     def update(self, change: int = 0) -> None:
         oldproba = self.proba
-        self.proba = self.calcproba()
+        self.updateproba()
         # only perform update if something changed
         if oldproba != self.proba:
             if self.proba != 0.0:
@@ -234,13 +234,11 @@ class Reaction(Chemical[ReacDescr], Probalistic):
     def _ordern(self, pop: int, order: int) -> int:
         return pop if order == 1 else pop * self._ordern(pop - 1, order - 1)
 
-    def calcproba(self) -> float:
+    def updateproba(self) -> None:
         # check if reduce can increase perf
-        res: float = self.const
+        self.proba = self.const
         for reactant, stoechnum in self.stoechio:
-            res *= self._ordern(reactant.pop, stoechnum)
-        return res
-
+            self.proba *= self._ordern(reactant.pop, stoechnum)
 
 class Compound(Chemical[str]):
     _descrtype = "Compound"
