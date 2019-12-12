@@ -287,10 +287,13 @@ class Compound(Chemical[str]):
             pop0 = self.pop
             self.pop = pop0 + change
             if self.pop < 0:
+                #  population cannot be negative
                 raise DecrZero(self.description)
             if self.pop == 0:
+                #  unactivate compounds whose population reaches 0
                 self.unactivate()
             elif pop0 == 0:
+                #  activate compounds whose population switched from 0 to nonzero
                 self.activate()
             for reac in self.reactions:  # impactedreac:
                 Reaction.toupdate(reac)
