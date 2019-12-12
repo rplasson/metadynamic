@@ -235,7 +235,6 @@ class Reaction(Chemical[ReacDescr], Probalistic):
         return pop if order == 1 else pop * self._ordern(pop - 1, order - 1)
 
     def updateproba(self) -> None:
-        # check if reduce can increase perf
         self.proba = self.const
         for reactant, stoechnum in self.stoechio:
             self.proba *= self._ordern(reactant.pop, stoechnum)
@@ -321,7 +320,7 @@ def trigger_changes(fromreac: Reaction = invalidreaction) -> None:
             detail = (
                 end.detail
                 + f" from {fromreac}, that is activated? ({fromreac.activated})"
-                + f" (p={fromreac.proba}={fromreac.calcproba()}, "
+                + f" (p={fromreac.proba}, "
             )
             for comp, _ in fromreac.stoechio:
                 detail += f"[{comp.description}]={comp.pop} ,"

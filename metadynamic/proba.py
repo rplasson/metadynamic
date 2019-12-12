@@ -60,6 +60,7 @@ class Probaobj(Probalistic):
 
     @property
     def proba_pos(self) -> Tuple[int, int]:
+        #  assert for perf ???
         if self.registered:
             return self.nlist, self.npos
         else:
@@ -92,13 +93,16 @@ class Probalist(Logged):
         self._queue: Deque[Tuple[int, int]] = deque()
 
     def _updateprob(self, nlist: int, delta: float) -> None:
+        # updating by delta avoid to recompute proba sums
         newproba = self._problist[nlist] + delta
         # reset to 0 probabilities that are too low
         # for rounding errors correction
         if newproba < self._minprob:
             delta += newproba
             newproba = 0.0
+        #  update column proba
         self._problist[nlist] = newproba
+        #  update total proba
         self.probtot += delta
 
     def register(self, probaobj: Probaobj, proba: float = 0.0) -> None:
@@ -121,8 +125,11 @@ class Probalist(Logged):
     def update(self, probaobj: Probaobj, proba: float) -> None:
         assert probaobj.registered
         nlist, npos = probaobj.proba_pos
+        #  get proba change from the event
         delta = proba - self._map[nlist][npos]
+        #  Set the new probability of the event
         self._map[nlist][npos] = proba
+        #  Update the probability of the proba sums (column and tot)
         self._updateprob(nlist, delta)
 
     def getproba(self, probaobj: Probaobj) -> float:
