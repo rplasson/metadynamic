@@ -24,7 +24,7 @@ from numpy import array, append, log, random
 
 from metadynamic.ends import RoundError
 from metadynamic.logger import Logged
-from metadynamic.inval import invalidint
+from metadynamic.inval import invalidint, isvalid
 
 
 class Activable:
@@ -66,7 +66,7 @@ class Probaobj(Probalistic):
     def __init__(self, obj: Any):
         self.nlist: int
         self.npos: int
-        self.obj = obj
+        self.obj: Activable = obj
         self.unset_proba_pos()
 
     def set_proba_pos(self, nlist: int, npos: int) -> None:
@@ -87,14 +87,21 @@ class Probaobj(Probalistic):
         else:
             raise ValueError("Unregistered")
 
-    def register(self, proba: float = 0) -> None:
-        self.probalist.register(self, proba)
-
-    def update(self, proba: float) -> None:
-        self.probalist.update(self, proba)
-
-    def unregister(self) -> None:
-        self.probalist.unregister(self)
+    def update(self, oldproba: float, newproba: float) -> None:
+        # only perform update if something changed
+        if oldproba != newproba:
+            if newproba != 0.0:
+                if oldproba == 0.0:
+                    # was unactivated, thus activate
+                    self.obj.activate()
+                    self.probalist.register(self, newproba)
+                else:
+                    self.probalist.update(self, newproba)
+            else:
+                if oldproba != 0.0:
+                    # was activated, thus deactivate
+                    self.probalist.unregister(self)
+                    self.obj.unactivate()
 
     @property
     def proba(self) -> float:
@@ -134,8 +141,8 @@ class Probalist(Logged):
             probaobj.set_proba_pos(*self._addfromqueue(probaobj, proba))
         else:
             probaobj.set_proba_pos(*self._addfrommap(probaobj, proba))
-        # assert isvalid(probaobj.nlist)
-        # self._updateprob(probaobj.nlist, proba)
+        assert isvalid(probaobj.nlist)
+        self._updateprob(probaobj.nlist, proba)
 
     def unregister(self, probaobj: Probaobj) -> None:
         nlist, npos = probaobj.proba_pos

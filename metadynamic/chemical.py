@@ -123,22 +123,6 @@ class Chemical(Generic[K], Collected, Activable):
     def __str__(self) -> str:
         return str(self.description)
 
-    def activate(self) -> None:
-        if not self.activated:
-            self._activate()
-            self.activated = True
-
-    def _activate(self) -> None:
-        raise NotImplementedError
-
-    def unactivate(self) -> None:
-        if self.activated:
-            self._unactivate()
-            self.activated = False
-
-    def _unactivate(self) -> None:
-        raise NotImplementedError
-
     @classmethod
     def toupdate(cls, obj: "Chemical[K]", change: int = 0) -> None:
         """Add object to update"""
@@ -194,30 +178,16 @@ class Reaction(Chemical[ReacDescr], Probalistic):
 
     def _activate(self) -> None:
         self.reac_collect.activate(self.description)
-        self._probaobj.register()
         for comp, _ in self.stoechio:
             comp.register_reaction(self)
 
     def _unactivate(self) -> None:
-        self._probaobj.unregister()
         self.reac_collect.unactivate(self.description)
         for comp, _ in self.stoechio:
             comp.unregister_reaction(self)
 
     def update(self, change: int = 0) -> None:
-        oldproba = self.proba
-        self.updateproba()
-        # only perform update if something changed
-        if oldproba != self.proba:
-            if self.proba != 0.0:
-                if oldproba == 0.0:
-                    # was unactivated, thus activate
-                    self.activate()
-                self._probaobj.update(self.proba)
-            else:
-                if oldproba != 0.0:
-                    # was activated, thus deactivate
-                    self.unactivate()
+        self._probaobj.update(*self.updateproba())
 
     def process(self) -> None:
         if self.tobeinitialized:
@@ -233,10 +203,12 @@ class Reaction(Chemical[ReacDescr], Probalistic):
     def _ordern(self, pop: int, order: int) -> int:
         return pop if order == 1 else pop * self._ordern(pop - 1, order - 1)
 
-    def updateproba(self) -> None:
+    def updateproba(self) -> Tuple[float, float]:
+        oldproba = self.proba
         self.proba = self.const
         for reactant, stoechnum in self.stoechio:
             self.proba *= self._ordern(reactant.pop, stoechnum)
+        return oldproba, self.proba
 
 
 class Compound(Chemical[str]):
