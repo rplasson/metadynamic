@@ -16,3 +16,5 @@ memprof/
 metadynamic.srctrlbm
 metadynamic.srctrldb
 metadynamic.srctrlprj
+deb_dist/
+metadynamic-0.3.2.tar.gz
