@@ -91,7 +91,7 @@ class Probaobj(Probalistic):
                     self.obj.activate()
                     self.nlist, self.npos = self.probalist.register(self.obj)
                     self.registered = True
-                self.probalist.update(self, newproba)
+                self.probalist.update(self.nlist, self.npos, newproba)
             else:
                 if oldproba != 0.0:
                     # was activated, thus deactivate
@@ -147,9 +147,7 @@ class Probalist(Logged):
         self._updateprob(nlist, -oldproba)
         probaobj.unset_proba_pos()
 
-    def update(self, probaobj: Probaobj, proba: float) -> None:
-        assert probaobj.registered
-        nlist, npos = probaobj.proba_pos
+    def update(self, nlist: int, npos: int, proba: float) -> None:
         #  get proba change from the event
         delta = proba - self._map[nlist][npos]
         #  Set the new probability of the event
