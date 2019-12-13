@@ -69,11 +69,6 @@ class Probaobj(Probalistic):
         self.obj: Activable = obj
         self.unset_proba_pos()
 
-    def set_proba_pos(self, nlist: int, npos: int) -> None:
-        self.nlist = nlist
-        self.npos = npos
-        self.registered = True
-
     def unset_proba_pos(self) -> None:
         self.nlist = invalidint
         self.npos = invalidint
