@@ -187,9 +187,9 @@ class Reaction(Chemical[ReacDescr], Probalistic):
             comp.unregister_reaction(self)
 
     def update(self, change: int = 0) -> None:
-        oldproba, newproba = self.updateproba()
-        if oldproba != newproba:
-            self._probaobj.update(oldproba, newproba)
+        newproba, changed = self.updateproba()
+        if changed:
+            self._probaobj.update(newproba)
 
     def process(self) -> None:
         if self.tobeinitialized:
@@ -205,12 +205,12 @@ class Reaction(Chemical[ReacDescr], Probalistic):
     def _ordern(self, pop: int, order: int) -> int:
         return pop if order == 1 else pop * self._ordern(pop - 1, order - 1)
 
-    def updateproba(self) -> Tuple[float, float]:
+    def updateproba(self) -> Tuple[float, bool]:
         oldproba = self.proba
         self.proba = self.const
         for reactant, stoechnum in self.stoechio:
             self.proba *= self._ordern(reactant.pop, stoechnum)
-        return oldproba, self.proba
+        return self.proba, self.proba != oldproba
 
 
 class Compound(Chemical[str]):

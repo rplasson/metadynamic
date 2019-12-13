@@ -74,7 +74,7 @@ class Probaobj(Probalistic):
         self.npos = invalidint
         self.registered = False
 
-    def update(self, oldproba: float, newproba: float) -> None:
+    def update(self, newproba: float) -> None:
         # only perform update if something changed
         if newproba != 0.0:
             if not self.registered:
