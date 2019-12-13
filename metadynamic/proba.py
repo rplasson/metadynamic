@@ -94,7 +94,8 @@ class Probaobj(Probalistic):
                 if oldproba == 0.0:
                     # was unactivated, thus activate
                     self.obj.activate()
-                    self.probalist.register(self)
+                    self.nlist, self.npos = self.probalist.register(self)
+                    self.registered = True
                 self.probalist.update(self, newproba)
             else:
                 if oldproba != 0.0:
@@ -135,11 +136,12 @@ class Probalist(Logged):
         #  update total proba
         self.probtot += delta
 
-    def register(self, probaobj: Probaobj) -> None:
+    def register(self, probaobj: Probaobj) -> Tuple[int, int]:
+        # free place from queue list
         if self._queue:
-            probaobj.set_proba_pos(*self._addfromqueue(probaobj))
-        else:
-            probaobj.set_proba_pos(*self._addfrommap(probaobj))
+            return self._addfromqueue(probaobj)
+        # No free place, create a new one
+        return self._addfrommap(probaobj)
 
     def unregister(self, probaobj: Probaobj) -> None:
         nlist, npos = probaobj.proba_pos
