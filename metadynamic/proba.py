@@ -89,7 +89,7 @@ class Probaobj(Probalistic):
                 if oldproba == 0.0:
                     # was unactivated, thus activate
                     self.obj.activate()
-                    self.nlist, self.npos = self.probalist.register(self)
+                    self.nlist, self.npos = self.probalist.register(self.obj)
                     self.registered = True
                 self.probalist.update(self, newproba)
             else:
@@ -131,12 +131,12 @@ class Probalist(Logged):
         #  update total proba
         self.probtot += delta
 
-    def register(self, probaobj: Probaobj) -> Tuple[int, int]:
+    def register(self, obj: Activable) -> Tuple[int, int]:
         # free place from queue list
         if self._queue:
-            return self._addfromqueue(probaobj)
+            return self._addfromqueue(obj)
         # No free place, create a new one
-        return self._addfrommap(probaobj)
+        return self._addfrommap(obj)
 
     def unregister(self, probaobj: Probaobj) -> None:
         nlist, npos = probaobj.proba_pos
@@ -163,12 +163,12 @@ class Probalist(Logged):
             return self._map[nlist][npos]
         return 0.0
 
-    def _addfrommap(self, newobj: Probaobj) -> Tuple[int, int]:
+    def _addfrommap(self, obj: Activable) -> Tuple[int, int]:
         rpos = len(self._map[self._actlist])
         if rpos <= self.npblist:
             rlist = self._actlist
             self._map[rlist] = append(self._map[rlist], 0)
-            self._mapobj[rlist] = append(self._mapobj[rlist], newobj.obj)
+            self._mapobj[rlist] = append(self._mapobj[rlist], obj)
             return rlist, rpos
         if len(self._map[0]) <= self.npblist:
             self._actlist = 0
@@ -179,12 +179,12 @@ class Probalist(Logged):
                 self._mapobj.append(array([]))
                 self._problist = append(self._problist, 0.0)
                 self.npblist += 1
-        return self._addfrommap(newobj)
+        return self._addfrommap(obj)
 
-    def _addfromqueue(self, newobj: Probaobj) -> Tuple[int, int]:
+    def _addfromqueue(self, obj: Activable) -> Tuple[int, int]:
         rlist, rpos = self._queue.popleft()
         self._map[rlist][rpos] = 0
-        self._mapobj[rlist][rpos] = newobj.obj
+        self._mapobj[rlist][rpos] = obj
         return rlist, rpos
 
     def choose(self) -> Tuple[Any, float]:
