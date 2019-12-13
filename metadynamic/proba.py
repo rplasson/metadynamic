@@ -94,9 +94,8 @@ class Probaobj(Probalistic):
                 if oldproba == 0.0:
                     # was unactivated, thus activate
                     self.obj.activate()
-                    self.probalist.register(self, newproba)
-                else:
-                    self.probalist.update(self, newproba)
+                    self.probalist.register(self)
+                self.probalist.update(self, newproba)
             else:
                 if oldproba != 0.0:
                     # was activated, thus deactivate
@@ -136,13 +135,11 @@ class Probalist(Logged):
         #  update total proba
         self.probtot += delta
 
-    def register(self, probaobj: Probaobj, proba: float = 0.0) -> None:
+    def register(self, probaobj: Probaobj) -> None:
         if self._queue:
-            probaobj.set_proba_pos(*self._addfromqueue(probaobj, proba))
+            probaobj.set_proba_pos(*self._addfromqueue(probaobj))
         else:
-            probaobj.set_proba_pos(*self._addfrommap(probaobj, proba))
-        assert isvalid(probaobj.nlist)
-        self._updateprob(probaobj.nlist, proba)
+            probaobj.set_proba_pos(*self._addfrommap(probaobj))
 
     def unregister(self, probaobj: Probaobj) -> None:
         nlist, npos = probaobj.proba_pos
@@ -169,11 +166,11 @@ class Probalist(Logged):
             return self._map[nlist][npos]
         return 0.0
 
-    def _addfrommap(self, newobj: Probaobj, proba: float) -> Tuple[int, int]:
+    def _addfrommap(self, newobj: Probaobj) -> Tuple[int, int]:
         rpos = len(self._map[self._actlist])
         if rpos <= self.npblist:
             rlist = self._actlist
-            self._map[rlist] = append(self._map[rlist], proba)
+            self._map[rlist] = append(self._map[rlist], 0)
             self._mapobj[rlist] = append(self._mapobj[rlist], newobj.obj)
             return rlist, rpos
         if len(self._map[0]) <= self.npblist:
@@ -185,11 +182,11 @@ class Probalist(Logged):
                 self._mapobj.append(array([]))
                 self._problist = append(self._problist, 0.0)
                 self.npblist += 1
-        return self._addfrommap(newobj, proba)
+        return self._addfrommap(newobj)
 
-    def _addfromqueue(self, newobj: Probaobj, proba: float) -> Tuple[int, int]:
+    def _addfromqueue(self, newobj: Probaobj) -> Tuple[int, int]:
         rlist, rpos = self._queue.popleft()
-        self._map[rlist][rpos] = proba
+        self._map[rlist][rpos] = 0
         self._mapobj[rlist][rpos] = newobj.obj
         return rlist, rpos
 
