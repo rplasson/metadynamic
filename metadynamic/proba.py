@@ -76,20 +76,20 @@ class Probaobj(Probalistic):
 
     def update(self, oldproba: float, newproba: float) -> None:
         # only perform update if something changed
-        if oldproba != newproba:
-            if newproba != 0.0:
-                if oldproba == 0.0:
-                    # was unactivated, thus activate
-                    self.obj.activate()
-                    self.nlist, self.npos = self.probalist.register(self.obj)
-                    self.registered = True
-                self.probalist.update(self.nlist, self.npos, newproba)
-            else:
-                if oldproba != 0.0:
-                    # was activated, thus deactivate
-                    self.probalist.unregister(self.nlist, self.npos)
-                    self.unset_proba_pos()
-                    self.obj.unactivate()
+        if newproba != 0.0:
+            if not self.registered:
+                # was unactivated, thus activate
+                self.obj.activate()
+                self.nlist, self.npos = self.probalist.register(self.obj)
+                self.registered = True
+            self.probalist.update(self.nlist, self.npos, newproba)
+        elif self.registered:
+            # was activated, thus deactivate
+            self.probalist.unregister(self.nlist, self.npos)
+            self.unset_proba_pos()
+            self.obj.unactivate()
+        else:
+            self.log.warning("Updated a reaction from 0 to 0...")
 
 
 class Probalist(Logged):

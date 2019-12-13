@@ -187,7 +187,9 @@ class Reaction(Chemical[ReacDescr], Probalistic):
             comp.unregister_reaction(self)
 
     def update(self, change: int = 0) -> None:
-        self._probaobj.update(*self.updateproba())
+        oldproba, newproba = self.updateproba()
+        if oldproba != newproba:
+            self._probaobj.update(oldproba, newproba)
 
     def process(self) -> None:
         if self.tobeinitialized:
