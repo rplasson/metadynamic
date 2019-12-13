@@ -23,7 +23,7 @@ from typing import Generic, List, Callable, TypeVar, Dict, Any, Set, Hashable, T
 from math import factorial
 
 from metadynamic.collector import Collect
-from metadynamic.proba import Probaobj, Probalistic
+from metadynamic.proba import Probaobj, Probalistic, Activable
 from metadynamic.ends import DecrZero
 from metadynamic.ruleset import Ruled, ReacDescr
 from metadynamic.inval import isvalid, Invalid
@@ -108,7 +108,7 @@ class Collected(Ruled):
         cls.reac_collect = CollectofReaction(categorize_reac, dropmode_reac)
 
 
-class Chemical(Generic[K], Collected):
+class Chemical(Generic[K], Collected, Activable):
     _descrtype = "Chemical"
     _updatelist: Dict["Chemical[K]", int]
 

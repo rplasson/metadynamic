@@ -24,7 +24,28 @@ from numpy import array, append, log, random
 
 from metadynamic.ends import RoundError
 from metadynamic.logger import Logged
-from metadynamic.inval import invalidint, isvalid
+from metadynamic.inval import invalidint
+
+
+class Activable:
+    def __init__(self) -> None:
+        self.activated: bool = False
+
+    def activate(self) -> None:
+        if not self.activated:
+            self._activate()
+            self.activated = True
+
+    def _activate(self) -> None:
+        raise NotImplementedError
+
+    def unactivate(self) -> None:
+        if self.activated:
+            self._unactivate()
+            self.activated = False
+
+    def _unactivate(self) -> None:
+        raise NotImplementedError
 
 
 class Probalistic(Logged):
@@ -60,7 +81,7 @@ class Probaobj(Probalistic):
 
     @property
     def proba_pos(self) -> Tuple[int, int]:
-        #  assert for perf ???
+        #  assert for perf ??? Assume always OK?
         if self.registered:
             return self.nlist, self.npos
         else:
@@ -84,6 +105,9 @@ class Probalist(Logged):
     def __init__(self, vol: float = 1, minprob: float = 1e-10):
         self.vol = vol
         self._minprob = minprob
+        #  /!\  Start from pre-determined array sized that do not grow instead of append???
+        #  May gain performance...
+        # ... but need to track correctly the effective size
         self._map = [array([])]
         self._mapobj = [array([])]
         self.npblist = 1
