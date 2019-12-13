@@ -99,10 +99,6 @@ class Probaobj(Probalistic):
                     self.unset_proba_pos()
                     self.obj.unactivate()
 
-    @property
-    def proba(self) -> float:
-        return self.probalist.getproba(self)
-
 
 class Probalist(Logged):
     def __init__(self, vol: float = 1, minprob: float = 1e-10):
@@ -155,12 +151,6 @@ class Probalist(Logged):
         self._map[nlist][npos] = proba
         #  Update the probability of the proba sums (column and tot)
         self._updateprob(nlist, delta)
-
-    def getproba(self, probaobj: Probaobj) -> float:
-        if probaobj.registered:
-            nlist, npos = probaobj.proba_pos
-            return self._map[nlist][npos]
-        return 0.0
 
     def _addfrommap(self, obj: Activable) -> Tuple[int, int]:
         rpos = len(self._map[self._actlist])
