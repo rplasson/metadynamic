@@ -74,14 +74,6 @@ class Probaobj(Probalistic):
         self.npos = invalidint
         self.registered = False
 
-    @property
-    def proba_pos(self) -> Tuple[int, int]:
-        #  assert for perf ??? Assume always OK?
-        if self.registered:
-            return self.nlist, self.npos
-        else:
-            raise ValueError("Unregistered")
-
     def update(self, oldproba: float, newproba: float) -> None:
         # only perform update if something changed
         if oldproba != newproba:
