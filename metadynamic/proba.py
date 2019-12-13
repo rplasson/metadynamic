@@ -95,7 +95,8 @@ class Probaobj(Probalistic):
             else:
                 if oldproba != 0.0:
                     # was activated, thus deactivate
-                    self.probalist.unregister(self)
+                    self.probalist.unregister(self.nlist, self.npos)
+                    self.unset_proba_pos()
                     self.obj.unactivate()
 
     @property
@@ -138,16 +139,16 @@ class Probalist(Logged):
         # No free place, create a new one
         return self._addfrommap(obj)
 
-    def unregister(self, probaobj: Probaobj) -> None:
-        nlist, npos = probaobj.proba_pos
+    def unregister(self, nlist: int, npos: int) -> None:
         oldproba = self._map[nlist][npos]
         self._map[nlist][npos] = 0
         self._mapobj[nlist][npos] = None
         self._queue.append((nlist, npos))
         self._updateprob(nlist, -oldproba)
-        probaobj.unset_proba_pos()
 
     def update(self, nlist: int, npos: int, proba: float) -> None:
+        # assertion shall greatly reduce perf for non-optimized python code!
+        assert isvalid(nlist) and isvalid(npos)
         #  get proba change from the event
         delta = proba - self._map[nlist][npos]
         #  Set the new probability of the event
