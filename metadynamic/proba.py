@@ -18,13 +18,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-from typing import Any, Tuple, Deque
+from typing import List, Tuple, Deque
 from collections import deque
 from numpy import array, append, log, random
 
 from metadynamic.ends import RoundError
 from metadynamic.logger import Logged
-from metadynamic.inval import invalidint, isvalid
+from metadynamic.inval import isvalid
 
 
 class Activable:
@@ -70,14 +70,12 @@ class Probaobj(Probalistic):
     """
 
     def __init__(self, obj: Activable):
-        self.nlist: int
-        self.npos: int
+        self.proba_pos: List[int]
         self.obj: Activable = obj
         self.unset_proba_pos()
 
     def unset_proba_pos(self) -> None:
-        self.nlist = invalidint
-        self.npos = invalidint
+        self.proba_pos = []
         self.registered = False
 
     def update(self, newproba: float) -> None:
@@ -86,12 +84,12 @@ class Probaobj(Probalistic):
             if not self.registered:
                 # was unactivated, thus activate
                 self.obj.activate()
-                self.nlist, self.npos = self.probalist.register(self.obj)
+                self.proba_pos = self.probalist.register(self.obj)
                 self.registered = True
-            self.probalist.update(self.nlist, self.npos, newproba)
+            self.probalist.update(self.proba_pos, newproba)
         elif self.registered:
             # was activated, thus deactivate
-            self.probalist.unregister(self.nlist, self.npos)
+            self.probalist.unregister(self.proba_pos)
             self.unset_proba_pos()
             self.obj.unactivate()
         else:
@@ -126,23 +124,26 @@ class Probalist(Logged):
         #  update total proba
         self.probtot += delta
 
-    def register(self, obj: Activable) -> Tuple[int, int]:
+    def register(self, obj: Activable) -> List[int]:
         # free place from queue list
         if self._queue:
             return self._addfromqueue(obj)
         # No free place, create a new one
         return self._addfrommap(obj)
 
-    def unregister(self, nlist: int, npos: int) -> None:
+    def unregister(self, proba_pos: List[int]) -> None:
+        assert len(proba_pos) == 2
+        nlist, npos = proba_pos
         oldproba = self._map[nlist][npos]
         self._map[nlist][npos] = 0
         self._mapobj[nlist][npos] = None
         self._queue.append((nlist, npos))
         self._updateprob(nlist, -oldproba)
 
-    def update(self, nlist: int, npos: int, proba: float) -> None:
+    def update(self, proba_pos: List[int], proba: float) -> None:
         # assertion shall greatly reduce perf for non-optimized python code!
-        assert isvalid(nlist) and isvalid(npos)
+        assert len(proba_pos) == 2
+        nlist, npos = proba_pos
         #  get proba change from the event
         delta = proba - self._map[nlist][npos]
         #  Set the new probability of the event
@@ -150,13 +151,13 @@ class Probalist(Logged):
         #  Update the probability of the proba sums (column and tot)
         self._updateprob(nlist, delta)
 
-    def _addfrommap(self, obj: Activable) -> Tuple[int, int]:
+    def _addfrommap(self, obj: Activable) -> List[int]:
         rpos = len(self._map[self._actlist])
         if rpos <= self.npblist:
             rlist = self._actlist
             self._map[rlist] = append(self._map[rlist], 0)
             self._mapobj[rlist] = append(self._mapobj[rlist], obj)
-            return rlist, rpos
+            return [rlist, rpos]
         if len(self._map[0]) <= self.npblist:
             self._actlist = 0
         else:
@@ -168,11 +169,11 @@ class Probalist(Logged):
                 self.npblist += 1
         return self._addfrommap(obj)
 
-    def _addfromqueue(self, obj: Activable) -> Tuple[int, int]:
+    def _addfromqueue(self, obj: Activable) -> List[int]:
         rlist, rpos = self._queue.popleft()
         self._map[rlist][rpos] = 0
         self._mapobj[rlist][rpos] = obj
-        return rlist, rpos
+        return [rlist, rpos]
 
     def choose(self) -> Tuple[Activable, float]:
         # First choose a random line in the probability map
