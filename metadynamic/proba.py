@@ -37,7 +37,7 @@ class Activable:
             self.activated = True
 
     def _activate(self) -> None:
-        raise NotImplementedError
+        pass
 
     def unactivate(self) -> None:
         if self.activated:
@@ -45,7 +45,13 @@ class Activable:
             self.activated = False
 
     def _unactivate(self) -> None:
-        raise NotImplementedError
+        pass
+
+    def process(self) -> None:
+        pass
+
+    def choose(self) -> "Activable":
+        return self
 
 
 class Probalistic(Logged):
@@ -63,7 +69,7 @@ class Probaobj(Probalistic):
     Each object to be stored in the probalist must contain one Probaobj object
     """
 
-    def __init__(self, obj: Any):
+    def __init__(self, obj: Activable):
         self.nlist: int
         self.npos: int
         self.obj: Activable = obj
@@ -168,7 +174,7 @@ class Probalist(Logged):
         self._mapobj[rlist][rpos] = obj
         return rlist, rpos
 
-    def choose(self) -> Tuple[Any, float]:
+    def choose(self) -> Tuple[Activable, float]:
         # First choose a random line in the probability map
         try:
             nlist = random.choice(self.npblist, p=self._problist / self.probtot)
@@ -210,7 +216,7 @@ class Probalist(Logged):
         self._problist = array([data.sum() for data in self._map])
         self.probtot = self._problist.sum()
 
-    def get_probaobj(self, obj: Any) -> Probaobj:
+    def get_probaobj(self, obj: Activable) -> Probaobj:
         return Probaobj(obj)
 
     @staticmethod
