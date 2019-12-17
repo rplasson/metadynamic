@@ -24,7 +24,6 @@ from numpy import array, append, log, random
 
 from metadynamic.ends import RoundError
 from metadynamic.logger import Logged
-from metadynamic.inval import isvalid
 
 
 class Activable:
