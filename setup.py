@@ -18,7 +18,7 @@ with open(os.path.join(_here, 'metadynamic', 'version.py')) as f:
 setup(
     name='metadynamic',
     version=version['__version__'],
-    description=('Enables metadynamic Gillespie simulations. Polymerization system implemented as a default ruleset.'),
+    description=('Metadynamic Gillespie simulations with polymerization ruleset.'),
     long_description=long_description,
     author='Raphaël Plasson',
     author_email='raphael.plasson@univ-avignon.fr',
