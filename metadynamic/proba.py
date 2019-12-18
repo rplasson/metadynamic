@@ -18,12 +18,23 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-from typing import List, Tuple, Deque
+from typing import Tuple, Deque
 from collections import deque
-from numpy import array, append, log, random, zeros, dtype
+from numpy import append, log, random, zeros, full, dtype
+from numba import jit
 
 from metadynamic.ends import RoundError
 from metadynamic.logger import Logged
+from metadynamic.inval import invalidint, isvalid
+
+
+@jit(nopython=True, cache=True)
+def choice(data, proba):
+    res = 0
+    for index, val in enumerate(data):
+        res += val
+        if proba < res:
+            return index
 
 
 class Activable:
@@ -69,12 +80,12 @@ class Probaobj(Probalistic):
     """
 
     def __init__(self, obj: Activable):
-        self.proba_pos: List[int]
+        self.proba_pos: int
         self.obj: Activable = obj
         self.unset_proba_pos()
 
     def unset_proba_pos(self) -> None:
-        self.proba_pos = []
+        self.proba_pos = invalidint
         self.registered = False
 
     def update(self, newproba: float) -> None:
@@ -96,7 +107,7 @@ class Probaobj(Probalistic):
 
 
 class Probalist(Logged):
-    def __init__(self, vol: float = 1, minprob: float = 1e-10, maxlength=100):
+    def __init__(self, vol: float = 1, minprob: float = 1e-10, maxlength: int = 100):
         self.vol = vol
         self._minprob = minprob
         # List of objects
@@ -109,53 +120,54 @@ class Probalist(Logged):
         self.probtot = 0.0
         self._queue: Deque[int] = deque()
 
-    def register(self, obj: Activable) -> List[int]:
+    def register(self, obj: Activable) -> int:
         # Still room left from previously removed object
         if self._queue:
             nlist = self._queue.popleft()
             # self.log.debug(f"Registering {obj} in position {nlist} from queue")
             self._mapobj[nlist] = obj
-            return [nlist]
+            return nlist
         # No more free room, add at the end
         try:
             self._mapobj[self._actlist] = obj
             # self.log.debug(f"Registering {obj} in position {self._actlist} at end")
         except IndexError:
             # arrays too small, extend them
-            self._mapobj = append(self._mapobj, zeros(self._maxlength, dtype("O")))
+            self._mapobj = append(self._mapobj, full(self._maxlength, None))
             self._problist = append(self._problist, zeros(self._maxlength))
             self._mapobj[self._actlist] = obj
             # self.log.debug(f"Registering {obj} in position {self._actlist} at end after extension")
         self._actlist += 1
-        return [self._actlist - 1]
+        return self._actlist - 1
 
-    def unregister(self, proba_pos: List[int]) -> None:
-        assert len(proba_pos) == 1
-        nlist = proba_pos[0]
-        # self.log.debug(f"Unregistering {self._mapobj[nlist]} in position {nlist}")
-        self.probtot -= self._problist[nlist]
-        self._problist[nlist] = 0.
-        self._mapobj[nlist] = None
-        self._queue.append(nlist)
+    def unregister(self, proba_pos: int) -> None:
+        assert isvalid(proba_pos)
+        self.probtot -= self._problist[proba_pos]
+        self._problist[proba_pos] = 0.0
+        self._mapobj[proba_pos] = None
+        self._queue.append(proba_pos)
 
-    def update(self, proba_pos: List[int], proba: float) -> None:
+    def update(self, proba_pos: int, proba: float) -> None:
         # assertion shall greatly reduce perf for non-optimized python code!
-        assert len(proba_pos) == 1
-        nlist = proba_pos[0]
+        assert isvalid(proba_pos)
         #  get proba change from the event
-        delta = proba - self._problist[nlist]
+        delta = proba - self._problist[proba_pos]
         #  Set the new probability of the event
-        self._problist[nlist] = proba
+        self._problist[proba_pos] = proba
         #  Update the probability of the proba sum
         self.probtot += delta
 
     def choose(self) -> Tuple[Activable, float]:
         # First choose a random line in the probability map
         try:
-            chosen = random.choice(self._mapobj, p=self._problist / self.probtot)
-            if chosen is None or chosen == 0:
-                self.log.error(f"Badly destroyed reaction from {self._mapobj} with proba {self._problist}")
-            return (chosen, log(1 / random.rand()) / self.probtot)
+            # chosen = random.choice(self._mapobj, p=self._problist / self.probtot)
+            chosen = self._mapobj[choice(self._problist, self.probtot*random.rand())]
+            dt = log(1 / random.rand()) / self.probtot
+            if chosen is None:
+                self.log.error(
+                    f"Badly destroyed reaction from {self._mapobj} with proba {self._problist}"
+                )
+            return (chosen, dt)
         except ValueError as v:
             raise RoundError(
                 f"(reason: {v}; "
