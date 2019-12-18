@@ -20,7 +20,7 @@
 
 from typing import List, Tuple, Deque
 from collections import deque
-from numpy import array, append, log, random
+from numpy import array, append, log, random, zeros, dtype
 
 from metadynamic.ends import RoundError
 from metadynamic.logger import Logged
@@ -96,112 +96,71 @@ class Probaobj(Probalistic):
 
 
 class Probalist(Logged):
-    def __init__(self, vol: float = 1, minprob: float = 1e-10):
+    def __init__(self, vol: float = 1, minprob: float = 1e-10, maxlength=100):
         self.vol = vol
         self._minprob = minprob
-        #  /!\  Start from pre-determined array sized that do not grow instead of append???
-        #  May gain performance...
-        # ... but need to track correctly the effective size
-        self._map = [array([])]
-        self._mapobj = [array([])]
-        self.npblist = 1
+        # List of objects
+        self._mapobj = zeros([], dtype("O"))
+        # List of probas
+        self._problist = zeros([])
+        # Next available position
         self._actlist = 0
-        self._problist = array([0.0])
+        self._maxlength = maxlength
         self.probtot = 0.0
-        self._queue: Deque[Tuple[int, int]] = deque()
-
-    def _updateprob(self, nlist: int, delta: float) -> None:
-        # updating by delta avoid to recompute proba sums
-        newproba = self._problist[nlist] + delta
-        # reset to 0 probabilities that are too low
-        # for rounding errors correction
-        if newproba < self._minprob:
-            delta += newproba
-            newproba = 0.0
-        #  update column proba
-        self._problist[nlist] = newproba
-        #  update total proba
-        self.probtot += delta
+        self._queue: Deque[int] = deque()
 
     def register(self, obj: Activable) -> List[int]:
-        # free place from queue list
+        # Still room left from previously removed object
         if self._queue:
-            return self._addfromqueue(obj)
-        # No free place, create a new one
-        return self._addfrommap(obj)
+            nlist = self._queue.popleft()
+            # self.log.debug(f"Registering {obj} in position {nlist} from queue")
+            self._mapobj[nlist] = obj
+            return [nlist]
+        # No more free room, add at the end
+        try:
+            self._mapobj[self._actlist] = obj
+            # self.log.debug(f"Registering {obj} in position {self._actlist} at end")
+        except IndexError:
+            # arrays too small, extend them
+            self._mapobj = append(self._mapobj, zeros(self._maxlength, dtype("O")))
+            self._problist = append(self._problist, zeros(self._maxlength))
+            self._mapobj[self._actlist] = obj
+            # self.log.debug(f"Registering {obj} in position {self._actlist} at end after extension")
+        self._actlist += 1
+        return [self._actlist - 1]
 
     def unregister(self, proba_pos: List[int]) -> None:
-        assert len(proba_pos) == 2
-        nlist, npos = proba_pos
-        oldproba = self._map[nlist][npos]
-        self._map[nlist][npos] = 0
-        self._mapobj[nlist][npos] = None
-        self._queue.append((nlist, npos))
-        self._updateprob(nlist, -oldproba)
+        assert len(proba_pos) == 1
+        nlist = proba_pos[0]
+        # self.log.debug(f"Unregistering {self._mapobj[nlist]} in position {nlist}")
+        self.probtot -= self._problist[nlist]
+        self._problist[nlist] = 0.
+        self._mapobj[nlist] = None
+        self._queue.append(nlist)
 
     def update(self, proba_pos: List[int], proba: float) -> None:
         # assertion shall greatly reduce perf for non-optimized python code!
-        assert len(proba_pos) == 2
-        nlist, npos = proba_pos
+        assert len(proba_pos) == 1
+        nlist = proba_pos[0]
         #  get proba change from the event
-        delta = proba - self._map[nlist][npos]
+        delta = proba - self._problist[nlist]
         #  Set the new probability of the event
-        self._map[nlist][npos] = proba
-        #  Update the probability of the proba sums (column and tot)
-        self._updateprob(nlist, delta)
-
-    def _addfrommap(self, obj: Activable) -> List[int]:
-        rpos = len(self._map[self._actlist])
-        if rpos <= self.npblist:
-            rlist = self._actlist
-            self._map[rlist] = append(self._map[rlist], 0)
-            self._mapobj[rlist] = append(self._mapobj[rlist], obj)
-            return [rlist, rpos]
-        if len(self._map[0]) <= self.npblist:
-            self._actlist = 0
-        else:
-            self._actlist += 1
-            if self._actlist >= self.npblist:
-                self._map.append(array([]))
-                self._mapobj.append(array([]))
-                self._problist = append(self._problist, 0.0)
-                self.npblist += 1
-        return self._addfrommap(obj)
-
-    def _addfromqueue(self, obj: Activable) -> List[int]:
-        rlist, rpos = self._queue.popleft()
-        self._map[rlist][rpos] = 0
-        self._mapobj[rlist][rpos] = obj
-        return [rlist, rpos]
+        self._problist[nlist] = proba
+        #  Update the probability of the proba sum
+        self.probtot += delta
 
     def choose(self) -> Tuple[Activable, float]:
         # First choose a random line in the probability map
         try:
-            nlist = random.choice(self.npblist, p=self._problist / self.probtot)
+            chosen = random.choice(self._mapobj, p=self._problist / self.probtot)
+            if chosen is None or chosen == 0:
+                self.log.error(f"Badly destroyed reaction from {self._mapobj} with proba {self._problist}")
+            return (chosen, log(1 / random.rand()) / self.probtot)
         except ValueError as v:
             raise RoundError(
                 f"(reason: {v}; "
                 f"probtot={self.probtot}=?={self._problist.sum()}; "
                 f"problist={self._problist})"
-            )
-        # Then choose a random column in the chosen probability line
-        try:
-            chosen = random.choice(
-                self._mapobj[nlist], p=self._map[nlist] / self._problist[nlist]
-            )
-            if chosen is None:
-                explanation = [
-                    (a, b)
-                    for a, b in zip(self._mapobj[nlist], self._map[nlist])
-                    if a is not None and a() is None
-                ]
-                self.log.error(f"Badly destroyed reaction in {explanation}")
-            return (chosen, log(1 / random.rand()) / self.probtot)
-        except ValueError as v:
-            raise RoundError(
-                f"(reason: {v}; "
-                f"probtot={self._problist[nlist]}=?={self._map[nlist].sum()}; "
-                f"problist={self._map[nlist]})"
             )
 
     def clean(self) -> None:
@@ -211,9 +170,6 @@ class Probalist(Logged):
            errors.
            This functions is intended to be called regularly for cleaning
            these rounding errors."""
-        # old_problist = self._problist
-        # old_probtot = self.probtot
-        self._problist = array([data.sum() for data in self._map])
         self.probtot = self._problist.sum()
 
     def get_probaobj(self, obj: Activable) -> Probaobj:
