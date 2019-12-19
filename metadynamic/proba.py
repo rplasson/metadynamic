@@ -30,6 +30,7 @@ from metadynamic.inval import invalidint, isvalid
 
 @jit(nopython=True, cache=True)
 def choice(data, proba):
+    '''Return the index i where proba < sum(data) from 0 to i'''
     res = 0
     for index, val in enumerate(data):
         res += val
@@ -110,7 +111,7 @@ class Probalist(Logged):
     def __init__(self, vol: float = 1, minprob: float = 1e-10, maxlength: int = 100):
         self.vol = vol
         self._minprob = minprob
-        # List of objects
+        # List of objects ### Check replacement with list instead of numpy array !
         self._mapobj = zeros([], dtype("O"))
         # List of probas
         self._problist = zeros([])
@@ -124,19 +125,16 @@ class Probalist(Logged):
         # Still room left from previously removed object
         if self._queue:
             nlist = self._queue.popleft()
-            # self.log.debug(f"Registering {obj} in position {nlist} from queue")
             self._mapobj[nlist] = obj
             return nlist
         # No more free room, add at the end
         try:
             self._mapobj[self._actlist] = obj
-            # self.log.debug(f"Registering {obj} in position {self._actlist} at end")
         except IndexError:
             # arrays too small, extend them
             self._mapobj = append(self._mapobj, full(self._maxlength, None))
             self._problist = append(self._problist, zeros(self._maxlength))
             self._mapobj[self._actlist] = obj
-            # self.log.debug(f"Registering {obj} in position {self._actlist} at end after extension")
         self._actlist += 1
         return self._actlist - 1
 
