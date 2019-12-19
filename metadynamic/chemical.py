@@ -21,12 +21,25 @@
 # from itertools import chain
 from typing import Generic, List, Callable, TypeVar, Dict, Any, Set, Hashable, Tuple
 from math import factorial
+from itertools import repeat
+# from numba import jit
 
 from metadynamic.collector import Collect
 from metadynamic.proba import Probaobj, Probalistic, Activable
 from metadynamic.ends import DecrZero
 from metadynamic.ruleset import Ruled, ReacDescr
 from metadynamic.inval import isvalid, Invalid
+
+
+# @jit(nopython=True, cache=True)
+# def kincalc(const: float, stoech: List[Tuple[int, int]]) -> float:
+#     res = const
+#     for pop, stoechnum in stoech:
+#         res *= pop
+#         for _ in range(stoechnum - 1):
+#             pop -= 1
+#             res *= pop
+#     return res
 
 
 class Memcalc:
@@ -154,7 +167,7 @@ class Reaction(Chemical[ReacDescr], Probalistic):
         if description[0] != "":
             self._probaobj: Probaobj = self.probalist.get_probaobj(self)
             self.proba: float = 0.0
-            stoechreac, self._stoechproduct, const,  = self.ruleset.buildreac(
+            stoechreac, self._stoechproduct, const, = self.ruleset.buildreac(
                 self.description
             )
             self.stoechio: List[Tuple[Compound, int]] = []
@@ -193,7 +206,9 @@ class Reaction(Chemical[ReacDescr], Probalistic):
 
     def process(self) -> None:
         if self.tobeinitialized:
-            self.products = [(self.comp_collect[name], order) for name, order in self._stoechproduct]
+            self.products = [
+                (self.comp_collect[name], order) for name, order in self._stoechproduct
+            ]
             self.tobeinitialized = False
         for prod, order in self.products:
             prod.change_pop(order)
@@ -209,7 +224,12 @@ class Reaction(Chemical[ReacDescr], Probalistic):
         oldproba = self.proba
         self.proba = self.const
         for reactant, stoechnum in self.stoechio:
-            self.proba *= self._ordern(reactant.pop, stoechnum)
+            # self.proba *= self._ordern(reactant.pop, stoechnum)
+            pop = reactant.pop
+            self.proba *= pop
+            for _ in repeat(None, stoechnum - 1):
+                pop -= 1
+                self.proba *= pop
         return self.proba, self.proba != oldproba
 
 
