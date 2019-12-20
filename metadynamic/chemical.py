@@ -22,6 +22,7 @@
 from typing import Generic, List, Callable, TypeVar, Dict, Any, Set, Hashable, Tuple
 from math import factorial
 from itertools import repeat
+
 # from numba import jit
 
 from metadynamic.collector import Collect
@@ -267,11 +268,13 @@ class Compound(Chemical[str]):
                 f"Tried to unregister twice {reaction} from {self} (p={self.pop})"
             )
 
-    def scan_reaction(self) -> None:  # Check if is useful!
-        reac_descr = set(
-            self.ruleset.get_related(self.description, self.comp_collect.categories)
-        )
-        self.reactions = {self.reac_collect[descr] for descr in reac_descr}
+    def scan_reaction(self) -> None:
+        self.reactions = {
+            self.reac_collect[descr]
+            for descr in self.ruleset.get_related(
+                self.description, self.comp_collect.categories
+            )
+        }
 
     def update(self, change: int = 0) -> None:
         if change != 0:

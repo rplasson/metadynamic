@@ -1,4 +1,5 @@
 from metadynamic import System
+from numpy import savetxt
 from argparse import ArgumentParser
 
 parser = ArgumentParser(description="Test multithread.")
@@ -12,8 +13,8 @@ parser.add_argument(
 args = parser.parse_args()
 
 
-syst = System("small.json", logfile=args.log, loglevel=args.level)
-syst.runparam.set_param(dropmode="keep")
+syst = System("test.json", logfile=args.log, loglevel=args.level)
+syst.runparam.set_param(dropmode="drop")
 res = syst.run()
 
 res.table().to_csv(args.output, sep=",")
