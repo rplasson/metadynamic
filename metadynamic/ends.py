@@ -35,6 +35,8 @@ exception.
    unrekated to the computation itself.
 """
 
+from signal import signal, SIGTERM
+
 
 class Finished(Exception):
     num = -1
@@ -125,3 +127,16 @@ class BadJSON(InputError):
 class InitError(Aborted):
     num = 9
     error_message = "Error during initialization"
+
+
+class Interrupted(Aborted):
+    num = 10
+    error_message = "Asked to stop"
+
+
+def signal_handler(received_signal, frame):
+    raise Interrupted(f"Stopped by signal {received_signal} in frame {frame}")
+
+
+def init_signal():
+    signal(SIGTERM, signal_handler)

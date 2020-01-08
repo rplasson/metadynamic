@@ -12,7 +12,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 
-syst = System("small.json", logfile=args.log, loglevel=args.level)
+syst = System("test.json", logfile=args.log, loglevel=args.level)
 syst.runparam.set_param(dropmode="keep")
 res = syst.run()
 

@@ -36,6 +36,7 @@ from metadynamic.ends import (
     HappyEnding,
     BadEnding,
     InitError,
+    init_signal
 )
 from metadynamic.logger import Logged
 from metadynamic.proba import Probalistic
@@ -157,6 +158,7 @@ class System(Probalistic, Collected):
         pooldist = DataFrame()
         tnext = 0.0
         step = 0
+        init_signal()
         # Process(getpid()).cpu_affinity([num % cpu_count()])
         while True:
             try:
