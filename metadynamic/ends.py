@@ -35,7 +35,7 @@ exception.
    unrekated to the computation itself.
 """
 
-from signal import signal, SIGTERM
+import signal
 
 
 class Finished(Exception):
@@ -138,5 +138,12 @@ def signal_handler(received_signal, frame):
     raise Interrupted(f"Stopped by signal {received_signal} in frame {frame}")
 
 
-def init_signal():
-    signal(SIGTERM, signal_handler)
+def signal_ignore(received_signal, frame):
+    pass
+
+
+def init_signal(ignore: bool, listen=signal.SIGTERM):
+    if ignore:
+        signal.signal(listen, signal_ignore)
+    else:
+        signal.signal(listen, signal_handler)

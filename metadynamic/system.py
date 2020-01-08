@@ -36,7 +36,7 @@ from metadynamic.ends import (
     HappyEnding,
     BadEnding,
     InitError,
-    init_signal
+    init_signal,
 )
 from metadynamic.logger import Logged
 from metadynamic.proba import Probalistic
@@ -56,6 +56,7 @@ class System(Probalistic, Collected):
         self.param: SysParam = SysParam.readfile(filename)
         self.runparam: RunParam = RunParam.readfile(filename)
         self.log.info("Parameter files loaded.")
+        init_signal(ignore=True)
 
     @property
     def memuse(self) -> float:
@@ -158,7 +159,7 @@ class System(Probalistic, Collected):
         pooldist = DataFrame()
         tnext = 0.0
         step = 0
-        init_signal()
+        init_signal(ignore=False)
         # Process(getpid()).cpu_affinity([num % cpu_count()])
         while True:
             try:
