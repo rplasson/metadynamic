@@ -19,6 +19,7 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 import gc
+from signal import SIGTERM, SIGINT
 from multiprocessing import get_context
 from itertools import repeat
 from os import getpid
@@ -36,7 +37,8 @@ from metadynamic.ends import (
     HappyEnding,
     BadEnding,
     InitError,
-    init_signal
+    Interrupted,
+    init_signal,
 )
 from metadynamic.logger import Logged
 from metadynamic.proba import Probalistic
@@ -56,6 +58,8 @@ class System(Probalistic, Collected):
         self.param: SysParam = SysParam.readfile(filename)
         self.runparam: RunParam = RunParam.readfile(filename)
         self.log.info("Parameter files loaded.")
+        init_signal(listen=SIGINT, ignore=True)
+        init_signal(listen=SIGTERM, ignore=True)
 
     @property
     def memuse(self) -> float:
@@ -158,7 +162,8 @@ class System(Probalistic, Collected):
         pooldist = DataFrame()
         tnext = 0.0
         step = 0
-        init_signal()
+        init_signal(listen=SIGINT, ignore=False)
+        init_signal(listen=SIGTERM, ignore=False)
         # Process(getpid()).cpu_affinity([num % cpu_count()])
         while True:
             try:
@@ -198,10 +203,6 @@ class System(Probalistic, Collected):
                 else:
                     self.log.warning(str(the_end))
                 break
-            except KeyboardInterrupt:
-                end = f"Run {num} interrupted! ({self.time} s)"
-                self.log.warning(end)
-                break
         if num >= 0:
             self.log.disconnect(f"Disconnected from thread {num}")
         return (table, lendist.astype(int), pooldist.astype(int), end)
@@ -224,11 +225,11 @@ class System(Probalistic, Collected):
             try:
                 self.log.debug("Trying to get result")
                 res = running.get()
-            except KeyboardInterrupt:
-                self.log.debug("Interrupted, get (incomplete) result as is")
+            except Interrupted:
+                self.log.warning("Interrupted, get (incomplete) result as is")
                 res = running.get()
-                end = f"Multirun interrupted!"
-                self.log.info(end)
+                self.log.info(f"Multirun interrupted!")
+            self.log.info("Multirun finished!")
         return Result(res)
 
     def set_param(self, **kwd) -> None:
