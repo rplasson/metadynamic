@@ -135,14 +135,14 @@ class Interrupted(Aborted):
 
 
 def signal_handler(received_signal, frame):
-    raise Interrupted(f"Stopped by signal {received_signal} in frame {frame}")
+    raise Interrupted(f"Stopped by {signal.Signals(received_signal).name} at {frame}")
 
 
 def signal_ignore(received_signal, frame):
     pass
 
 
-def init_signal(ignore: bool, listen=signal.SIGTERM):
+def init_signal(listen=signal.SIGTERM, ignore: bool = False):
     if ignore:
         signal.signal(listen, signal_ignore)
     else:
