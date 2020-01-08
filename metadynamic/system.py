@@ -230,13 +230,14 @@ class System(Probalistic, Collected):
                 else:
                     self.log.warning(str(the_end))
                 break
-            else:
-                end = f"Stopped by {self.signcatch.signal} at {self.signcatch.frame}"
-                self.log.warning(end)
+        else:
+            end = f"Stopped by {self.signcatch.signal} at {self.signcatch.frame}"
+            self.log.warning(end)
         self.signcatch.ignore()
         if num >= 0:
             self.log.disconnect(f"Disconnected from thread {num}")
-        return (table, lendist.astype(int), pooldist.astype(int), end)
+        res = (table, lendist.astype(int), pooldist.astype(int), end)
+        return res
 
     def run(self) -> Result:
         if self.runparam.nbthread == 1:
