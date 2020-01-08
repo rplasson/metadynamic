@@ -19,7 +19,7 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 import gc
-from signal import SIGTERM, SIGINT
+import signal
 from multiprocessing import get_context
 from itertools import repeat
 from os import getpid
@@ -38,7 +38,6 @@ from metadynamic.ends import (
     BadEnding,
     InitError,
     Interrupted,
-    init_signal,
 )
 from metadynamic.logger import Logged
 from metadynamic.proba import Probalistic
@@ -47,6 +46,36 @@ from metadynamic.ruleset import Ruled
 from metadynamic.chemical import Collected, trigger_changes
 from metadynamic.inputs import SysParam, RunParam
 from metadynamic.inval import invalidstr
+
+
+class SignalCatcher:
+    def __init__(self, ignore=True):
+        self.alive = True
+        self.signal = ""
+        self.frame = ""
+        if ignore:
+            self.ignore()
+        else:
+            self.listen()
+
+    def ignore(self):
+        def signal_ignore(received_signal, frame):
+            pass
+
+        self.init_signal(signal_ignore)
+
+    def listen(self):
+        def signal_listen(received_signal, frame):
+            self.alive = False
+            self.signal = signal.Signals(received_signal).name
+            self.frame = str(frame)
+
+        self.init_signal(signal_listen)
+
+    @staticmethod
+    def init_signal(handler):
+        signal.signal(signal.SIGTERM, handler)
+        signal.signal(signal.SIGINT, handler)
 
 
 class System(Probalistic, Collected):
@@ -58,8 +87,7 @@ class System(Probalistic, Collected):
         self.param: SysParam = SysParam.readfile(filename)
         self.runparam: RunParam = RunParam.readfile(filename)
         self.log.info("Parameter files loaded.")
-        init_signal(listen=SIGINT, ignore=True)
-        init_signal(listen=SIGTERM, ignore=True)
+        self.signcatch = SignalCatcher()
 
     @property
     def memuse(self) -> float:
@@ -162,10 +190,9 @@ class System(Probalistic, Collected):
         pooldist = DataFrame()
         tnext = 0.0
         step = 0
-        init_signal(listen=SIGINT, ignore=False)
-        init_signal(listen=SIGTERM, ignore=False)
+        self.signcatch.listen()
         # Process(getpid()).cpu_affinity([num % cpu_count()])
-        while True:
+        while self.signcatch.alive:
             try:
                 self.log.info(f"#{step}: {self.time} -> {tnext}")
                 finished = self._process(tnext)
@@ -203,6 +230,10 @@ class System(Probalistic, Collected):
                 else:
                     self.log.warning(str(the_end))
                 break
+            else:
+                end = f"Stopped by {self.signcatch.signal} at {self.signcatch.frame}"
+                self.log.warning(end)
+        self.signcatch.ignore()
         if num >= 0:
             self.log.disconnect(f"Disconnected from thread {num}")
         return (table, lendist.astype(int), pooldist.astype(int), end)
