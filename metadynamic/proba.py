@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-from typing import Tuple, Deque
+from typing import Tuple, Deque, Iterable
 from collections import deque
 from numpy import append, log, random, zeros, full, dtype
 from numba import jit
@@ -29,13 +29,14 @@ from metadynamic.inval import invalidint, isvalid
 
 
 @jit(nopython=True, cache=True)
-def choice(data, proba):
+def choice(data: Iterable[float], proba: float) -> int:
     '''Return the index i where proba < sum(data) from 0 to i'''
-    res = 0
+    res: float = 0.
     for index, val in enumerate(data):
         res += val
         if proba < res:
             return index
+    return -1
 
 
 class Activable:

@@ -203,7 +203,7 @@ class System(Probalistic, Collected):
                 else:
                     self.log.warning(str(the_end))
                 break
-        res = (table, lendist.astype(int), pooldist.astype(int), end)
+        retval: Tuple[DataFrame, int, int, str] = (table, lendist.astype(int), pooldist.astype(int), end)
         self.log.debug(f"Run {num}={getpid()} finished")
         if num >= 0:
             # Clean memory as much as possible to leave room to still alive threads
@@ -214,7 +214,7 @@ class System(Probalistic, Collected):
             gc.collect()
             self.log.debug(f"Collection purged for {num}")
             self.log.disconnect(f"Disconnected from thread {num}")
-        return res
+        return retval
 
     def run(self) -> Result:
         if self.runparam.nbthread == 1:
