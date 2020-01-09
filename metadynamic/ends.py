@@ -35,7 +35,13 @@ exception.
    unrekated to the computation itself.
 """
 
+from typing import Union, Callable
+from types import FrameType
 import signal
+
+SignHandler = Union[
+    Callable[[signal.Signals, FrameType], None], int, signal.Handlers, None
+]
 
 
 class Finished(Exception):
@@ -134,16 +140,35 @@ class Interrupted(Aborted):
     error_message = "Asked to stop"
 
 
-def signal_handler(received_signal, frame):
-    raise Interrupted(f"Stopped by {signal.Signals(received_signal).name} at {frame}")
+class SignalCatcher:
+    def __init__(self) -> None:
+        self.alive: bool = False
+        self.signal: str = ""
+        self.frame: str = ""
+        self._initial_term: SignHandler = signal.getsignal(signal.SIGTERM)
+        self._initial_int: SignHandler = signal.getsignal(signal.SIGINT)
 
+    def reset(self) -> None:
+        signal.signal(signal.SIGTERM, self._initial_term)
+        signal.signal(signal.SIGINT, self._initial_int)
 
-def signal_ignore(received_signal, frame):
-    pass
+    def ignore(self) -> None:
+        self.init_signal(signal.SIG_IGN)
 
+    def release(self) -> None:
+        self.init_signal(signal.SIG_DFL)
 
-def init_signal(listen=signal.SIGTERM, ignore: bool = False):
-    if ignore:
-        signal.signal(listen, signal_ignore)
-    else:
-        signal.signal(listen, signal_handler)
+    def listen(self) -> None:
+        self.alive = True
+        self.init_signal(self.signal_listen)
+
+    @staticmethod
+    def init_signal(handler: SignHandler) -> None:
+        signal.signal(signal.SIGTERM, handler)
+        signal.signal(signal.SIGINT, handler)
+
+    def signal_listen(self, received_signal: signal.Signals, frame: FrameType) -> None:
+        self.alive = False
+        self.signal = signal.Signals(received_signal).name
+        self.frame = str(frame)
+        self.ignore()

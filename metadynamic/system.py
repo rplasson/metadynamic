@@ -38,7 +38,7 @@ from metadynamic.ends import (
     BadEnding,
     InitError,
     Interrupted,
-    init_signal,
+    SignalCatcher,
 )
 from metadynamic.logger import Logged
 from metadynamic.proba import Probalistic
@@ -58,8 +58,7 @@ class System(Probalistic, Collected):
         self.param: SysParam = SysParam.readfile(filename)
         self.runparam: RunParam = RunParam.readfile(filename)
         self.log.info("Parameter files loaded.")
-        init_signal(listen=SIGINT, ignore=True)
-        init_signal(listen=SIGTERM, ignore=True)
+        self.signcatch = SignalCatcher()
 
     @property
     def memuse(self) -> float:
@@ -140,6 +139,8 @@ class System(Probalistic, Collected):
             chosen.process()
             if self.probalist.probtot == 0:
                 raise NoMore(f"t={self.time}")
+            if not self.signcatch.alive:
+                raise Interrupted(f" by {self.signcatch.signal} at t={self.time}")
             # update time for next step
             self.time += dt
             self.step += 1
@@ -162,8 +163,8 @@ class System(Probalistic, Collected):
         pooldist = DataFrame()
         tnext = 0.0
         step = 0
-        init_signal(listen=SIGINT, ignore=False)
-        init_signal(listen=SIGTERM, ignore=False)
+        self.log.info(f"Run {num}={getpid()} launched")
+        self.signcatch.listen()
         # Process(getpid()).cpu_affinity([num % cpu_count()])
         while True:
             try:
@@ -203,33 +204,41 @@ class System(Probalistic, Collected):
                 else:
                     self.log.warning(str(the_end))
                 break
+        retval: Tuple[DataFrame, int, int, str] = (table, lendist.astype(int), pooldist.astype(int), end)
+        self.log.debug(f"Run {num}={getpid()} finished")
         if num >= 0:
+            # Clean memory as much as possible to leave room to still alive threads
+            self.comp_collect.purge()
+            self.reac_collect.purge()
+            Probalistic.setprobalist(vol=self.param.vol, minprob=self.runparam.minprob)
+            trigger_changes()
+            gc.collect()
+            self.log.debug(f"Collection purged for {num}")
             self.log.disconnect(f"Disconnected from thread {num}")
-        return (table, lendist.astype(int), pooldist.astype(int), end)
+        return retval
 
     def run(self) -> Result:
         if self.runparam.nbthread == 1:
             self.log.info("Launching single run.")
-            return Result([self._run()])
+            res = [self._run()]
+            self.signcatch.reset()
+            return Result(res)
         self.log.info("Launching threaded run.")
         return self.multirun(self.runparam.nbthread)
 
     def multirun(self, nbthread: int = -1) -> Result:
         ctx = get_context(self.runparam.context)
+        self.signcatch.ignore()
         if nbthread == -1:
             nbthread = ctx.cpu_count()
-        self.log.disconnect(reason="Launching multithreading...")
+        self.log.info(f"Launching multithread from {getpid()}")
+        self.log.disconnect(reason="Launching multithreading....")
         with ctx.Pool(nbthread) as pool:
             running = pool.map_async(self._run, range(nbthread))
             self.log.connect(reason="...Multithreading launched")
-            try:
-                self.log.debug("Trying to get result")
-                res = running.get()
-            except Interrupted:
-                self.log.warning("Interrupted, get (incomplete) result as is")
-                res = running.get()
-                self.log.info(f"Multirun interrupted!")
+            res = running.get()
             self.log.info("Multirun finished!")
+            self.signcatch.reset()
         return Result(res)
 
     def set_param(self, **kwd) -> None:

@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-from typing import Generic, TypeVar, Dict, Set, Union, Hashable
+from typing import Generic, TypeVar, Dict, Set, Union, Hashable, List
 from weakref import WeakValueDictionary
 from collections import defaultdict
 
@@ -115,3 +115,13 @@ class Collect(Generic[K, T], Ruled):
         """List the categories of the object.
         Must be implemented in subclasses"""
         raise NotImplementedError
+
+    def purge(self) -> None:
+        keys: List[K] = list(self.pool.keys())
+        for key in keys:
+            self.pool[key].delete()
+            try:
+                del self.pool[key]
+            except KeyError:
+                # Already purge by delete process
+                pass
