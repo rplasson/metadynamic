@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-from numpy import array, convolve, ones
+from numpy import array, convolve, ones, nanmean, nanstd
 
 
 class Result:
@@ -33,13 +33,13 @@ class Result:
 
     def _format(self, name, field, num, mean=None):
         if num is None or num == "m":
-            res = self.data[name].mean()
+            res = nanmean(self.data[name])
         elif num == "s":
-            res = self.data[name].std()
+            res = nanstd(self.data[name])
         elif num == "+":
-            res = self.data[name].mean() + self.data[name].std()
+            res = nanmean(self.data[name]) + nanstd(self.data[name])
         elif num == "-":
-            res = self.data[name].mean() - self.data[name].std()
+            res = nanmean(self.data[name]) - nanstd(self.data[name])
         else:
             res = self.data[name][num]
         if field is not None:
