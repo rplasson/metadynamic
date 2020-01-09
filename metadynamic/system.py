@@ -37,6 +37,7 @@ from metadynamic.ends import (
     HappyEnding,
     BadEnding,
     InitError,
+    Interrupted
 )
 from metadynamic.logger import Logged
 from metadynamic.proba import Probalistic
@@ -171,6 +172,8 @@ class System(Probalistic, Collected):
             chosen.process()
             if self.probalist.probtot == 0:
                 raise NoMore(f"t={self.time}")
+            if not self.signcatch.alive:
+                raise Interrupted(f" by {self.signcatch.signal} at t={self.time}")
             # update time for next step
             self.time += dt
             self.step += 1
@@ -196,7 +199,7 @@ class System(Probalistic, Collected):
         self.log.info(f"Run {num}={getpid()} launched")
         self.signcatch.listen()
         # Process(getpid()).cpu_affinity([num % cpu_count()])
-        while self.signcatch.alive:
+        while True:
             try:
                 self.log.info(f"#{step}: {self.time} -> {tnext}")
                 finished = self._process(tnext)
@@ -234,9 +237,6 @@ class System(Probalistic, Collected):
                 else:
                     self.log.warning(str(the_end))
                 break
-        else:
-            end = f"Stopped #{num} by {self.signcatch.signal} at ({self.log.runtime()} s)"
-            self.log.warning(end)
         res = (table, lendist.astype(int), pooldist.astype(int), end)
         self.log.info(f"Run {num}={getpid()} finished")
         if num >= 0:
