@@ -77,11 +77,15 @@ class System(Probalistic, Collected):
 
     @property
     def lendist(self) -> Dict[int, int]:
-        return self.comp_collect.dist("length", lenweight=True, full=False)
+        res = self.comp_collect.dist("length", lenweight=True, full=False)
+        res[-1] = 1
+        return res
 
     @property
     def pooldist(self) -> Dict[int, int]:
-        return self.comp_collect.dist("length", lenweight=False, full=True)
+        res = self.comp_collect.dist("length", lenweight=False, full=True)
+        res[-1] = 1
+        return res
 
     def statlist(self) -> Tuple[Dict[str, int], Dict[str, Dict[int, int]]]:
         stat = {}
@@ -148,7 +152,7 @@ class System(Probalistic, Collected):
 
     def _run(self, num: int = -1) -> Tuple[DataFrame, int, int, str]:
         lines = (
-            ["thread", "ptime", "memuse", "step", "time"]
+            [-1, "thread", "ptime", "memuse", "step", "time"]
             + self.param.save
             + ["maxlength", "nbcomp", "poolsize", "nbreac", "poolreac"]
         )
@@ -171,7 +175,7 @@ class System(Probalistic, Collected):
                 finished = self._process(tnext)
                 stat, dist = self.statlist()
                 res = (
-                    [num, self.log.runtime(), self.memuse, self.step, self.time]
+                    [1, num, self.log.runtime(), self.memuse, self.step, self.time]
                     + [self.conc_of(comp) for comp in self.param.save]
                     + [
                         stat["maxlength"],

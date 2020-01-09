@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-from numpy import array, convolve, ones, nanmean, nanstd
+from numpy import array, convolve, ones, sqrt
 
 
 class Result:
@@ -30,16 +30,36 @@ class Result:
             "pooldist": res[:, 2],
             "end": res[:, 3],
         }
+        datasum = {
+            "table": self.frame_sum(self.data["table"]),
+            "lendist": self.frame_sum(self.data["lendist"]),
+            "pooldist": self.frame_sum(self.data["pooldist"]),
+        }
+        data_n = {
+            "table": datasum["table"].loc[-1],
+            "lendist": datasum["lendist"].loc[-1],
+            "pooldist": datasum["pooldist"].loc[-1],
+        }
+        self.datamean = {
+            "table": datasum["table"] / data_n["table"],
+            "lendist": datasum["lendist"] / data_n["lendist"],
+            "pooldist": datasum["pooldist"] / data_n["pooldist"],
+        }
+        self.datastd = {
+            "table": sqrt(self.frame_sum([(data-self.datamean["table"])**2 for data in self.data["table"]])/data_n["table"]),
+            "lendist": sqrt(self.frame_sum([(data-self.datamean["lendist"])**2 for data in self.data["lendist"]])/data_n["lendist"]),
+            "pooldist": sqrt(self.frame_sum([(data-self.datamean["pooldist"])**2 for data in self.data["pooldist"]])/data_n["pooldist"]),
+        }
 
     def _format(self, name, field, num, mean=None):
         if num is None or num == "m":
-            res = nanmean(self.data[name])
+            res = self.datamean[name]
         elif num == "s":
-            res = nanstd(self.data[name])
+            res = self.datastd[name]
         elif num == "+":
-            res = nanmean(self.data[name]) + nanstd(self.data[name])
+            res = self.datamean[name] + self.datastd[name]
         elif num == "-":
-            res = nanmean(self.data[name]) - nanstd(self.data[name])
+            res = self.datamean[name] - self.datastd[name]
         else:
             res = self.data[name][num]
         if field is not None:
@@ -67,3 +87,12 @@ class Result:
         """Running mean from
            https://stackoverflow.com/questions/13728392/moving-average-or-running-mean"""
         return convolve(data, ones((length,)) / length, mode="valid")
+
+    @staticmethod
+    def frame_sum(datas):
+        for i, data in enumerate(datas):
+            if i == 0:
+                res = data
+            else:
+                res = res.add(data, fill_value=0)
+        return res
