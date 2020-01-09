@@ -19,7 +19,6 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 import gc
-import signal
 from multiprocessing import get_context
 from itertools import repeat
 from os import getpid
@@ -37,7 +36,8 @@ from metadynamic.ends import (
     HappyEnding,
     BadEnding,
     InitError,
-    Interrupted
+    Interrupted,
+    SignalCatcher,
 )
 from metadynamic.logger import Logged
 from metadynamic.proba import Probalistic
@@ -46,40 +46,6 @@ from metadynamic.ruleset import Ruled
 from metadynamic.chemical import Collected, trigger_changes
 from metadynamic.inputs import SysParam, RunParam
 from metadynamic.inval import invalidstr
-
-
-class SignalCatcher:
-    def __init__(self):
-        self.alive = False
-        self.signal = ""
-        self.frame = ""
-        self._initial_term = signal.getsignal(signal.SIGTERM)
-        self._initial_int = signal.getsignal(signal.SIGINT)
-
-    def reset(self):
-        signal.signal(signal.SIGTERM, self._initial_term)
-        signal.signal(signal.SIGINT, self._initial_int)
-
-    def ignore(self):
-        self.init_signal(signal.SIG_IGN)
-
-    def release(self):
-        self.init_signal(signal.SIG_DFL)
-
-    def listen(self):
-        self.alive = True
-        self.init_signal(self.signal_listen)
-
-    @staticmethod
-    def init_signal(handler):
-        signal.signal(signal.SIGTERM, handler)
-        signal.signal(signal.SIGINT, handler)
-
-    def signal_listen(self, received_signal, frame):
-        self.alive = False
-        self.signal = signal.Signals(received_signal).name
-        self.frame = str(frame)
-        self.ignore()
 
 
 class System(Probalistic, Collected):
@@ -238,7 +204,7 @@ class System(Probalistic, Collected):
                     self.log.warning(str(the_end))
                 break
         res = (table, lendist.astype(int), pooldist.astype(int), end)
-        self.log.info(f"Run {num}={getpid()} finished")
+        self.log.debug(f"Run {num}={getpid()} finished")
         if num >= 0:
             # Clean memory as much as possible to leave room to still alive threads
             self.comp_collect.purge()
@@ -246,7 +212,7 @@ class System(Probalistic, Collected):
             Probalistic.setprobalist(vol=self.param.vol, minprob=self.runparam.minprob)
             trigger_changes()
             gc.collect()
-            self.log.info(f"Collection purged for {num}")
+            self.log.debug(f"Collection purged for {num}")
             self.log.disconnect(f"Disconnected from thread {num}")
         return res
 
@@ -272,7 +238,6 @@ class System(Probalistic, Collected):
             res = running.get()
             self.log.info("Multirun finished!")
             self.signcatch.reset()
-        self.log.info("Pool closed")
         return Result(res)
 
     def set_param(self, **kwd) -> None:

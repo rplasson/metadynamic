@@ -133,3 +133,36 @@ class Interrupted(Aborted):
     num = 10
     error_message = "Asked to stop"
 
+
+class SignalCatcher:
+    def __init__(self):
+        self.alive = False
+        self.signal = ""
+        self.frame = ""
+        self._initial_term = signal.getsignal(signal.SIGTERM)
+        self._initial_int = signal.getsignal(signal.SIGINT)
+
+    def reset(self):
+        signal.signal(signal.SIGTERM, self._initial_term)
+        signal.signal(signal.SIGINT, self._initial_int)
+
+    def ignore(self):
+        self.init_signal(signal.SIG_IGN)
+
+    def release(self):
+        self.init_signal(signal.SIG_DFL)
+
+    def listen(self):
+        self.alive = True
+        self.init_signal(self.signal_listen)
+
+    @staticmethod
+    def init_signal(handler):
+        signal.signal(signal.SIGTERM, handler)
+        signal.signal(signal.SIGINT, handler)
+
+    def signal_listen(self, received_signal, frame):
+        self.alive = False
+        self.signal = signal.Signals(received_signal).name
+        self.frame = str(frame)
+        self.ignore()
