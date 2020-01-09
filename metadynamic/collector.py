@@ -115,3 +115,9 @@ class Collect(Generic[K, T], Ruled):
         """List the categories of the object.
         Must be implemented in subclasses"""
         raise NotImplementedError
+
+    def purge(self):
+        keys = list(self.pool.keys())
+        for key in keys:
+            self.pool[key].delete()
+            del self.pool[key]

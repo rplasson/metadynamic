@@ -240,6 +240,12 @@ class System(Probalistic, Collected):
         res = (table, lendist.astype(int), pooldist.astype(int), end)
         self.log.info(f"Run {num}={getpid()} finished")
         if num >= 0:
+            self.comp_collect.purge()
+            self.reac_collect.purge()
+            trigger_changes()
+            self.log.info(f"Pool: {len(self.comp_collect.pool)}, Reac: {len(self.reac_collect.pool)}, Probalist: {self.probalist._mapobj}")
+            gc.collect()
+            self.log.info(f"Collection purged for {num}")
             self.log.disconnect(f"Disconnected from thread {num}")
         return res
 

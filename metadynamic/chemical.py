@@ -157,6 +157,10 @@ class Chemical(Generic[K], Collected, Activable):
         """to be implemented in subclasses"""
         raise NotImplementedError
 
+    def delete(self) -> None:
+        """to be implemented in subclasses"""
+        raise NotImplementedError
+
 
 class Reaction(Chemical[ReacDescr], Probalistic):
     _descrtype = "Reaction"
@@ -233,6 +237,9 @@ class Reaction(Chemical[ReacDescr], Probalistic):
                 self.proba *= pop
         return self.proba, self.proba != oldproba
 
+    def delete(self) -> None:
+        self._probaobj.update(0)
+
 
 class Compound(Chemical[str]):
     _descrtype = "Compound"
@@ -295,6 +302,10 @@ class Compound(Chemical[str]):
 
     def change_pop(self, start: int) -> None:
         Compound.toupdate(self, start)
+
+    def delete(self) -> None:
+        self._unactivate()
+        self.change_pop(-self.pop)
 
 
 class InvalidReaction(Invalid, Reaction):
