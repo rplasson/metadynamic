@@ -37,7 +37,6 @@ from metadynamic.ends import (
     HappyEnding,
     BadEnding,
     InitError,
-    Interrupted,
 )
 from metadynamic.logger import Logged
 from metadynamic.proba import Probalistic
@@ -49,33 +48,37 @@ from metadynamic.inval import invalidstr
 
 
 class SignalCatcher:
-    def __init__(self, ignore=True):
-        self.alive = True
+    def __init__(self):
+        self.alive = False
         self.signal = ""
         self.frame = ""
-        if ignore:
-            self.ignore()
-        else:
-            self.listen()
+        self._initial_term = signal.getsignal(signal.SIGTERM)
+        self._initial_int = signal.getsignal(signal.SIGINT)
+
+    def reset(self):
+        signal.signal(signal.SIGTERM, self._initial_term)
+        signal.signal(signal.SIGINT, self._initial_int)
 
     def ignore(self):
-        def signal_ignore(received_signal, frame):
-            pass
+        self.init_signal(signal.SIG_IGN)
 
-        self.init_signal(signal_ignore)
+    def release(self):
+        self.init_signal(signal.SIG_DFL)
 
     def listen(self):
-        def signal_listen(received_signal, frame):
-            self.alive = False
-            self.signal = signal.Signals(received_signal).name
-            self.frame = str(frame)
-
-        self.init_signal(signal_listen)
+        self.alive = True
+        self.init_signal(self.signal_listen)
 
     @staticmethod
     def init_signal(handler):
         signal.signal(signal.SIGTERM, handler)
         signal.signal(signal.SIGINT, handler)
+
+    def signal_listen(self, received_signal, frame):
+        self.alive = False
+        self.signal = signal.Signals(received_signal).name
+        self.frame = str(frame)
+        self.ignore()
 
 
 class System(Probalistic, Collected):
@@ -190,6 +193,7 @@ class System(Probalistic, Collected):
         pooldist = DataFrame()
         tnext = 0.0
         step = 0
+        self.log.info(f"Run {num}={getpid()} launched")
         self.signcatch.listen()
         # Process(getpid()).cpu_affinity([num % cpu_count()])
         while self.signcatch.alive:
@@ -231,37 +235,37 @@ class System(Probalistic, Collected):
                     self.log.warning(str(the_end))
                 break
         else:
-            end = f"Stopped by {self.signcatch.signal} at {self.signcatch.frame}"
+            end = f"Stopped #{num} by {self.signcatch.signal} at ({self.log.runtime()} s)"
             self.log.warning(end)
-        self.signcatch.ignore()
+        res = (table, lendist.astype(int), pooldist.astype(int), end)
+        self.log.info(f"Run {num}={getpid()} finished")
         if num >= 0:
             self.log.disconnect(f"Disconnected from thread {num}")
-        res = (table, lendist.astype(int), pooldist.astype(int), end)
         return res
 
     def run(self) -> Result:
         if self.runparam.nbthread == 1:
             self.log.info("Launching single run.")
-            return Result([self._run()])
+            res = [self._run()]
+            self.signcatch.reset()
+            return Result(res)
         self.log.info("Launching threaded run.")
         return self.multirun(self.runparam.nbthread)
 
     def multirun(self, nbthread: int = -1) -> Result:
         ctx = get_context(self.runparam.context)
+        self.signcatch.ignore()
         if nbthread == -1:
             nbthread = ctx.cpu_count()
-        self.log.disconnect(reason="Launching multithreading...")
+        self.log.info(f"Launching multithread from {getpid()}")
+        self.log.disconnect(reason="Launching multithreading....")
         with ctx.Pool(nbthread) as pool:
             running = pool.map_async(self._run, range(nbthread))
             self.log.connect(reason="...Multithreading launched")
-            try:
-                self.log.debug("Trying to get result")
-                res = running.get()
-            except Interrupted:
-                self.log.warning("Interrupted, get (incomplete) result as is")
-                res = running.get()
-                self.log.info(f"Multirun interrupted!")
+            res = running.get()
             self.log.info("Multirun finished!")
+            self.signcatch.reset()
+        self.log.info("Pool closed")
         return Result(res)
 
     def set_param(self, **kwd) -> None:
