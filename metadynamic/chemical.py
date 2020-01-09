@@ -239,6 +239,7 @@ class Reaction(Chemical[ReacDescr], Probalistic):
 
     def delete(self) -> None:
         self._probaobj.update(0)
+        self._probaobj.obj = invalidreaction
 
 
 class Compound(Chemical[str]):

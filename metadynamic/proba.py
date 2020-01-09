@@ -103,8 +103,6 @@ class Probaobj(Probalistic):
             self.probalist.unregister(self.proba_pos)
             self.unset_proba_pos()
             self.obj.unactivate()
-        else:
-            self.log.warning("Updated a reaction from 0 to 0...")
 
 
 class Probalist(Logged):

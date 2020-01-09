@@ -120,4 +120,8 @@ class Collect(Generic[K, T], Ruled):
         keys = list(self.pool.keys())
         for key in keys:
             self.pool[key].delete()
-            del self.pool[key]
+            try:
+                del self.pool[key]
+            except KeyError:
+                # Already purge by delete process
+                pass
