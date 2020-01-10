@@ -26,8 +26,19 @@ from collections import defaultdict
 from metadynamic.ruleset import Ruled
 
 
+class Purge:
+    def delete(self) -> None:
+        """
+        Clean memory of the object.
+        It is only intended for a final purge when the thread exits.
+        Manual call may break many things!
+
+        To be implemented in subclasses"""
+        raise NotImplementedError
+
+
 K = TypeVar("K", bound=Hashable)
-T = TypeVar("T")
+T = TypeVar("T", bound=Purge)
 
 
 class WeakDict(Generic[K, T], WeakValueDictionary):
@@ -123,5 +134,5 @@ class Collect(Generic[K, T], Ruled):
             try:
                 del self.pool[key]
             except KeyError:
-                # Already purge by delete process
+                # Already purged by delete process
                 pass

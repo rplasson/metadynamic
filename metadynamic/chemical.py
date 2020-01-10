@@ -25,7 +25,7 @@ from itertools import repeat
 
 # from numba import jit
 
-from metadynamic.collector import Collect
+from metadynamic.collector import Collect, Purge
 from metadynamic.proba import Probaobj, Probalistic, Activable
 from metadynamic.ends import DecrZero
 from metadynamic.ruleset import Ruled, ReacDescr
@@ -122,7 +122,7 @@ class Collected(Ruled):
         cls.reac_collect = CollectofReaction(categorize_reac, dropmode_reac)
 
 
-class Chemical(Generic[K], Collected, Activable):
+class Chemical(Generic[K], Collected, Activable, Purge):
     _descrtype = "Chemical"
     _updatelist: Dict["Chemical[K]", int]
 
@@ -154,10 +154,6 @@ class Chemical(Generic[K], Collected, Activable):
         cls._updatelist = {}
 
     def update(self, change: int = 0) -> None:
-        """to be implemented in subclasses"""
-        raise NotImplementedError
-
-    def delete(self) -> None:
         """to be implemented in subclasses"""
         raise NotImplementedError
 

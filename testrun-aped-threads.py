@@ -13,7 +13,7 @@ args = parser.parse_args()
 
 syst = System("aped.json", logfile=args.log, loglevel=args.level)
 syst.runparam.set_param(dropmode="drop")
-syst.runparam.set_param(nbthread=4)
+syst.runparam.set_param(nbthread=-1)
 res = syst.run()
 
 res.table().to_csv(args.output, sep=",")
