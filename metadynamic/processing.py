@@ -36,9 +36,9 @@ class Result:
             "pooldist": self.frame_sum(self.data["pooldist"]),
         }
         data_n = {
-            "table": datasum["table"].loc[-1],
-            "lendist": datasum["lendist"].loc[-1],
-            "pooldist": datasum["pooldist"].loc[-1],
+            "table": datasum["table"].loc["#"],
+            "lendist": datasum["lendist"].loc["#"],
+            "pooldist": datasum["pooldist"].loc["#"],
         }
         self.datamean = {
             "table": datasum["table"] / data_n["table"],

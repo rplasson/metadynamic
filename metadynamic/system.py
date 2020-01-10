@@ -152,7 +152,7 @@ class System(Probalistic, Collected):
 
     def _run(self, num: int = -1) -> Tuple[DataFrame, int, int, str]:
         lines = (
-            [-1, "thread", "ptime", "memuse", "step", "time"]
+            ["#", "thread", "ptime", "memuse", "step", "time"]
             + self.param.save
             + ["maxlength", "nbcomp", "poolsize", "nbreac", "poolreac"]
         )
@@ -188,10 +188,12 @@ class System(Probalistic, Collected):
                 table[step] = res
                 self.log.debug(str(res))
                 lendist = lendist.join(
-                    DataFrame.from_dict({step: dist["lendist"]}), how="outer"
+                    DataFrame.from_dict({step: dist["lendist"]}).rename({-1: "#"}),
+                    how="outer",
                 ).fillna(0)
                 pooldist = pooldist.join(
-                    DataFrame.from_dict({step: dist["pooldist"]}), how="outer"
+                    DataFrame.from_dict({step: dist["pooldist"]}).rename({-1: "#"}),
+                    how="outer",
                 ).fillna(0)
                 if self.runparam.gcperio:
                     gc.collect()
@@ -207,7 +209,12 @@ class System(Probalistic, Collected):
                 else:
                     self.log.warning(str(the_end))
                 break
-        retval: Tuple[DataFrame, int, int, str] = (table, lendist.astype(int), pooldist.astype(int), end)
+        retval: Tuple[DataFrame, int, int, str] = (
+            table,
+            lendist.astype(int),
+            pooldist.astype(int),
+            end,
+        )
         self.log.debug(f"Run {num}={getpid()} finished")
         if num >= 0:
             # Clean memory as much as possible to leave room to still alive threads
