@@ -188,12 +188,10 @@ class System(Probalistic, Collected):
                 table[step] = res
                 self.log.debug(str(res))
                 lendist = lendist.join(
-                    DataFrame.from_dict({step: dist["lendist"]}).rename({-1: "#"}),
-                    how="outer",
+                    DataFrame.from_dict({step: dist["lendist"]}), how="outer",
                 ).fillna(0)
                 pooldist = pooldist.join(
-                    DataFrame.from_dict({step: dist["pooldist"]}).rename({-1: "#"}),
-                    how="outer",
+                    DataFrame.from_dict({step: dist["pooldist"]}), how="outer",
                 ).fillna(0)
                 if self.runparam.gcperio:
                     gc.collect()
@@ -211,8 +209,8 @@ class System(Probalistic, Collected):
                 break
         retval: Tuple[DataFrame, int, int, str] = (
             table,
-            lendist.astype(int),
-            pooldist.astype(int),
+            lendist.astype(int).rename({-1: "#"}),
+            pooldist.astype(int).rename({-1: "#"}),
             end,
         )
         self.log.debug(f"Run {num}={getpid()} finished")
