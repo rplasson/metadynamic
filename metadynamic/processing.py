@@ -35,7 +35,7 @@ class Result:
             "lendist": self.frame_sum(self.data["lendist"]),
             "pooldist": self.frame_sum(self.data["pooldist"]),
         }
-        data_n = {
+        self.data_n = {
             "table": datasum["table"].loc["#"],
             "lendist": datasum["lendist"].loc[-1],
             "pooldist": datasum["pooldist"].loc[-1],
@@ -47,38 +47,14 @@ class Result:
             for num, frame in enumerate(data):
                 data[num] = frame.drop(index=remove)
         self.datamean = {
-            "table": datasum["table"] / data_n["table"],
-            "lendist": datasum["lendist"] / data_n["lendist"],
-            "pooldist": datasum["pooldist"] / data_n["pooldist"],
+            "table": datasum["table"] / self.data_n["table"],
+            "lendist": datasum["lendist"] / self.data_n["lendist"],
+            "pooldist": datasum["pooldist"] / self.data_n["pooldist"],
         }
         self.datastd = {
-            "table": sqrt(
-                self.frame_sum(
-                    [
-                        (data - self.datamean["table"]) ** 2
-                        for data in self.data["table"]
-                    ]
-                )
-                / data_n["table"]
-            ),
-            "lendist": sqrt(
-                self.frame_sum(
-                    [
-                        (data - self.datamean["lendist"]) ** 2
-                        for data in self.data["lendist"]
-                    ]
-                )
-                / data_n["lendist"]
-            ),
-            "pooldist": sqrt(
-                self.frame_sum(
-                    [
-                        (data - self.datamean["pooldist"]) ** 2
-                        for data in self.data["pooldist"]
-                    ]
-                )
-                / data_n["pooldist"]
-            ),
+            "table": self.frame_std("table"),
+            "lendist": self.frame_std("lendist"),
+            "pooldist": self.frame_std("pooldist"),
         }
 
     def _format(self, name, field, num, mean=None):
@@ -126,3 +102,14 @@ class Result:
             else:
                 res = res.add(data, fill_value=0)
         return res
+
+    def frame_std(self, fieldname):
+        return sqrt(
+            self.frame_sum(
+                [
+                    (data - self.datamean[fieldname]) ** 2
+                    for data in self.data[fieldname]
+                ]
+            )
+            / self.data_n[fieldname]
+        )
