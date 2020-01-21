@@ -44,7 +44,7 @@ from metadynamic.proba import Probalistic
 from metadynamic.processing import Result
 from metadynamic.ruleset import Ruled
 from metadynamic.chemical import Collected, trigger_changes
-from metadynamic.inputs import SysParam, RunParam
+from metadynamic.inputs import Param
 from metadynamic.inval import invalidstr
 
 
@@ -54,8 +54,7 @@ class System(Probalistic, Collected):
     ):
         self.initialized = False
         Logged.setlogger(logfile, loglevel)
-        self.param: SysParam = SysParam.readfile(filename)
-        self.runparam: RunParam = RunParam.readfile(filename)
+        self.param: Param = Param.readfile(filename)
         self.log.info("Parameter files loaded.")
         self.signcatch = SignalCatcher()
 
@@ -102,26 +101,26 @@ class System(Probalistic, Collected):
     def initialize(self) -> None:
         if self.initialized:
             raise InitError("Double Initialization")
-        if self.runparam.gcperio:
+        if self.param.gcperio:
             gc.disable()
         self.time = 0.0
         # If seed set, always restart from the same seed. For timing/debugging purpose
         self.step = 0
-        Probalistic.setprobalist(vol=self.param.vol, minprob=self.runparam.minprob)
+        Probalistic.setprobalist(vol=self.param.vol, minprob=self.param.minprob)
         self.probalist.seed(self.param.seed)
         # Add all options for collections
-        Collected.setcollections(dropmode_reac=self.runparam.dropmode)
-        Ruled.setrules(self.runparam.rulemodel, self.runparam.consts)
+        Collected.setcollections(dropmode_reac=self.param.dropmode)
+        Ruled.setrules(self.param.rulemodel, self.param.consts)
         self.log.info("System created")
         for compound, pop in self.param.init.items():
             self.comp_collect[compound].change_pop(pop)
         trigger_changes()
-        self.log.info(f"Initialized with {self.param} and {self.runparam}")
+        self.log.info(f"Initialized with {self.param}")
         self.initialized = True
 
     def _process(self, tstop: float) -> bool:
         # Check if a cleanup should be done
-        if self.runparam.autoclean:
+        if self.param.autoclean:
             self.probalist.clean()
         # Check if end of time is nigh
         if self.time >= self.param.tend:
@@ -193,7 +192,7 @@ class System(Probalistic, Collected):
                 pooldist = pooldist.join(
                     DataFrame.from_dict({step: dist["pooldist"]}), how="outer",
                 ).fillna(0)
-                if self.runparam.gcperio:
+                if self.param.gcperio:
                     gc.collect()
                 if finished:
                     tnext += self.param.tstep
@@ -225,7 +224,7 @@ class System(Probalistic, Collected):
             # Clean memory as much as possible to leave room to still alive threads
             self.comp_collect.purge()
             self.reac_collect.purge()
-            Probalistic.setprobalist(vol=self.param.vol, minprob=self.runparam.minprob)
+            Probalistic.setprobalist(vol=self.param.vol, minprob=self.param.minprob)
             trigger_changes()
             gc.collect()
             self.log.debug(f"Collection purged for {num}")
@@ -233,16 +232,16 @@ class System(Probalistic, Collected):
         return retval
 
     def run(self) -> Result:
-        if self.runparam.nbthread == 1:
+        if self.param.nbthread == 1:
             self.log.info("Launching single run.")
             res = [self._run()]
             self.signcatch.reset()
             return Result(res)
         self.log.info("Launching threaded run.")
-        return self.multirun(self.runparam.nbthread)
+        return self.multirun(self.param.nbthread)
 
     def multirun(self, nbthread: int = -1) -> Result:
-        ctx = get_context(self.runparam.context)
+        ctx = get_context(self.param.context)
         self.signcatch.ignore()
         if nbthread == -1:
             nbthread = ctx.cpu_count()

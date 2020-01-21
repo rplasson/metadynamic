@@ -1,26 +1,22 @@
 {
-    "System" : {
-	"init" :
-	{
-	    "a": 1500,
-	    "A": 2500
-	},
-	"conc" : 30.0,
-	"tend" : 50.0,
-	"tstep" : 1.0,
-	"save" : ["a", "aa", "aaa", "aaaa", "A", "Aa", "aA", "AA", "a*", "A*"],
-	"snapshot" : "testlog/aped-snapshot.json",
-	"seed" : 1234,
-	"rtlim" : 600.0
+    "init" :
+    {
+	"a": 1500,
+	"A": 2500
     },
-    "Run" : {
-	"rulemodel" : "metadynamic.polymers",
-	"consts" :{
-	    "A": [1.0, 0.1],
-	    "H": [1.0, 0.0],
-	    "E": [1.0, 0.0, 0.0],
-	    "a": [1.0, 0.0]
-	},
-	"dropmode" : "drop"
-    }
+    "conc" : 30.0,
+    "tend" : 50.0,
+    "tstep" : 1.0,
+    "save" : ["a", "aa", "aaa", "aaaa", "A", "Aa", "aA", "AA", "a*", "A*"],
+    "snapshot" : "testlog/aped-snapshot.json",
+    "seed" : 1234,
+    "rtlim" : 600.0,
+    "rulemodel" : "metadynamic.polymers",
+    "consts" :{
+	"A": [1.0, 0.1],
+	"H": [1.0, 0.0],
+	"E": [1.0, 0.0, 0.0],
+	"a": [1.0, 0.0]
+    },
+    "dropmode" : "drop"
 }
