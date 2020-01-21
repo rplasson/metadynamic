@@ -12,7 +12,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 syst = System("aped.json", logfile=args.log, loglevel=args.level)
-syst.runparam.set_param(dropmode="drop")
+syst.set_param(dropmode="drop")
 syst.set_param(init={"a": 15000, "A": 30000}, maxsteps=100000)
 res = syst.run()
 

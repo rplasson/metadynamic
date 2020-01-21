@@ -1,25 +1,23 @@
 {
-    "System" : {
-	"init" :
-	{
-	    "a" : 500,
+    "init" :
+    {
+	"a" : 500,
         "A" : 500,
         "b" : 1000,
         "c" : 1000
-	},
-	"conc" : 1.0,
-	"tend" : 0.5,
-	"tstep" : 0.001,
-	"save" : ["a", "aa", "aaa", "ba", "baba", "aaaa", "A", "Aa", "aA", "AA"],
-	"snapshot" : "testlog/memstress-snapshot.json"
     },
-    "Run" : {
-	"consts" :{
+    "conc" : 1.0,
+    "tend" : 0.5,
+    "tstep" : 0.001,
+    "save" : ["a", "aa", "aaa", "ba", "baba", "aaaa", "A", "Aa", "aA", "AA"],
+    "snapshot" : "testlog/memstress-snapshot.json",
+    "consts" :
+    {
         "P" : [10.0, 10.0],
-	    "H" : [1.0, 1.0],
+	"H" : [1.0, 1.0],
         "E" : [0.1, 0.1, 0.1]
-	},
+    },
     "nbthread" : -1,
     "gcperio" : false    
-    }
 }
+

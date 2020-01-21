@@ -56,7 +56,7 @@ class Readerclass(Logged):
         list_param = cls.list_param()
         for key, val in parameters.items():
             if key not in list_param.keys():
-                err += f"{key} parameter unknown.\n"
+                err += f"'{key}' parameter unknown.\n"
             elif checktype:
                 if not isinstance(val, list_param[key]):
                     err += f"{key} parameter should be of type {list_param[key]}, not {type(val)}\n"
