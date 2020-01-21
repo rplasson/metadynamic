@@ -19,7 +19,18 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # from itertools import chain
-from typing import Generic, List, Callable, TypeVar, Dict, Any, Set, Hashable, Tuple, Union
+from typing import (
+    Generic,
+    List,
+    Callable,
+    TypeVar,
+    Dict,
+    Any,
+    Set,
+    Hashable,
+    Tuple,
+    Union,
+)
 from math import factorial
 from itertools import repeat
 
@@ -164,6 +175,7 @@ class Reaction(Chemical[ReacDescr], Probalistic):
 
     def __init__(self, description: ReacDescr):
         super().__init__(description)
+        self.name: str = ""
         # If name is empty => invalid reaction, no process to be done
         if description[0] != "":
             self._probaobj: Probaobj = self.probalist.get_probaobj(self)
@@ -238,7 +250,22 @@ class Reaction(Chemical[ReacDescr], Probalistic):
         self._probaobj.obj = invalidreaction
 
     def serialize(self) -> Union[float, int]:
-        return self.proba
+        return self.const, self.proba
+
+    def __str__(self) -> str:
+        if not self.name:
+            self.name = "->".join(
+                [
+                    "+".join(
+                        [
+                            f"{num}{name}" if num > 1 else str(name)
+                            for name, num in stoechio
+                        ]
+                    )
+                    for stoechio in [self.stoechio, self._stoechproduct]
+                ]
+            )
+        return self.name
 
 
 class Compound(Chemical[str]):

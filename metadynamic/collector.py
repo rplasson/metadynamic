@@ -154,8 +154,8 @@ class Collect(Generic[K, T], Ruled):
                 pass
 
     def save(self, filename: str, full: bool = False) -> None:
+        dataset = self.pool if full else self.active
         with open(filename, "w") as outfile:
-            if full:
-                dump(self.pool, outfile, cls=Encoder)
-            else:
-                dump(self.active, outfile, cls=Encoder)
+            dump(
+                {str(val): val for val in dataset.values()}, outfile, cls=Encoder, indent=4,
+            )
