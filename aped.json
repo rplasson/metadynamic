@@ -9,6 +9,7 @@
 	"tend" : 50.0,
 	"tstep" : 1.0,
 	"save" : ["a", "aa", "aaa", "aaaa", "A", "Aa", "aA", "AA", "a*", "A*"],
+	"snapshot" : "testlog/aped-snapshot.json",
 	"seed" : 1234,
 	"rtlim" : 600.0
     },

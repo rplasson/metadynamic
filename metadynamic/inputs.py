@@ -90,6 +90,7 @@ class SysParam(Readerclass):
     vol: float = field(init=False)
     seed: int = 0
     save: List[str] = field(default_factory=list)
+    snapshot: str = ""
     init: Dict[str, int] = field(default_factory=dict)
 
     def __post_init__(self) -> None:

@@ -10,7 +10,8 @@
 	"conc" : 1.0,
 	"tend" : 0.5,
 	"tstep" : 0.001,
-	"save" : ["a", "aa", "aaa", "ba", "baba", "aaaa", "A", "Aa", "aA", "AA"]
+	"save" : ["a", "aa", "aaa", "ba", "baba", "aaaa", "A", "Aa", "aA", "AA"],
+	"snapshot" : "testlog/memstress-snapshot.json"
     },
     "Run" : {
 	"consts" :{
