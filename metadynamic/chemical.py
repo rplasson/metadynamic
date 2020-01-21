@@ -249,7 +249,7 @@ class Reaction(Chemical[ReacDescr], Probalistic):
         self._probaobj.update(0)
         self._probaobj.obj = invalidreaction
 
-    def serialize(self) -> Union[float, int]:
+    def serialize(self) -> Any:
         return self.const, self.proba
 
     def __str__(self) -> str:
@@ -334,7 +334,7 @@ class Compound(Chemical[str]):
         self._unactivate()
         self.change_pop(-self.pop)
 
-    def serialize(self) -> Union[float, int]:
+    def serialize(self) -> Any:
         return self.pop
 
 

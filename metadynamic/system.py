@@ -26,6 +26,7 @@ from typing import Dict, Tuple
 from psutil import Process
 
 from pandas import DataFrame
+from json import dump, JSONEncoder
 
 from metadynamic.ends import (
     Finished,
@@ -43,9 +44,17 @@ from metadynamic.logger import Logged
 from metadynamic.proba import Probalistic
 from metadynamic.processing import Result
 from metadynamic.ruleset import Ruled
+from metadynamic.collector import Collectable
 from metadynamic.chemical import Collected, trigger_changes
 from metadynamic.inputs import Param
 from metadynamic.inval import invalidstr
+
+
+class Encoder(JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Collectable):
+            return obj.serialize()
+        return super().default(obj)
 
 
 class System(Probalistic, Collected):
@@ -219,7 +228,16 @@ class System(Probalistic, Collected):
                 if num >= 0
                 else self.param.snapshot
             )
-            self.comp_collect.save(filename)
+            with open(filename, "w") as outfile:
+                dump(
+                    {
+                        "Compounds": self.comp_collect.save(),
+                        "Reactions": self.reac_collect.save(),
+                    },
+                    outfile,
+                    cls=Encoder,
+                    indent=4,
+                )
         if num >= 0:
             # Clean memory as much as possible to leave room to still alive threads
             self.comp_collect.purge()

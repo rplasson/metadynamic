@@ -18,8 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-from json import dump, JSONEncoder
-from typing import Generic, TypeVar, Dict, Set, Union, Hashable, List
+from typing import Generic, TypeVar, Dict, Set, Union, Hashable, List, Any
 from weakref import WeakValueDictionary
 from collections import defaultdict
 
@@ -37,20 +36,13 @@ class Collectable:
         To be implemented in subclasses"""
         raise NotImplementedError
 
-    def serialize(self) -> Union[float, int]:
+    def serialize(self) -> Any:
         """
         Output the value corresponding to the collected object
         In order to be dumped in a json file
 
         To be implemented in subclasses"""
         raise NotImplementedError
-
-
-class Encoder(JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, Collectable):
-            return obj.serialize()
-        return super().default(obj)
 
 
 K = TypeVar("K", bound=Hashable)
@@ -153,9 +145,6 @@ class Collect(Generic[K, T], Ruled):
                 # Already purged by delete process
                 pass
 
-    def save(self, filename: str, full: bool = False) -> None:
+    def save(self, full: bool = False) -> Dict[str, T]:
         dataset = self.pool if full else self.active
-        with open(filename, "w") as outfile:
-            dump(
-                {str(val): val for val in dataset.values()}, outfile, cls=Encoder, indent=4,
-            )
+        return {str(val): val for val in dataset.values()}
