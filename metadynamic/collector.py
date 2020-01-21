@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
+from json import dump, JSONEncoder
 from typing import Generic, TypeVar, Dict, Set, Union, Hashable, List
 from weakref import WeakValueDictionary
 from collections import defaultdict
@@ -26,7 +27,7 @@ from collections import defaultdict
 from metadynamic.ruleset import Ruled
 
 
-class Purge:
+class Collectable:
     def delete(self) -> None:
         """
         Clean memory of the object.
@@ -36,9 +37,24 @@ class Purge:
         To be implemented in subclasses"""
         raise NotImplementedError
 
+    def serialize(self) -> Union[float, int]:
+        """
+        Output the value corresponding to the collected object
+        In order to be dumped in a json file
+
+        To be implemented in subclasses"""
+        raise NotImplementedError
+
+
+class Encoder(JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Collectable):
+            return obj.serialize()
+        return super().default(obj)
+
 
 K = TypeVar("K", bound=Hashable)
-T = TypeVar("T", bound=Purge)
+T = TypeVar("T", bound=Collectable)
 
 
 class WeakDict(Generic[K, T], WeakValueDictionary):
@@ -136,3 +152,10 @@ class Collect(Generic[K, T], Ruled):
             except KeyError:
                 # Already purged by delete process
                 pass
+
+    def save(self, filename: str, full: bool = False) -> None:
+        with open(filename, "w") as outfile:
+            if full:
+                dump(self.pool, outfile, cls=Encoder)
+            else:
+                dump(self.active, outfile, cls=Encoder)

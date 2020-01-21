@@ -19,13 +19,13 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # from itertools import chain
-from typing import Generic, List, Callable, TypeVar, Dict, Any, Set, Hashable, Tuple
+from typing import Generic, List, Callable, TypeVar, Dict, Any, Set, Hashable, Tuple, Union
 from math import factorial
 from itertools import repeat
 
 # from numba import jit
 
-from metadynamic.collector import Collect, Purge
+from metadynamic.collector import Collect, Collectable
 from metadynamic.proba import Probaobj, Probalistic, Activable
 from metadynamic.ends import DecrZero
 from metadynamic.ruleset import Ruled, ReacDescr
@@ -122,7 +122,7 @@ class Collected(Ruled):
         cls.reac_collect = CollectofReaction(categorize_reac, dropmode_reac)
 
 
-class Chemical(Generic[K], Collected, Activable, Purge):
+class Chemical(Generic[K], Collected, Activable, Collectable):
     _descrtype = "Chemical"
     _updatelist: Dict["Chemical[K]", int]
 
@@ -237,6 +237,9 @@ class Reaction(Chemical[ReacDescr], Probalistic):
         self._probaobj.update(0)
         self._probaobj.obj = invalidreaction
 
+    def serialize(self) -> Union[float, int]:
+        return self.proba
+
 
 class Compound(Chemical[str]):
     _descrtype = "Compound"
@@ -303,6 +306,9 @@ class Compound(Chemical[str]):
     def delete(self) -> None:
         self._unactivate()
         self.change_pop(-self.pop)
+
+    def serialize(self) -> Union[float, int]:
+        return self.pop
 
 
 class InvalidReaction(Invalid, Reaction):
