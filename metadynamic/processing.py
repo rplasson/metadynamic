@@ -37,18 +37,48 @@ class Result:
         }
         data_n = {
             "table": datasum["table"].loc["#"],
-            "lendist": datasum["lendist"].loc["#"],
-            "pooldist": datasum["pooldist"].loc["#"],
+            "lendist": datasum["lendist"].loc[-1],
+            "pooldist": datasum["pooldist"].loc[-1],
         }
+        # '#' and -1 rows now unecessary and annoying, remove them
+        for dataname, remove in (("table", "#"), ("lendist", -1), ("pooldist", -1)):
+            datasum[dataname] = datasum[dataname].drop(index=remove)
+            data = self.data[dataname]
+            for num, frame in enumerate(data):
+                data[num] = frame.drop(index=remove)
         self.datamean = {
             "table": datasum["table"] / data_n["table"],
             "lendist": datasum["lendist"] / data_n["lendist"],
             "pooldist": datasum["pooldist"] / data_n["pooldist"],
         }
         self.datastd = {
-            "table": sqrt(self.frame_sum([(data-self.datamean["table"])**2 for data in self.data["table"]])/data_n["table"]),
-            "lendist": sqrt(self.frame_sum([(data-self.datamean["lendist"])**2 for data in self.data["lendist"]])/data_n["lendist"]),
-            "pooldist": sqrt(self.frame_sum([(data-self.datamean["pooldist"])**2 for data in self.data["pooldist"]])/data_n["pooldist"]),
+            "table": sqrt(
+                self.frame_sum(
+                    [
+                        (data - self.datamean["table"]) ** 2
+                        for data in self.data["table"]
+                    ]
+                )
+                / data_n["table"]
+            ),
+            "lendist": sqrt(
+                self.frame_sum(
+                    [
+                        (data - self.datamean["lendist"]) ** 2
+                        for data in self.data["lendist"]
+                    ]
+                )
+                / data_n["lendist"]
+            ),
+            "pooldist": sqrt(
+                self.frame_sum(
+                    [
+                        (data - self.datamean["pooldist"]) ** 2
+                        for data in self.data["pooldist"]
+                    ]
+                )
+                / data_n["pooldist"]
+            ),
         }
 
     def _format(self, name, field, num, mean=None):

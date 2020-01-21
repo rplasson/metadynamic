@@ -209,8 +209,8 @@ class System(Probalistic, Collected):
                 break
         retval: Tuple[DataFrame, int, int, str] = (
             table,
-            lendist.astype(int).rename({-1: "#"}),
-            pooldist.astype(int).rename({-1: "#"}),
+            lendist.astype(int),
+            pooldist.astype(int),
             end,
         )
         self.log.debug(f"Run {num}={getpid()} finished")
