@@ -215,7 +215,12 @@ class System(Probalistic, Collected):
         )
         self.log.debug(f"Run {num}={getpid()} finished")
         if self.param.snapshot:
-            self.comp_collect.save(self.param.snapshot)
+            filename = (
+                "-{}.".join(self.param.snapshot.split(".")).format(num)
+                if num >= 0
+                else self.param.snapshot
+            )
+            self.comp_collect.save(filename)
         if num >= 0:
             # Clean memory as much as possible to leave room to still alive threads
             self.comp_collect.purge()
