@@ -18,9 +18,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-from copy import deepcopy
+# from copy import deepcopy
 
-from fuzzywuzzy.fuzz import partial_ratio
+from fuzzywuzzy.fuzz import ratio
 
 # import * should be sufficient, but explicit everything used for better readability
 # from metadynamic.polymers import *
@@ -59,9 +59,10 @@ complexation: ProdBuilder = joiner(sep=":")
 dissociation: ProdBuilder = splitter(sep=":")
 
 k_complex: ConstBuilder = kinvar
-k_disso: ConstBuilder = lambda names, k, variant: k[0] * partial_ratio(
-    *names[0].split(":")
+k_disso: ConstBuilder = lambda names, k, variant: (100 + k[1]) * k[0] / (
+    ratio(*names[0].split(":")) + k[1]
 )
+
 
 model.add_cat("target", istarget)
 model.add_cat("complex", iscomplex)
