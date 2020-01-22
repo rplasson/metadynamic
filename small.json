@@ -1,26 +1,22 @@
 {
-    "System" : {
-	"init" :
-	{
-	    "a": 50,
-	    "A": 50,
-	    "b": 100,
-	    "c": 100
-	},
-	"conc" : 1.0,
-	"tend" : 2.0,
-	"tstep" : 0.1,
-	"save" : ["a", "b", "c", "A", "B", "C"],
-	"seed" : 1234,
-	"rtlim" : 600.0
+    "init" :
+    {
+	"a": 50,
+	"A": 50,
+	"b": 100,
+	"c": 100
     },
-    "Run" : {
-	"rulemodel" : "metadynamic.polymers",
-	"consts" :{
-	    "P": [10.0, 10.0],
-	    "H": [1.0, 1.0],
-	    "E": [1.0. 1.0, 1.0]
-	},
-	"dropmode" : "drop"
-    }
+    "conc" : 1.0,
+    "tend" : 2.0,
+    "tstep" : 0.1,
+    "save" : ["a", "b", "c", "A", "B", "C"],
+    "seed" : 1234,
+    "rtlim" : 600.0,
+    "rulemodel" : "metadynamic.polymers",
+    "consts" :{
+	"P": [10.0, 10.0],
+	"H": [1.0, 1.0],
+	"E": [1.0. 1.0, 1.0]
+    },
+    "dropmode" : "drop"
 }

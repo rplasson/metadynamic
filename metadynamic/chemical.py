@@ -19,13 +19,24 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # from itertools import chain
-from typing import Generic, List, Callable, TypeVar, Dict, Any, Set, Hashable, Tuple
+from typing import (
+    Generic,
+    List,
+    Callable,
+    TypeVar,
+    Dict,
+    Any,
+    Set,
+    Hashable,
+    Tuple,
+    Union,
+)
 from math import factorial
 from itertools import repeat
 
 # from numba import jit
 
-from metadynamic.collector import Collect
+from metadynamic.collector import Collect, Collectable
 from metadynamic.proba import Probaobj, Probalistic, Activable
 from metadynamic.ends import DecrZero
 from metadynamic.ruleset import Ruled, ReacDescr
@@ -122,7 +133,7 @@ class Collected(Ruled):
         cls.reac_collect = CollectofReaction(categorize_reac, dropmode_reac)
 
 
-class Chemical(Generic[K], Collected, Activable):
+class Chemical(Generic[K], Collected, Activable, Collectable):
     _descrtype = "Chemical"
     _updatelist: Dict["Chemical[K]", int]
 
@@ -168,6 +179,7 @@ class Reaction(Chemical[ReacDescr], Probalistic):
 
     def __init__(self, description: ReacDescr):
         super().__init__(description)
+        self.name: str = ""
         # If name is empty => invalid reaction, no process to be done
         if description[0] != "":
             self._probaobj: Probaobj = self.probalist.get_probaobj(self)
@@ -241,6 +253,24 @@ class Reaction(Chemical[ReacDescr], Probalistic):
         self._probaobj.update(0)
         self._probaobj.obj = invalidreaction
 
+    def serialize(self) -> Any:
+        return self.const, self.proba
+
+    def __str__(self) -> str:
+        if not self.name:
+            self.name = "->".join(
+                [
+                    "+".join(
+                        [
+                            f"{num}{name}" if num > 1 else str(name)
+                            for name, num in stoechio
+                        ]
+                    )
+                    for stoechio in [self.stoechio, self._stoechproduct]
+                ]
+            )
+        return self.name
+
 
 class Compound(Chemical[str]):
     _descrtype = "Compound"
@@ -307,6 +337,9 @@ class Compound(Chemical[str]):
     def delete(self) -> None:
         self._unactivate()
         self.change_pop(-self.pop)
+
+    def serialize(self) -> Any:
+        return self.pop
 
 
 class InvalidReaction(Invalid, Reaction):

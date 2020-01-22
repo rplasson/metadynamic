@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-from typing import Generic, TypeVar, Dict, Set, Union, Hashable, List
+from typing import Generic, TypeVar, Dict, Set, Union, Hashable, List, Any
 from weakref import WeakValueDictionary
 from collections import defaultdict
 
@@ -26,8 +26,27 @@ from collections import defaultdict
 from metadynamic.ruleset import Ruled
 
 
+class Collectable:
+    def delete(self) -> None:
+        """
+        Clean memory of the object.
+        It is only intended for a final purge when the thread exits.
+        Manual call may break many things!
+
+        To be implemented in subclasses"""
+        raise NotImplementedError
+
+    def serialize(self) -> Any:
+        """
+        Output the value corresponding to the collected object
+        In order to be dumped in a json file
+
+        To be implemented in subclasses"""
+        raise NotImplementedError
+
+
 K = TypeVar("K", bound=Hashable)
-T = TypeVar("T")
+T = TypeVar("T", bound=Collectable)
 
 
 class WeakDict(Generic[K, T], WeakValueDictionary):
@@ -123,5 +142,9 @@ class Collect(Generic[K, T], Ruled):
             try:
                 del self.pool[key]
             except KeyError:
-                # Already purge by delete process
+                # Already purged by delete process
                 pass
+
+    def save(self, full: bool = False) -> Dict[str, T]:
+        dataset = self.pool if full else self.active
+        return {str(val): val for val in dataset.values()}

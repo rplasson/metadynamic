@@ -23,10 +23,11 @@ from signal import SIGTERM, SIGINT
 from multiprocessing import get_context
 from itertools import repeat
 from os import getpid
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Any
 from psutil import Process
 
 from pandas import DataFrame
+from json import dump, JSONEncoder
 
 from metadynamic.ends import (
     Finished,
@@ -44,9 +45,17 @@ from metadynamic.logger import Logged
 from metadynamic.proba import Probalistic
 from metadynamic.processing import Result
 from metadynamic.ruleset import Ruled
+from metadynamic.collector import Collectable
 from metadynamic.chemical import Collected, trigger_changes
-from metadynamic.inputs import SysParam, RunParam
-from metadynamic.inval import invalidstr
+from metadynamic.inputs import Param
+from metadynamic.inval import invalidstr, invalidfloat, isvalid
+
+
+class Encoder(JSONEncoder):
+    def default(self, obj: Any) -> Any:
+        if isinstance(obj, Collectable):
+            return obj.serialize()
+        return super().default(obj)
 
 
 class System(Probalistic, Collected):
@@ -55,8 +64,7 @@ class System(Probalistic, Collected):
     ):
         self.initialized = False
         Logged.setlogger(logfile, loglevel)
-        self.param: SysParam = SysParam.readfile(filename)
-        self.runparam: RunParam = RunParam.readfile(filename)
+        self.param: Param = Param.readfile(filename)
         self.log.info("Parameter files loaded.")
         self.signcatch = SignalCatcher()
 
@@ -78,11 +86,15 @@ class System(Probalistic, Collected):
 
     @property
     def lendist(self) -> Dict[int, int]:
-        return self.comp_collect.dist("length", lenweight=True, full=False)
+        res = self.comp_collect.dist("length", lenweight=True, full=False)
+        res[-1] = 1
+        return res
 
     @property
     def pooldist(self) -> Dict[int, int]:
-        return self.comp_collect.dist("length", lenweight=False, full=True)
+        res = self.comp_collect.dist("length", lenweight=False, full=True)
+        res[-1] = 1
+        return res
 
     def statlist(self) -> Tuple[Dict[str, int], Dict[str, Dict[int, int]]]:
         stat = {}
@@ -99,26 +111,26 @@ class System(Probalistic, Collected):
     def initialize(self) -> None:
         if self.initialized:
             raise InitError("Double Initialization")
-        if self.runparam.gcperio:
+        if self.param.gcperio:
             gc.disable()
         self.time = 0.0
         # If seed set, always restart from the same seed. For timing/debugging purpose
         self.step = 0
-        Probalistic.setprobalist(vol=self.param.vol, minprob=self.runparam.minprob)
+        Probalistic.setprobalist(vol=self.param.vol, minprob=self.param.minprob)
         self.probalist.seed(self.param.seed)
         # Add all options for collections
-        Collected.setcollections(dropmode_reac=self.runparam.dropmode)
-        Ruled.setrules(self.runparam.rulemodel, self.runparam.consts)
+        Collected.setcollections(dropmode_reac=self.param.dropmode)
+        Ruled.setrules(self.param.rulemodel, self.param.consts)
         self.log.info("System created")
         for compound, pop in self.param.init.items():
             self.comp_collect[compound].change_pop(pop)
         trigger_changes()
-        self.log.info(f"Initialized with {self.param} and {self.runparam}")
+        self.log.info(f"Initialized with {self.param}")
         self.initialized = True
 
     def _process(self, tstop: float) -> bool:
         # Check if a cleanup should be done
-        if self.runparam.autoclean:
+        if self.param.autoclean:
             self.probalist.clean()
         # Check if end of time is nigh
         if self.time >= self.param.tend:
@@ -149,7 +161,7 @@ class System(Probalistic, Collected):
 
     def _run(self, num: int = -1) -> Tuple[DataFrame, int, int, str]:
         lines = (
-            ["thread", "ptime", "memuse", "step", "time"]
+            ["#", "thread", "ptime", "memuse", "step", "time"]
             + self.param.save
             + ["maxlength", "nbcomp", "poolsize", "nbreac", "poolreac"]
         )
@@ -162,6 +174,7 @@ class System(Probalistic, Collected):
         lendist = DataFrame()
         pooldist = DataFrame()
         tnext = 0.0
+        tsnapshot = self.param.sstep if self.param.sstep >= 0 else 2*self.param.tend
         step = 0
         self.log.info(f"Run {num}={getpid()} launched")
         self.signcatch.listen()
@@ -172,7 +185,7 @@ class System(Probalistic, Collected):
                 finished = self._process(tnext)
                 stat, dist = self.statlist()
                 res = (
-                    [num, self.log.runtime(), self.memuse, self.step, self.time]
+                    [1, num, self.log.runtime(), self.memuse, self.step, self.time]
                     + [self.conc_of(comp) for comp in self.param.save]
                     + [
                         stat["maxlength"],
@@ -185,14 +198,17 @@ class System(Probalistic, Collected):
                 table[step] = res
                 self.log.debug(str(res))
                 lendist = lendist.join(
-                    DataFrame.from_dict({step: dist["lendist"]}), how="outer"
+                    DataFrame.from_dict({step: dist["lendist"]}), how="outer",
                 ).fillna(0)
                 pooldist = pooldist.join(
-                    DataFrame.from_dict({step: dist["pooldist"]}), how="outer"
+                    DataFrame.from_dict({step: dist["pooldist"]}), how="outer",
                 ).fillna(0)
-                if self.runparam.gcperio:
+                if self.param.gcperio:
                     gc.collect()
                 if finished:
+                    if tnext > tsnapshot:
+                        self.make_snapshot(num, tsnapshot)
+                        tsnapshot += self.param.sstep
                     tnext += self.param.tstep
                 step += 1
             except Finished as the_end:
@@ -204,30 +220,55 @@ class System(Probalistic, Collected):
                 else:
                     self.log.warning(str(the_end))
                 break
-        retval: Tuple[DataFrame, int, int, str] = (table, lendist.astype(int), pooldist.astype(int), end)
+        retval: Tuple[DataFrame, int, int, str] = (
+            table,
+            lendist.astype(int),
+            pooldist.astype(int),
+            end,
+        )
         self.log.debug(f"Run {num}={getpid()} finished")
+        self.make_snapshot(num)
         if num >= 0:
             # Clean memory as much as possible to leave room to still alive threads
             self.comp_collect.purge()
             self.reac_collect.purge()
-            Probalistic.setprobalist(vol=self.param.vol, minprob=self.runparam.minprob)
+            Probalistic.setprobalist(vol=self.param.vol, minprob=self.param.minprob)
             trigger_changes()
             gc.collect()
             self.log.debug(f"Collection purged for {num}")
             self.log.disconnect(f"Disconnected from thread {num}")
         return retval
 
+    def make_snapshot(self, num: int, time: float = invalidfloat) -> None:
+        if not isvalid(time):
+            time = self.time
+        if self.param.snapshot:
+            fill = "-{n}_{t}." if num >= 0 else "-{t}."
+            filename = fill.join(self.param.snapshot.split(".")).format(
+                n=num, t=time
+            )
+            with open(filename, "w") as outfile:
+                dump(
+                    {
+                        "Compounds": self.comp_collect.save(),
+                        "Reactions": self.reac_collect.save(),
+                    },
+                    outfile,
+                    cls=Encoder,
+                    indent=4,
+                )
+
     def run(self) -> Result:
-        if self.runparam.nbthread == 1:
+        if self.param.nbthread == 1:
             self.log.info("Launching single run.")
             res = [self._run()]
             self.signcatch.reset()
             return Result(res)
         self.log.info("Launching threaded run.")
-        return self.multirun(self.runparam.nbthread)
+        return self.multirun(self.param.nbthread)
 
     def multirun(self, nbthread: int = -1) -> Result:
-        ctx = get_context(self.runparam.context)
+        ctx = get_context(self.param.context)
         self.signcatch.ignore()
         if nbthread == -1:
             nbthread = ctx.cpu_count()

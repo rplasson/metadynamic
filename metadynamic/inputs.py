@@ -30,7 +30,7 @@ R = TypeVar("R", bound="Readerclass")
 
 @dataclass
 class Readerclass(Logged):
-    _default_section: str = "Parameter"
+    _default_section: str = ""
 
     def __post_init__(self) -> None:
         pass
@@ -44,7 +44,9 @@ class Readerclass(Logged):
             section = cls._default_section
         try:
             with open(filename) as json_data:
-                parameters = load(json_data)[section]
+                parameters = load(json_data)
+                if section:
+                    parameters = parameters[section]
         except FileNotFoundError:
             raise FileNotFound(f"Unknown file {filename}")
         except JSONDecodeError as jerr:
@@ -54,7 +56,7 @@ class Readerclass(Logged):
         list_param = cls.list_param()
         for key, val in parameters.items():
             if key not in list_param.keys():
-                err += f"{key} parameter unknown.\n"
+                err += f"'{key}' parameter unknown.\n"
             elif checktype:
                 if not isinstance(val, list_param[key]):
                     err += f"{key} parameter should be of type {list_param[key]}, not {type(val)}\n"
@@ -79,32 +81,34 @@ class Readerclass(Logged):
 
 
 @dataclass
-class SysParam(Readerclass):
-    _default_section = "System"
-    conc: float = 0.1
-    tend: float = 1.0
-    tstep: float = 0.01
-    rtlim: float = 900.0  # Limit to 15min runtime
-    maxsteps: int = 10000
+class Param(Readerclass):
+    # chemical
+    conc: float = 0.1  # Concentration
     ptot: int = field(init=False)
     vol: float = field(init=False)
-    seed: int = 0
-    save: List[str] = field(default_factory=list)
-    init: Dict[str, int] = field(default_factory=dict)
+    init: Dict[str, int] = field(default_factory=dict)  # initial concentrations
+    rulemodel: str = "metadynamic.polymers"  # rule model to be used
+    consts: Dict[str, List[float]] = field(default_factory=dict)  # kinetic constants
+    # simulation
+    tend: float = 1.0  # final simulation time
+    tstep: float = 0.01  # timestep
+    sstep: float = -1  # snapshot step (if <0: only at end, if = 0: at each step)
+    rtlim: float = 900.0  # Limit runtime
+    maxsteps: int = 10000  # maximum time steps
+    seed: int = 0  # random initial seed (now ignored)
+    minprob: float = 1e-10  # minimal probability (now ignored)
+    # System
+    nbthread: int = 1  # number of thread (-1 is to use as many threads as detected cores)
+    autoclean: bool = True  # Perform a periodic cleaning of probabilities if Treu
+    dropmode: str = ""  # drop mode (can be 'keep', 'drop' or 'soft')
+    gcperio: bool = True  # if True, only call garbage collector at each timestep.
+    context: str = "fork"  # thread context to be used (now, only "fork" is implemented)
+    # IO
+    save: List[str] = field(
+        default_factory=list
+    )  # list of compounds to be saved at each time step
+    snapshot: str = ""  # filename for final snapshot
 
     def __post_init__(self) -> None:
         self.ptot = sum([pop * len(comp) for comp, pop in self.init.items()])
         self.vol = self.ptot / self.conc
-
-
-@dataclass
-class RunParam(Readerclass):
-    _default_section = "Run"
-    autoclean: bool = True
-    minprob: float = 1e-10
-    dropmode: str = ""
-    gcperio: bool = True
-    nbthread: int = 1
-    context: str = "fork"
-    rulemodel: str = "metadynamic.polymers"
-    consts: Dict[str, List[float]] = field(default_factory=dict)

@@ -20,7 +20,8 @@
 
 from typing import Tuple, Deque, Iterable
 from collections import deque
-from numpy import append, log, random, zeros, full, dtype
+from secrets import SystemRandom
+from numpy import append, log, zeros, full, dtype
 from numba import jit
 
 from metadynamic.ends import RoundError
@@ -119,6 +120,7 @@ class Probalist(Logged):
         self._maxlength = maxlength
         self.probtot = 0.0
         self._queue: Deque[int] = deque()
+        self.sysrand = SystemRandom()
 
     def register(self, obj: Activable) -> int:
         # Still room left from previously removed object
@@ -158,8 +160,8 @@ class Probalist(Logged):
         # First choose a random line in the probability map
         try:
             # chosen = random.choice(self._mapobj, p=self._problist / self.probtot)
-            chosen = self._mapobj[choice(self._problist, self.probtot*random.rand())]
-            dt = log(1 / random.rand()) / self.probtot
+            chosen = self._mapobj[choice(self._problist, self.probtot*self.sysrand.random())]
+            dt = log(1 / self.sysrand.random()) / self.probtot
             if chosen is None:
                 self.log.error(
                     f"Badly destroyed reaction from {self._mapobj} with proba {self._problist}"
@@ -186,7 +188,9 @@ class Probalist(Logged):
 
     @staticmethod
     def seed(seed: int) -> None:
-        if seed == 0:
-            random.seed()
-        else:
-            random.seed(seed)
+        pass
+        # disabled with system random numbers
+        # if seed == 0:
+        #     random.seed()
+        # else:
+        #     random.seed(seed)
