@@ -92,6 +92,7 @@ class Param(Readerclass):
     # simulation
     tend: float = 1.0  # final simulation time
     tstep: float = 0.01  # timestep
+    sstep: float = -1  # snapshot step (if <0: only at end, if = 0: at each step)
     rtlim: float = 900.0  # Limit runtime
     maxsteps: int = 10000  # maximum time steps
     seed: int = 0  # random initial seed (now ignored)

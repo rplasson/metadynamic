@@ -47,7 +47,7 @@ from metadynamic.ruleset import Ruled
 from metadynamic.collector import Collectable
 from metadynamic.chemical import Collected, trigger_changes
 from metadynamic.inputs import Param
-from metadynamic.inval import invalidstr
+from metadynamic.inval import invalidstr, invalidfloat, isvalid
 
 
 class Encoder(JSONEncoder):
@@ -173,6 +173,7 @@ class System(Probalistic, Collected):
         lendist = DataFrame()
         pooldist = DataFrame()
         tnext = 0.0
+        tsnapshot = self.param.sstep if self.param.sstep >= 0 else 2*self.param.tend
         step = 0
         self.log.info(f"Run {num}={getpid()} launched")
         self.signcatch.listen()
@@ -204,6 +205,9 @@ class System(Probalistic, Collected):
                 if self.param.gcperio:
                     gc.collect()
                 if finished:
+                    if tnext > tsnapshot:
+                        self.make_snapshot(num, tsnapshot)
+                        tsnapshot += self.param.sstep
                     tnext += self.param.tstep
                 step += 1
             except Finished as the_end:
@@ -222,11 +226,25 @@ class System(Probalistic, Collected):
             end,
         )
         self.log.debug(f"Run {num}={getpid()} finished")
+        self.make_snapshot(num)
+        if num >= 0:
+            # Clean memory as much as possible to leave room to still alive threads
+            self.comp_collect.purge()
+            self.reac_collect.purge()
+            Probalistic.setprobalist(vol=self.param.vol, minprob=self.param.minprob)
+            trigger_changes()
+            gc.collect()
+            self.log.debug(f"Collection purged for {num}")
+            self.log.disconnect(f"Disconnected from thread {num}")
+        return retval
+
+    def make_snapshot(self, num: int, time: float = invalidfloat) -> None:
+        if not isvalid(time):
+            time = self.time
         if self.param.snapshot:
-            filename = (
-                "-{}.".join(self.param.snapshot.split(".")).format(num)
-                if num >= 0
-                else self.param.snapshot
+            fill = "-{n}_{t}." if num >= 0 else "-{t}."
+            filename = fill.join(self.param.snapshot.split(".")).format(
+                n=num, t=time
             )
             with open(filename, "w") as outfile:
                 dump(
@@ -238,16 +256,6 @@ class System(Probalistic, Collected):
                     cls=Encoder,
                     indent=4,
                 )
-        if num >= 0:
-            # Clean memory as much as possible to leave room to still alive threads
-            self.comp_collect.purge()
-            self.reac_collect.purge()
-            Probalistic.setprobalist(vol=self.param.vol, minprob=self.param.minprob)
-            trigger_changes()
-            gc.collect()
-            self.log.debug(f"Collection purged for {num}")
-            self.log.disconnect(f"Disconnected from thread {num}")
-        return retval
 
     def run(self) -> Result:
         if self.param.nbthread == 1:
