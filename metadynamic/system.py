@@ -22,7 +22,7 @@ import gc
 from multiprocessing import get_context
 from itertools import repeat
 from os import getpid
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Any
 from psutil import Process
 
 from pandas import DataFrame
@@ -51,7 +51,7 @@ from metadynamic.inval import invalidstr, invalidfloat, isvalid
 
 
 class Encoder(JSONEncoder):
-    def default(self, obj):
+    def default(self, obj: Any) -> Any:
         if isinstance(obj, Collectable):
             return obj.serialize()
         return super().default(obj)
