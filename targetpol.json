@@ -1,0 +1,28 @@
+{
+    "rulemodel" : "metadynamic.target_polymer",
+    "init" :
+    {
+        "A" : 1000,
+        "B" : 1000,
+        "C" : 1000,
+	"{CABBA}" : 1000
+    },
+    "conc" : 1.0,
+    "tend" : 10.0,
+    "tstep" : 0.1,
+    "sstep" : 2.0,
+    "save" : ["A", "B", "C", "{CABBA}", "CABBA", "AA", "AB", "AC", "BA", "BB", "BC", "CA", "CB", "CC"],
+    "snapshot" : "testlog/target-snapshot.json",
+    "consts" :
+    {
+        "A" : [10.0, 10.0],
+	"H" : [1.0, 1.0],
+        "a" : [1.0, 1.0],
+        "d" : [0.01, 0.01],
+	"ct" : [1000.0],
+	"dt" : [10.0]
+    },
+    "nbthread" : 1,
+    "gcperio" : false    
+}
+

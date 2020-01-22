@@ -29,7 +29,6 @@ from typing import (
     Set,
     Hashable,
     Tuple,
-    Union,
 )
 from math import factorial
 from itertools import repeat

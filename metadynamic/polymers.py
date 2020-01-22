@@ -78,6 +78,13 @@ def joiner(sep: str) -> ProdBuilder:
     return lambda names, variant: (sep.join(names),)
 
 
+def splitter(sep: str) -> ProdBuilder:
+    """Generate a "splitter" ProdBuilder using a "sep" as a separator string.
+       e.g. cutter=splitter("-") will give a ProdBuilder named cutter
+       that will provide ["A","B","C"] from cutter("A-B-C")"""
+    return lambda names, variant: names[0].split(sep)
+
+
 cut: ProdBuilder = lambda names, variant: (names[0][:variant], names[0][variant:])
 act_polym: ProdBuilder = lambda names, variant: (names[0][:-1] + names[1],)
 activ: ProdBuilder = lambda names, variant: (names[0] + "*",)
@@ -93,6 +100,9 @@ epimer: ProdBuilder = lambda names, variant: (
 def samecase(one: str, two: str) -> bool:
     return (one.islower() and two.islower()) or (one.isupper() and two.isupper())
 
+
+# Invariant constant
+kinvar: ConstBuilder = lambda names, k, variant: k[0]
 
 kfastmono: ConstBuilder = lambda names, k, variant: (
     k[0] if length(names[0]) == 1 else k[1]

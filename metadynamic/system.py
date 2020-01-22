@@ -19,7 +19,6 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 import gc
-from signal import SIGTERM, SIGINT
 from multiprocessing import get_context
 from itertools import repeat
 from os import getpid
@@ -240,12 +239,11 @@ class System(Probalistic, Collected):
         return retval
 
     def make_snapshot(self, num: int, time: float = invalidfloat) -> None:
-        if not isvalid(time):
-            time = self.time
+        timestr = str(time) if isvalid(time) else "end"
         if self.param.snapshot:
             fill = "-{n}_{t}." if num >= 0 else "-{t}."
             filename = fill.join(self.param.snapshot.split(".")).format(
-                n=num, t=time
+                n=num, t=timestr
             )
             with open(filename, "w") as outfile:
                 dump(
