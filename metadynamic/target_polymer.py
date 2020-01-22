@@ -59,8 +59,8 @@ complexation: ProdBuilder = joiner(sep=":")
 dissociation: ProdBuilder = splitter(sep=":")
 
 k_complex: ConstBuilder = kinvar
-k_disso: ConstBuilder = lambda names, k, variant: (100 + k[1]) * k[0] / (
-    ratio(*names[0].split(":")) + k[1]
+k_disso: ConstBuilder = lambda names, k, variant: k[0] * k[1] ** (
+    -ratio(*names[0].split(":")) / 100
 )
 
 
