@@ -37,13 +37,45 @@ class Json2dot:
     def write(self, filename):
         with open(filename, "w") as out:
             out.write("digraph {\n")
+            compounds = set()
+            reactions = set()
+            out.write("# Flows\n")
+            color = self.param.f_color
+            minval, maxval = self.minmax(
+                [rate for _, rate in self.reactions.values()], self.param.f_cutoff
+            )
+            print(minval, maxval)
+            minwidth = self.param.min_f_width
+            maxwidth = self.param.max_f_width
+            for name, (_, rate) in self.reactions.items():
+                if rate >= minval:
+                    reactions.add(name)
+                    width = (
+                        maxwidth * (rate - minval) + minwidth * (maxval - rate)
+                    ) / (maxval - minval)
+                    reactants, products = name.split("->")
+                    for reac in reactants.split("+"):
+                        num, reacname = self.cutdown(reac)
+                        compounds.add(reacname)
+                        for _ in range(num):
+                            out.write(
+                                f'"{reacname}" -> "{name}" [penwidth={width}, color={color}];\n'
+                            )
+                    for prod in products.split("+"):
+                        num, prodname = self.cutdown(prod)
+                        compounds.add(reacname)
+                        for _ in range(num):
+                            out.write(
+                                f'"{name}" -> "{prodname}" [penwidth={width}, color={color}];\n'
+                            )
             out.write("# Compounds\n")
             fontsize = self.param.fontsize
             color = self.param.c_color
-            minval, maxval = self.minmax(list(self.compounds.values()), self.param.c_cutoff)
+            minval, maxval = self.minmax(list(self.compounds.values()))
             minwidth = self.param.min_c_width
             maxwidth = self.param.max_c_width
-            for name, pop in self.compounds.items():
+            for name in compounds:
+                pop = self.compounds[name]
                 width = (maxwidth * (pop - minval) + minwidth * (maxval - pop)) / (
                     maxval - minval
                 )
@@ -53,47 +85,20 @@ class Json2dot:
             out.write("# Reactions\n")
             color = self.param.r_color
             minval, maxval = self.minmax(
-                [const for const, _ in self.reactions.values()], self.param.r_cutoff
+                [const for const, _ in self.reactions.values()]
             )
             minwidth = self.param.min_r_width
             maxwidth = self.param.max_r_width
-            for name, (const, _) in self.reactions.items():
-                if const > 0:
-                    width = (
-                        maxwidth * (const - minval) + minwidth * (maxval - const)
-                    ) / (maxval - minval)
-                    out.write(
-                        f'"{name}" [shape="point", width={width}, color={color}];\n'
-                    )
-            out.write("# Flows\n")
-            color = self.param.f_color
-            minval, maxval = self.minmax(
-                [rate for _, rate in self.reactions.values()], self.param.f_cutoff
-            )
-            minwidth = self.param.min_f_width
-            maxwidth = self.param.max_f_width
-            for name, (_, rate) in self.reactions.items():
-                if rate > 0:
-                    width = (
-                        maxwidth * (const - minval) + minwidth * (maxval - const)
-                    ) / (maxval - minval)
-                    reactants, products = name.split("->")
-                    for reac in reactants.split("+"):
-                        num, reacname = self.cutdown(reac)
-                        for _ in range(num):
-                            out.write(
-                                f'"{reacname}" -> "{name}" [penwidth={width}, color={color}];\n'
-                            )
-                    for prod in products.split("+"):
-                        num, prodname = self.cutdown(prod)
-                        for _ in range(num):
-                            out.write(
-                                f'"{name}" -> "{prodname}" [penwidth={width}, color={color}];\n'
-                            )
+            for name in reactions:
+                const, _ = self.reactions[name]
+                width = (maxwidth * (const - minval) + minwidth * (maxval - const)) / (
+                    maxval - minval
+                )
+                out.write(f'"{name}" [shape="point", width={width}, color={color}];\n')
             out.write("}\n")
 
     @staticmethod
-    def minmax(data, cutoff):
+    def minmax(data, cutoff=0):
         maxval = max(data)
         data = array(data)
         data = data[data > maxval * cutoff]

@@ -121,14 +121,14 @@ class Json2dotParam(Readerclass):
     min_c_width: float = 0.5
     max_c_width: float = 5.0
     c_color: str = "blue"
-    c_cutoff: float = 0.0
+    c_cutoff: float = 0
     # reactions
     min_r_width: float = 0.02
-    max_r_width: float = 1.0
+    max_r_width: float = 0.2
     r_color: str = "red"
-    r_cutoff: float = 0.0
+    r_cutoff: float = 0
     # flows
     min_f_width: float = 0.1
     max_f_width: float = 10.0
     f_color: str = "black"
-    f_cutoff: float = 0.0
+    f_cutoff: float = 0.01
