@@ -25,15 +25,18 @@ from metadynamic.inputs import Json2dotParam
 
 
 class Scaler:
-    def __init__(self, data, minimal, maximal, cutoff=0):
+    def __init__(self, data, minimal, maximal, cutoff=0, powerscale=1):
         self.minval, self.maxval = self.minmax(data, cutoff)
         self.minimal = minimal
         self.maximal = maximal
+        self.powerscale = powerscale
 
     def __call__(self, value):
+        n = self.powerscale
         return (
-            self.maximal * (value - self.minval) + self.minimal * (self.maxval - value)
-        ) / (self.maxval - self.minval)
+            self.maximal * (value ** n - self.minval ** n)
+            + self.minimal * (self.maxval ** n - value ** n)
+        ) / (self.maxval ** n - self.minval ** n)
 
     @staticmethod
     def minmax(data, cutoff=0):
@@ -66,6 +69,7 @@ class Json2dot:
                 minimal=self.param.min_f_width,
                 maximal=self.param.max_f_width,
                 cutoff=self.param.cutoff,
+                powerscale=self.param.f_powerscale,
             )
             for name, (_, rate) in self.reactions.items():
                 if rate >= scaler.minval:
@@ -81,7 +85,7 @@ class Json2dot:
                             )
                     for prod in products.split("+"):
                         num, prodname = self.cutdown(prod)
-                        compounds.add(reacname)
+                        compounds.add(prodname)
                         for _ in range(num):
                             out.write(
                                 f'"{name}" -> "{prodname}" [penwidth={width}, color={color}];\n'
@@ -92,11 +96,13 @@ class Json2dot:
                 data=list(self.compounds.values()),
                 minimal=self.param.min_c_width,
                 maximal=self.param.max_c_width,
+                powerscale=self.param.c_powerscale,
             )
             f_scaler = Scaler(
                 data=list(self.compounds.values()),
                 minimal=self.param.min_fontsize,
                 maximal=self.param.max_fontsize,
+                powerscale=self.param.font_powerscale,
             )
             for name in compounds:
                 pop = self.compounds[name]
@@ -111,6 +117,7 @@ class Json2dot:
                 data=[const for const, _ in self.reactions.values()],
                 minimal=self.param.min_r_width,
                 maximal=self.param.max_r_width,
+                powerscale=self.param.r_powerscale,
             )
             for name in reactions:
                 const, _ = self.reactions[name]
