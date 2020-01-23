@@ -24,6 +24,26 @@ from json import load
 from metadynamic.inputs import Json2dotParam
 
 
+class Scaler:
+    def __init__(self, data, minimal, maximal, cutoff=0):
+        self.minval, self.maxval = self.minmax(data, cutoff)
+        self.minimal = minimal
+        self.maximal = maximal
+
+    def __call__(self, value):
+        return (
+            self.maximal * (value - self.minval) + self.minimal * (self.maxval - value)
+        ) / (self.maxval - self.minval)
+
+    @staticmethod
+    def minmax(data, cutoff=0):
+        maxval = max(data)
+        data = array(data)
+        data = data[data > maxval * cutoff]
+        minval = min(data)
+        return minval, maxval
+
+
 class Json2dot:
     def __init__(self, filename, parameterfile=""):
         with open(filename) as infile:
@@ -41,18 +61,16 @@ class Json2dot:
             reactions = set()
             out.write("# Flows\n")
             color = self.param.f_color
-            minval, maxval = self.minmax(
-                [rate for _, rate in self.reactions.values()], self.param.f_cutoff
+            scaler = Scaler(
+                data=[rate for _, rate in self.reactions.values()],
+                minimal=self.param.min_f_width,
+                maximal=self.param.max_f_width,
+                cutoff=self.param.cutoff,
             )
-            print(minval, maxval)
-            minwidth = self.param.min_f_width
-            maxwidth = self.param.max_f_width
             for name, (_, rate) in self.reactions.items():
-                if rate >= minval:
+                if rate >= scaler.minval:
                     reactions.add(name)
-                    width = (
-                        maxwidth * (rate - minval) + minwidth * (maxval - rate)
-                    ) / (maxval - minval)
+                    width = scaler(rate)
                     reactants, products = name.split("->")
                     for reac in reactants.split("+"):
                         num, reacname = self.cutdown(reac)
@@ -69,31 +87,34 @@ class Json2dot:
                                 f'"{name}" -> "{prodname}" [penwidth={width}, color={color}];\n'
                             )
             out.write("# Compounds\n")
-            fontsize = self.param.fontsize
             color = self.param.c_color
-            minval, maxval = self.minmax(list(self.compounds.values()))
-            minwidth = self.param.min_c_width
-            maxwidth = self.param.max_c_width
+            scaler = Scaler(
+                data=list(self.compounds.values()),
+                minimal=self.param.min_c_width,
+                maximal=self.param.max_c_width,
+            )
+            f_scaler = Scaler(
+                data=list(self.compounds.values()),
+                minimal=self.param.min_fontsize,
+                maximal=self.param.max_fontsize,
+            )
             for name in compounds:
                 pop = self.compounds[name]
-                width = (maxwidth * (pop - minval) + minwidth * (maxval - pop)) / (
-                    maxval - minval
-                )
+                width = scaler(pop)
+                fontsize = f_scaler(pop)
                 out.write(
                     f'"{name}" [shape="circle", width={width}, fontsize={fontsize}, color={color}];\n'
                 )
             out.write("# Reactions\n")
             color = self.param.r_color
-            minval, maxval = self.minmax(
-                [const for const, _ in self.reactions.values()]
+            scaler = Scaler(
+                data=[const for const, _ in self.reactions.values()],
+                minimal=self.param.min_r_width,
+                maximal=self.param.max_r_width,
             )
-            minwidth = self.param.min_r_width
-            maxwidth = self.param.max_r_width
             for name in reactions:
                 const, _ = self.reactions[name]
-                width = (maxwidth * (const - minval) + minwidth * (maxval - const)) / (
-                    maxval - minval
-                )
+                width = scaler(const)
                 out.write(f'"{name}" [shape="point", width={width}, color={color}];\n')
             out.write("}\n")
 
