@@ -131,7 +131,7 @@ class Json2dotParam(Readerclass):
     r_powerscale: float = 1.0
     # flows
     min_f_width: float = 0.1
-    max_f_width: float = 10.0
+    max_f_width: float = 20.0
     f_color: str = "black"
-    cutoff: float = 0.01
+    cutoff: float = 0.05
     f_powerscale: float = 1.0

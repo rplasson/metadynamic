@@ -105,9 +105,13 @@ class Json2dot:
                 powerscale=self.param.font_powerscale,
             )
             for name in compounds:
-                pop = self.compounds[name]
-                width = scaler(pop)
-                fontsize = f_scaler(pop)
+                try:
+                    pop = self.compounds[name]
+                    width = scaler(pop)
+                    fontsize = f_scaler(pop)
+                except KeyError:
+                    width = 0
+                    fontsize = 0
                 out.write(
                     f'"{name}" [shape="circle", width={width}, fontsize={fontsize}, color={color}];\n'
                 )
