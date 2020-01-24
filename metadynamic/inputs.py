@@ -116,6 +116,8 @@ class Param(Readerclass):
 
 @dataclass
 class Json2dotParam(Readerclass):
+    # type
+    binode: bool = False
     # compounds
     min_fontsize: int = 20
     max_fontsize: int = 200

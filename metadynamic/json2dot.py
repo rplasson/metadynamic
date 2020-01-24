@@ -18,11 +18,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
+from itertools import product
 from numpy import array
-
 from json import load
-from metadynamic.inputs import Json2dotParam
 from typing import TextIO
+
+from metadynamic.inputs import Json2dotParam
 
 
 class Scaler:
@@ -52,11 +53,8 @@ class Dotwriter:
     def __init__(self, out: TextIO) -> None:
         self.out = out
 
-    def head(self, digraph: bool = True) -> None:
-        if digraph:
-            self.out.write("digraph {\n")
-        else:
-            self.out.write("graph {\n")
+    def head(self) -> None:
+        self.out.write("digraph {\n")
 
     def foot(self) -> str:
         self.out.write("}\n")
@@ -87,7 +85,8 @@ class Json2dot:
     def write(self, filename):
         with open(filename, "w") as out:
             io = Dotwriter(out)
-            io.head(digraph=True)
+            io.head()
+            binode = self.param.binode
             compounds = set()
             reactions = set()
             io.comment("Flows")
@@ -104,16 +103,28 @@ class Json2dot:
                     reactions.add(name)
                     width = scaler(rate)
                     reactants, products = name.split("->")
+                    if not binode:
+                        reaclist = []
+                        prodlist = []
                     for reac in reactants.split("+"):
                         num, reacname = self.cutdown(reac)
                         compounds.add(reacname)
-                        for _ in range(num):
-                            io.edge(start=reacname, end=name, width=width, color=color)
+                        if binode:
+                            for _ in range(num):
+                                io.edge(start=reacname, end=name, width=width, color=color)
+                        else:
+                            reaclist.append(reacname)
                     for prod in products.split("+"):
                         num, prodname = self.cutdown(prod)
                         compounds.add(prodname)
-                        for _ in range(num):
-                            io.edge(start=name, end=prodname, width=width, color=color)
+                        if binode:
+                            for _ in range(num):
+                                io.edge(start=name, end=prodname, width=width, color=color)
+                        else:
+                            prodlist.append(prodname)
+                    if not binode:
+                        for reacname, prodname in product(reaclist, prodlist):
+                            io.edge(start=reacname, end=prodname, width=width, color=color)
             io.comment("Compounds")
             color = self.param.c_color
             scaler = Scaler(
@@ -137,18 +148,19 @@ class Json2dot:
                     width = 0
                     fontsize = 0
                 io.compound(name=name, width=width, fontsize=fontsize, color=color)
-            io.comment("Reactions")
-            color = self.param.r_color
-            scaler = Scaler(
-                data=[const for const, _ in self.reactions.values()],
-                minimal=self.param.min_r_width,
-                maximal=self.param.max_r_width,
-                powerscale=self.param.r_powerscale,
-            )
-            for name in reactions:
-                const, _ = self.reactions[name]
-                width = scaler(const)
-                out.write(f'"{name}" [shape="point", width={width}, color={color}];\n')
+            if binode:
+                io.comment("Reactions")
+                color = self.param.r_color
+                scaler = Scaler(
+                    data=[const for const, _ in self.reactions.values()],
+                    minimal=self.param.min_r_width,
+                    maximal=self.param.max_r_width,
+                    powerscale=self.param.r_powerscale,
+                )
+                for name in reactions:
+                    const, _ = self.reactions[name]
+                    width = scaler(const)
+                    io.reaction(name=name, width=width, color=color)
             io.foot()
 
     @staticmethod
