@@ -82,9 +82,7 @@ class Json2dot:
             data = load(infile)
         self.compounds = data["Compounds"]
         self.reactions = data["Reactions"]
-        self.param = Json2dotParam()
-        if parameterfile:
-            self.param.readfile(parameterfile)
+        self.param = self.Json2dotParam.readfile(parameterfile) if parameterfile else Json2dotParam()
 
     def write(self, filename):
         with open(filename, "w") as out:
