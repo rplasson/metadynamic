@@ -22,6 +22,7 @@ from numpy import array
 
 from json import load
 from metadynamic.inputs import Json2dotParam
+from typing import TextIO
 
 
 class Scaler:
@@ -47,6 +48,34 @@ class Scaler:
         return minval, maxval
 
 
+class Dotwriter:
+    def __init__(self, out: TextIO) -> None:
+        self.out = out
+
+    def head(self, digraph: bool = True) -> None:
+        if digraph:
+            self.out.write("digraph {\n")
+        else:
+            self.out.write("graph {\n")
+
+    def foot(self) -> str:
+        self.out.write("}\n")
+
+    def comment(self, text: str) -> None:
+        self.out.write(f"    # {text}\n")
+
+    def compound(self, name: str, width: float, fontsize: float, color: str) -> None:
+        self.out.write(
+            f'"{name}" [shape="circle", width={width}, fontsize={fontsize}, color={color}];\n'
+        )
+
+    def reaction(self, name: str, width: float, color: str) -> None:
+        self.out.write(f'"{name}" [shape="point", width={width}, color={color}];\n')
+
+    def edge(self, start: str, end: str, width: float, color: str) -> None:
+        self.out.write(f'"{start}" -> "{end}" [penwidth={width}, color={color}];\n')
+
+
 class Json2dot:
     def __init__(self, filename, parameterfile=""):
         with open(filename) as infile:
@@ -59,10 +88,11 @@ class Json2dot:
 
     def write(self, filename):
         with open(filename, "w") as out:
-            out.write("digraph {\n")
+            io = Dotwriter(out)
+            io.head(digraph=True)
             compounds = set()
             reactions = set()
-            out.write("# Flows\n")
+            io.comment("Flows")
             color = self.param.f_color
             scaler = Scaler(
                 data=[rate for _, rate in self.reactions.values()],
@@ -80,17 +110,13 @@ class Json2dot:
                         num, reacname = self.cutdown(reac)
                         compounds.add(reacname)
                         for _ in range(num):
-                            out.write(
-                                f'"{reacname}" -> "{name}" [penwidth={width}, color={color}];\n'
-                            )
+                            io.edge(start=reacname, end=name, width=width, color=color)
                     for prod in products.split("+"):
                         num, prodname = self.cutdown(prod)
                         compounds.add(prodname)
                         for _ in range(num):
-                            out.write(
-                                f'"{name}" -> "{prodname}" [penwidth={width}, color={color}];\n'
-                            )
-            out.write("# Compounds\n")
+                            io.edge(start=name, end=prodname, width=width, color=color)
+            io.comment("Compounds")
             color = self.param.c_color
             scaler = Scaler(
                 data=list(self.compounds.values()),
@@ -112,10 +138,8 @@ class Json2dot:
                 except KeyError:
                     width = 0
                     fontsize = 0
-                out.write(
-                    f'"{name}" [shape="circle", width={width}, fontsize={fontsize}, color={color}];\n'
-                )
-            out.write("# Reactions\n")
+                io.compound(name=name, width=width, fontsize=fontsize, color=color)
+            io.comment("Reactions")
             color = self.param.r_color
             scaler = Scaler(
                 data=[const for const, _ in self.reactions.values()],
@@ -127,7 +151,7 @@ class Json2dot:
                 const, _ = self.reactions[name]
                 width = scaler(const)
                 out.write(f'"{name}" [shape="point", width={width}, color={color}];\n')
-            out.write("}\n")
+            io.foot()
 
     @staticmethod
     def minmax(data, cutoff=0):
