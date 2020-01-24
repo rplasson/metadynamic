@@ -21,19 +21,26 @@
 from itertools import product
 from numpy import array
 from json import load
-from typing import TextIO
+from typing import TextIO, Any, Tuple
 
 from metadynamic.inputs import Json2dotParam
 
 
 class Scaler:
-    def __init__(self, data, minimal, maximal, cutoff=0, powerscale=1):
+    def __init__(
+        self,
+        data: Any,
+        minimal: float,
+        maximal: float,
+        cutoff: float = 0.0,
+        powerscale: float = 1.0,
+    ):
         self.minval, self.maxval = self.minmax(data, cutoff)
         self.minimal = minimal
         self.maximal = maximal
         self.powerscale = powerscale
 
-    def __call__(self, value):
+    def __call__(self, value: float) -> float:
         n = self.powerscale
         return (
             self.maximal * (value ** n - self.minval ** n)
@@ -41,7 +48,7 @@ class Scaler:
         ) / (self.maxval ** n - self.minval ** n)
 
     @staticmethod
-    def minmax(data, cutoff=0):
+    def minmax(data: Any, cutoff: float = 0.0) -> Tuple[float, float]:
         maxval = max(data)
         data = array(data)
         data = data[data > maxval * cutoff]
@@ -75,14 +82,16 @@ class Dotwriter:
 
 
 class Json2dot:
-    def __init__(self, filename, parameterfile=""):
+    def __init__(self, filename: str, parameterfile: str = ""):
         with open(filename) as infile:
             data = load(infile)
         self.compounds = data["Compounds"]
         self.reactions = data["Reactions"]
-        self.param = self.Json2dotParam.readfile(parameterfile) if parameterfile else Json2dotParam()
+        self.param = (
+            Json2dotParam.readfile(parameterfile) if parameterfile else Json2dotParam()
+        )
 
-    def write(self, filename):
+    def write(self, filename: str) -> None:
         with open(filename, "w") as out:
             io = Dotwriter(out)
             io.head()
@@ -111,7 +120,9 @@ class Json2dot:
                         compounds.add(reacname)
                         for _ in range(num):
                             if binode:
-                                io.edge(start=reacname, end=name, width=width, color=color)
+                                io.edge(
+                                    start=reacname, end=name, width=width, color=color
+                                )
                             else:
                                 reaclist.append(reacname)
                     for prod in products.split("+"):
@@ -119,12 +130,16 @@ class Json2dot:
                         compounds.add(prodname)
                         for _ in range(num):
                             if binode:
-                                io.edge(start=name, end=prodname, width=width, color=color)
+                                io.edge(
+                                    start=name, end=prodname, width=width, color=color
+                                )
                             else:
                                 prodlist.append(prodname)
                     if not binode:
                         for reacname, prodname in product(reaclist, prodlist):
-                            io.edge(start=reacname, end=prodname, width=width, color=color)
+                            io.edge(
+                                start=reacname, end=prodname, width=width, color=color
+                            )
             io.comment("Compounds")
             color = self.param.c_color
             scaler = Scaler(
@@ -164,15 +179,7 @@ class Json2dot:
             io.foot()
 
     @staticmethod
-    def minmax(data, cutoff=0):
-        maxval = max(data)
-        data = array(data)
-        data = data[data > maxval * cutoff]
-        minval = min(data)
-        return minval, maxval
-
-    @staticmethod
-    def cutdown(name):
+    def cutdown(name: str) -> Tuple[int, str]:
         num = ""
         comp = ""
         start = True
@@ -182,5 +189,5 @@ class Json2dot:
             else:
                 comp += char
                 start = False
-        num = 1 if num == "" else int(num)
-        return num, comp
+        retnum = 1 if num == "" else int(num)
+        return retnum, comp
