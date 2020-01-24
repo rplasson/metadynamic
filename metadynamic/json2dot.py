@@ -109,19 +109,19 @@ class Json2dot:
                     for reac in reactants.split("+"):
                         num, reacname = self.cutdown(reac)
                         compounds.add(reacname)
-                        if binode:
-                            for _ in range(num):
+                        for _ in range(num):
+                            if binode:
                                 io.edge(start=reacname, end=name, width=width, color=color)
-                        else:
-                            reaclist.append(reacname)
+                            else:
+                                reaclist.append(reacname)
                     for prod in products.split("+"):
                         num, prodname = self.cutdown(prod)
                         compounds.add(prodname)
-                        if binode:
-                            for _ in range(num):
+                        for _ in range(num):
+                            if binode:
                                 io.edge(start=name, end=prodname, width=width, color=color)
-                        else:
-                            prodlist.append(prodname)
+                            else:
+                                prodlist.append(prodname)
                     if not binode:
                         for reacname, prodname in product(reaclist, prodlist):
                             io.edge(start=reacname, end=prodname, width=width, color=color)
