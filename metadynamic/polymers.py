@@ -82,7 +82,7 @@ def splitter(sep: str) -> ProdBuilder:
     """Generate a "splitter" ProdBuilder using a "sep" as a separator string.
        e.g. cutter=splitter("-") will give a ProdBuilder named cutter
        that will provide ["A","B","C"] from cutter("A-B-C")"""
-    return lambda names, variant: names[0].split(sep)
+    return lambda names, variant: tuple(names[0].split(sep))
 
 
 cut: ProdBuilder = lambda names, variant: (names[0][:variant], names[0][variant:])

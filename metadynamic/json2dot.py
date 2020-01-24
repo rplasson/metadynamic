@@ -56,7 +56,7 @@ class Dotwriter:
     def head(self) -> None:
         self.out.write("digraph {\n")
 
-    def foot(self) -> str:
+    def foot(self) -> None:
         self.out.write("}\n")
 
     def comment(self, text: str) -> None:
