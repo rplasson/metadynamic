@@ -160,7 +160,14 @@ class Probalist(Logged):
         # First choose a random line in the probability map
         try:
             # chosen = random.choice(self._mapobj, p=self._problist / self.probtot)
-            chosen = self._mapobj[choice(self._problist, self.probtot*self.sysrand.random())]
+            chosen_num = choice(self._problist, self.probtot*self.sysrand.random())
+            chosen = self._mapobj[chosen_num]
+            if chosen_num == -1:
+                raise RoundError(
+                    "choice() couldn't find a suitable object."
+                    f"probtot={self.probtot}=?={self._problist.sum()}; "
+                    f"problist={self._problist})"
+                )
             dt = log(1 / self.sysrand.random()) / self.probtot
             if chosen is None:
                 self.log.error(
