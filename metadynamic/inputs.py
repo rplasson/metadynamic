@@ -96,7 +96,6 @@ class Param(Readerclass):
     rtlim: float = 900.0  # Limit runtime
     maxsteps: int = 10000  # maximum time steps
     seed: int = 0  # random initial seed (now ignored)
-    minprob: float = 1e-10  # minimal probability (now ignored)
     # System
     nbthread: int = 1  # number of thread (-1 is to use as many threads as detected cores)
     autoclean: bool = True  # Perform a periodic cleaning of probabilities if Treu
@@ -112,3 +111,28 @@ class Param(Readerclass):
     def __post_init__(self) -> None:
         self.ptot = sum([pop * len(comp) for comp, pop in self.init.items()])
         self.vol = self.ptot / self.conc
+
+
+@dataclass
+class Json2dotParam(Readerclass):
+    # type
+    binode: bool = False
+    # compounds
+    min_fontsize: int = 20
+    max_fontsize: int = 200
+    min_c_width: float = 0.5
+    max_c_width: float = 5.0
+    c_color: str = "blue"
+    c_powerscale: float = 0.5
+    font_powerscale: float = 1.0
+    # reactions
+    min_r_width: float = 0.02
+    max_r_width: float = 0.2
+    r_color: str = "red"
+    r_powerscale: float = 1.0
+    # flows
+    min_f_width: float = 0.1
+    max_f_width: float = 20.0
+    f_color: str = "black"
+    cutoff: float = 0.05
+    f_powerscale: float = 1.0

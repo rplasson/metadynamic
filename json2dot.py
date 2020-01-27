@@ -18,4 +18,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-__version__ = '0.4.2'
+from metadynamic.json2dot import Json2dot
+from argparse import ArgumentParser
+
+parser = ArgumentParser(description="Test multithread.")
+
+parser.add_argument("file_in", type=str, help="input file (json)")
+parser.add_argument("file_out", type=str, help="output file (dot)")
+
+args = parser.parse_args()
+
+Json2dot(args.file_in).write(args.file_out)
