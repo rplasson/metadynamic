@@ -115,7 +115,7 @@ class System(Probalistic, Collected):
         self.time = 0.0
         # If seed set, always restart from the same seed. For timing/debugging purpose
         self.step = 0
-        Probalistic.setprobalist(vol=self.param.vol, minprob=self.param.minprob)
+        Probalistic.setprobalist(vol=self.param.vol)
         self.probalist.seed(self.param.seed)
         # Add all options for collections
         Collected.setcollections(dropmode_reac=self.param.dropmode)
@@ -231,7 +231,7 @@ class System(Probalistic, Collected):
             # Clean memory as much as possible to leave room to still alive threads
             self.comp_collect.purge()
             self.reac_collect.purge()
-            Probalistic.setprobalist(vol=self.param.vol, minprob=self.param.minprob)
+            Probalistic.setprobalist(vol=self.param.vol)
             trigger_changes()
             gc.collect()
             self.log.debug(f"Collection purged for {num}")
