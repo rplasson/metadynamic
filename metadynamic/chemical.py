@@ -36,10 +36,10 @@ from itertools import repeat
 # from numba import jit
 
 from metadynamic.collector import Collect, Collectable
-from metadynamic.proba import Probaobj, Probalistic, Activable
+from metadynamic.proba import Probalistic, Activable
 from metadynamic.ends import DecrZero
 from metadynamic.ruleset import Ruled, ReacDescr
-from metadynamic.inval import isvalid, Invalid
+from metadynamic.inval import isvalid, Invalid, invalidint
 
 
 # @jit(nopython=True, cache=True)
@@ -181,7 +181,6 @@ class Reaction(Chemical[ReacDescr], Probalistic):
         self.name: str = ""
         # If name is empty => invalid reaction, no process to be done
         if description[0] != "":
-            self._probaobj: Probaobj = self.probalist.get_probaobj(self)
             self.proba: float = 0.0
             stoechreac, self._stoechproduct, const, = self.ruleset.buildreac(
                 self.description
@@ -202,8 +201,11 @@ class Reaction(Chemical[ReacDescr], Probalistic):
                     self.const /= fact(stoechnum)
             self.const /= self.probalist.vol ** (order - 1)
             self.tobeinitialized = True
-            # Initial setup (necessary?)
-            # self.update()  #  Nope, activated from Compound ... check order of activation (simplify??)
+            self._unset_proba_pos()
+
+    def _unset_proba_pos(self) -> None:
+        self.proba_pos = invalidint
+        self.registered = False
 
     def _activate(self) -> None:
         self.reac_collect.activate(self.description)
@@ -218,7 +220,17 @@ class Reaction(Chemical[ReacDescr], Probalistic):
     def update(self, change: int = 0) -> None:
         newproba, changed = self.updateproba()
         if changed:
-            self._probaobj.update(newproba)
+            # only perform update if something changed
+            if newproba != 0.0:
+                if not self.registered:
+                    # was unactivated, thus activate
+                    self.activate()
+                    self.proba_pos = self.probalist.register(self)
+                    self.registered = True
+                self.probalist.update(self.proba_pos, newproba)
+            elif self.registered:
+                # was activated, thus deactivate
+                self.delete()
 
     def process(self) -> None:
         if self.tobeinitialized:
@@ -249,8 +261,9 @@ class Reaction(Chemical[ReacDescr], Probalistic):
         return self.proba, self.proba != oldproba
 
     def delete(self) -> None:
-        self._probaobj.update(0)
-        self._probaobj.obj = invalidreaction
+        self.probalist.unregister(self.proba_pos)
+        self._unset_proba_pos()
+        self.unactivate()
 
     def serialize(self) -> Any:
         return self.const, self.proba

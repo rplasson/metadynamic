@@ -75,38 +75,6 @@ class Probalistic(Logged):
         cls.probalist = Probalist(vol, minprob)
 
 
-class Probaobj(Probalistic):
-    """Probalistic object, that can be used in a Probalist object
-    for Gillespie-like computation.
-
-    Each object to be stored in the probalist must contain one Probaobj object
-    """
-
-    def __init__(self, obj: Activable):
-        self.proba_pos: int
-        self.obj: Activable = obj
-        self.unset_proba_pos()
-
-    def unset_proba_pos(self) -> None:
-        self.proba_pos = invalidint
-        self.registered = False
-
-    def update(self, newproba: float) -> None:
-        # only perform update if something changed
-        if newproba != 0.0:
-            if not self.registered:
-                # was unactivated, thus activate
-                self.obj.activate()
-                self.proba_pos = self.probalist.register(self.obj)
-                self.registered = True
-            self.probalist.update(self.proba_pos, newproba)
-        elif self.registered:
-            # was activated, thus deactivate
-            self.probalist.unregister(self.proba_pos)
-            self.unset_proba_pos()
-            self.obj.unactivate()
-
-
 class Probalist(Logged):
     def __init__(self, vol: float = 1, minprob: float = 1e-10, maxlength: int = 100):
         self.vol = vol
@@ -189,9 +157,6 @@ class Probalist(Logged):
            This functions is intended to be called regularly for cleaning
            these rounding errors."""
         self.probtot = self._problist.sum()
-
-    def get_probaobj(self, obj: Activable) -> Probaobj:
-        return Probaobj(obj)
 
     @staticmethod
     def seed(seed: int) -> None:
