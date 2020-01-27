@@ -71,14 +71,13 @@ class Probalistic(Logged):
     probalist: "Probalist"
 
     @classmethod
-    def setprobalist(cls, vol: float = 1, minprob: float = 1e-10) -> None:
-        cls.probalist = Probalist(vol, minprob)
+    def setprobalist(cls, vol: float = 1) -> None:
+        cls.probalist = Probalist(vol)
 
 
 class Probalist(Logged):
-    def __init__(self, vol: float = 1, minprob: float = 1e-10, maxlength: int = 100):
+    def __init__(self, vol: float = 1, maxlength: int = 100):
         self.vol = vol
-        self._minprob = minprob
         # List of objects ### Check replacement with list instead of numpy array !
         self._mapobj = zeros([], dtype("O"))
         # List of probas
