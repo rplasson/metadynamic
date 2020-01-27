@@ -33,11 +33,24 @@ from typing import (
 from math import factorial
 from itertools import repeat
 
+# from numba import jit
+
 from metadynamic.collector import Collect, Collectable
 from metadynamic.proba import Probalistic, Activable
 from metadynamic.ends import DecrZero
 from metadynamic.ruleset import Ruled, ReacDescr
 from metadynamic.inval import isvalid, Invalid, invalidint
+
+
+# @jit(nopython=True, cache=True)
+# def kincalc(const: float, stoech: List[Tuple[int, int]]) -> float:
+#     res = const
+#     for pop, stoechnum in stoech:
+#         res *= pop
+#         for _ in range(stoechnum - 1):
+#             pop -= 1
+#             res *= pop
+#     return res
 
 
 class Memcalc:
