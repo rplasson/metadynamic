@@ -22,7 +22,7 @@ from typing import Tuple, Deque, Iterable
 from collections import deque
 from secrets import SystemRandom
 from numpy import append, log, zeros, full, dtype
-from numba import jit
+from numba import jit, jitclass, float64, int32
 
 from metadynamic.ends import RoundError
 from metadynamic.logger import Logged
@@ -31,8 +31,8 @@ from metadynamic.inval import invalidint, isvalid
 
 @jit(nopython=True, cache=True)
 def choice(data: Iterable[float], proba: float) -> int:
-    '''Return the index i where proba < sum(data) from 0 to i'''
-    res: float = 0.
+    """Return the index i where proba < sum(data) from 0 to i"""
+    res: float = 0.0
     for index, val in enumerate(data):
         res += val
         if proba < res:
@@ -75,17 +75,58 @@ class Probalistic(Logged):
         cls.probalist = Probalist(vol)
 
 
+spec = [("_maxlength", int32), ("probtot", float64), ("_problist", float64[:])]
+
+
+@jitclass(spec)
+class Probamap:
+    def __init__(self, maxlength: int):
+        self._problist = zeros(maxlength, dtype=float64)
+        self._maxlength = maxlength
+        self.probtot = 0.0
+
+    def extend(self) -> None:
+        oldshape = self._problist.shape[0]
+        newlist = zeros(oldshape + self._maxlength, dtype=float64)
+        newlist[0:oldshape] = self._problist
+        self._problist = newlist
+
+    def update(self, proba_pos: int, proba: float) -> None:
+        delta = proba - self._problist[proba_pos]
+        #  Set the new probability of the event
+        self._problist[proba_pos] = proba
+        #  Update the probability of the proba sum
+        self.probtot += delta
+
+    def unregister(self, proba_pos: int) -> None:
+        self.probtot -= self._problist[proba_pos]
+        self._problist[proba_pos] = 0.0
+
+    def choice(self, randnum: float) -> int:
+        proba = self.probtot * randnum
+        res: float = 0.0
+        for index, val in enumerate(self._problist):
+            res += val
+            if proba < res:
+                return index
+        return -1
+
+    def clean(self) -> None:
+        self.probtot = self._problist.sum()
+
+
 class Probalist(Logged):
     def __init__(self, vol: float = 1, maxlength: int = 100):
         self.vol = vol
         # List of objects ### Check replacement with list instead of numpy array !
-        self._mapobj = zeros([], dtype("O"))
+        self._mapobj = zeros(maxlength, dtype("O"))
         # List of probas
-        self._problist = zeros([])
+        self.probamap = Probamap(maxlength)
+        ## self._problist = zeros([])
         # Next available position
         self._actlist = 0
         self._maxlength = maxlength
-        self.probtot = 0.0
+        ## self.probtot = 0.0
         self._queue: Deque[int] = deque()
         self.sysrand = SystemRandom()
 
@@ -101,41 +142,46 @@ class Probalist(Logged):
         except IndexError:
             # arrays too small, extend them
             self._mapobj = append(self._mapobj, full(self._maxlength, None))
-            self._problist = append(self._problist, zeros(self._maxlength))
+            self.probamap.extend()
+            ## self._problist = append(self._problist, zeros(self._maxlength))
             self._mapobj[self._actlist] = obj
         self._actlist += 1
         return self._actlist - 1
 
     def unregister(self, proba_pos: int) -> None:
         assert isvalid(proba_pos)
-        self.probtot -= self._problist[proba_pos]
-        self._problist[proba_pos] = 0.0
+        self.probamap.unregister(proba_pos)
+        ## self.probtot -= self._problist[proba_pos]
+        ## self._problist[proba_pos] = 0.0
         self._mapobj[proba_pos] = None
         self._queue.append(proba_pos)
 
     def update(self, proba_pos: int, proba: float) -> None:
         # assertion shall greatly reduce perf for non-optimized python code!
         assert isvalid(proba_pos)
+        self.probamap.update(proba_pos, proba)
         #  get proba change from the event
-        delta = proba - self._problist[proba_pos]
+        ## delta = proba - self._problist[proba_pos]
         #  Set the new probability of the event
-        self._problist[proba_pos] = proba
+        ## self._problist[proba_pos] = proba
         #  Update the probability of the proba sum
-        self.probtot += delta
+        ## self.probtot += delta
 
     def choose(self) -> Tuple[Activable, float]:
         # First choose a random line in the probability map
         try:
             # chosen = random.choice(self._mapobj, p=self._problist / self.probtot)
-            chosen_num = choice(self._problist, self.probtot*self.sysrand.random())
+            ## chosen_num = choice(self._problist, self.probtot*self.sysrand.random())
+            chosen_num = self.probamap.choice(self.sysrand.random())
             chosen = self._mapobj[chosen_num]
+            probtot = self.probamap.probtot
             if chosen_num == -1:
                 raise RoundError(
                     "choice() couldn't find a suitable object."
-                    f"probtot={self.probtot}=?={self._problist.sum()}; "
+                    f"probtot={probtot}=?={self._problist.sum()}; "
                     f"problist={self._problist})"
                 )
-            dt = log(1 / self.sysrand.random()) / self.probtot
+            dt = log(1 / self.sysrand.random()) / probtot
             if chosen is None:
                 self.log.error(
                     f"Badly destroyed reaction from {self._mapobj} with proba {self._problist}"
@@ -144,7 +190,7 @@ class Probalist(Logged):
         except ValueError as v:
             raise RoundError(
                 f"(reason: {v}; "
-                f"probtot={self.probtot}=?={self._problist.sum()}; "
+                f"probtot={probtot}=?={self._problist.sum()}; "
                 f"problist={self._problist})"
             )
 
@@ -155,7 +201,8 @@ class Probalist(Logged):
            errors.
            This functions is intended to be called regularly for cleaning
            these rounding errors."""
-        self.probtot = self._problist.sum()
+        self.probamap.clean()
+        ## self.probtot = self._problist.sum()
 
     @staticmethod
     def seed(seed: int) -> None:

@@ -148,7 +148,7 @@ class System(Probalistic, Collected):
                 raise NotFound(f"t={self.time}")
             # perform the (chosen one) event
             chosen.process()
-            if self.probalist.probtot == 0:
+            if self.probalist.probamap.probtot == 0:
                 raise NoMore(f"t={self.time}")
             if not self.signcatch.alive:
                 raise Interrupted(f" by {self.signcatch.signal} at t={self.time}")
