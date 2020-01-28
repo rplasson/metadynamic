@@ -39,7 +39,6 @@ def choice(data: Iterable[float], proba: float) -> int:
             return index
     return -1
 
-# Test again
 
 class Probalistic(Logged):
     probalist: "Probalist"
