@@ -40,9 +40,6 @@ def choice(data: Iterable[float], proba: float) -> int:
     return -1
 
 
-# This is a test
-
-
 class Probalistic(Logged):
     probalist: "Probalist"
 
