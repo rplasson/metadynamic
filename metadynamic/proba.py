@@ -21,7 +21,7 @@
 from typing import Tuple, Deque, Iterable
 from collections import deque
 from secrets import SystemRandom
-from numpy import append, log, zeros, full, dtype
+from numpy import append, log, zeros, full, dtype, float64
 from numba import jit
 
 from metadynamic.ends import RoundError
@@ -79,9 +79,9 @@ class Probalist(Logged):
     def __init__(self, vol: float = 1, maxlength: int = 100):
         self.vol = vol
         # List of objects ### Check replacement with list instead of numpy array !
-        self._mapobj = zeros([], dtype("O"))
+        self._mapobj = zeros(maxlength, dtype("O"))
         # List of probas
-        self._problist = zeros([])
+        self._problist = zeros(maxlength, dtype = float64)
         # Next available position
         self._actlist = 0
         self._maxlength = maxlength
@@ -107,11 +107,11 @@ class Probalist(Logged):
         return self._actlist - 1
 
     def unregister(self, proba_pos: int) -> None:
-        assert isvalid(proba_pos)
-        self.probtot -= self._problist[proba_pos]
-        self._problist[proba_pos] = 0.0
-        self._mapobj[proba_pos] = None
-        self._queue.append(proba_pos)
+        if isvalid(proba_pos):
+            self.probtot -= self._problist[proba_pos]
+            self._problist[proba_pos] = 0.0
+            self._mapobj[proba_pos] = None
+            self._queue.append(proba_pos)
 
     def update(self, proba_pos: int, proba: float) -> None:
         # assertion shall greatly reduce perf for non-optimized python code!
