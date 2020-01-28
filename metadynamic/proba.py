@@ -18,53 +18,26 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-from typing import Tuple, Deque, Iterable
+from typing import Tuple, Deque, Iterable, Any
 from collections import deque
 from secrets import SystemRandom
-from numpy import append, log, zeros, full, dtype
+from numpy import append, log, zeros, full, dtype, float64
 from numba import jit
 
 from metadynamic.ends import RoundError
 from metadynamic.logger import Logged
-from metadynamic.inval import invalidint, isvalid
+from metadynamic.inval import isvalid
 
 
 @jit(nopython=True, cache=True)
 def choice(data: Iterable[float], proba: float) -> int:
-    '''Return the index i where proba < sum(data) from 0 to i'''
-    res: float = 0.
+    """Return the index i where proba < sum(data) from 0 to i"""
+    res: float = 0.0
     for index, val in enumerate(data):
         res += val
         if proba < res:
             return index
     return -1
-
-
-class Activable:
-    def __init__(self) -> None:
-        self.activated: bool = False
-
-    def activate(self) -> None:
-        if not self.activated:
-            self._activate()
-            self.activated = True
-
-    def _activate(self) -> None:
-        pass
-
-    def unactivate(self) -> None:
-        if self.activated:
-            self._unactivate()
-            self.activated = False
-
-    def _unactivate(self) -> None:
-        pass
-
-    def process(self) -> None:
-        pass
-
-    def choose(self) -> "Activable":
-        return self
 
 
 class Probalistic(Logged):
@@ -79,9 +52,9 @@ class Probalist(Logged):
     def __init__(self, vol: float = 1, maxlength: int = 100):
         self.vol = vol
         # List of objects ### Check replacement with list instead of numpy array !
-        self._mapobj = zeros([], dtype("O"))
+        self._mapobj = zeros(maxlength, dtype("O"))
         # List of probas
-        self._problist = zeros([])
+        self._problist = zeros(maxlength, dtype=float64)
         # Next available position
         self._actlist = 0
         self._maxlength = maxlength
@@ -89,7 +62,7 @@ class Probalist(Logged):
         self._queue: Deque[int] = deque()
         self.sysrand = SystemRandom()
 
-    def register(self, obj: Activable) -> int:
+    def register(self, obj: Any) -> int:
         # Still room left from previously removed object
         if self._queue:
             nlist = self._queue.popleft()
@@ -107,11 +80,11 @@ class Probalist(Logged):
         return self._actlist - 1
 
     def unregister(self, proba_pos: int) -> None:
-        assert isvalid(proba_pos)
-        self.probtot -= self._problist[proba_pos]
-        self._problist[proba_pos] = 0.0
-        self._mapobj[proba_pos] = None
-        self._queue.append(proba_pos)
+        if isvalid(proba_pos):
+            self.probtot -= self._problist[proba_pos]
+            self._problist[proba_pos] = 0.0
+            self._mapobj[proba_pos] = None
+            self._queue.append(proba_pos)
 
     def update(self, proba_pos: int, proba: float) -> None:
         # assertion shall greatly reduce perf for non-optimized python code!
@@ -123,11 +96,11 @@ class Probalist(Logged):
         #  Update the probability of the proba sum
         self.probtot += delta
 
-    def choose(self) -> Tuple[Activable, float]:
+    def choose(self) -> Tuple[Any, float]:
         # First choose a random line in the probability map
         try:
             # chosen = random.choice(self._mapobj, p=self._problist / self.probtot)
-            chosen_num = choice(self._problist, self.probtot*self.sysrand.random())
+            chosen_num = choice(self._problist, self.probtot * self.sysrand.random())
             chosen = self._mapobj[chosen_num]
             if chosen_num == -1:
                 raise RoundError(
