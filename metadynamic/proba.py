@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-from typing import Tuple, Deque, Iterable
+from typing import Tuple, Deque, Iterable, Any
 from collections import deque
 from secrets import SystemRandom
 from numpy import append, log, zeros, full, dtype, float64
@@ -26,7 +26,7 @@ from numba import jit
 
 from metadynamic.ends import RoundError
 from metadynamic.logger import Logged
-from metadynamic.inval import invalidint, isvalid
+from metadynamic.inval import isvalid
 
 
 @jit(nopython=True, cache=True)
@@ -38,33 +38,6 @@ def choice(data: Iterable[float], proba: float) -> int:
         if proba < res:
             return index
     return -1
-
-
-class Activable:
-    def __init__(self) -> None:
-        self.activated: bool = False
-
-    def activate(self) -> None:
-        if not self.activated:
-            self._activate()
-            self.activated = True
-
-    def _activate(self) -> None:
-        pass
-
-    def unactivate(self) -> None:
-        if self.activated:
-            self._unactivate()
-            self.activated = False
-
-    def _unactivate(self) -> None:
-        pass
-
-    def process(self) -> None:
-        pass
-
-    def choose(self) -> "Activable":
-        return self
 
 
 class Probalistic(Logged):
@@ -89,7 +62,7 @@ class Probalist(Logged):
         self._queue: Deque[int] = deque()
         self.sysrand = SystemRandom()
 
-    def register(self, obj: Activable) -> int:
+    def register(self, obj: Any) -> int:
         # Still room left from previously removed object
         if self._queue:
             nlist = self._queue.popleft()
@@ -123,7 +96,7 @@ class Probalist(Logged):
         #  Update the probability of the proba sum
         self.probtot += delta
 
-    def choose(self) -> Tuple[Activable, float]:
+    def choose(self) -> Tuple[Any, float]:
         # First choose a random line in the probability map
         try:
             # chosen = random.choice(self._mapobj, p=self._problist / self.probtot)

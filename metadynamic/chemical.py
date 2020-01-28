@@ -34,7 +34,7 @@ from math import factorial
 from itertools import repeat
 
 from metadynamic.collector import Collect, Collectable
-from metadynamic.proba import Probalistic, Activable
+from metadynamic.proba import Probalistic
 from metadynamic.ends import DecrZero
 from metadynamic.ruleset import Ruled, ReacDescr
 from metadynamic.inval import isvalid, Invalid, invalidint
@@ -119,7 +119,7 @@ class Collected(Ruled):
         cls.reac_collect = CollectofReaction(categorize_reac, dropmode_reac)
 
 
-class Chemical(Generic[K], Collected, Activable, Collectable):
+class Chemical(Generic[K], Collected, Collectable):
     _descrtype = "Chemical"
     _updatelist: Dict["Chemical[K]", int]
 
@@ -133,6 +133,22 @@ class Chemical(Generic[K], Collected, Activable, Collectable):
 
     def __str__(self) -> str:
         return str(self.description)
+
+    def activate(self) -> None:
+        if not self.activated:
+            self._activate()
+            self.activated = True
+
+    def _activate(self) -> None:
+        pass
+
+    def unactivate(self) -> None:
+        if self.activated:
+            self._unactivate()
+            self.activated = False
+
+    def _unactivate(self) -> None:
+        pass
 
     @classmethod
     def toupdate(cls, obj: "Chemical[K]", change: int = 0) -> None:
@@ -191,8 +207,8 @@ class Reaction(Chemical[ReacDescr], Probalistic):
             self._unset_proba_pos()
 
     def _unset_proba_pos(self) -> None:
-        self.proba_pos = invalidint
-        self.registered = False
+        self.proba_pos: int = invalidint
+        self.registered: bool = False
 
     def _activate(self) -> None:
         self.reac_collect.activate(self.description)
@@ -248,8 +264,9 @@ class Reaction(Chemical[ReacDescr], Probalistic):
         return self.proba, self.proba != oldproba
 
     def delete(self) -> None:
-        self.probalist.unregister(self.proba_pos)
-        self._unset_proba_pos()
+        if self.registered:
+            self.probalist.unregister(self.proba_pos)
+            self._unset_proba_pos()
         self.unactivate()
 
     def serialize(self) -> Any:
