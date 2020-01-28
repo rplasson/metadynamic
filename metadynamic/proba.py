@@ -31,8 +31,8 @@ from metadynamic.inval import isvalid
 
 @jit(nopython=True, cache=True)
 def choice(data: Iterable[float], proba: float) -> int:
-    '''Return the index i where proba < sum(data) from 0 to i'''
-    res: float = 0.
+    """Return the index i where proba < sum(data) from 0 to i"""
+    res: float = 0.0
     for index, val in enumerate(data):
         res += val
         if proba < res:
@@ -54,7 +54,7 @@ class Probalist(Logged):
         # List of objects ### Check replacement with list instead of numpy array !
         self._mapobj = zeros(maxlength, dtype("O"))
         # List of probas
-        self._problist = zeros(maxlength, dtype = float64)
+        self._problist = zeros(maxlength, dtype=float64)
         # Next available position
         self._actlist = 0
         self._maxlength = maxlength
@@ -100,7 +100,7 @@ class Probalist(Logged):
         # First choose a random line in the probability map
         try:
             # chosen = random.choice(self._mapobj, p=self._problist / self.probtot)
-            chosen_num = choice(self._problist, self.probtot*self.sysrand.random())
+            chosen_num = choice(self._problist, self.probtot * self.sysrand.random())
             chosen = self._mapobj[chosen_num]
             if chosen_num == -1:
                 raise RoundError(
