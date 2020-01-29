@@ -21,6 +21,7 @@
 from itertools import product
 from numpy import array
 from json import load
+from graphviz import Digraph
 from typing import TextIO, Any, Tuple
 
 from metadynamic.inputs import Json2dotParam
@@ -56,29 +57,28 @@ class Scaler:
         return minval, maxval
 
 
-class Dotwriter:
-    def __init__(self, out: TextIO) -> None:
-        self.out = out
-
-    def head(self) -> None:
-        self.out.write("digraph {\n")
-
-    def foot(self) -> None:
-        self.out.write("}\n")
-
-    def comment(self, text: str) -> None:
-        self.out.write(f"    # {text}\n")
+class Graphwriter:
+    def __init__(self) -> None:
+        self.dot = Digraph()
 
     def compound(self, name: str, width: float, fontsize: float, color: str) -> None:
-        self.out.write(
-            f'"{name}" [shape="circle", width={width}, fontsize={fontsize}, color={color}];\n'
-        )
+        self.dot.node(name, shape="circle", width=str(width), fontsize=str(fontsize), color=color)
 
     def reaction(self, name: str, width: float, color: str) -> None:
-        self.out.write(f'"{name}" [shape="point", width={width}, color={color}];\n')
+        self.dot.node(name, shape="point", width=str(width), color=color)
 
     def edge(self, start: str, end: str, width: float, color: str) -> None:
-        self.out.write(f'"{start}" -> "{end}" [penwidth={width}, color={color}];\n')
+        self.dot.edge(start, end, penwidth=str(width), color=color)
+
+    def save(self) -> None:
+        self.out.write(self.dot.source)
+
+    def render(
+        self, filename: str, export="pdf", engine="dot", view: bool = False
+    ) -> None:
+        self.dot.engine = engine
+        self.dot.format = export
+        self.dot.render(filename, view=view)
 
 
 class Json2dot:
@@ -92,91 +92,86 @@ class Json2dot:
         )
 
     def write(self, filename: str) -> None:
-        with open(filename, "w") as out:
-            io = Dotwriter(out)
-            io.head()
-            binode = self.param.binode
-            compounds = set()
-            reactions = set()
-            io.comment("Flows")
-            color = self.param.f_color
-            scaler = Scaler(
-                data=[rate for _, rate in self.reactions.values()],
-                minimal=self.param.min_f_width,
-                maximal=self.param.max_f_width,
-                cutoff=self.param.cutoff,
-                powerscale=self.param.f_powerscale,
-            )
-            for name, (_, rate) in self.reactions.items():
-                if rate >= scaler.minval:
-                    reactions.add(name)
-                    width = scaler(rate)
-                    reactants, products = name.split("->")
-                    if not binode:
-                        reaclist = []
-                        prodlist = []
-                    for reac in reactants.split("+"):
-                        num, reacname = self.cutdown(reac)
-                        compounds.add(reacname)
-                        for _ in range(num):
-                            if binode:
-                                io.edge(
-                                    start=reacname, end=name, width=width, color=color
-                                )
-                            else:
-                                reaclist.append(reacname)
-                    for prod in products.split("+"):
-                        num, prodname = self.cutdown(prod)
-                        compounds.add(prodname)
-                        for _ in range(num):
-                            if binode:
-                                io.edge(
-                                    start=name, end=prodname, width=width, color=color
-                                )
-                            else:
-                                prodlist.append(prodname)
-                    if not binode:
-                        for reacname, prodname in product(reaclist, prodlist):
+        io = Graphwriter()
+        binode = self.param.binode
+        compounds = set()
+        reactions = set()
+        color = self.param.f_color
+        scaler = Scaler(
+            data=[rate for _, rate in self.reactions.values()],
+            minimal=self.param.min_f_width,
+            maximal=self.param.max_f_width,
+            cutoff=self.param.cutoff,
+            powerscale=self.param.f_powerscale,
+        )
+        for name, (_, rate) in self.reactions.items():
+            if rate >= scaler.minval:
+                reactions.add(name)
+                width = scaler(rate)
+                reactants, products = name.split("->")
+                if not binode:
+                    reaclist = []
+                    prodlist = []
+                for reac in reactants.split("+"):
+                    num, reacname = self.cutdown(reac)
+                    compounds.add(reacname)
+                    for _ in range(num):
+                        if binode:
                             io.edge(
-                                start=reacname, end=prodname, width=width, color=color
+                                start=reacname, end=name, width=width, color=color
                             )
-            io.comment("Compounds")
-            color = self.param.c_color
+                        else:
+                            reaclist.append(reacname)
+                for prod in products.split("+"):
+                    num, prodname = self.cutdown(prod)
+                    compounds.add(prodname)
+                    for _ in range(num):
+                        if binode:
+                            io.edge(
+                                start=name, end=prodname, width=width, color=color
+                            )
+                        else:
+                            prodlist.append(prodname)
+                if not binode:
+                    for reacname, prodname in product(reaclist, prodlist):
+                        io.edge(
+                            start=reacname, end=prodname, width=width, color=color
+                        )
+        color = self.param.c_color
+        scaler = Scaler(
+            data=list(self.compounds.values()),
+            minimal=self.param.min_c_width,
+            maximal=self.param.max_c_width,
+            powerscale=self.param.c_powerscale,
+        )
+        f_scaler = Scaler(
+            data=list(self.compounds.values()),
+            minimal=self.param.min_fontsize,
+            maximal=self.param.max_fontsize,
+            powerscale=self.param.font_powerscale,
+        )
+        for name in compounds:
+            try:
+                pop = self.compounds[name]
+                width = scaler(pop)
+                fontsize = f_scaler(pop)
+            except KeyError:
+                width = 0
+                fontsize = 0
+            io.compound(name=name, width=width, fontsize=fontsize, color=color)
+        if binode:
+            color = self.param.r_color
             scaler = Scaler(
-                data=list(self.compounds.values()),
-                minimal=self.param.min_c_width,
-                maximal=self.param.max_c_width,
-                powerscale=self.param.c_powerscale,
+                data=[const for const, _ in self.reactions.values()],
+                minimal=self.param.min_r_width,
+                maximal=self.param.max_r_width,
+                powerscale=self.param.r_powerscale,
             )
-            f_scaler = Scaler(
-                data=list(self.compounds.values()),
-                minimal=self.param.min_fontsize,
-                maximal=self.param.max_fontsize,
-                powerscale=self.param.font_powerscale,
-            )
-            for name in compounds:
-                try:
-                    pop = self.compounds[name]
-                    width = scaler(pop)
-                    fontsize = f_scaler(pop)
-                except KeyError:
-                    width = 0
-                    fontsize = 0
-                io.compound(name=name, width=width, fontsize=fontsize, color=color)
-            if binode:
-                io.comment("Reactions")
-                color = self.param.r_color
-                scaler = Scaler(
-                    data=[const for const, _ in self.reactions.values()],
-                    minimal=self.param.min_r_width,
-                    maximal=self.param.max_r_width,
-                    powerscale=self.param.r_powerscale,
-                )
-                for name in reactions:
-                    const, _ = self.reactions[name]
-                    width = scaler(const)
-                    io.reaction(name=name, width=width, color=color)
-            io.foot()
+            for name in reactions:
+                const, _ = self.reactions[name]
+                width = scaler(const)
+                io.reaction(name=name, width=width, color=color)
+        io.render(filename)
 
     @staticmethod
     def cutdown(name: str) -> Tuple[int, str]:
