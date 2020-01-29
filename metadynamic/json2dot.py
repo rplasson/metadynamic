@@ -22,7 +22,7 @@ from itertools import product
 from numpy import array
 from json import load
 from graphviz import Digraph
-from typing import TextIO, Any, Tuple
+from typing import Any, Tuple
 
 from metadynamic.inputs import Json2dotParam
 
@@ -62,7 +62,9 @@ class Graphwriter:
         self.dot = Digraph()
 
     def compound(self, name: str, width: float, fontsize: float, color: str) -> None:
-        self.dot.node(name, shape="circle", width=str(width), fontsize=str(fontsize), color=color)
+        self.dot.node(
+            name, shape="circle", width=str(width), fontsize=str(fontsize), color=color
+        )
 
     def reaction(self, name: str, width: float, color: str) -> None:
         self.dot.node(name, shape="point", width=str(width), color=color)
@@ -70,15 +72,20 @@ class Graphwriter:
     def edge(self, start: str, end: str, width: float, color: str) -> None:
         self.dot.edge(start, end, penwidth=str(width), color=color)
 
-    def save(self) -> None:
-        self.out.write(self.dot.source)
-
     def render(
-        self, filename: str, export="pdf", engine="dot", view: bool = False
+        self, filename: str, engine="dot", view: bool = False
     ) -> None:
-        self.dot.engine = engine
-        self.dot.format = export
-        self.dot.render(filename, view=view)
+        try:
+            filename, export = filename.split(".")
+        except ValueError:
+            export = "dot"
+        if export == "dot":
+            with open(filename+".dot", "w") as out:
+                out.write(self.dot.source)
+        else:
+            self.dot.engine = engine
+            self.dot.format = export
+            self.dot.render(filename, view=view, cleanup=True)
 
 
 class Json2dot:
@@ -117,9 +124,7 @@ class Json2dot:
                     compounds.add(reacname)
                     for _ in range(num):
                         if binode:
-                            io.edge(
-                                start=reacname, end=name, width=width, color=color
-                            )
+                            io.edge(start=reacname, end=name, width=width, color=color)
                         else:
                             reaclist.append(reacname)
                 for prod in products.split("+"):
@@ -127,16 +132,12 @@ class Json2dot:
                     compounds.add(prodname)
                     for _ in range(num):
                         if binode:
-                            io.edge(
-                                start=name, end=prodname, width=width, color=color
-                            )
+                            io.edge(start=name, end=prodname, width=width, color=color)
                         else:
                             prodlist.append(prodname)
                 if not binode:
                     for reacname, prodname in product(reaclist, prodlist):
-                        io.edge(
-                            start=reacname, end=prodname, width=width, color=color
-                        )
+                        io.edge(start=reacname, end=prodname, width=width, color=color)
         color = self.param.c_color
         scaler = Scaler(
             data=list(self.compounds.values()),
