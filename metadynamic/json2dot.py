@@ -22,9 +22,9 @@ from itertools import product
 from numpy import array
 from json import load
 from graphviz import Digraph
-from typing import Any, Tuple
+from typing import Any, Tuple, Dict, List
 
-from metadynamic.inputs import Json2dotParam
+from metadynamic.inputs import DotParam
 
 
 class Scaler:
@@ -72,15 +72,13 @@ class Graphwriter:
     def edge(self, start: str, end: str, width: float, color: str) -> None:
         self.dot.edge(start, end, penwidth=str(width), color=color)
 
-    def render(
-        self, filename: str, engine="dot", view: bool = False
-    ) -> None:
+    def render(self, filename: str, engine: str = "dot", view: bool = False) -> None:
         try:
             filename, export = filename.split(".")
         except ValueError:
             export = "dot"
         if export == "dot":
-            with open(filename+".dot", "w") as out:
+            with open(filename + ".dot", "w") as out:
                 out.write(self.dot.source)
         else:
             self.dot.engine = engine
@@ -92,11 +90,24 @@ class Json2dot:
     def __init__(self, filename: str, parameterfile: str = ""):
         with open(filename) as infile:
             data = load(infile)
-        self.compounds = data["Compounds"]
-        self.reactions = data["Reactions"]
-        self.param = (
-            Json2dotParam.readfile(parameterfile) if parameterfile else Json2dotParam()
-        )
+        compounds = data["Compounds"]
+        reactions = data["Reactions"]
+        self.converter = Data2dot(compounds, reactions, parameterfile)
+
+    def write(self, outfilename: str) -> None:
+        self.converter.write(outfilename)
+
+
+class Data2dot:
+    def __init__(
+        self,
+        compounds: Dict[str, int],
+        reactions: Dict[str, List[float]],
+        parameterfile: str = "",
+    ):
+        self.compounds = compounds
+        self.reactions = reactions
+        self.param = DotParam.readfile(parameterfile) if parameterfile else DotParam()
 
     def write(self, filename: str) -> None:
         io = Graphwriter()

@@ -107,6 +107,7 @@ class Param(Readerclass):
         default_factory=list
     )  # list of compounds to be saved at each time step
     snapshot: str = ""  # filename for final snapshot
+    printsnap: str = "pdf"  # filename for final snapshot
 
     def __post_init__(self) -> None:
         self.ptot = sum([pop * len(comp) for comp, pop in self.init.items()])
@@ -114,7 +115,7 @@ class Param(Readerclass):
 
 
 @dataclass
-class Json2dotParam(Readerclass):
+class DotParam(Readerclass):
     # type
     binode: bool = False
     # compounds

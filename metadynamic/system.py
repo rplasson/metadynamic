@@ -48,7 +48,7 @@ from metadynamic.collector import Collectable
 from metadynamic.chemical import Collected, trigger_changes
 from metadynamic.inputs import Param
 from metadynamic.inval import invalidstr, invalidfloat, isvalid
-
+from metadynamic.json2dot import Json2dot
 
 class Encoder(JSONEncoder):
     def default(self, obj: Any) -> Any:
@@ -241,10 +241,10 @@ class System(Probalistic, Collected):
     def make_snapshot(self, num: int, time: float = invalidfloat) -> None:
         timestr = str(time) if isvalid(time) else "end"
         if self.param.snapshot:
-            fill = "-{n}_{t}." if num >= 0 else "-{t}."
-            filename = fill.join(self.param.snapshot.split(".")).format(
-                n=num, t=timestr
-            )
+            basename, ext = self.param.snapshot.split(".")
+            filled = "{base}-{n}_{t}" if num >= 0 else "{base}-{t}"
+            basename = filled.format(base=basename, n=num, t=timestr)
+            filename = f"{basename}.{ext}"
             with open(filename, "w") as outfile:
                 dump(
                     {
@@ -255,6 +255,8 @@ class System(Probalistic, Collected):
                     cls=Encoder,
                     indent=4,
                 )
+            if self.param.printsnap:
+                Json2dot(filename).write(f"{basename}.{self.param.printsnap}")
 
     def run(self) -> Result:
         if self.param.nbthread == 1:
