@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
+from math import ceil
 from mpi4py import MPI
 import h5py
 from argparse import ArgumentParser
@@ -41,15 +42,18 @@ logfile = args.log if size == 1 else f"-{rank}_{size}.".join(args.log.split(".")
 
 syst = System("aped-nosnap.json", logfile=logfile, loglevel=args.level)
 syst.set_param(dropmode="drop")
+cols = ceil(syst.param.tend / syst.param.tstep)+1
+
 res = syst.run()
 
-data = res.table()
-lines, cols = data.shape
 
 out = h5py.File(args.output, "w", driver="mpio", comm=MPI.COMM_WORLD)
 
-dataset = out.create_dataset("data", (size, lines, cols), maxshape=(size, lines, None))
-dataset[rank] = res.table()
+dataset = out.create_dataset("data", (size, 20, cols))
+
+data = res.table()
+_, realsize = data.shape
+dataset[rank, :, :realsize] = data
 
 out.close()
 print(res.end())
