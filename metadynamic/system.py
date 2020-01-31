@@ -24,6 +24,7 @@ from itertools import repeat
 from os import getpid
 from typing import Dict, Tuple, Any
 from psutil import Process
+from mpi4py import MPI
 
 from pandas import DataFrame
 from json import dump, JSONEncoder
@@ -49,6 +50,7 @@ from metadynamic.chemical import Collected, trigger_changes
 from metadynamic.inputs import Param
 from metadynamic.inval import invalidstr, invalidfloat, isvalid
 from metadynamic.json2dot import Json2dot
+
 
 class Encoder(JSONEncoder):
     def default(self, obj: Any) -> Any:
@@ -259,6 +261,13 @@ class System(Probalistic, Collected):
                 Json2dot(filename).write(f"{basename}.{self.param.printsnap}")
 
     def run(self) -> Result:
+        if MPI.COMM_WORLD.size > 1:
+            rank = MPI.COMM_WORLD.rank
+            self.log.info(f"Launching MPI run from thread #{rank}")
+            self.log.disconnect(reason="Launching MPI....")
+            res = [self._run(rank)]
+            self.signcatch.reset()
+            return Result(res)
         if self.param.nbthread == 1:
             self.log.info("Launching single run.")
             res = [self._run()]

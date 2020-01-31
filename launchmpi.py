@@ -38,9 +38,7 @@ args = parser.parse_args()
 rank = MPI.COMM_WORLD.rank
 size = MPI.COMM_WORLD.size
 
-logfile = args.log if size == 1 else f"-{rank}_{size}.".join(args.log.split("."))
-
-syst = System("aped-nosnap.json", logfile=logfile, loglevel=args.level)
+syst = System("aped-nosnap.json", logfile=args.log, loglevel=args.level)
 syst.set_param(dropmode="drop")
 cols = ceil(syst.param.tend / syst.param.tstep)+1
 
