@@ -1,0 +1,23 @@
+{
+    "init" :
+    {
+	"a": 1900,
+	"A": 2100
+    },
+    "conc" : 30.0,
+    "tend" : 50.0,
+    "tstep" : 1.0,
+    "sstep" : 10.0,
+    "save" : ["a", "aa", "aaa", "aaaa", "A", "Aa", "aA", "AA", "a*", "A*"],
+    "snapshot" : "",
+    "seed" : 1234,
+    "rtlim" : 600.0,
+    "rulemodel" : "metadynamic.polymers",
+    "consts" :{
+	"A": [1.0, 0.1],
+	"H": [1.0, 0.0],
+	"E": [1.0, 0.0, 0.0],
+	"a": [1.0, 0.0]
+    },
+    "dropmode" : "drop"
+}
