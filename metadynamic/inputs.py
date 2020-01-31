@@ -107,7 +107,8 @@ class Param(Readerclass):
         default_factory=list
     )  # list of compounds to be saved at each time step
     snapshot: str = ""  # filename for final snapshot
-    printsnap: str = "pdf"  # filename for final snapshot
+    printsnap: str = "pdf"  # filetype of snapshots
+    hdf5: str = ""  # filename for hdf5 file
 
     def __post_init__(self) -> None:
         self.ptot = sum([pop * len(comp) for comp, pop in self.init.items()])

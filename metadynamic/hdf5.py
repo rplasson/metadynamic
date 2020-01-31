@@ -47,8 +47,7 @@ class ResultWriter:
         return int(MPI.COMM_WORLD.rank)  # cast is for mypy...
 
     def add_parameter(self, params: Dict[str, Any], name: str = "") -> None:
-        if self.rank == 0:  # Avoid multiple write (?)
-            self.dict_as_attr(self.params, params, name)
+        self.dict_as_attr(self.params, params, name)
 
     def add_data(self, result: List[float]) -> None:
         try:

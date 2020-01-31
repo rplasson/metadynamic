@@ -19,12 +19,14 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 import gc
+from math import ceil
 from multiprocessing import get_context
 from itertools import repeat
 from os import getpid
 from typing import Dict, Tuple, Any
 from psutil import Process
 from mpi4py import MPI
+from dataclasses import asdict
 
 from pandas import DataFrame
 from json import dump, JSONEncoder
@@ -50,6 +52,7 @@ from metadynamic.chemical import Collected, trigger_changes
 from metadynamic.inputs import Param
 from metadynamic.inval import invalidstr, invalidfloat, isvalid
 from metadynamic.json2dot import Json2dot
+from metadynamic.hdf5 import ResultWriter
 
 
 class Encoder(JSONEncoder):
@@ -160,7 +163,7 @@ class System(Probalistic, Collected):
         self.log.warning(f"maxsteps per process (={self.param.maxsteps}) too low")
         return False
 
-    def _run(self, num: int = -1) -> Tuple[DataFrame, int, int, str]:
+    def _run(self, num: int = -1, ismpi=False) -> Tuple[DataFrame, int, int, str]:
         lines = (
             ["#", "thread", "ptime", "memuse", "step", "time"]
             + self.param.save
@@ -171,11 +174,16 @@ class System(Probalistic, Collected):
         if not self.initialized:
             self.log.info("Will initialize")
             self.initialize()
+        if ismpi:
+            writer = ResultWriter(
+                self.param.hdf5, lines, ceil(self.param.tend / self.param.tstep) + 1
+            )
+            writer.add_parameter(asdict(self.param))
         table = DataFrame(index=lines)
         lendist = DataFrame()
         pooldist = DataFrame()
         tnext = 0.0
-        tsnapshot = self.param.sstep if self.param.sstep >= 0 else 2*self.param.tend
+        tsnapshot = self.param.sstep if self.param.sstep >= 0 else 2 * self.param.tend
         step = 0
         self.log.info(f"Run {num}={getpid()} launched")
         self.signcatch.listen()
@@ -197,6 +205,8 @@ class System(Probalistic, Collected):
                     ]
                 )
                 table[step] = res
+                if ismpi:
+                    writer.add_data(res)
                 self.log.debug(str(res))
                 lendist = lendist.join(
                     DataFrame.from_dict({step: dist["lendist"]}), how="outer",
@@ -238,6 +248,8 @@ class System(Probalistic, Collected):
             gc.collect()
             self.log.debug(f"Collection purged for {num}")
             self.log.disconnect(f"Disconnected from thread {num}")
+        if ismpi:
+            writer.close()
         return retval
 
     def make_snapshot(self, num: int, time: float = invalidfloat) -> None:
@@ -265,7 +277,7 @@ class System(Probalistic, Collected):
             rank = MPI.COMM_WORLD.rank
             self.log.info(f"Launching MPI run from thread #{rank}")
             self.log.disconnect(reason="Launching MPI....")
-            res = [self._run(rank)]
+            res = [self._run(rank, ismpi=True)]
             self.signcatch.reset()
             return Result(res)
         if self.param.nbthread == 1:
