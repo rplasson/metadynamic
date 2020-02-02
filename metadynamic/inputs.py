@@ -34,8 +34,6 @@ class LockedError(Exception):
 
 @dataclass
 class Readerclass(Logged):
-    _default_section: str = field(repr=False, default="")
-
     def __post_init__(self) -> None:
         pass
 
@@ -48,13 +46,9 @@ class Readerclass(Logged):
         autocast: bool = True,
     ) -> R:
         """Return a SysParam object, updated by the data from filename"""
-        if section == "":
-            section = cls._default_section
         try:
             with open(filename) as json_data:
                 parameters = load(json_data)
-                if section:
-                    parameters = parameters[section]
         except FileNotFoundError:
             raise FileNotFound(f"Unknown file {filename}")
         except JSONDecodeError as jerr:
