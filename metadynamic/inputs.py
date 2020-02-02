@@ -67,11 +67,13 @@ class Readerclass(Logged):
 
     @classmethod
     def list_param(cls) -> Dict[str, type]:
-        return {
-            key: val.__origin__ if hasattr(val, "__origin__") else val
-            for key, val in cls.__annotations__.items()
-            if key[0] != "_"
-        }
+        if not hasattr(cls, "_list_param"):
+            cls._list_param = {
+                key: val.__origin__ if hasattr(val, "__origin__") else val
+                for key, val in cls.__annotations__.items()
+                if key[0] != "_"
+            }
+        return cls._list_param
 
     def set_param(self, **kwd) -> None:
         list_param = self.list_param()
