@@ -35,8 +35,6 @@ class LockedError(Exception):
 @dataclass
 class Readerclass(Logged):
     _default_section: str = field(repr=False, default="")
-    _autocast: bool = field(repr=False, default=True)
-    _checktype: bool = field(repr=False, default=True)
 
     def __post_init__(self) -> None:
         pass
@@ -61,32 +59,17 @@ class Readerclass(Logged):
             raise FileNotFound(f"Unknown file {filename}")
         except JSONDecodeError as jerr:
             raise BadJSON(f"({jerr})")
-        # class memders???
-        cls._checktype = checktype
-        cls._autocast = autocast
-        # Validate file entries
-        for key, val in parameters.items():
-            val = cls.checked_items(key, val)
-        # OK, initialize data
-        return cls(**parameters)
-
-    @classmethod
-    def checked_items(cls, key: str, val: Any) -> Any:
-        err = ""
-        if key not in cls.list_param().keys():
-            err += f"'{key}' parameter unknown.\n"
+        new = cls()
+        if checktype:
+            new.set_checktype()
         else:
-            if cls._autocast:
-                try:
-                    val = cls.list_param()[key](val)
-                except ValueError:
-                    err += f"Couldn't cast {val} into {cls.list_param()[key]}"
-            if cls._checktype:
-                if not isinstance(val, cls.list_param()[key]):
-                    err += f"{key} parameter should be of type {cls.list_param()[key]}, not {type(val)}\n"
-        if err != "":
-            raise BadFile(err)
-        return val
+            new.unset_checktype()
+        if autocast:
+            new.set_autocast()
+        else:
+            new.unset_autocast()
+        new.set_param(**parameters)
+        return new
 
     @classmethod
     def list_param(cls) -> Dict[str, type]:
@@ -97,6 +80,23 @@ class Readerclass(Logged):
                 if key[0] != "_"
             }
         return cls._list_param
+
+    def checked_items(self, key: str, val: Any) -> Any:
+        err = ""
+        if key not in self.list_param().keys():
+            err += f"'{key}' parameter unknown.\n"
+        else:
+            if self.autocast:
+                try:
+                    val = self.list_param()[key](val)
+                except ValueError:
+                    err += f"Couldn't cast {val} into {self.list_param()[key]}"
+            if self.checktype:
+                if not isinstance(val, self.list_param()[key]):
+                    err += f"{key} parameter should be of type {self.list_param()[key]}, not {type(val)}\n"
+        if err != "":
+            raise BadFile(err)
+        return val
 
     def set_param(self, **kwd) -> None:
         if self.locked:
@@ -124,6 +124,30 @@ class Readerclass(Logged):
         if not hasattr(self, "_locked"):
             self._locked = False
         return self._locked
+
+    def set_autocast(self) -> None:
+        self._autocast = True
+
+    def unset_autocast(self) -> None:
+        self._autocast = False
+
+    @property
+    def autocast(self):
+        if not hasattr(self, "_autocast"):
+            self._autocast = True
+        return self._autocast
+
+    def set_checktype(self) -> None:
+        self._checktype = True
+
+    def unset_checktype(self) -> None:
+        self._checktype = False
+
+    @property
+    def checktype(self):
+        if not hasattr(self, "_checktype"):
+            self._checktype = True
+        return self._checktype
 
 
 @dataclass
