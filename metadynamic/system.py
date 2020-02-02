@@ -48,7 +48,7 @@ from metadynamic.processing import Result
 from metadynamic.ruleset import Ruled
 from metadynamic.collector import Collectable
 from metadynamic.chemical import Collected, trigger_changes
-from metadynamic.inputs import Param
+from metadynamic.inputs import Param, LockedError
 from metadynamic.inval import invalidstr, invalidfloat, isvalid
 from metadynamic.json2dot import Json2dot
 from metadynamic.hdf5 import ResultWriter
@@ -130,6 +130,7 @@ class System(Probalistic, Collected):
         trigger_changes()
         self.log.info(f"Initialized with {self.param}")
         self.initialized = True
+        self.param.lock()
 
     def _process(self, tstop: float) -> bool:
         # Check if a cleanup should be done
@@ -303,7 +304,8 @@ class System(Probalistic, Collected):
         return Result(res)
 
     def set_param(self, **kwd) -> None:
-        if self.initialized:
+        try:
+            self.param.set_param(**kwd)
+        except LockedError:
             raise InitError("Parameter set after initialization")
-        self.param.set_param(**kwd)
         self.log.info(f"Parameters changed: {self.param}")

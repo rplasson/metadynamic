@@ -28,6 +28,10 @@ from metadynamic.logger import Logged
 R = TypeVar("R", bound="Readerclass")
 
 
+class LockedError(Exception):
+    pass
+
+
 @dataclass
 class Readerclass(Logged):
     _default_section: str = ""
@@ -93,6 +97,8 @@ class Readerclass(Logged):
         return cls._list_param
 
     def set_param(self, **kwd) -> None:
+        if self.locked:
+            raise LockedError
         for key, val in kwd.items():
             val = self.checked_items(key, val)
             setattr(self, key, val)
@@ -100,6 +106,18 @@ class Readerclass(Logged):
 
     def asdict(self) -> dict:
         return asdict(self)
+
+    def lock(self) -> None:
+        self._locked = True
+
+    def unlock(self) -> None:
+        self._locked = False
+
+    @property
+    def locked(self):
+        if not hasattr(self, "_locked"):
+            self._locked = False
+        return self._locked
 
 
 @dataclass
