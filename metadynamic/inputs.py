@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-from json import load, JSONDecodeError
+from json import load, dump, JSONDecodeError
 from typing import List, Dict, TypeVar, Type, Any
 from dataclasses import dataclass, field, asdict
 
@@ -34,7 +34,9 @@ class LockedError(Exception):
 
 @dataclass
 class Readerclass(Logged):
-    _default_section: str = ""
+    _default_section: str = field(repr=False, default="")
+    _autocast: bool = field(repr=False, default=True)
+    _checktype: bool = field(repr=False, default=True)
 
     def __post_init__(self) -> None:
         pass
@@ -60,8 +62,8 @@ class Readerclass(Logged):
         except JSONDecodeError as jerr:
             raise BadJSON(f"({jerr})")
         # class memders???
-        cls.checktype = checktype
-        cls.autocast = autocast
+        cls._checktype = checktype
+        cls._autocast = autocast
         # Validate file entries
         for key, val in parameters.items():
             val = cls.checked_items(key, val)
@@ -74,12 +76,12 @@ class Readerclass(Logged):
         if key not in cls.list_param().keys():
             err += f"'{key}' parameter unknown.\n"
         else:
-            if cls.autocast:
+            if cls._autocast:
                 try:
                     val = cls.list_param()[key](val)
                 except ValueError:
                     err += f"Couldn't cast {val} into {cls.list_param()[key]}"
-            if cls.checktype:
+            if cls._checktype:
                 if not isinstance(val, cls.list_param()[key]):
                     err += f"{key} parameter should be of type {cls.list_param()[key]}, not {type(val)}\n"
         if err != "":
@@ -104,8 +106,12 @@ class Readerclass(Logged):
             setattr(self, key, val)
         self.__post_init__()
 
-    def asdict(self) -> dict:
-        return asdict(self)
+    def asdict(self) -> Dict[str, Any]:
+        return {key: getattr(self, key) for key in self.list_param().keys()}
+
+    def tojson(self, filename: str) -> None:
+        with open(filename, "w") as out:
+            dump(self.asdict(), out)
 
     def lock(self) -> None:
         self._locked = True
