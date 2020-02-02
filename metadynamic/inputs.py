@@ -20,7 +20,7 @@
 
 from json import load, JSONDecodeError
 from typing import List, Dict, TypeVar, Type
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 
 from metadynamic.ends import BadFile, FileNotFound, BadJSON
 from metadynamic.logger import Logged
@@ -78,6 +78,9 @@ class Readerclass(Logged):
         for key, val in kwd.items():
             setattr(self, key, list_param[key](val))
         self.__post_init__()
+
+    def asdict(self) -> dict:
+        return asdict(self)
 
 
 @dataclass

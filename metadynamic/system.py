@@ -26,7 +26,6 @@ from os import getpid
 from typing import Dict, Tuple, Any
 from psutil import Process
 from mpi4py import MPI
-from dataclasses import asdict
 
 from pandas import DataFrame
 from json import dump, JSONEncoder
@@ -178,7 +177,7 @@ class System(Probalistic, Collected):
             writer = ResultWriter(
                 self.param.hdf5, lines, ceil(self.param.tend / self.param.tstep) + 1
             )
-            writer.add_parameter(asdict(self.param))
+            writer.add_parameter(self.paramasdict())
         table = DataFrame(index=lines)
         lendist = DataFrame()
         pooldist = DataFrame()
