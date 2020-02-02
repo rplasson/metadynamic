@@ -19,7 +19,7 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 from json import load, JSONDecodeError
-from typing import List, Dict, TypeVar, Type
+from typing import List, Dict, TypeVar, Type, Any
 from dataclasses import dataclass, field, asdict
 
 from metadynamic.ends import BadFile, FileNotFound, BadJSON
@@ -37,7 +37,11 @@ class Readerclass(Logged):
 
     @classmethod
     def readfile(
-        cls: Type[R], filename: str, section: str = "", checktype: bool = True
+        cls: Type[R],
+        filename: str,
+        section: str = "",
+        checktype: bool = True,
+        autocast: bool = True,
     ) -> R:
         """Return a SysParam object, updated by the data from filename"""
         if section == "":
@@ -51,19 +55,32 @@ class Readerclass(Logged):
             raise FileNotFound(f"Unknown file {filename}")
         except JSONDecodeError as jerr:
             raise BadJSON(f"({jerr})")
+        # class memders???
+        cls.checktype = checktype
+        cls.autocast = autocast
         # Validate file entries
-        err = ""
-        list_param = cls.list_param()
         for key, val in parameters.items():
-            if key not in list_param.keys():
-                err += f"'{key}' parameter unknown.\n"
-            elif checktype:
-                if not isinstance(val, list_param[key]):
-                    err += f"{key} parameter should be of type {list_param[key]}, not {type(val)}\n"
-        if err != "":
-            raise BadFile(err)
+            val = cls.checked_items(key, val)
         # OK, initialize data
         return cls(**parameters)
+
+    @classmethod
+    def checked_items(cls, key: str, val: Any) -> Any:
+        err = ""
+        if key not in cls.list_param().keys():
+            err += f"'{key}' parameter unknown.\n"
+        else:
+            if cls.autocast:
+                try:
+                    val = cls.list_param()[key](val)
+                except ValueError:
+                    err += f"Couldn't cast {val} into {cls.list_param()[key]}"
+            if cls.checktype:
+                if not isinstance(val, cls.list_param()[key]):
+                    err += f"{key} parameter should be of type {cls.list_param()[key]}, not {type(val)}\n"
+        if err != "":
+            raise BadFile(err)
+        return val
 
     @classmethod
     def list_param(cls) -> Dict[str, type]:
@@ -76,9 +93,9 @@ class Readerclass(Logged):
         return cls._list_param
 
     def set_param(self, **kwd) -> None:
-        list_param = self.list_param()
         for key, val in kwd.items():
-            setattr(self, key, list_param[key](val))
+            val = self.checked_items(key, val)
+            setattr(self, key, val)
         self.__post_init__()
 
     def asdict(self) -> dict:
