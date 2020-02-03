@@ -111,7 +111,7 @@ class ResultWriter:
                 self.dict_as_attr(group, val, name=key)
 
     def barrier(self, sleeptime=0.01, tag=0) -> None:
-        # From https://groups.google.com/forum/#!msg/mpi4py/nArVuMXyyZI/YVzMAjiPz98J
+        # From  https://goo.gl/NofOO9
         comm = MPI.COMM_WORLD
         if not self.size == 1:
             mask = 1
