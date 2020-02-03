@@ -162,6 +162,7 @@ class Param(Readerclass):
     dropmode: str = ""  # drop mode (can be 'keep', 'drop' or 'soft')
     gcperio: bool = True  # if True, only call garbage collector at each timestep.
     context: str = "fork"  # thread context to be used (now, only "fork" is implemented)
+    endbarrier: float = 0.01  # If non zero, final threads will wait in idle loops of corresponding values
     # IO
     save: List[str] = field(
         default_factory=list

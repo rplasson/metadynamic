@@ -11,6 +11,7 @@
     "save" : ["a", "aa", "aaa", "aaaa", "A", "Aa", "aA", "AA", "a*", "A*"],
     "snapshot" : "testlog/aped-snapshot.json",
     "hdf5" : "testlog/aped-fulldata.hdf5",
+    "endbarrier" : 0.1,
     "seed" : 1234,
     "rtlim" : 600.0,
     "rulemodel" : "metadynamic.polymers",

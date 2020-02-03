@@ -110,7 +110,7 @@ class ResultWriter:
             except TypeError:
                 self.dict_as_attr(group, val, name=key)
 
-    def barrier(self, tag=0, sleeptime=0.01) -> None:
+    def barrier(self, sleeptime=0.01, tag=0) -> None:
         # From https://groups.google.com/forum/#!msg/mpi4py/nArVuMXyyZI/YVzMAjiPz98J
         comm = MPI.COMM_WORLD
         if not self.size == 1:

@@ -254,7 +254,8 @@ class System(Probalistic, Collected):
             self.log.debug(f"Collection purged for {num}")
             self.log.disconnect(f"Disconnected from thread {num}")
         if ismpi:
-            writer.barrier()
+            if self.param.endbarrier > 0.0 :
+                writer.barrier(sleeptime = self.param.endbarrier)
             nbsnap = self.mpimax(self._nbsnap)
             nbcomp = self.mpimax(self._nbcomp)
             nbreac = self.mpimax(self._nbreac)
