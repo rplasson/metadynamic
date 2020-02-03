@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
+from time import sleep
 from typing import Dict, Any, List, Tuple
 from h5py import File, Group, Dataset, string_dtype
 from mpi4py import MPI
@@ -108,3 +109,19 @@ class ResultWriter:
                 group.attrs[key] = val
             except TypeError:
                 self.dict_as_attr(group, val, name=key)
+
+    def barrier(self, tag=0, sleeptime=0.01) -> None:
+        # From https://groups.google.com/forum/#!msg/mpi4py/nArVuMXyyZI/YVzMAjiPz98J
+        comm = MPI.COMM_WORLD
+        if not self.size == 1:
+            mask = 1
+            while mask < self.size:
+                dst = (self.rank + mask) % self.size
+                src = (self.rank - mask + self.size) % self.size
+                req = comm.isend(None, dst, tag)
+                while not comm.Iprobe(src, tag):
+                    sleep(sleeptime)
+                comm.recv(None, src, tag)
+                req.Wait()
+                mask <<= 1
+            
