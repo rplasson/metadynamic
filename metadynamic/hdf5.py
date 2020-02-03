@@ -19,7 +19,7 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 from typing import Dict, Any, List, Tuple
-from h5py import File, Group, Dataset, special_dtype
+from h5py import File, Group, Dataset, string_dtype
 from mpi4py import MPI
 
 from metadynamic.ends import InitError
@@ -44,14 +44,14 @@ class ResultWriter:
             "compounds",
             (self.size, 1, 1),
             maxshape=(self.size, None, None),
-            dtype=[("name", special_dtype(vlen=str)), ("pop", "int32")],
+            dtype=[("name", string_dtype(length=56)), ("pop", "int32")],
         )
         self.reacsnap: Dataset = self.snapshots.create_dataset(
             "reactions",
             (self.size, 1, 1),
             maxshape=(self.size, None, None),
             dtype=[
-                ("name", special_dtype(vlen=str)),
+                ("name", string_dtype(length=256)),
                 ("const", "float32"),
                 ("rate", "float32"),
             ],
@@ -95,7 +95,7 @@ class ResultWriter:
             for line, data in enumerate(complist.items()):
                 self.compsnap[self.rank, line, col] = data
             for line, data in enumerate(reaclist.items()):
-                self.compsnap[self.rank, line, col] = [data[0]] + data[1]
+                self.reacsnap[self.rank, line, col] = [data[0]] + data[1]
         else:
             raise InitError(f"Snapshots data in hdf5 file wasn't properly sized")
 
