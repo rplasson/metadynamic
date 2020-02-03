@@ -95,9 +95,8 @@ class ResultWriter:
             self.timesnap[self.rank, col] = time
             for line, data in enumerate(complist.items()):
                 self.compsnap[self.rank, line, col] = data
-            # for line, data in enumerate(reaclist.items()):
-            #    print([data[0]] + data[1])
-            #    self.reacsnap[self.rank, line, col] = [data[0]] + data[1]
+            for line, (name, (const, rate)) in enumerate(reaclist.items()):
+                self.reacsnap[self.rank, line, col] = (name, const, rate)
         else:
             raise InitError(f"Snapshots data in hdf5 file wasn't properly sized")
 
