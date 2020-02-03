@@ -38,13 +38,13 @@ class ResultWriter:
         )
         self.snapshots: Group = self.h5file.create_group("Snapshots")
         self.timesnap: Dataset = self.snapshots.create_dataset(
-            "time", (self.size, nbcol), dtype="float32",
+            "time", (self.size, 1), maxshape=(self.size, None), dtype="float32",
         )
         self.compsnap: Dataset = self.snapshots.create_dataset(
             "compounds",
             (self.size, 1, 1),
             maxshape=(self.size, None, None),
-            dtype=[("name", string_dtype(length=56)), ("pop", "int32")],
+            dtype=[("name", string_dtype(length=256)), ("pop", "int32")],
         )
         self.reacsnap: Dataset = self.snapshots.create_dataset(
             "reactions",
@@ -60,6 +60,7 @@ class ResultWriter:
         self._currentcol = 0
 
     def snapsize(self, maxcomp, maxreac, maxsnap):
+        self.timesnap.resize((self.size, maxsnap))
         self.compsnap.resize((self.size, maxcomp, maxsnap))
         self.reacsnap.resize((self.size, maxreac, maxsnap))
         self._snapsized = True
@@ -94,8 +95,9 @@ class ResultWriter:
             self.timesnap[self.rank, col] = time
             for line, data in enumerate(complist.items()):
                 self.compsnap[self.rank, line, col] = data
-            for line, data in enumerate(reaclist.items()):
-                self.reacsnap[self.rank, line, col] = [data[0]] + data[1]
+            # for line, data in enumerate(reaclist.items()):
+            #    print([data[0]] + data[1])
+            #    self.reacsnap[self.rank, line, col] = [data[0]] + data[1]
         else:
             raise InitError(f"Snapshots data in hdf5 file wasn't properly sized")
 
