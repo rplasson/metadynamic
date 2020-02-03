@@ -19,25 +19,50 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 from typing import Dict, Any, List, Tuple
-from h5py import File, Group, Dataset
+from h5py import File, Group, Dataset, special_dtype
 from mpi4py import MPI
+
+from metadynamic.ends import InitError
 
 
 class ResultWriter:
     def __init__(self, filename: str, datanames: List[str], nbcol: int) -> None:
         self.h5file: File = File(filename, "w", driver="mpio", comm=MPI.COMM_WORLD)
         self.size = MPI.COMM_WORLD.size
+        self.nbcol = nbcol
         self.params: Group = self.h5file.create_group("Parameters")
         self.dataset: Group = self.h5file.create_group("Dataset")
         self.dataset.attrs["datanames"] = datanames
         self.data: Dataset = self.dataset.create_dataset(
             "Results", (self.size, len(datanames), nbcol)
         )
-        self.h5file.create_group("Snapshots")
-        self.snapshots: List[Group] = [
-            self.h5file["Snapshots"].create_group(f"#{num}") for num in range(self.size)
-        ]
+        self.snapshots: Group = self.h5file.create_group("Snapshots")
+        self.timesnap: Dataset = self.snapshots.create_dataset(
+            "time", (self.size, nbcol), dtype="float32",
+        )
+        self.compsnap: Dataset = self.snapshots.create_dataset(
+            "compounds",
+            (self.size, 1, 1),
+            maxshape=(self.size, None, None),
+            dtype=[("name", special_dtype(vlen=str)), ("pop", "int32")],
+        )
+        self.reacsnap: Dataset = self.snapshots.create_dataset(
+            "reactions",
+            (self.size, 1, 1),
+            maxshape=(self.size, None, None),
+            dtype=[
+                ("name", special_dtype(vlen=str)),
+                ("const", "float32"),
+                ("rate", "float32"),
+            ],
+        )
+        self._snapsized: bool = False
         self._currentcol = 0
+
+    def snapsize(self, maxcomp, maxreac, maxsnap):
+        self.compsnap.resize((self.size, maxcomp, maxsnap))
+        self.reacsnap.resize((self.size, maxreac, maxsnap))
+        self._snapsized = True
 
     def close(self) -> None:
         self.h5file.close()
@@ -62,13 +87,17 @@ class ResultWriter:
         self,
         complist: Dict[str, int],
         reaclist: Dict[str, Tuple[float, float]],
+        col: int,
         time: float,
     ) -> None:
-        group: Group = self.snapshots[self.rank].create_group(f"t={time}")
-        compgroup: Group = group.create_group("Compounds")
-        reacgroup: Group = group.create_group("Reactions")
-        self.dict_as_attr(compgroup, complist)
-        self.dict_as_attr(reacgroup, reaclist)
+        if self._snapsized:
+            self.timesnap[self.rank, col] = time
+            for line, data in enumerate(complist.items()):
+                self.compsnap[self.rank, line, col] = data
+            for line, data in enumerate(reaclist.items()):
+                self.compsnap[self.rank, line, col] = [data[0]] + data[1]
+        else:
+            raise InitError(f"Snapshots data in hdf5 file wasn't properly sized")
 
     def dict_as_attr(self, group: Group, datas: Dict[str, Any], name: str = "") -> None:
         for key, val in datas.items():

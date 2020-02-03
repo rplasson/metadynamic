@@ -23,12 +23,12 @@ from math import ceil
 from multiprocessing import get_context
 from itertools import repeat
 from os import getpid
-from typing import Dict, Tuple, Any
+from typing import Dict, Tuple, Any, List
 from psutil import Process
 from mpi4py import MPI
 
 from pandas import DataFrame
-from json import dump, JSONEncoder
+from json import load, dump, JSONEncoder
 
 from metadynamic.ends import (
     Finished,
@@ -70,6 +70,11 @@ class System(Probalistic, Collected):
         self.param: Param = Param.readfile(filename)
         self.log.info("Parameter files loaded.")
         self.signcatch = SignalCatcher()
+        self._snapfilenames: List[str] = []
+        self._snaptimes: List[float] = []
+        self._nbcomp: int = 0
+        self._nbreac: int = 0
+        self._nbsnap: int = 0
 
     @property
     def memuse(self) -> float:
@@ -178,7 +183,7 @@ class System(Probalistic, Collected):
             writer = ResultWriter(
                 self.param.hdf5, lines, ceil(self.param.tend / self.param.tstep) + 1
             )
-            writer.add_parameter(self.paramasdict())
+            writer.add_parameter(self.param.asdict())
         table = DataFrame(index=lines)
         lendist = DataFrame()
         pooldist = DataFrame()
@@ -249,8 +254,26 @@ class System(Probalistic, Collected):
             self.log.debug(f"Collection purged for {num}")
             self.log.disconnect(f"Disconnected from thread {num}")
         if ismpi:
+            nbsnap = self.mpimax(self._nbsnap)
+            nbcomp = self.mpimax(self._nbcomp)
+            nbreac = self.mpimax(self._nbreac)
+            writer.snapsize(nbcomp, nbreac, nbsnap)
+            col = 0
+            for time, filename in zip(self._snaptimes, self._snapfilenames):
+                with open(filename, "r") as reader:
+                    data = load(reader)
+                writer.add_snapshot(data["Compounds"], data["Reactions"], col, time)
+                col += 1
             writer.close()
         return retval
+
+    @staticmethod
+    def mpimax(value: Any) -> Any:
+        comm = MPI.COMM_WORLD
+        rank = comm.Get_rank()
+        allvalues = comm.gather(value, root=0)
+        maxvalue = max(allvalues) if rank == 0 else 0
+        return comm.bcast(maxvalue, root=0)
 
     def make_snapshot(self, num: int, time: float = invalidfloat) -> None:
         timestr = str(time) if isvalid(time) else "end"
@@ -260,15 +283,21 @@ class System(Probalistic, Collected):
             basename = filled.format(base=basename, n=num, t=timestr)
             filename = f"{basename}.{ext}"
             with open(filename, "w") as outfile:
+                comp = self.comp_collect.save()
+                nbcomp = len(comp)
+                reac = self.reac_collect.save()
+                nbreac = len(reac)
                 dump(
-                    {
-                        "Compounds": self.comp_collect.save(),
-                        "Reactions": self.reac_collect.save(),
-                    },
+                    {"Compounds": comp, "Reactions": reac},
                     outfile,
                     cls=Encoder,
                     indent=4,
                 )
+            self._snapfilenames.append(filename)
+            self._snaptimes.append(time if isvalid(time) else self.param.tend)
+            self._nbsnap += 1
+            self._nbcomp = max(self._nbcomp, nbcomp)
+            self._nbreac = max(self._nbreac, nbreac)
             if self.param.printsnap:
                 Json2dot(filename).write(f"{basename}.{self.param.printsnap}")
 

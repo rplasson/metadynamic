@@ -39,11 +39,7 @@ class Readerclass(Logged):
 
     @classmethod
     def readfile(
-        cls: Type[R],
-        filename: str,
-        section: str = "",
-        checktype: bool = True,
-        autocast: bool = True,
+        cls: Type[R], filename: str, checktype: bool = True, autocast: bool = True,
     ) -> R:
         """Return a SysParam object, updated by the data from filename"""
         try:
