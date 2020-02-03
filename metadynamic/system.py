@@ -254,11 +254,12 @@ class System(Probalistic, Collected):
             self.log.debug(f"Collection purged for {num}")
             self.log.disconnect(f"Disconnected from thread {num}")
         if ismpi:
-            if self.param.endbarrier > 0.0 :
-                writer.barrier(sleeptime = self.param.endbarrier)
-            nbsnap = self.mpimax(self._nbsnap)
-            nbcomp = self.mpimax(self._nbcomp)
-            nbreac = self.mpimax(self._nbreac)
+            if self.param.endbarrier > 0.0:
+                writer.barrier(sleeptime=self.param.endbarrier)
+            comm = MPI.COMM_WORLD
+            nbsnap = comm.allreduce(self._nbsnap, op=MPI.MAX)
+            nbcomp = comm.allreduce(self._nbcomp, op=MPI.MAX)
+            nbreac = comm.allreduce(self._nbreac, op=MPI.MAX)
             writer.snapsize(nbcomp, nbreac, nbsnap)
             col = 0
             for time, filename in zip(self._snaptimes, self._snapfilenames):
@@ -268,14 +269,6 @@ class System(Probalistic, Collected):
                 col += 1
             writer.close()
         return retval
-
-    @staticmethod
-    def mpimax(value: Any) -> Any:
-        comm = MPI.COMM_WORLD
-        rank = comm.Get_rank()
-        allvalues = comm.gather(value, root=0)
-        maxvalue = max(allvalues) if rank == 0 else 0
-        return comm.bcast(maxvalue, root=0)
 
     def make_snapshot(self, num: int, time: float = invalidfloat) -> None:
         timestr = str(time) if isvalid(time) else "end"
