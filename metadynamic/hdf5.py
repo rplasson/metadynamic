@@ -131,3 +131,16 @@ class ResultWriter:
                 group.attrs[key] = val
             except TypeError:
                 self.dict_as_attr(group, val, name=key)
+
+
+class ResultReader:
+    def __init__(self, filename: str) -> None:
+        self.h5file: File = File(filename, "r")
+        self.params: Group = self.h5file["Parameters"]
+        self.dataset: Group = self.h5file["Dataset"]
+        self.datanames: List[str] = List(self.dataset.attrs["datanames"])
+        self.data: Dataset = self.dataset["Results"]
+        self.snapshots: Group = self.h5file["Snapshots"]
+        self.timesnap: Dataset = self.snapshots["time"]
+        self.compsnap: Dataset = self.snapshots["compounds"]
+        self.reacsnap: Dataset = self.snapshots["reactions"]
