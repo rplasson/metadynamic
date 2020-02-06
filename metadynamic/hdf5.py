@@ -55,6 +55,7 @@ class MpiStatus:
 
 class ResultWriter:
     def __init__(self, filename: str, datanames: List[str], nbcol: int) -> None:
+        self.filename = filename
         self.mpi = MpiStatus()
         size = self.mpi.size
         self.h5file: File = File(filename, "w", driver="mpio", comm=self.mpi.comm)

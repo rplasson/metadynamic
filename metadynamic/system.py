@@ -190,7 +190,7 @@ class System(Probalistic, Collected):
         tnext = 0.0
         tsnapshot = self.param.sstep if self.param.sstep >= 0 else 2 * self.param.tend
         step = 0
-        self.log.info(f"Run {num}={getpid()} launched")
+        self.log.info(f"Run #{num}={getpid()} launched")
         self.signcatch.listen()
         # Process(getpid()).cpu_affinity([num % cpu_count()])
         while True:
@@ -242,7 +242,7 @@ class System(Probalistic, Collected):
             pooldist.astype(int),
             end,
         )
-        self.log.debug(f"Run {num}={getpid()} finished")
+        self.log.debug(f"Run #{num}={getpid()} finished")
         self.make_snapshot(num)
         if num >= 0:
             # Clean memory as much as possible to leave room to still alive threads
@@ -251,11 +251,11 @@ class System(Probalistic, Collected):
             Probalistic.setprobalist(vol=self.param.vol)
             trigger_changes()
             gc.collect()
-            self.log.debug(f"Collection purged for {num}")
-            self.log.disconnect(f"Disconnected from thread {num}")
+            self.log.debug(f"Collection purged for #{num}")
         if ismpi:
             if self.param.endbarrier > 0.0:
                 self.mpi.barrier(sleeptime=self.param.endbarrier)
+                self.log.info(f"#{num} joined others")
             nbsnap = self.mpi.max(self._nbsnap)
             nbcomp = self.mpi.max(self._nbcomp)
             nbreac = self.mpi.max(self._nbreac)
@@ -267,6 +267,9 @@ class System(Probalistic, Collected):
                 writer.add_snapshot(data["Compounds"], data["Reactions"], col, time)
                 col += 1
             writer.close()
+            self.log.info(f"File {writer.filename} written and closed")
+        if num >= 0:
+            self.log.disconnect(f"Disconnected from #{num}")
         return retval
 
     def make_snapshot(self, num: int, time: float = invalidfloat) -> None:
