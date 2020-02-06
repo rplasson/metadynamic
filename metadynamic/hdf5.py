@@ -22,8 +22,10 @@ from time import sleep
 from typing import Dict, Any, List, Tuple
 from h5py import File, Group, Dataset, string_dtype
 from mpi4py import MPI
+from numpy import nan
 
 from metadynamic.ends import InitError
+from metadynamic.inval import invalidstr, invalidint, isvalid
 
 
 class MpiStatus:
@@ -61,7 +63,8 @@ class ResultWriter:
         self.dataset: Group = self.h5file.create_group("Dataset")
         self.dataset.attrs["datanames"] = datanames
         self.data: Dataset = self.dataset.create_dataset(
-            "Results", (size, len(datanames), nbcol)
+            "Results", (size, len(datanames), nbcol),
+            fillvalue = nan
         )
         self.snapshots: Group = self.h5file.create_group("Snapshots")
         self.timesnap: Dataset = self.snapshots.create_dataset(
