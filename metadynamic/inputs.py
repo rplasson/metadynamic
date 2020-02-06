@@ -18,9 +18,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-from json import load, JSONDecodeError
-from typing import List, Dict, TypeVar, Type
-from dataclasses import dataclass, field
+from json import load, dump, JSONDecodeError
+from typing import List, Dict, TypeVar, Type, Any
+from dataclasses import dataclass, field, asdict
 
 from metadynamic.ends import BadFile, FileNotFound, BadJSON
 from metadynamic.logger import Logged
@@ -28,56 +28,116 @@ from metadynamic.logger import Logged
 R = TypeVar("R", bound="Readerclass")
 
 
+class LockedError(Exception):
+    pass
+
+
 @dataclass
 class Readerclass(Logged):
-    _default_section: str = ""
-
     def __post_init__(self) -> None:
         pass
 
     @classmethod
     def readfile(
-        cls: Type[R], filename: str, section: str = "", checktype: bool = True
+        cls: Type[R], filename: str, checktype: bool = True, autocast: bool = True,
     ) -> R:
         """Return a SysParam object, updated by the data from filename"""
-        if section == "":
-            section = cls._default_section
         try:
             with open(filename) as json_data:
                 parameters = load(json_data)
-                if section:
-                    parameters = parameters[section]
         except FileNotFoundError:
             raise FileNotFound(f"Unknown file {filename}")
         except JSONDecodeError as jerr:
             raise BadJSON(f"({jerr})")
-        # Validate file entries
-        err = ""
-        list_param = cls.list_param()
-        for key, val in parameters.items():
-            if key not in list_param.keys():
-                err += f"'{key}' parameter unknown.\n"
-            elif checktype:
-                if not isinstance(val, list_param[key]):
-                    err += f"{key} parameter should be of type {list_param[key]}, not {type(val)}\n"
-        if err != "":
-            raise BadFile(err)
-        # OK, initialize data
-        return cls(**parameters)
+        new = cls()
+        if checktype:
+            new.set_checktype()
+        else:
+            new.unset_checktype()
+        if autocast:
+            new.set_autocast()
+        else:
+            new.unset_autocast()
+        new.set_param(**parameters)
+        return new
 
     @classmethod
     def list_param(cls) -> Dict[str, type]:
-        return {
-            key: val.__origin__ if hasattr(val, "__origin__") else val
-            for key, val in cls.__annotations__.items()
-            if key[0] != "_"
-        }
+        if not hasattr(cls, "_list_param"):
+            cls._list_param = {
+                key: val.__origin__ if hasattr(val, "__origin__") else val
+                for key, val in cls.__annotations__.items()
+                if key[0] != "_"
+            }
+        return cls._list_param
+
+    def checked_items(self, key: str, val: Any) -> Any:
+        err = ""
+        if key not in self.list_param().keys():
+            err += f"'{key}' parameter unknown.\n"
+        else:
+            if self.autocast:
+                try:
+                    val = self.list_param()[key](val)
+                except ValueError:
+                    err += f"Couldn't cast {val} into {self.list_param()[key]}"
+            if self.checktype:
+                if not isinstance(val, self.list_param()[key]):
+                    err += f"{key} parameter should be of type {self.list_param()[key]}, not {type(val)}\n"
+        if err != "":
+            raise BadFile(err)
+        return val
 
     def set_param(self, **kwd) -> None:
-        list_param = self.list_param()
+        if self.locked:
+            raise LockedError
         for key, val in kwd.items():
-            setattr(self, key, list_param[key](val))
+            val = self.checked_items(key, val)
+            setattr(self, key, val)
         self.__post_init__()
+
+    def asdict(self) -> Dict[str, Any]:
+        return {key: getattr(self, key) for key in self.list_param().keys()}
+
+    def tojson(self, filename: str) -> None:
+        with open(filename, "w") as out:
+            dump(self.asdict(), out)
+
+    def lock(self) -> None:
+        self._locked = True
+
+    def unlock(self) -> None:
+        self._locked = False
+
+    @property
+    def locked(self):
+        if not hasattr(self, "_locked"):
+            self._locked = False
+        return self._locked
+
+    def set_autocast(self) -> None:
+        self._autocast = True
+
+    def unset_autocast(self) -> None:
+        self._autocast = False
+
+    @property
+    def autocast(self):
+        if not hasattr(self, "_autocast"):
+            self._autocast = True
+        return self._autocast
+
+    def set_checktype(self) -> None:
+        self._checktype = True
+
+    def unset_checktype(self) -> None:
+        self._checktype = False
+
+    @property
+    def checktype(self):
+        if not hasattr(self, "_checktype"):
+            self._checktype = True
+        return self._checktype
 
 
 @dataclass
@@ -102,11 +162,14 @@ class Param(Readerclass):
     dropmode: str = ""  # drop mode (can be 'keep', 'drop' or 'soft')
     gcperio: bool = True  # if True, only call garbage collector at each timestep.
     context: str = "fork"  # thread context to be used (now, only "fork" is implemented)
+    endbarrier: float = 0.01  # If non zero, final threads will wait in idle loops of corresponding values
     # IO
     save: List[str] = field(
         default_factory=list
     )  # list of compounds to be saved at each time step
     snapshot: str = ""  # filename for final snapshot
+    printsnap: str = "pdf"  # filetype of snapshots
+    hdf5: str = ""  # filename for hdf5 file
 
     def __post_init__(self) -> None:
         self.ptot = sum([pop * len(comp) for comp, pop in self.init.items()])
@@ -114,7 +177,7 @@ class Param(Readerclass):
 
 
 @dataclass
-class Json2dotParam(Readerclass):
+class DotParam(Readerclass):
     # type
     binode: bool = False
     # compounds

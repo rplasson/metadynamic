@@ -19,14 +19,15 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 import gc
+from math import ceil
 from multiprocessing import get_context
 from itertools import repeat
 from os import getpid
-from typing import Dict, Tuple, Any
+from typing import Dict, Tuple, Any, List
 from psutil import Process
 
 from pandas import DataFrame
-from json import dump, JSONEncoder
+from json import load, dump, JSONEncoder
 
 from metadynamic.ends import (
     Finished,
@@ -46,8 +47,10 @@ from metadynamic.processing import Result
 from metadynamic.ruleset import Ruled
 from metadynamic.collector import Collectable
 from metadynamic.chemical import Collected, trigger_changes
-from metadynamic.inputs import Param
+from metadynamic.inputs import Param, LockedError
 from metadynamic.inval import invalidstr, invalidfloat, isvalid
+from metadynamic.json2dot import Json2dot
+from metadynamic.hdf5 import ResultWriter, MpiStatus
 
 
 class Encoder(JSONEncoder):
@@ -66,6 +69,12 @@ class System(Probalistic, Collected):
         self.param: Param = Param.readfile(filename)
         self.log.info("Parameter files loaded.")
         self.signcatch = SignalCatcher()
+        self.mpi = MpiStatus()
+        self._snapfilenames: List[str] = []
+        self._snaptimes: List[float] = []
+        self._nbcomp: int = 0
+        self._nbreac: int = 0
+        self._nbsnap: int = 0
 
     @property
     def memuse(self) -> float:
@@ -126,6 +135,7 @@ class System(Probalistic, Collected):
         trigger_changes()
         self.log.info(f"Initialized with {self.param}")
         self.initialized = True
+        self.param.lock()
 
     def _process(self, tstop: float) -> bool:
         # Check if a cleanup should be done
@@ -158,7 +168,7 @@ class System(Probalistic, Collected):
         self.log.warning(f"maxsteps per process (={self.param.maxsteps}) too low")
         return False
 
-    def _run(self, num: int = -1) -> Tuple[DataFrame, int, int, str]:
+    def _run(self, num: int = -1, ismpi=False) -> Tuple[DataFrame, int, int, str]:
         lines = (
             ["#", "thread", "ptime", "memuse", "step", "time"]
             + self.param.save
@@ -169,13 +179,18 @@ class System(Probalistic, Collected):
         if not self.initialized:
             self.log.info("Will initialize")
             self.initialize()
+        if ismpi:
+            writer = ResultWriter(
+                self.param.hdf5, lines, ceil(self.param.tend / self.param.tstep) + 1
+            )
+            writer.add_parameter(self.param.asdict())
         table = DataFrame(index=lines)
         lendist = DataFrame()
         pooldist = DataFrame()
         tnext = 0.0
-        tsnapshot = self.param.sstep if self.param.sstep >= 0 else 2*self.param.tend
+        tsnapshot = self.param.sstep if self.param.sstep >= 0 else 2 * self.param.tend
         step = 0
-        self.log.info(f"Run {num}={getpid()} launched")
+        self.log.info(f"Run #{num}={getpid()} launched")
         self.signcatch.listen()
         # Process(getpid()).cpu_affinity([num % cpu_count()])
         while True:
@@ -195,6 +210,8 @@ class System(Probalistic, Collected):
                     ]
                 )
                 table[step] = res
+                if ismpi:
+                    writer.add_data(res)
                 self.log.debug(str(res))
                 lendist = lendist.join(
                     DataFrame.from_dict({step: dist["lendist"]}), how="outer",
@@ -225,7 +242,7 @@ class System(Probalistic, Collected):
             pooldist.astype(int),
             end,
         )
-        self.log.debug(f"Run {num}={getpid()} finished")
+        self.log.debug(f"Run #{num}={getpid()} finished")
         self.make_snapshot(num)
         if num >= 0:
             # Clean memory as much as possible to leave room to still alive threads
@@ -234,29 +251,60 @@ class System(Probalistic, Collected):
             Probalistic.setprobalist(vol=self.param.vol)
             trigger_changes()
             gc.collect()
-            self.log.debug(f"Collection purged for {num}")
-            self.log.disconnect(f"Disconnected from thread {num}")
+            self.log.debug(f"Collection purged for #{num}")
+        if ismpi:
+            if self.param.endbarrier > 0.0:
+                self.mpi.barrier(sleeptime=self.param.endbarrier)
+                self.log.info(f"#{num} joined others")
+            nbsnap = self.mpi.max(self._nbsnap)
+            nbcomp = self.mpi.max(self._nbcomp)
+            nbreac = self.mpi.max(self._nbreac)
+            writer.snapsize(nbcomp, nbreac, nbsnap)
+            col = 0
+            for time, filename in zip(self._snaptimes, self._snapfilenames):
+                with open(filename, "r") as reader:
+                    data = load(reader)
+                writer.add_snapshot(data["Compounds"], data["Reactions"], col, time)
+                col += 1
+            writer.close()
+            self.log.info(f"File {writer.filename} written and closed")
+        if num >= 0:
+            self.log.disconnect(f"Disconnected from #{num}")
         return retval
 
     def make_snapshot(self, num: int, time: float = invalidfloat) -> None:
         timestr = str(time) if isvalid(time) else "end"
         if self.param.snapshot:
-            fill = "-{n}_{t}." if num >= 0 else "-{t}."
-            filename = fill.join(self.param.snapshot.split(".")).format(
-                n=num, t=timestr
-            )
+            basename, ext = self.param.snapshot.split(".")
+            filled = "{base}-{n}_{t}" if num >= 0 else "{base}-{t}"
+            basename = filled.format(base=basename, n=num, t=timestr)
+            filename = f"{basename}.{ext}"
             with open(filename, "w") as outfile:
+                comp = self.comp_collect.save()
+                nbcomp = len(comp)
+                reac = self.reac_collect.save()
+                nbreac = len(reac)
                 dump(
-                    {
-                        "Compounds": self.comp_collect.save(),
-                        "Reactions": self.reac_collect.save(),
-                    },
+                    {"Compounds": comp, "Reactions": reac},
                     outfile,
                     cls=Encoder,
                     indent=4,
                 )
+            self._snapfilenames.append(filename)
+            self._snaptimes.append(time if isvalid(time) else self.param.tend)
+            self._nbsnap += 1
+            self._nbcomp = max(self._nbcomp, nbcomp)
+            self._nbreac = max(self._nbreac, nbreac)
+            if self.param.printsnap:
+                Json2dot(filename).write(f"{basename}.{self.param.printsnap}")
 
     def run(self) -> Result:
+        if self.mpi.ismpi:
+            self.log.info(f"Launching MPI run from thread #{self.mpi.rank}")
+            self.log.disconnect(reason="Launching MPI....")
+            res = [self._run(self.mpi.rank, ismpi=True)]
+            self.signcatch.reset()
+            return Result(res)
         if self.param.nbthread == 1:
             self.log.info("Launching single run.")
             res = [self._run()]
@@ -281,7 +329,8 @@ class System(Probalistic, Collected):
         return Result(res)
 
     def set_param(self, **kwd) -> None:
-        if self.initialized:
+        try:
+            self.param.set_param(**kwd)
+        except LockedError:
             raise InitError("Parameter set after initialization")
-        self.param.set_param(**kwd)
         self.log.info(f"Parameters changed: {self.param}")
