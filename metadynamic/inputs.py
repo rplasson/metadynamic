@@ -20,7 +20,7 @@
 
 from json import load, dump, JSONDecodeError
 from typing import List, Dict, TypeVar, Type, Any
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field
 
 from metadynamic.ends import BadFile, FileNotFound, BadJSON
 from metadynamic.logger import Logged
@@ -34,6 +34,8 @@ class LockedError(Exception):
 
 @dataclass
 class Readerclass(Logged):
+    _list_param: Dict[str, Any] = field(init=False)
+
     def __post_init__(self) -> None:
         pass
 
@@ -110,7 +112,7 @@ class Readerclass(Logged):
         self._locked = False
 
     @property
-    def locked(self):
+    def locked(self) -> bool:
         if not hasattr(self, "_locked"):
             self._locked = False
         return self._locked
@@ -122,7 +124,7 @@ class Readerclass(Logged):
         self._autocast = False
 
     @property
-    def autocast(self):
+    def autocast(self) -> bool:
         if not hasattr(self, "_autocast"):
             self._autocast = True
         return self._autocast
@@ -134,7 +136,7 @@ class Readerclass(Logged):
         self._checktype = False
 
     @property
-    def checktype(self):
+    def checktype(self) -> bool:
         if not hasattr(self, "_checktype"):
             self._checktype = True
         return self._checktype

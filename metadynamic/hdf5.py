@@ -200,6 +200,6 @@ class ResultReader:
             )
         return self.data[:, loc]
 
-    def ending(self, num):
+    def ending(self, num: int) -> Tuple[int, str, float]:
         endnum, message, time = self.end[num]
-        return (endnum, message.decode(), time) 
+        return endnum, message.decode(), time
