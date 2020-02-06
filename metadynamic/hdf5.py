@@ -22,7 +22,7 @@ from time import sleep
 from typing import Dict, Any, List, Tuple
 from h5py import File, Group, Dataset, string_dtype
 from mpi4py import MPI
-from numpy import nan, nanmean, nanstd, ndarray
+from numpy import nan, nanmean, nanstd, ndarray, convolve, ones
 
 from metadynamic.ends import InitError
 from metadynamic.inval import invalidstr, invalidint, isvalid
@@ -152,19 +152,27 @@ class ResultReader:
         return self.datanames.index(field)
 
     def get(
-        self, field: str = "time", procnum: str = invalidstr, mean: int = invalidint,
+        self, field: str = "time", procnum: str = invalidstr, meanlength: int = invalidint,
     ) -> ndarray:
         loc = self._loc(field)
         if isvalid(procnum):
             if procnum.isnumeric():
-                return self.data[int(procnum), loc]
+                res = self.data[int(procnum), loc]
             elif procnum[0] in ["m", "s", "+", "-"]:
                 mean = nanmean(self.data[:, loc, :], axis=0)
                 if procnum == "m":
-                    return mean
-                std = nanstd(self.data[:, loc, :], axis=0)
-                if procnum == "s":
-                    return std
-                return mean + float(procnum) * std
-            raise ValueError(f"'procnum'={procnum} is invalid")
+                    res = mean
+                else:
+                    std = nanstd(self.data[:, loc, :], axis=0)
+                    if procnum == "s":
+                        res = std
+                    else:
+                        res: mean + float(procnum) * std
+            else:
+                raise ValueError(f"'procnum'={procnum} is invalid")
+            return (
+                convolve(res, ones((meanlength,)) / meanlength, mode="valid")
+                if isvalid(meanlength)
+                else res
+            )
         return self.data[:, loc]
