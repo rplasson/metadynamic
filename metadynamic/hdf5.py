@@ -34,6 +34,10 @@ class MpiStatus:
         self.size: int = int(self.comm.size)
         self.rank: int = int(self.comm.rank)
         self.ismpi: bool = self.size > 1
+        if not self.ismpi:
+            self.comm = None
+            # for mulithread pickling in non -mpi multithread
+            # temporary hack, non-mpi multithread to be removed at term.
 
     def barrier(self, sleeptime: float = 0.01, tag: int = 0) -> None:
         # From  https://goo.gl/NofOO9
@@ -152,7 +156,10 @@ class ResultReader:
         return self.datanames.index(field)
 
     def get(
-        self, field: str = "time", procnum: str = invalidstr, meanlength: int = invalidint,
+        self,
+        field: str = "time",
+        procnum: str = invalidstr,
+        meanlength: int = invalidint,
     ) -> ndarray:
         loc = self._loc(field)
         if isvalid(procnum):
@@ -171,6 +178,7 @@ class ResultReader:
             else:
                 raise ValueError(f"'procnum'={procnum} is invalid")
             return (
+                # Running mean from https://stackoverflow.com/questions/13728392/moving-average-or-running-mean
                 convolve(res, ones((meanlength,)) / meanlength, mode="valid")
                 if isvalid(meanlength)
                 else res
