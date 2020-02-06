@@ -22,20 +22,20 @@ from time import sleep
 from typing import Dict, Any, List, Tuple
 from h5py import File, Group, Dataset, string_dtype
 from mpi4py import MPI
-from numpy import nan
+from numpy import nan, nanmean, nanstd, ndarray
 
 from metadynamic.ends import InitError
 from metadynamic.inval import invalidstr, invalidint, isvalid
 
 
 class MpiStatus:
-    def __init__(self):
+    def __init__(self) -> None:
         self.comm = MPI.COMM_WORLD
         self.size: int = int(self.comm.size)
         self.rank: int = int(self.comm.rank)
         self.ismpi: bool = self.size > 1
 
-    def barrier(self, sleeptime=0.01, tag=0) -> None:
+    def barrier(self, sleeptime: float = 0.01, tag: int = 0) -> None:
         # From  https://goo.gl/NofOO9
         if self.ismpi:
             mask = 1
@@ -49,7 +49,7 @@ class MpiStatus:
                 req.Wait()
                 mask <<= 1
 
-    def max(self, val):
+    def max(self, val: Any) -> Any:
         return self.comm.allreduce(val, op=MPI.MAX)
 
 
@@ -63,8 +63,7 @@ class ResultWriter:
         self.dataset: Group = self.h5file.create_group("Dataset")
         self.dataset.attrs["datanames"] = datanames
         self.data: Dataset = self.dataset.create_dataset(
-            "Results", (size, len(datanames), nbcol),
-            fillvalue = nan
+            "Results", (size, len(datanames), nbcol), fillvalue=nan
         )
         self.snapshots: Group = self.h5file.create_group("Snapshots")
         self.timesnap: Dataset = self.snapshots.create_dataset(
@@ -89,7 +88,7 @@ class ResultWriter:
         self._snapsized: bool = False
         self._currentcol = 0
 
-    def snapsize(self, maxcomp, maxreac, maxsnap):
+    def snapsize(self, maxcomp: int, maxreac: int, maxsnap: int) -> None:
         self.timesnap.resize((self.mpi.size, maxsnap))
         self.compsnap.resize((self.mpi.size, maxcomp, maxsnap))
         self.reacsnap.resize((self.mpi.size, maxreac, maxsnap))
@@ -141,9 +140,30 @@ class ResultReader:
         self.h5file: File = File(filename, "r")
         self.params: Group = self.h5file["Parameters"]
         self.dataset: Group = self.h5file["Dataset"]
-        self.datanames: List[str] = List(self.dataset.attrs["datanames"])
+        self.datanames: List[str] = list(self.dataset.attrs["datanames"])
         self.data: Dataset = self.dataset["Results"]
         self.snapshots: Group = self.h5file["Snapshots"]
         self.timesnap: Dataset = self.snapshots["time"]
         self.compsnap: Dataset = self.snapshots["compounds"]
         self.reacsnap: Dataset = self.snapshots["reactions"]
+
+    def _loc(self, field: str) -> int:
+        return self.datanames.index(field)
+
+    def get(
+        self, field: str = "time", procnum: str = invalidstr, mean: int = invalidint,
+    ) -> ndarray:
+        loc = self._loc(field)
+        if isvalid(procnum):
+            if procnum.isnumeric():
+                return self.data[int(procnum), loc]
+            elif procnum[0] in ["m", "s", "+", "-"]:
+                mean = nanmean(self.data[:, loc, :], axis=0)
+                if procnum == "m":
+                    return mean
+                std = nanstd(self.data[:, loc, :], axis=0)
+                if procnum == "s":
+                    return std
+                return mean + float(procnum) * std
+            raise ValueError(f"'procnum'={procnum} is invalid")
+        return self.data[:, loc]
