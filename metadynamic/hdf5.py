@@ -126,7 +126,7 @@ class ResultWriter:
             )
 
     def add_end(self, ending: Finished, time: float) -> None:
-        self.end[self.mpi.rank] = (ending.num, ending.message, time)
+        self.end[self.mpi.rank] = (ending.num, ending.message.encode(), time)
 
     def add_snapshot(
         self,
@@ -140,7 +140,7 @@ class ResultWriter:
             for line, data in enumerate(complist.items()):
                 self.compsnap[self.mpi.rank, line, col] = data
             for line, (name, (const, rate)) in enumerate(reaclist.items()):
-                self.reacsnap[self.mpi.rank, line, col] = (name, const, rate)
+                self.reacsnap[self.mpi.rank, line, col] = (name.encode(), const, rate)
         else:
             raise InitError(f"Snapshots data in hdf5 file wasn't properly sized")
 
@@ -199,3 +199,7 @@ class ResultReader:
                 else res
             )
         return self.data[:, loc]
+
+    def ending(self, num):
+        endnum, message, time = self.end[num]
+        return (endnum, message.decode(), time) 
