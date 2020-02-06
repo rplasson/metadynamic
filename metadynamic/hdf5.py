@@ -167,7 +167,7 @@ class ResultReader:
                     if procnum == "s":
                         res = std
                     else:
-                        res: mean + float(procnum) * std
+                        res = mean + float(procnum) * std
             else:
                 raise ValueError(f"'procnum'={procnum} is invalid")
             return (
