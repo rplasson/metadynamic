@@ -229,6 +229,8 @@ class System(Probalistic, Collected):
                 step += 1
             except Finished as the_end:
                 end = f"{the_end} ({self.log.runtime()} s)"
+                if ismpi:
+                    writer.add_end(the_end, self.log.runtime())
                 if isinstance(the_end, HappyEnding):
                     self.log.info(str(the_end))
                 elif isinstance(the_end, BadEnding):

@@ -24,7 +24,7 @@ from h5py import File, Group, Dataset, string_dtype
 from mpi4py import MPI
 from numpy import nan, nanmean, nanstd, ndarray, convolve, ones
 
-from metadynamic.ends import InitError
+from metadynamic.ends import InitError, Finished
 from metadynamic.inval import invalidstr, invalidint, isvalid
 
 
@@ -58,7 +58,9 @@ class MpiStatus:
 
 
 class ResultWriter:
-    def __init__(self, filename: str, datanames: List[str], nbcol: int) -> None:
+    def __init__(
+        self, filename: str, datanames: List[str], nbcol: int, maxstrlen: int = 256
+    ) -> None:
         self.filename = filename
         self.mpi = MpiStatus()
         size = self.mpi.size
@@ -70,6 +72,15 @@ class ResultWriter:
         self.data: Dataset = self.dataset.create_dataset(
             "Results", (size, len(datanames), nbcol), fillvalue=nan
         )
+        self.end: Dataset = self.dataset.create_dataset(
+            "End",
+            (size,),
+            dtype=[
+                ("num", "int32"),
+                ("message", string_dtype(length=maxstrlen)),
+                ("runtime", "float32"),
+            ],
+        )
         self.snapshots: Group = self.h5file.create_group("Snapshots")
         self.timesnap: Dataset = self.snapshots.create_dataset(
             "time", (size, 1), maxshape=(size, None), dtype="float32",
@@ -78,14 +89,14 @@ class ResultWriter:
             "compounds",
             (size, 1, 1),
             maxshape=(size, None, None),
-            dtype=[("name", string_dtype(length=256)), ("pop", "int32")],
+            dtype=[("name", string_dtype(length=maxstrlen)), ("pop", "int32")],
         )
         self.reacsnap: Dataset = self.snapshots.create_dataset(
             "reactions",
             (size, 1, 1),
             maxshape=(size, None, None),
             dtype=[
-                ("name", string_dtype(length=256)),
+                ("name", string_dtype(length=maxstrlen)),
                 ("const", "float32"),
                 ("rate", "float32"),
             ],
@@ -113,6 +124,9 @@ class ResultWriter:
             raise ValueError(
                 f"No more space in file for #{self.mpi.rank} at column {self._currentcol}"
             )
+
+    def add_end(self, ending: Finished, time: float) -> None:
+        self.end[self.mpi.rank] = (ending.num, ending.message, time)
 
     def add_snapshot(
         self,
@@ -147,6 +161,7 @@ class ResultReader:
         self.dataset: Group = self.h5file["Dataset"]
         self.datanames: List[str] = list(self.dataset.attrs["datanames"])
         self.data: Dataset = self.dataset["Results"]
+        self.end: Dataset = self.dataset["End"]
         self.snapshots: Group = self.h5file["Snapshots"]
         self.timesnap: Dataset = self.snapshots["time"]
         self.compsnap: Dataset = self.snapshots["compounds"]
