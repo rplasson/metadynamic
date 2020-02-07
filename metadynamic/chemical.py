@@ -115,6 +115,10 @@ class CollectofCompound(Collect[str, "Compound"]):
             return sum(values * weights)
         if method == "m":
             return average(values, weights=weights)
+        if method == "max":
+            return max(values * weights)
+        if method == "min":
+            return min(values * weights)
 
     def map(
         self, prop: str, weight: str = invalidstr, full: bool = False

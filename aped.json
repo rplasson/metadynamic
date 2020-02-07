@@ -11,6 +11,9 @@
     "save" : ["a", "aa", "aaa", "aaaa", "A", "Aa", "aA", "AA", "a*", "A*"],
     "stat" : {
 	"len_mean": ["length", "", "m"],
+	"len_min": ["length", "", "min"],
+	"len_max": ["length", "", "max"],
+	"wlen_mean": ["length", "pop", "m"],
 	"tot_m": ["length", "pop", "+"],
 	"ee": ["asym", "pop", "m"]
     },
