@@ -19,7 +19,7 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 from json import load, dump, JSONDecodeError
-from typing import List, Dict, TypeVar, Type, Any
+from typing import List, Dict, Tuple, TypeVar, Type, Any
 from dataclasses import dataclass, field
 
 from metadynamic.ends import BadFile, FileNotFound, BadJSON
@@ -34,7 +34,7 @@ class LockedError(Exception):
 
 @dataclass
 class Readerclass(Logged):
-    _list_param: Dict[str, Any] = field(init=False)
+    _list_param: Dict[str, Any] = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
         pass
@@ -169,6 +169,9 @@ class Param(Readerclass):
     save: List[str] = field(
         default_factory=list
     )  # list of compounds to be saved at each time step
+    stat: Dict[str, List[str]] = field(
+        default_factory=list
+    )  # list of (stat, weigth="", method="m")  to be saved at each time step
     snapshot: str = ""  # filename for final snapshot
     printsnap: str = "pdf"  # filetype of snapshots
     hdf5: str = ""  # filename for hdf5 file

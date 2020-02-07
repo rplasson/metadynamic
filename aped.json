@@ -9,6 +9,11 @@
     "tstep" : 1.0,
     "sstep" : 10.0,
     "save" : ["a", "aa", "aaa", "aaaa", "A", "Aa", "aA", "AA", "a*", "A*"],
+    "stat" : {
+	"len_mean": ["length", "", "m"],
+	"tot_m": ["length", "pop", "+"],
+	"ee": ["asym", "pop", "m"]
+    },
     "snapshot" : "testlog/aped-snapshot.json",
     "hdf5" : "testlog/aped-fulldata.hdf5",
     "endbarrier" : 0.1,

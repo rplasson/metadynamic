@@ -62,7 +62,10 @@ class Descriptor(Logged):
         return self.cat_dict.keys()
 
     def prop(self, propname: str, name: str) -> Any:
-        return self.prop_dict[propname](name)
+        try:
+            return self.prop_dict[propname](name)
+        except KeyError:
+            return self.cat_dict[propname](name)
 
     def categories(self, name: str) -> Set[str]:
         return {catname for catname, rule in self.cat_dict.items() if rule(name)}

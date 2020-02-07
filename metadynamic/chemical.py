@@ -31,13 +31,14 @@ from typing import (
     Tuple,
 )
 from math import factorial
+from numpy import array, sum, average, ndarray
 from itertools import repeat
 
 from metadynamic.collector import Collect, Collectable
 from metadynamic.proba import Probalistic
 from metadynamic.ends import DecrZero
 from metadynamic.ruleset import Ruled, ReacDescr
-from metadynamic.inval import isvalid, Invalid, invalidint
+from metadynamic.inval import isvalid, Invalid, invalidint, invalidstr
 
 
 class Memcalc:
@@ -89,6 +90,43 @@ class CollectofCompound(Collect[str, "Compound"]):
                 res[prop_value] = inc
             else:
                 res[prop_value] += inc
+        return res
+
+    def _proplist(self, prop: str, full: bool = False) -> ndarray:
+        search = self.pool if full else self.active
+        return array(
+            [
+                1.0
+                if not isvalid(prop)
+                else comp.pop
+                if prop == "pop"
+                else self.descriptor.prop(prop, comp.description)
+                for comp in search.values()
+            ],
+            dtype=float,
+        )
+
+    def stat(
+        self, prop: str, weight: str = invalidstr, method: str = "m", full: bool = False
+    ) -> float:
+        values = self._proplist(prop, full)
+        weights = self._proplist(weight, full)
+        if method == "+":
+            return sum(values*weights)
+        if method == "m":
+            return average(values, weights=weights)
+
+    def map(
+        self, prop: str, weight: str = invalidstr, full: bool = False
+    ) -> Dict[Any, float]:
+        res: Dict[Any, int] = {}
+        values = self._proplist(prop, full)
+        weights = self._proplist(weight, full)
+        for value, weight in zip(values, weights):
+            try:
+                res[value] += weight
+            except KeyError:
+                res[value] = weight
         return res
 
 
