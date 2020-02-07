@@ -171,7 +171,7 @@ class Param(Readerclass):
     )  # list of compounds to be saved at each time step
     stat: Dict[str, List[str]] = field(
         default_factory=list
-    )  # list of (stat, weigth="", method="m")  to be saved at each time step
+    )  # list of (stat, weigth, method)  to be saved at each time step
     snapshot: str = ""  # filename for final snapshot
     printsnap: str = "pdf"  # filetype of snapshots
     hdf5: str = ""  # filename for hdf5 file

@@ -59,7 +59,12 @@ class MpiStatus:
 
 class ResultWriter:
     def __init__(
-        self, filename: str, datanames: List[str], nbcol: int, maxstrlen: int = 256
+        self,
+        filename: str,
+        datanames: List[str],
+        mapnames: List[str],
+        nbcol: int,
+        maxstrlen: int = 256,
     ) -> None:
         self.filename = filename
         self.mpi = MpiStatus()
@@ -70,10 +75,10 @@ class ResultWriter:
         self.dataset: Group = self.h5file.create_group("Dataset")
         self.dataset.attrs["datanames"] = datanames
         self.data: Dataset = self.dataset.create_dataset(
-            "Results", (size, len(datanames), nbcol), fillvalue=nan
+            "results", (size, len(datanames), nbcol), fillvalue=nan
         )
         self.end: Dataset = self.dataset.create_dataset(
-            "End",
+            "end",
             (size,),
             dtype=[
                 ("num", "int32"),
@@ -102,6 +107,15 @@ class ResultWriter:
             ],
         )
         self._snapsized: bool = False
+        self.maps: Group = self.h5file.create_group("Maps")
+        self.maps.attrs["datanames"] = mapnames
+        self.datamap: Dataset = self.maps.create_dataset(
+            "datamap",
+            (size, len(mapnames), nbcol, 1),
+            maxshape=(size, len(mapnames), nbcol, None),
+            fillvalue=nan,
+            dtype="float32",
+        )
         self._currentcol = 0
 
     def snapsize(self, maxcomp: int, maxreac: int, maxsnap: int) -> None:
@@ -160,12 +174,13 @@ class ResultReader:
         self.params: Group = self.h5file["Parameters"]
         self.dataset: Group = self.h5file["Dataset"]
         self.datanames: List[str] = list(self.dataset.attrs["datanames"])
-        self.data: Dataset = self.dataset["Results"]
-        self.end: Dataset = self.dataset["End"]
+        self.data: Dataset = self.dataset["results"]
+        self.end: Dataset = self.dataset["end"]
         self.snapshots: Group = self.h5file["Snapshots"]
         self.timesnap: Dataset = self.snapshots["time"]
         self.compsnap: Dataset = self.snapshots["compounds"]
         self.reacsnap: Dataset = self.snapshots["reactions"]
+        self.maps: Group = self.h5file["Maps"]
 
     def _loc(self, field: str) -> int:
         return self.datanames.index(field)

@@ -97,7 +97,7 @@ class CollectofCompound(Collect[str, "Compound"]):
         return array(
             [
                 1.0
-                if not isvalid(prop)
+                if not isvalid(prop) or prop == ""
                 else comp.pop
                 if prop == "pop"
                 else self.descriptor.prop(prop, comp.description)
@@ -112,7 +112,7 @@ class CollectofCompound(Collect[str, "Compound"]):
         values = self._proplist(prop, full)
         weights = self._proplist(weight, full)
         if method == "+":
-            return sum(values*weights)
+            return sum(values * weights)
         if method == "m":
             return average(values, weights=weights)
 

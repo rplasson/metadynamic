@@ -169,10 +169,13 @@ class System(Probalistic, Collected):
         return False
 
     def _run(self, num: int = -1, ismpi=False) -> Tuple[DataFrame, int, int, str]:
+        statnames = list(self.param.stat.keys())
+        mapnames = []
         lines = (
             ["#", "thread", "ptime", "memuse", "step", "time"]
             + self.param.save
             + ["maxlength", "nbcomp", "poolsize", "nbreac", "poolreac"]
+            + statnames
         )
         if num >= 0:
             self.log.connect(f"Reconnected from thread {num+1}", num + 1)
@@ -181,7 +184,7 @@ class System(Probalistic, Collected):
             self.initialize()
         if ismpi:
             writer = ResultWriter(
-                self.param.hdf5, lines, ceil(self.param.tend / self.param.tstep) + 1
+                self.param.hdf5, lines, mapnames, ceil(self.param.tend / self.param.tstep) + 1
             )
             writer.add_parameter(self.param.asdict())
         table = DataFrame(index=lines)
@@ -208,6 +211,7 @@ class System(Probalistic, Collected):
                         stat["nbreac"],
                         stat["poolreac"],
                     ]
+                    + [self.comp_collect.stat(stat, weight, method) for stat, weight, method in self.param.stat.values()]
                 )
                 table[step] = res
                 if ismpi:
