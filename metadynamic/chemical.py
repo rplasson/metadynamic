@@ -36,7 +36,7 @@ from itertools import repeat
 
 from metadynamic.collector import Collect, Collectable
 from metadynamic.proba import Probalistic
-from metadynamic.ends import DecrZero
+from metadynamic.ends import DecrZero, BadFile
 from metadynamic.ruleset import Ruled, ReacDescr
 from metadynamic.inval import isvalid, Invalid, invalidint, invalidstr
 
@@ -119,18 +119,19 @@ class CollectofCompound(Collect[str, "Compound"]):
             return max(values * weights)
         if method == "min":
             return min(values * weights)
+        raise BadFile(f"the method {method} is not recognized")
 
     def map(
         self, prop: str, weight: str = invalidstr, full: bool = False
     ) -> Dict[Any, float]:
-        res: Dict[Any, int] = {}
+        res: Dict[Any, float] = {}
         values = self._proplist(prop, full)
         weights = self._proplist(weight, full)
-        for value, weight in zip(values, weights):
+        for val, w in zip(values, weights):
             try:
-                res[value] += weight
+                res[val] += w
             except KeyError:
-                res[value] = weight
+                res[val] = w
         return res
 
 
