@@ -110,11 +110,8 @@ class System(Probalistic, Collected):
         dist = {}
         dist["lendist"] = self.lendist
         dist["pooldist"] = self.pooldist
-        stat["nbcomp"] = len(self.comp_collect.active)
         stat["nbreac"] = len(self.reac_collect.active)
-        stat["poolsize"] = len(self.comp_collect.pool)
         stat["poolreac"] = len(self.reac_collect.pool)
-        stat["maxlength"] = max(dist["lendist"])
         return stat, dist
 
     def initialize(self) -> None:
@@ -175,7 +172,7 @@ class System(Probalistic, Collected):
         lines = (
             ["#", "thread", "ptime", "memuse", "step", "time"]
             + self.param.save
-            + ["maxlength", "nbcomp", "poolsize", "nbreac", "poolreac"]
+            + ["nbreac", "poolreac"]
             + statnames
         )
         if num >= 0:
@@ -185,7 +182,10 @@ class System(Probalistic, Collected):
             self.initialize()
         if ismpi:
             writer = ResultWriter(
-                self.param.hdf5, lines, mapnames, ceil(self.param.tend / self.param.tstep) + 1
+                self.param.hdf5,
+                lines,
+                mapnames,
+                ceil(self.param.tend / self.param.tstep) + 1,
             )
             writer.add_parameter(self.param.asdict())
         table = DataFrame(index=lines)
@@ -206,13 +206,18 @@ class System(Probalistic, Collected):
                     [1, num, self.log.runtime(), self.memuse, self.step, self.time]
                     + [self.conc_of(comp) for comp in self.param.save]
                     + [
-                        stat["maxlength"],
-                        stat["nbcomp"],
-                        stat["poolsize"],
                         stat["nbreac"],
                         stat["poolreac"],
                     ]
-                    + [self.comp_collect.stat(stats.prop, stats.weight, stats.method) for stats in self.stat.values()]
+                    + [
+                        self.comp_collect.stat(
+                            prop=stats.prop,
+                            weight=stats.weight,
+                            method=stats.method,
+                            full=stats.full,
+                        )
+                        for stats in self.stat.values()
+                    ]
                 )
                 table[step] = res
                 if ismpi:

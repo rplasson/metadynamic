@@ -21,9 +21,11 @@
 from typing import Generic, TypeVar, Dict, Set, Union, Hashable, List, Any
 from weakref import WeakValueDictionary
 from collections import defaultdict
+from numpy import ndarray, array, average
 
 # from metadynamic.logger import Logged
 from metadynamic.ruleset import Ruled
+from metadynamic.ends import BadFile
 
 
 class Collectable:
@@ -148,3 +150,42 @@ class Collect(Generic[K, T], Ruled):
     def save(self, full: bool = False) -> Dict[str, T]:
         dataset = self.pool if full else self.active
         return {str(val): val for val in dataset.values()}
+
+    def getprop(self, prop: str, obj: T) -> float:
+        if prop != "":
+            raise BadFile(f"Unknown property {prop}")
+        return 1.0
+
+    def proplist(self, prop: str, full: bool = False) -> ndarray:
+        search = self.pool if full else self.active
+        return array(
+            [self.getprop(prop, obj) for obj in search.values()], dtype=float
+        )
+
+    def stat(
+        self, prop: str, weight: str = "", method: str = "m", full: bool = False
+    ) -> float:
+        values = self.proplist(prop, full)
+        weights = self.proplist(weight, full)
+        if method == "+":
+            return sum(values * weights)
+        if method == "m":
+            return average(values, weights=weights)
+        if method == "max":
+            return max(values * weights)
+        if method == "min":
+            return min(values * weights)
+        raise BadFile(f"the method {method} is not recognized")
+
+    def map(
+        self, prop: str, weight: str = "", full: bool = False
+    ) -> Dict[Any, float]:
+        res: Dict[Any, float] = {}
+        values = self.proplist(prop, full)
+        weights = self.proplist(weight, full)
+        for val, w in zip(values, weights):
+            try:
+                res[val] += w
+            except KeyError:
+                res[val] = w
+        return res

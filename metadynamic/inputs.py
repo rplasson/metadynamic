@@ -217,6 +217,7 @@ class StatParam(Readerclass):
     prop: str = ""
     weight: str = ""
     method: str = "m"
+    full: bool = False
 
 
 @dataclass

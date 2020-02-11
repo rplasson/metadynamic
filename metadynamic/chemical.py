@@ -92,47 +92,14 @@ class CollectofCompound(Collect[str, "Compound"]):
                 res[prop_value] += inc
         return res
 
-    def _proplist(self, prop: str, full: bool = False) -> ndarray:
-        search = self.pool if full else self.active
-        return array(
-            [
-                1.0
-                if not isvalid(prop) or prop == ""
-                else comp.pop
-                if prop == "pop"
-                else self.descriptor.prop(prop, comp.description)
-                for comp in search.values()
-            ],
-            dtype=float,
+    def getprop(self, prop: str, obj: "Compound") -> float:
+        return (
+            super().getprop(prop, obj)
+            if prop == ""
+            else obj.pop
+            if prop == "pop"
+            else self.descriptor.prop(prop, obj.description)
         )
-
-    def stat(
-        self, prop: str, weight: str = invalidstr, method: str = "m", full: bool = False
-    ) -> float:
-        values = self._proplist(prop, full)
-        weights = self._proplist(weight, full)
-        if method == "+":
-            return sum(values * weights)
-        if method == "m":
-            return average(values, weights=weights)
-        if method == "max":
-            return max(values * weights)
-        if method == "min":
-            return min(values * weights)
-        raise BadFile(f"the method {method} is not recognized")
-
-    def map(
-        self, prop: str, weight: str = invalidstr, full: bool = False
-    ) -> Dict[Any, float]:
-        res: Dict[Any, float] = {}
-        values = self._proplist(prop, full)
-        weights = self._proplist(weight, full)
-        for val, w in zip(values, weights):
-            try:
-                res[val] += w
-            except KeyError:
-                res[val] = w
-        return res
 
 
 class CollectofReaction(Collect[ReacDescr, "Reaction"]):
