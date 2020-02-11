@@ -39,11 +39,8 @@ class Readerclass(Logged):
     def __post_init__(self) -> None:
         pass
 
-    @classmethod
-    def readfile(
-        cls: Type[R], filename: str, checktype: bool = True, autocast: bool = True,
-    ) -> R:
-        """Return a SysParam object, updated by the data from filename"""
+    @staticmethod
+    def _fromfile(filename: str) -> Dict[str, Any]:
         try:
             with open(filename) as json_data:
                 parameters = load(json_data)
@@ -51,6 +48,17 @@ class Readerclass(Logged):
             raise FileNotFound(f"Unknown file {filename}")
         except JSONDecodeError as jerr:
             raise BadJSON(f"({jerr})")
+        return parameters
+
+    @classmethod
+    def readfile(
+        cls: Type[R],
+        filename: str,
+        checktype: bool = True,
+        autocast: bool = True,
+    ) -> R:
+        """Return a Readerclass object, updated by the data from filename"""
+        parameters = cls._fromfile(filename)
         new = cls()
         if checktype:
             new.set_checktype()
@@ -62,6 +70,31 @@ class Readerclass(Logged):
             new.unset_autocast()
         new.set_param(**parameters)
         return new
+
+    @classmethod
+    def readmultiple(
+        cls: Type[R],
+        filename: str,
+        checktype: bool = True,
+        autocast: bool = True,
+    ) -> Dict[str, R]:
+        """Return a dictionnary of Readerclass object, 
+           each updated by specific entry from filename"""
+        res: Dict[str, R] = {}
+        parameters = cls._fromfile(filename)
+        for name, params in parameters.items():
+            new = cls()
+            if checktype:
+                new.set_checktype()
+            else:
+                new.unset_checktype()
+            if autocast:
+                new.set_autocast()
+            else:
+                new.unset_autocast()
+            new.set_param(**params)
+            res[name] = new
+        return res
 
     @classmethod
     def list_param(cls) -> Dict[str, type]:
@@ -170,7 +203,7 @@ class Param(Readerclass):
         default_factory=list
     )  # list of compounds to be saved at each time step
     stat: Dict[str, List[str]] = field(
-        default_factory=list
+        default_factory=dict
     )  # list of (stat, weigth, method)  to be saved at each time step
     snapshot: str = ""  # filename for final snapshot
     printsnap: str = "pdf"  # filetype of snapshots
