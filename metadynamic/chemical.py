@@ -30,7 +30,7 @@ from typing import (
     Hashable,
     Tuple,
 )
-from math import factorial
+from math import factorial, log
 from itertools import repeat
 
 from metadynamic.collector import Collect, Collectable
@@ -97,6 +97,8 @@ class CollectofCompound(Collect[str, "Compound"]):
             if prop == "count"
             else obj.pop
             if prop == "pop"
+            else obj.pop * log(obj.pop)
+            if prop == "entropy"
             else self.descriptor.prop(prop, obj.description)
         )
 
@@ -110,6 +112,17 @@ class CollectofReaction(Collect[ReacDescr, "Reaction"]):
 
     def _categorize(self, obj: "Reaction") -> Set[str]:
         return {obj.description[0]}
+
+    def getprop(self, prop: str, obj: "Reaction") -> float:
+        return (
+            1.0
+            if prop == "count"
+            else obj.proba
+            if prop == "rate"
+            else obj.proba * log(obj.proba)
+            if prop == "entropy"
+            else self.descriptor.prop(prop, obj.description)
+        )
 
 
 class Collected(Ruled):
