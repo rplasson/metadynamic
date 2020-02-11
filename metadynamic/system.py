@@ -47,7 +47,7 @@ from metadynamic.processing import Result
 from metadynamic.ruleset import Ruled
 from metadynamic.collector import Collectable
 from metadynamic.chemical import Collected, trigger_changes
-from metadynamic.inputs import Param, LockedError
+from metadynamic.inputs import Param, StatParam, LockedError
 from metadynamic.inval import invalidstr, invalidfloat, isvalid
 from metadynamic.json2dot import Json2dot
 from metadynamic.hdf5 import ResultWriter, MpiStatus
@@ -67,6 +67,7 @@ class System(Probalistic, Collected):
         self.initialized = False
         Logged.setlogger(logfile, loglevel)
         self.param: Param = Param.readfile(filename)
+        self.stat: Dict[str, StatParam] = StatParam.readmultiple(self.param.stat)
         self.log.info("Parameter files loaded.")
         self.signcatch = SignalCatcher()
         self.mpi = MpiStatus()
@@ -169,7 +170,7 @@ class System(Probalistic, Collected):
         return False
 
     def _run(self, num: int = -1, ismpi=False) -> Tuple[DataFrame, int, int, str]:
-        statnames = list(self.param.stat.keys())
+        statnames = list(self.stat.keys())
         mapnames = []
         lines = (
             ["#", "thread", "ptime", "memuse", "step", "time"]
@@ -211,7 +212,7 @@ class System(Probalistic, Collected):
                         stat["nbreac"],
                         stat["poolreac"],
                     ]
-                    + [self.comp_collect.stat(stat, weight, method) for stat, weight, method in self.param.stat.values()]
+                    + [self.comp_collect.stat(stats.prop, stats.weight, stats.method) for stats in self.stat.values()]
                 )
                 table[step] = res
                 if ismpi:

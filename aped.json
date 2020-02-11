@@ -9,14 +9,7 @@
     "tstep" : 1.0,
     "sstep" : 10.0,
     "save" : ["a", "aa", "aaa", "aaaa", "A", "Aa", "aA", "AA", "a*", "A*"],
-    "stat" : {
-	"len_mean": ["length", "", "m"],
-	"len_min": ["length", "", "min"],
-	"len_max": ["length", "", "max"],
-	"wlen_mean": ["length", "pop", "m"],
-	"tot_m": ["length", "pop", "+"],
-	"ee": ["asym", "pop", "m"]
-    },
+    "stat" : "aped-stat.json",
     "snapshot" : "testlog/aped-snapshot.json",
     "hdf5" : "testlog/aped-fulldata.hdf5",
     "endbarrier" : 0.1,
