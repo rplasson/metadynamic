@@ -31,14 +31,13 @@ from typing import (
     Tuple,
 )
 from math import factorial
-from numpy import array, sum, average, ndarray
 from itertools import repeat
 
 from metadynamic.collector import Collect, Collectable
 from metadynamic.proba import Probalistic
-from metadynamic.ends import DecrZero, BadFile
+from metadynamic.ends import DecrZero
 from metadynamic.ruleset import Ruled, ReacDescr
-from metadynamic.inval import isvalid, Invalid, invalidint, invalidstr
+from metadynamic.inval import isvalid, Invalid, invalidint
 
 
 class Memcalc:
@@ -94,8 +93,8 @@ class CollectofCompound(Collect[str, "Compound"]):
 
     def getprop(self, prop: str, obj: "Compound") -> float:
         return (
-            super().getprop(prop, obj)
-            if prop == ""
+            1.0
+            if prop == "count"
             else obj.pop
             if prop == "pop"
             else self.descriptor.prop(prop, obj.description)

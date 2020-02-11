@@ -21,7 +21,7 @@
 from typing import Generic, TypeVar, Dict, Set, Union, Hashable, List, Any
 from weakref import WeakValueDictionary
 from collections import defaultdict
-from numpy import ndarray, array, average
+from numpy import array, sum, average, ndarray
 
 # from metadynamic.logger import Logged
 from metadynamic.ruleset import Ruled
@@ -152,7 +152,7 @@ class Collect(Generic[K, T], Ruled):
         return {str(val): val for val in dataset.values()}
 
     def getprop(self, prop: str, obj: T) -> float:
-        if prop != "":
+        if prop != "count":
             raise BadFile(f"Unknown property {prop}")
         return 1.0
 

@@ -214,10 +214,11 @@ class Param(Readerclass):
 
 @dataclass
 class StatParam(Readerclass):
-    prop: str = ""
-    weight: str = ""
+    prop: str = "count"
+    weight: str = "count"
     method: str = "m"
     full: bool = False
+    collection: str = "compounds"
 
 
 @dataclass

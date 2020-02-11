@@ -105,14 +105,11 @@ class System(Probalistic, Collected):
         res[-1] = 1
         return res
 
-    def statlist(self) -> Tuple[Dict[str, int], Dict[str, Dict[int, int]]]:
-        stat = {}
+    def statlist(self) -> Dict[str, Dict[int, int]]:
         dist = {}
         dist["lendist"] = self.lendist
         dist["pooldist"] = self.pooldist
-        stat["nbreac"] = len(self.reac_collect.active)
-        stat["poolreac"] = len(self.reac_collect.pool)
-        return stat, dist
+        return dist
 
     def initialize(self) -> None:
         if self.initialized:
@@ -172,7 +169,6 @@ class System(Probalistic, Collected):
         lines = (
             ["#", "thread", "ptime", "memuse", "step", "time"]
             + self.param.save
-            + ["nbreac", "poolreac"]
             + statnames
         )
         if num >= 0:
@@ -201,16 +197,19 @@ class System(Probalistic, Collected):
             try:
                 self.log.info(f"#{step}: {self.time} -> {tnext}")
                 finished = self._process(tnext)
-                stat, dist = self.statlist()
+                dist = self.statlist()
                 res = (
                     [1, num, self.log.runtime(), self.memuse, self.step, self.time]
                     + [self.conc_of(comp) for comp in self.param.save]
                     + [
-                        stat["nbreac"],
-                        stat["poolreac"],
-                    ]
-                    + [
                         self.comp_collect.stat(
+                            prop=stats.prop,
+                            weight=stats.weight,
+                            method=stats.method,
+                            full=stats.full,
+                        )
+                        if stats.collection == "compounds"
+                        else self.reac_collect.stat(
                             prop=stats.prop,
                             weight=stats.weight,
                             method=stats.method,
