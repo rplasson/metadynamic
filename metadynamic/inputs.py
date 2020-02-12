@@ -225,7 +225,6 @@ class MapParam(Readerclass):
     weight: str = "count"
     sort: str = "count"
     method: str = "+"
-    maxcat: int = 10
     full: bool = False
     collection: str = "compounds"
 

@@ -167,7 +167,6 @@ class System(Probalistic, Collected):
     def _run(self, num: int = -1, ismpi=False) -> Tuple[DataFrame, int, int, str]:
         statnames = list(self.stat.keys())
         mapnames = list(self.maps.keys())
-        mapsizes = [m.maxcat for m in self.maps.values()]
         lines = (
             ["#", "thread", "ptime", "memuse", "step", "time"]
             + self.param.save
@@ -183,7 +182,6 @@ class System(Probalistic, Collected):
                 filename=self.param.hdf5,
                 datanames=lines,
                 mapnames=mapnames,
-                mapsizes=mapsizes,
                 nbcol=ceil(self.param.tend / self.param.tstep) + 1,
                 maxstrlen=self.param.maxstrlen,
             )

@@ -173,9 +173,9 @@ class Collect(Generic[K, T], Ruled):
             return min(values * weights)
         raise BadFile(f"the method {method} is not recognized")
 
-    def map(self, prop: str, weight: str, sort: str, method: str, full: bool = False) -> Dict[Any, float]:
-        res: Dict[Any, float] = {}
-        tot: Dict[Any, float] = {}
+    def map(self, prop: str, weight: str, sort: str, method: str, full: bool = False) -> Dict[float, float]:
+        res: Dict[float, float] = {}
+        tot: Dict[float, float] = {}
         values = self.proplist(prop, full)
         weights = self.proplist(weight, full)
         sorts = self.proplist(sort, full)
