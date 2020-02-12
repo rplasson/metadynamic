@@ -24,10 +24,9 @@ from numpy import nan
 from multiprocessing import get_context
 from itertools import repeat
 from os import getpid
-from typing import Dict, Tuple, Any, List
+from typing import Dict,  Any, List
 from psutil import Process
 
-from pandas import DataFrame
 from json import load, dump, JSONEncoder
 
 from metadynamic.ends import (
@@ -44,7 +43,6 @@ from metadynamic.ends import (
 )
 from metadynamic.logger import Logged
 from metadynamic.proba import Probalistic
-from metadynamic.processing import Result
 from metadynamic.ruleset import Ruled
 from metadynamic.collector import Collectable
 from metadynamic.chemical import Collected, trigger_changes
@@ -88,30 +86,6 @@ class System(Probalistic, Collected):
             return self.comp_collect.active[compound].pop / self.param.vol
         except KeyError:  # compounds doesn't exist => conc=0
             return 0.0
-
-    @property
-    def poplist(self) -> Dict[str, int]:
-        return {
-            comp.description: comp.pop for comp in self.comp_collect.active.values()
-        }
-
-    @property
-    def lendist(self) -> Dict[int, int]:
-        res = self.comp_collect.dist("length", lenweight=True, full=False)
-        res[-1] = 1
-        return res
-
-    @property
-    def pooldist(self) -> Dict[int, int]:
-        res = self.comp_collect.dist("length", lenweight=False, full=True)
-        res[-1] = 1
-        return res
-
-    def statlist(self) -> Dict[str, Dict[int, int]]:
-        dist = {}
-        dist["lendist"] = self.lendist
-        dist["pooldist"] = self.pooldist
-        return dist
 
     def initialize(self) -> None:
         if self.initialized:
@@ -165,7 +139,7 @@ class System(Probalistic, Collected):
         self.log.warning(f"maxsteps per process (={self.param.maxsteps}) too low")
         return False
 
-    def _run(self, num: int = -1, ismpi=False) -> Tuple[DataFrame, int, int, str]:
+    def _run(self, num: int = -1, ismpi=False) -> str:
         statnames = list(self.stat.keys())
         lines = (
             ["#", "thread", "ptime", "memuse", "step", "time"]
@@ -188,9 +162,6 @@ class System(Probalistic, Collected):
                 maxstrlen=self.param.maxstrlen,
             )
             writer.add_parameter(self.param.asdict())
-        table = DataFrame(index=lines)
-        lendist = DataFrame()
-        pooldist = DataFrame()
         tnext = 0.0
         tsnapshot = self.param.sstep if self.param.sstep >= 0 else 2 * self.param.tend
         step = 0
@@ -201,7 +172,6 @@ class System(Probalistic, Collected):
             try:
                 self.log.info(f"#{step}: {self.time} -> {tnext}")
                 finished = self._process(tnext)
-                dist = self.statlist()
                 res = (
                     [1, num, self.log.runtime(), self.memuse, self.step, self.time]
                     + [self.conc_of(comp) for comp in self.param.save]
@@ -233,16 +203,9 @@ class System(Probalistic, Collected):
                                 mapdict[name][cat].append(nan)
                         else:
                             mapdict[name][cat] = [nan] * step + [collmap[cat]]
-                table[step] = res
                 if ismpi:
                     writer.add_data(res)
                 self.log.debug(str(res))
-                lendist = lendist.join(
-                    DataFrame.from_dict({step: dist["lendist"]}), how="outer",
-                ).fillna(0)
-                pooldist = pooldist.join(
-                    DataFrame.from_dict({step: dist["pooldist"]}), how="outer",
-                ).fillna(0)
                 if self.param.gcperio:
                     gc.collect()
                 if finished:
@@ -262,12 +225,6 @@ class System(Probalistic, Collected):
                 else:
                     self.log.warning(str(the_end))
                 break
-        retval: Tuple[DataFrame, int, int, str] = (
-            table,
-            lendist.astype(int),
-            pooldist.astype(int),
-            end,
-        )
         self.log.debug(f"Run #{num}={getpid()} finished")
         self.make_snapshot(num)
         if num >= 0:
@@ -305,7 +262,7 @@ class System(Probalistic, Collected):
             self.log.info(f"File {writer.filename} written and closed")
         if num >= 0:
             self.log.disconnect(f"Disconnected from #{num}")
-        return retval
+        return end
 
     def make_snapshot(self, num: int, time: float = invalidfloat) -> None:
         timestr = str(time) if isvalid(time) else "end"
@@ -333,22 +290,22 @@ class System(Probalistic, Collected):
             if self.param.printsnap:
                 Json2dot(filename).write(f"{basename}.{self.param.printsnap}")
 
-    def run(self) -> Result:
+    def run(self) -> List[str]:
         if self.mpi.ismpi:
             self.log.info(f"Launching MPI run from thread #{self.mpi.rank}")
             self.log.disconnect(reason="Launching MPI....")
             res = [self._run(self.mpi.rank, ismpi=True)]
             self.signcatch.reset()
-            return Result(res)
+            return res
         if self.param.nbthread == 1:
             self.log.info("Launching single run.")
             res = [self._run()]
             self.signcatch.reset()
-            return Result(res)
+            return res
         self.log.info("Launching threaded run.")
         return self.multirun(self.param.nbthread)
 
-    def multirun(self, nbthread: int = -1) -> Result:
+    def multirun(self, nbthread: int = -1) -> List[str]:
         ctx = get_context(self.param.context)
         self.signcatch.ignore()
         if nbthread == -1:
@@ -361,7 +318,7 @@ class System(Probalistic, Collected):
             res = running.get()
             self.log.info("Multirun finished!")
             self.signcatch.reset()
-        return Result(res)
+        return res
 
     def set_param(self, **kwd) -> None:
         try:

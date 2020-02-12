@@ -77,20 +77,6 @@ class CollectofCompound(Collect[str, "Compound"]):
     def _categorize(self, obj: "Compound") -> Set[str]:
         return self.descriptor.categories(obj.description)
 
-    def dist(
-        self, prop: str, lenweight: bool = False, full: bool = False
-    ) -> Dict[Any, int]:
-        res: Dict[Any, int] = {}
-        search = self.pool if full else self.active
-        for comp in search.values():
-            prop_value = self.descriptor.prop(prop, comp.description)
-            inc = comp.pop if lenweight else 1
-            if prop_value not in res:
-                res[prop_value] = inc
-            else:
-                res[prop_value] += inc
-        return res
-
     def getprop(self, prop: str, obj: "Compound") -> float:
         return (
             1.0
