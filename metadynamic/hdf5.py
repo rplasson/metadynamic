@@ -19,7 +19,7 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 from time import sleep
-from typing import Dict, Any, List, Tuple, Iterable
+from typing import Dict, Any, List, Tuple
 from h5py import File, Group, Dataset, string_dtype
 from mpi4py import MPI
 from numpy import nan, nanmean, nanstd, ndarray, array, convolve, ones, empty
@@ -59,9 +59,14 @@ class MpiStatus:
                 mask <<= 1
 
     def max(self, val: Any) -> Any:
-        return self.comm.allreduce(val, op=MPI.MAX)
+        if self.ismpi:
+            return self.comm.allreduce(val, op=MPI.MAX)
+        return val
 
     def sortlist(self, data: List[float]) -> List[float]:
+        if not self.ismpi:
+            data.sort()
+            return data
         sendbuf = array(data)
         sendcounts = array(self.comm.gather(len(sendbuf), self.rootnum))
         if self.root:
@@ -97,7 +102,10 @@ class ResultWriter:
         self.filename = filename
         self.mpi = MpiStatus()
         size = self.mpi.size
-        self.h5file: File = File(filename, "w", driver="mpio", comm=self.mpi.comm)
+        if self.mpi.ismpi:
+            self.h5file = File(filename, "w", driver="mpio", comm=self.mpi.comm)
+        else:
+            self.h5file = File(filename, "w")
         self.nbcol = nbcol
         self.params: Group = self.h5file.create_group("Parameters")
         self.dataset: Group = self.h5file.create_group("Dataset")

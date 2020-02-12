@@ -139,7 +139,7 @@ class System(Probalistic, Collected):
         self.log.warning(f"maxsteps per process (={self.param.maxsteps}) too low")
         return False
 
-    def _run(self, num: int = -1, ismpi: bool = False) -> str:
+    def _run(self, num: int = -1, save: bool = True) -> str:
         statnames = list(self.stat.keys())
         lines = (
             ["#", "thread", "ptime", "memuse", "step", "time"]
@@ -153,7 +153,7 @@ class System(Probalistic, Collected):
         if not self.initialized:
             self.log.info("Will initialize")
             self.initialize()
-        if ismpi:
+        if save:
             writer = ResultWriter(
                 filename=self.param.hdf5,
                 datanames=lines,
@@ -203,7 +203,7 @@ class System(Probalistic, Collected):
                                 mapdict[name][cat].append(nan)
                         else:
                             mapdict[name][cat] = [nan] * step + [collmap[cat]]
-                if ismpi:
+                if save:
                     writer.add_data(res)
                 self.log.debug(str(res))
                 if self.param.gcperio:
@@ -216,7 +216,7 @@ class System(Probalistic, Collected):
                 step += 1
             except Finished as the_end:
                 end = f"{the_end} ({self.log.runtime()} s)"
-                if ismpi:
+                if save:
                     writer.add_end(the_end, self.log.runtime())
                 if isinstance(the_end, HappyEnding):
                     self.log.info(str(the_end))
@@ -235,7 +235,7 @@ class System(Probalistic, Collected):
             trigger_changes()
             gc.collect()
             self.log.debug(f"Collection purged for #{num}")
-        if ismpi:
+        if save:
             if self.param.endbarrier > 0.0:
                 self.mpi.barrier(sleeptime=self.param.endbarrier)
                 self.log.info(f"#{num} joined others")
@@ -294,16 +294,16 @@ class System(Probalistic, Collected):
         if self.mpi.ismpi:
             self.log.info(f"Launching MPI run from thread #{self.mpi.rank}")
             self.log.disconnect(reason="Launching MPI....")
-            res = [self._run(self.mpi.rank, ismpi=True)]
+            res = [self._run(self.mpi.rank, save=True)]
             self.signcatch.reset()
             return res
         if self.param.nbthread == 1:
             self.log.info("Launching single run.")
-            res = [self._run()]
+            res = [self._run(save=True)]
             self.signcatch.reset()
             return res
         self.log.info("Launching threaded run.")
-        return self.multirun(self.param.nbthread)
+        return self.multirun(self.param.nbthread, save=False)
 
     def multirun(self, nbthread: int = -1) -> List[str]:
         ctx = get_context(self.param.context)
