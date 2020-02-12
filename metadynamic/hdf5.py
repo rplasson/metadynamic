@@ -63,6 +63,7 @@ class ResultWriter:
         filename: str,
         datanames: List[str],
         mapnames: List[str],
+        mapsizes: List[int],
         nbcol: int,
         maxstrlen: int = 256,
     ) -> None:
@@ -108,15 +109,17 @@ class ResultWriter:
         )
         self._snapsized: bool = False
         self.maps: Group = self.h5file.create_group("Maps")
-        self.maps.attrs["datanames"] = mapnames
-        self.datamap: Dataset = self.maps.create_dataset(
-            "datamap",
-            (size, len(mapnames), nbcol, 1),
-            maxshape=(size, len(mapnames), nbcol, None),
-            fillvalue=nan,
-            dtype="float32",
-        )
+        for name, mapsize in zip(mapnames, mapsizes):
+            self.maps.create_dataset(
+                name,
+                (size, nbcol, mapsize),
+                fillvalue=nan,
+                dtype="float32",
+            )
         self._currentcol = 0
+
+    def add_map(self, name: str, data: Dict[Any, float]):
+        ...  # Here #
 
     def snapsize(self, maxcomp: int, maxreac: int, maxsnap: int) -> None:
         self.timesnap.resize((self.mpi.size, maxsnap))

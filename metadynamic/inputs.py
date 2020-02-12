@@ -19,7 +19,7 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 from json import load, dump, JSONDecodeError
-from typing import List, Dict, Tuple, TypeVar, Type, Any
+from typing import List, Dict, TypeVar, Type, Any
 from dataclasses import dataclass, field
 
 from metadynamic.ends import BadFile, FileNotFound, BadJSON
@@ -41,6 +41,8 @@ class Readerclass(Logged):
 
     @staticmethod
     def _fromfile(filename: str) -> Dict[str, Any]:
+        if filename == "":
+            return {}
         try:
             with open(filename) as json_data:
                 parameters = load(json_data)
@@ -52,10 +54,7 @@ class Readerclass(Logged):
 
     @classmethod
     def readfile(
-        cls: Type[R],
-        filename: str,
-        checktype: bool = True,
-        autocast: bool = True,
+        cls: Type[R], filename: str, checktype: bool = True, autocast: bool = True,
     ) -> R:
         """Return a Readerclass object, updated by the data from filename"""
         parameters = cls._fromfile(filename)
@@ -73,12 +72,9 @@ class Readerclass(Logged):
 
     @classmethod
     def readmultiple(
-        cls: Type[R],
-        filename: str,
-        checktype: bool = True,
-        autocast: bool = True,
+        cls: Type[R], filename: str, checktype: bool = True, autocast: bool = True,
     ) -> Dict[str, R]:
-        """Return a dictionnary of Readerclass object, 
+        """Return a dictionnary of Readerclass object,
            each updated by specific entry from filename"""
         res: Dict[str, R] = {}
         parameters = cls._fromfile(filename)
@@ -203,9 +199,11 @@ class Param(Readerclass):
         default_factory=list
     )  # list of compounds to be saved at each time step
     stat: str = ""  # json filename describing statistics
+    maps: str = ""  # json filename describing stat maps
     snapshot: str = ""  # filename for final snapshot
     printsnap: str = "pdf"  # filetype of snapshots
     hdf5: str = ""  # filename for hdf5 file
+    maxstrlen: int = 256  # max string length to be stored in hdf5
 
     def __post_init__(self) -> None:
         self.ptot = sum([pop * len(comp) for comp, pop in self.init.items()])
@@ -217,6 +215,17 @@ class StatParam(Readerclass):
     prop: str = "count"
     weight: str = "count"
     method: str = "m"
+    full: bool = False
+    collection: str = "compounds"
+
+
+@dataclass
+class MapParam(Readerclass):
+    prop: str = "count"
+    weight: str = "count"
+    sort: str = "count"
+    method: str = "+"
+    maxcat: int = 10
     full: bool = False
     collection: str = "compounds"
 

@@ -10,6 +10,7 @@
     "sstep" : 10.0,
     "save" : ["a", "aa", "aaa", "aaaa", "A", "Aa", "aA", "AA", "a*", "A*"],
     "stat" : "aped-stat.json",
+    "maps" : "aped-maps.json",
     "snapshot" : "testlog/aped-snapshot.json",
     "hdf5" : "testlog/aped-fulldata.hdf5",
     "endbarrier" : 0.1,

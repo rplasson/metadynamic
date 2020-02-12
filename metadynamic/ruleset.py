@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-from typing import Callable, Any, Dict, KeysView, Tuple, Set, Iterable, List
+from typing import Callable, Dict, KeysView, Tuple, Set, Iterable, List
 from itertools import product
 from importlib import import_module
 from dataclasses import dataclass, field
@@ -37,7 +37,7 @@ Compset = Tuple[str, ...]
 Paramset = List[float]
 Stoechio = Iterable[Tuple[str, int]]
 Categorizer = Callable[[str], bool]
-Propertizer = Callable[[str], Any]
+Propertizer = Callable[[str], float]
 # reactants, variant -> products
 ProdBuilder = Callable[[Compset, int], Compset]
 # reactants, parameters, variant -> constant
@@ -61,11 +61,11 @@ class Descriptor(Logged):
     def catlist(self) -> KeysView[str]:
         return self.cat_dict.keys()
 
-    def prop(self, propname: str, name: str) -> Any:
+    def prop(self, propname: str, name: str) -> float:
         try:
             return self.prop_dict[propname](name)
         except KeyError:
-            return self.cat_dict[propname](name)
+            return float(self.cat_dict[propname](name))
 
     def categories(self, name: str) -> Set[str]:
         return {catname for catname, rule in self.cat_dict.items() if rule(name)}

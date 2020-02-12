@@ -158,13 +158,9 @@ class Collect(Generic[K, T], Ruled):
 
     def proplist(self, prop: str, full: bool = False) -> ndarray:
         search = self.pool if full else self.active
-        return array(
-            [self.getprop(prop, obj) for obj in search.values()], dtype=float
-        )
+        return array([self.getprop(prop, obj) for obj in search.values()], dtype=float)
 
-    def stat(
-        self, prop: str, weight: str = "", method: str = "m", full: bool = False
-    ) -> float:
+    def stat(self, prop: str, weight: str, method: str, full: bool = False) -> float:
         values = self.proplist(prop, full)
         weights = self.proplist(weight, full)
         if method == "+":
@@ -177,15 +173,21 @@ class Collect(Generic[K, T], Ruled):
             return min(values * weights)
         raise BadFile(f"the method {method} is not recognized")
 
-    def map(
-        self, prop: str, weight: str = "", full: bool = False
-    ) -> Dict[Any, float]:
+    def map(self, prop: str, weight: str, sort: str, method: str, full: bool = False) -> Dict[Any, float]:
         res: Dict[Any, float] = {}
+        tot: Dict[Any, float] = {}
         values = self.proplist(prop, full)
         weights = self.proplist(weight, full)
-        for val, w in zip(values, weights):
+        sorts = self.proplist(sort, full)
+        for v, w, s in zip(values, weights, sorts):
             try:
-                res[val] += w
+                res[s] += v*w
+                tot[s] += v*w
             except KeyError:
-                res[val] = w
+                res[s] = v*w
+                tot[s] = v*w
+        if method == "+":
+            return res
+        for s in set(sorts):
+            res[s] /= tot[s]
         return res

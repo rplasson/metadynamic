@@ -47,7 +47,7 @@ from metadynamic.processing import Result
 from metadynamic.ruleset import Ruled
 from metadynamic.collector import Collectable
 from metadynamic.chemical import Collected, trigger_changes
-from metadynamic.inputs import Param, StatParam, LockedError
+from metadynamic.inputs import Param, StatParam, MapParam, LockedError
 from metadynamic.inval import invalidstr, invalidfloat, isvalid
 from metadynamic.json2dot import Json2dot
 from metadynamic.hdf5 import ResultWriter, MpiStatus
@@ -68,6 +68,7 @@ class System(Probalistic, Collected):
         Logged.setlogger(logfile, loglevel)
         self.param: Param = Param.readfile(filename)
         self.stat: Dict[str, StatParam] = StatParam.readmultiple(self.param.stat)
+        self.maps: Dict[str, MapParam] = MapParam.readmultiple(self.param.maps)
         self.log.info("Parameter files loaded.")
         self.signcatch = SignalCatcher()
         self.mpi = MpiStatus()
@@ -165,7 +166,8 @@ class System(Probalistic, Collected):
 
     def _run(self, num: int = -1, ismpi=False) -> Tuple[DataFrame, int, int, str]:
         statnames = list(self.stat.keys())
-        mapnames = []
+        mapnames = list(self.maps.keys())
+        mapsizes = [m.maxcat for m in self.maps.values()]
         lines = (
             ["#", "thread", "ptime", "memuse", "step", "time"]
             + self.param.save
@@ -178,10 +180,12 @@ class System(Probalistic, Collected):
             self.initialize()
         if ismpi:
             writer = ResultWriter(
-                self.param.hdf5,
-                lines,
-                mapnames,
-                ceil(self.param.tend / self.param.tstep) + 1,
+                filename=self.param.hdf5,
+                datanames=lines,
+                mapnames=mapnames,
+                mapsizes=mapsizes,
+                nbcol=ceil(self.param.tend / self.param.tstep) + 1,
+                maxstrlen=self.param.maxstrlen,
             )
             writer.add_parameter(self.param.asdict())
         table = DataFrame(index=lines)
@@ -202,14 +206,8 @@ class System(Probalistic, Collected):
                     [1, num, self.log.runtime(), self.memuse, self.step, self.time]
                     + [self.conc_of(comp) for comp in self.param.save]
                     + [
-                        self.comp_collect.stat(
-                            prop=stats.prop,
-                            weight=stats.weight,
-                            method=stats.method,
-                            full=stats.full,
-                        )
-                        if stats.collection == "compounds"
-                        else self.reac_collect.stat(
+                        self.collstat(
+                            collection=stats.collection,
                             prop=stats.prop,
                             weight=stats.weight,
                             method=stats.method,

@@ -121,13 +121,24 @@ class CollectofReaction(Collect[ReacDescr, "Reaction"]):
             if prop == "rate"
             else obj.proba * log(obj.proba)
             if prop == "entropy"
-            else self.descriptor.prop(prop, obj.description)
+            else self.descriptor.prop(
+                prop, str(obj.description)
+            )  # Check here... properties of reactions?
         )
 
 
 class Collected(Ruled):
     comp_collect: CollectofCompound
     reac_collect: CollectofReaction
+
+    def collstat(
+        self, collection: str, prop: str, weight: str, method: str, full: bool
+    ) -> float:
+        return (
+            self.comp_collect.stat(prop, weight, method, full)
+            if collection == "compounds"
+            else self.reac_collect.stat(prop, weight, method, full)
+        )
 
     @classmethod
     def setcollections(
