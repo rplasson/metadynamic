@@ -19,25 +19,30 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 from time import sleep
-from typing import Dict, Any, List, Tuple
+from typing import Dict, Any, List, Tuple, Iterable
 from h5py import File, Group, Dataset, string_dtype
 from mpi4py import MPI
-from numpy import nan, nanmean, nanstd, ndarray, convolve, ones
+from numpy import nan, nanmean, nanstd, ndarray, array, convolve, ones, empty
 
 from metadynamic.ends import InitError, Finished
 from metadynamic.inval import invalidstr, invalidint, isvalid
 
 
 class MpiStatus:
-    def __init__(self) -> None:
+    def __init__(self, rootnum=0) -> None:
         self.comm = MPI.COMM_WORLD
         self.size: int = int(self.comm.size)
         self.rank: int = int(self.comm.rank)
         self.ismpi: bool = self.size > 1
+        self.rootnum = rootnum
         if not self.ismpi:
             self.comm = None
             # for mulithread pickling in non -mpi multithread
             # temporary hack, non-mpi multithread to be removed at term.
+
+    @property
+    def root(self) -> bool:
+        return self.rank == self.rootnum
 
     def barrier(self, sleeptime: float = 0.01, tag: int = 0) -> None:
         # From  https://goo.gl/NofOO9
@@ -55,6 +60,26 @@ class MpiStatus:
 
     def max(self, val: Any) -> Any:
         return self.comm.allreduce(val, op=MPI.MAX)
+
+    def sortlist(self, data: Iterable[float]) -> List[float]:
+        sendbuf = array(data)
+        sendcounts = array(self.comm.gather(len(sendbuf), self.rootnum))
+        if self.root:
+            recvbuf = empty(sum(sendcounts), dtype=int)
+        else:
+            recvbuf = None
+        self.comm.Gatherv(sendbuf=sendbuf, recvbuf=(recvbuf, sendcounts), root=self.rootnum)
+        if self.root:
+            start = 0
+            data = []
+            for i in sendcounts:
+                data.append(recvbuf[start:start+i])
+                start = start+i
+            fused = list(set().union(*[set(i) for i in data]))
+            fused.sort()
+        else:
+            fused = None
+        return self.comm.bcast(fused, root=self.rootnum)
 
 
 class ResultWriter:
@@ -123,7 +148,7 @@ class ResultWriter:
         self.maps[name].resize((self.mpi.size, self.nbcol + 1, mapsize))
         self.maps[name][self.mpi.rank, 0, :] = categories
 
-    def add_map(self, name: str, data: Dict[float, float]) -> None:
+    def add_map(self, name: str, data: Dict[float, List[float]]) -> None:
         ...  # Here #
 
     def snapsize(self, maxcomp: int, maxreac: int, maxsnap: int) -> None:

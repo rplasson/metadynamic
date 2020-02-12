@@ -166,12 +166,13 @@ class System(Probalistic, Collected):
 
     def _run(self, num: int = -1, ismpi=False) -> Tuple[DataFrame, int, int, str]:
         statnames = list(self.stat.keys())
-        mapnames = list(self.maps.keys())
         lines = (
             ["#", "thread", "ptime", "memuse", "step", "time"]
             + self.param.save
             + statnames
         )
+        mapnames = list(self.maps.keys())
+        mapdict: Dict[str : Dict[float : List[float]]] = {name: {} for name in mapnames}
         if num >= 0:
             self.log.connect(f"Reconnected from thread {num+1}", num + 1)
         if not self.initialized:
@@ -214,6 +215,19 @@ class System(Probalistic, Collected):
                         for stats in self.stat.values()
                     ]
                 )
+                for name, maps in self.maps.items():
+                    for cat, val in self.collmap(
+                        collection=maps.collection,
+                        prop=maps.prop,
+                        weight=maps.weight,
+                        sort=maps.sort,
+                        method=maps.method,
+                        full=maps.full,
+                    ).items():
+                        try:
+                            mapdict[name][cat].append(val)
+                        except KeyError:
+                            mapdict[name][cat] = [val]
                 table[step] = res
                 if ismpi:
                     writer.add_data(res)
@@ -267,6 +281,9 @@ class System(Probalistic, Collected):
             nbcomp = self.mpi.max(self._nbcomp)
             nbreac = self.mpi.max(self._nbreac)
             writer.snapsize(nbcomp, nbreac, nbsnap)
+            for name in mapnames:
+                categories = self.mpi.sortlist(maps[name].keys())
+                writer.mapsize(name, categories)
             col = 0
             for time, filename in zip(self._snaptimes, self._snapfilenames):
                 with open(filename, "r") as reader:

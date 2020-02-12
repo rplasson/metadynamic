@@ -140,6 +140,21 @@ class Collected(Ruled):
             else self.reac_collect.stat(prop, weight, method, full)
         )
 
+    def collmap(
+        self,
+        collection: str,
+        prop: str,
+        weight: str,
+        sort: str,
+        method: str,
+        full: bool,
+    ) -> Dict[float.float]:
+        return (
+            self.comp_collect.map(prop, weight, sort, method, full)
+            if collection == "compounds"
+            else self.reac_collect.map(prop, weight, sort, method, full)
+        )
+
     @classmethod
     def setcollections(
         cls,
