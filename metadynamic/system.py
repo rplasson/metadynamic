@@ -139,7 +139,7 @@ class System(Probalistic, Collected):
         self.log.warning(f"maxsteps per process (={self.param.maxsteps}) too low")
         return False
 
-    def _run(self, num: int = -1, save: bool = True) -> str:
+    def _run(self, num: int = -1, save: bool = False) -> str:
         statnames = list(self.stat.keys())
         lines = (
             ["#", "thread", "ptime", "memuse", "step", "time"]
@@ -154,14 +154,18 @@ class System(Probalistic, Collected):
             self.log.info("Will initialize")
             self.initialize()
         if save:
-            writer = ResultWriter(
-                filename=self.param.hdf5,
-                datanames=lines,
-                mapnames=mapnames,
-                nbcol=ceil(self.param.tend / self.param.tstep) + 1,
-                maxstrlen=self.param.maxstrlen,
-            )
-            writer.add_parameter(self.param.asdict())
+            if self.param.hdf5 == "":
+                self.log.warning("No hdf5 filename given, won't save")
+                save = False
+            else:
+                writer = ResultWriter(
+                    filename=self.param.hdf5,
+                    datanames=lines,
+                    mapnames=mapnames,
+                    nbcol=ceil(self.param.tend / self.param.tstep) + 1,
+                    maxstrlen=self.param.maxstrlen,
+                )
+                writer.add_parameter(self.param.asdict())
         tnext = 0.0
         tsnapshot = self.param.sstep if self.param.sstep >= 0 else 2 * self.param.tend
         step = 0
@@ -303,7 +307,7 @@ class System(Probalistic, Collected):
             self.signcatch.reset()
             return res
         self.log.info("Launching threaded run.")
-        return self.multirun(self.param.nbthread, save=False)
+        return self.multirun(self.param.nbthread)
 
     def multirun(self, nbthread: int = -1) -> List[str]:
         ctx = get_context(self.param.context)
