@@ -19,25 +19,30 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 from time import sleep
-from typing import Dict, Any, List, Tuple
+from typing import Dict, Any, List, Tuple, Iterable
 from h5py import File, Group, Dataset, string_dtype
 from mpi4py import MPI
-from numpy import nan, nanmean, nanstd, ndarray, convolve, ones
+from numpy import nan, nanmean, nanstd, ndarray, array, convolve, ones, empty
 
-from metadynamic.ends import InitError
+from metadynamic.ends import InitError, Finished
 from metadynamic.inval import invalidstr, invalidint, isvalid
 
 
 class MpiStatus:
-    def __init__(self) -> None:
+    def __init__(self, rootnum=0) -> None:
         self.comm = MPI.COMM_WORLD
         self.size: int = int(self.comm.size)
         self.rank: int = int(self.comm.rank)
         self.ismpi: bool = self.size > 1
+        self.rootnum = rootnum
         if not self.ismpi:
             self.comm = None
             # for mulithread pickling in non -mpi multithread
             # temporary hack, non-mpi multithread to be removed at term.
+
+    @property
+    def root(self) -> bool:
+        return self.rank == self.rootnum
 
     def barrier(self, sleeptime: float = 0.01, tag: int = 0) -> None:
         # From  https://goo.gl/NofOO9
@@ -56,9 +61,36 @@ class MpiStatus:
     def max(self, val: Any) -> Any:
         return self.comm.allreduce(val, op=MPI.MAX)
 
+    def sortlist(self, data: List[float]) -> List[float]:
+        sendbuf = array(data)
+        sendcounts = array(self.comm.gather(len(sendbuf), self.rootnum))
+        if self.root:
+            recvbuf = empty(sum(sendcounts), dtype=float)
+        else:
+            recvbuf = None
+        self.comm.Gatherv(sendbuf=sendbuf, recvbuf=(recvbuf, sendcounts), root=self.rootnum)
+        if self.root:
+            start = 0
+            data = []
+            for i in sendcounts:
+                data.append(recvbuf[start:start+i])
+                start = start+i
+            fused: List[float] = list(set().union(*[set(i) for i in data]))
+            fused.sort()
+        else:
+            fused = None
+        return self.comm.bcast(fused, root=self.rootnum)
+
 
 class ResultWriter:
-    def __init__(self, filename: str, datanames: List[str], nbcol: int) -> None:
+    def __init__(
+        self,
+        filename: str,
+        datanames: List[str],
+        mapnames: List[str],
+        nbcol: int,
+        maxstrlen: int = 256,
+    ) -> None:
         self.filename = filename
         self.mpi = MpiStatus()
         size = self.mpi.size
@@ -68,7 +100,16 @@ class ResultWriter:
         self.dataset: Group = self.h5file.create_group("Dataset")
         self.dataset.attrs["datanames"] = datanames
         self.data: Dataset = self.dataset.create_dataset(
-            "Results", (size, len(datanames), nbcol), fillvalue=nan
+            "results", (size, len(datanames), nbcol), fillvalue=nan
+        )
+        self.end: Dataset = self.dataset.create_dataset(
+            "end",
+            (size,),
+            dtype=[
+                ("num", "int32"),
+                ("message", string_dtype(length=maxstrlen)),
+                ("runtime", "float32"),
+            ],
         )
         self.snapshots: Group = self.h5file.create_group("Snapshots")
         self.timesnap: Dataset = self.snapshots.create_dataset(
@@ -78,20 +119,43 @@ class ResultWriter:
             "compounds",
             (size, 1, 1),
             maxshape=(size, None, None),
-            dtype=[("name", string_dtype(length=256)), ("pop", "int32")],
+            dtype=[("name", string_dtype(length=maxstrlen)), ("pop", "int32")],
         )
         self.reacsnap: Dataset = self.snapshots.create_dataset(
             "reactions",
             (size, 1, 1),
             maxshape=(size, None, None),
             dtype=[
-                ("name", string_dtype(length=256)),
+                ("name", string_dtype(length=maxstrlen)),
                 ("const", "float32"),
                 ("rate", "float32"),
             ],
         )
         self._snapsized: bool = False
+        self.maps: Group = self.h5file.create_group("Maps")
+        for name in mapnames:
+            self.maps.create_dataset(
+                name,
+                (size, nbcol + 1, 1),
+                maxshape=(size, nbcol + 1, None),
+                fillvalue=nan,
+                dtype="float32",
+            )
+        self.map_cat: Dict[str, List[float]] = {}
         self._currentcol = 0
+
+    def mapsize(self, name: str, categories: List[float]) -> None:
+        self.map_cat[name] = categories
+        mapsize = len(categories)
+        self.maps[name].resize((self.mpi.size, self.nbcol + 1, mapsize))
+        self.maps[name][self.mpi.rank, 0, :] = categories
+
+    def add_map(self, name: str, data: Dict[float, List[float]]) -> None:
+        for catnum, cat in enumerate(self.map_cat[name]):
+            try:
+                self.maps[name][self.mpi.rank, 1:, catnum] = data[cat]
+            except KeyError:
+                pass  # No problem, some categories may have been reached by only some processes
 
     def snapsize(self, maxcomp: int, maxreac: int, maxsnap: int) -> None:
         self.timesnap.resize((self.mpi.size, maxsnap))
@@ -114,6 +178,9 @@ class ResultWriter:
                 f"No more space in file for #{self.mpi.rank} at column {self._currentcol}"
             )
 
+    def add_end(self, ending: Finished, time: float) -> None:
+        self.end[self.mpi.rank] = (ending.num, ending.message.encode(), time)
+
     def add_snapshot(
         self,
         complist: Dict[str, int],
@@ -126,7 +193,7 @@ class ResultWriter:
             for line, data in enumerate(complist.items()):
                 self.compsnap[self.mpi.rank, line, col] = data
             for line, (name, (const, rate)) in enumerate(reaclist.items()):
-                self.reacsnap[self.mpi.rank, line, col] = (name, const, rate)
+                self.reacsnap[self.mpi.rank, line, col] = (name.encode(), const, rate)
         else:
             raise InitError(f"Snapshots data in hdf5 file wasn't properly sized")
 
@@ -146,11 +213,13 @@ class ResultReader:
         self.params: Group = self.h5file["Parameters"]
         self.dataset: Group = self.h5file["Dataset"]
         self.datanames: List[str] = list(self.dataset.attrs["datanames"])
-        self.data: Dataset = self.dataset["Results"]
+        self.data: Dataset = self.dataset["results"]
+        self.end: Dataset = self.dataset["end"]
         self.snapshots: Group = self.h5file["Snapshots"]
         self.timesnap: Dataset = self.snapshots["time"]
         self.compsnap: Dataset = self.snapshots["compounds"]
         self.reacsnap: Dataset = self.snapshots["reactions"]
+        self.maps: Group = self.h5file["Maps"]
 
     def _loc(self, field: str) -> int:
         return self.datanames.index(field)
@@ -184,3 +253,7 @@ class ResultReader:
                 else res
             )
         return self.data[:, loc]
+
+    def ending(self, num: int) -> Tuple[int, str, float]:
+        endnum, message, time = self.end[num]
+        return endnum, message.decode(), time

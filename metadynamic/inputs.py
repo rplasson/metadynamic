@@ -20,7 +20,7 @@
 
 from json import load, dump, JSONDecodeError
 from typing import List, Dict, TypeVar, Type, Any
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field
 
 from metadynamic.ends import BadFile, FileNotFound, BadJSON
 from metadynamic.logger import Logged
@@ -34,14 +34,15 @@ class LockedError(Exception):
 
 @dataclass
 class Readerclass(Logged):
+    _list_param: Dict[str, Any] = field(init=False, repr=False)
+
     def __post_init__(self) -> None:
         pass
 
-    @classmethod
-    def readfile(
-        cls: Type[R], filename: str, checktype: bool = True, autocast: bool = True,
-    ) -> R:
-        """Return a SysParam object, updated by the data from filename"""
+    @staticmethod
+    def _fromfile(filename: str) -> Dict[str, Any]:
+        if filename == "":
+            return {}
         try:
             with open(filename) as json_data:
                 parameters = load(json_data)
@@ -49,6 +50,14 @@ class Readerclass(Logged):
             raise FileNotFound(f"Unknown file {filename}")
         except JSONDecodeError as jerr:
             raise BadJSON(f"({jerr})")
+        return parameters
+
+    @classmethod
+    def readfile(
+        cls: Type[R], filename: str, checktype: bool = True, autocast: bool = True,
+    ) -> R:
+        """Return a Readerclass object, updated by the data from filename"""
+        parameters = cls._fromfile(filename)
         new = cls()
         if checktype:
             new.set_checktype()
@@ -60,6 +69,28 @@ class Readerclass(Logged):
             new.unset_autocast()
         new.set_param(**parameters)
         return new
+
+    @classmethod
+    def readmultiple(
+        cls: Type[R], filename: str, checktype: bool = True, autocast: bool = True,
+    ) -> Dict[str, R]:
+        """Return a dictionnary of Readerclass object,
+           each updated by specific entry from filename"""
+        res: Dict[str, R] = {}
+        parameters = cls._fromfile(filename)
+        for name, params in parameters.items():
+            new = cls()
+            if checktype:
+                new.set_checktype()
+            else:
+                new.unset_checktype()
+            if autocast:
+                new.set_autocast()
+            else:
+                new.unset_autocast()
+            new.set_param(**params)
+            res[name] = new
+        return res
 
     @classmethod
     def list_param(cls) -> Dict[str, type]:
@@ -110,7 +141,7 @@ class Readerclass(Logged):
         self._locked = False
 
     @property
-    def locked(self):
+    def locked(self) -> bool:
         if not hasattr(self, "_locked"):
             self._locked = False
         return self._locked
@@ -122,7 +153,7 @@ class Readerclass(Logged):
         self._autocast = False
 
     @property
-    def autocast(self):
+    def autocast(self) -> bool:
         if not hasattr(self, "_autocast"):
             self._autocast = True
         return self._autocast
@@ -134,7 +165,7 @@ class Readerclass(Logged):
         self._checktype = False
 
     @property
-    def checktype(self):
+    def checktype(self) -> bool:
         if not hasattr(self, "_checktype"):
             self._checktype = True
         return self._checktype
@@ -167,13 +198,35 @@ class Param(Readerclass):
     save: List[str] = field(
         default_factory=list
     )  # list of compounds to be saved at each time step
+    stat: str = ""  # json filename describing statistics
+    maps: str = ""  # json filename describing stat maps
     snapshot: str = ""  # filename for final snapshot
     printsnap: str = "pdf"  # filetype of snapshots
     hdf5: str = ""  # filename for hdf5 file
+    maxstrlen: int = 256  # max string length to be stored in hdf5
 
     def __post_init__(self) -> None:
         self.ptot = sum([pop * len(comp) for comp, pop in self.init.items()])
         self.vol = self.ptot / self.conc
+
+
+@dataclass
+class StatParam(Readerclass):
+    prop: str = "count"
+    weight: str = "count"
+    method: str = "m"
+    full: bool = False
+    collection: str = "compounds"
+
+
+@dataclass
+class MapParam(Readerclass):
+    prop: str = "count"
+    weight: str = "count"
+    sort: str = "count"
+    method: str = "+"
+    full: bool = False
+    collection: str = "compounds"
 
 
 @dataclass

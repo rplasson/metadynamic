@@ -20,6 +20,7 @@
 
 import gc
 from math import ceil
+from numpy import nan
 from multiprocessing import get_context
 from itertools import repeat
 from os import getpid
@@ -47,7 +48,7 @@ from metadynamic.processing import Result
 from metadynamic.ruleset import Ruled
 from metadynamic.collector import Collectable
 from metadynamic.chemical import Collected, trigger_changes
-from metadynamic.inputs import Param, LockedError
+from metadynamic.inputs import Param, StatParam, MapParam, LockedError
 from metadynamic.inval import invalidstr, invalidfloat, isvalid
 from metadynamic.json2dot import Json2dot
 from metadynamic.hdf5 import ResultWriter, MpiStatus
@@ -67,6 +68,8 @@ class System(Probalistic, Collected):
         self.initialized = False
         Logged.setlogger(logfile, loglevel)
         self.param: Param = Param.readfile(filename)
+        self.stat: Dict[str, StatParam] = StatParam.readmultiple(self.param.stat)
+        self.maps: Dict[str, MapParam] = MapParam.readmultiple(self.param.maps)
         self.log.info("Parameter files loaded.")
         self.signcatch = SignalCatcher()
         self.mpi = MpiStatus()
@@ -104,17 +107,11 @@ class System(Probalistic, Collected):
         res[-1] = 1
         return res
 
-    def statlist(self) -> Tuple[Dict[str, int], Dict[str, Dict[int, int]]]:
-        stat = {}
+    def statlist(self) -> Dict[str, Dict[int, int]]:
         dist = {}
         dist["lendist"] = self.lendist
         dist["pooldist"] = self.pooldist
-        stat["nbcomp"] = len(self.comp_collect.active)
-        stat["nbreac"] = len(self.reac_collect.active)
-        stat["poolsize"] = len(self.comp_collect.pool)
-        stat["poolreac"] = len(self.reac_collect.pool)
-        stat["maxlength"] = max(dist["lendist"])
-        return stat, dist
+        return dist
 
     def initialize(self) -> None:
         if self.initialized:
@@ -169,11 +166,14 @@ class System(Probalistic, Collected):
         return False
 
     def _run(self, num: int = -1, ismpi=False) -> Tuple[DataFrame, int, int, str]:
+        statnames = list(self.stat.keys())
         lines = (
             ["#", "thread", "ptime", "memuse", "step", "time"]
             + self.param.save
-            + ["maxlength", "nbcomp", "poolsize", "nbreac", "poolreac"]
+            + statnames
         )
+        mapnames = list(self.maps.keys())
+        mapdict: Dict[str, Dict[float, List[float]]] = {name: {} for name in mapnames}
         if num >= 0:
             self.log.connect(f"Reconnected from thread {num+1}", num + 1)
         if not self.initialized:
@@ -181,7 +181,11 @@ class System(Probalistic, Collected):
             self.initialize()
         if ismpi:
             writer = ResultWriter(
-                self.param.hdf5, lines, ceil(self.param.tend / self.param.tstep) + 1
+                filename=self.param.hdf5,
+                datanames=lines,
+                mapnames=mapnames,
+                nbcol=ceil(self.param.tend / self.param.tstep) + 1,
+                maxstrlen=self.param.maxstrlen,
             )
             writer.add_parameter(self.param.asdict())
         table = DataFrame(index=lines)
@@ -197,18 +201,38 @@ class System(Probalistic, Collected):
             try:
                 self.log.info(f"#{step}: {self.time} -> {tnext}")
                 finished = self._process(tnext)
-                stat, dist = self.statlist()
+                dist = self.statlist()
                 res = (
                     [1, num, self.log.runtime(), self.memuse, self.step, self.time]
                     + [self.conc_of(comp) for comp in self.param.save]
                     + [
-                        stat["maxlength"],
-                        stat["nbcomp"],
-                        stat["poolsize"],
-                        stat["nbreac"],
-                        stat["poolreac"],
+                        self.collstat(
+                            collection=stats.collection,
+                            prop=stats.prop,
+                            weight=stats.weight,
+                            method=stats.method,
+                            full=stats.full,
+                        )
+                        for stats in self.stat.values()
                     ]
                 )
+                for name, maps in self.maps.items():
+                    collmap = self.collmap(
+                        collection=maps.collection,
+                        prop=maps.prop,
+                        weight=maps.weight,
+                        sort=maps.sort,
+                        method=maps.method,
+                        full=maps.full,
+                    )
+                    for cat in collmap.keys() | mapdict[name].keys():
+                        if cat in mapdict[name]:
+                            if cat in collmap:
+                                mapdict[name][cat].append(collmap[cat])
+                            else:
+                                mapdict[name][cat].append(nan)
+                        else:
+                            mapdict[name][cat] = [nan] * step + [collmap[cat]]
                 table[step] = res
                 if ismpi:
                     writer.add_data(res)
@@ -229,6 +253,8 @@ class System(Probalistic, Collected):
                 step += 1
             except Finished as the_end:
                 end = f"{the_end} ({self.log.runtime()} s)"
+                if ismpi:
+                    writer.add_end(the_end, self.log.runtime())
                 if isinstance(the_end, HappyEnding):
                     self.log.info(str(the_end))
                 elif isinstance(the_end, BadEnding):
@@ -256,16 +282,25 @@ class System(Probalistic, Collected):
             if self.param.endbarrier > 0.0:
                 self.mpi.barrier(sleeptime=self.param.endbarrier)
                 self.log.info(f"#{num} joined others")
+            # Correct snapshot sizes
             nbsnap = self.mpi.max(self._nbsnap)
             nbcomp = self.mpi.max(self._nbcomp)
             nbreac = self.mpi.max(self._nbreac)
             writer.snapsize(nbcomp, nbreac, nbsnap)
+            # Write snapshots
             col = 0
             for time, filename in zip(self._snaptimes, self._snapfilenames):
                 with open(filename, "r") as reader:
                     data = load(reader)
                 writer.add_snapshot(data["Compounds"], data["Reactions"], col, time)
                 col += 1
+            # Correct and write maps
+            for name in mapnames:
+                # correct sizes
+                categories = self.mpi.sortlist(list(mapdict[name].keys()))
+                writer.mapsize(name, categories)
+                # write maps
+                writer.add_map(name, mapdict[name])
             writer.close()
             self.log.info(f"File {writer.filename} written and closed")
         if num >= 0:

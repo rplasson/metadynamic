@@ -1,0 +1,19 @@
+{
+    "lendist":
+    {
+	"prop" : "pop",
+	"sort" : "length"
+    },
+    "pooldist":
+    {
+	"prop" : "pop",
+	"sort" : "length",
+	"full" : true
+    },
+    "wlendist":
+    {
+	"prop" : "pop",
+	"weight" : "length",
+	"sort" : "length"
+    }
+}

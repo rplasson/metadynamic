@@ -30,7 +30,7 @@ from typing import (
     Hashable,
     Tuple,
 )
-from math import factorial
+from math import factorial, log
 from itertools import repeat
 
 from metadynamic.collector import Collect, Collectable
@@ -91,6 +91,17 @@ class CollectofCompound(Collect[str, "Compound"]):
                 res[prop_value] += inc
         return res
 
+    def getprop(self, prop: str, obj: "Compound") -> float:
+        return (
+            1.0
+            if prop == "count"
+            else obj.pop
+            if prop == "pop"
+            else obj.pop * log(obj.pop)
+            if prop == "entropy"
+            else self.descriptor.prop(prop, obj.description)
+        )
+
 
 class CollectofReaction(Collect[ReacDescr, "Reaction"]):
     _colltype = "Reaction"
@@ -102,10 +113,47 @@ class CollectofReaction(Collect[ReacDescr, "Reaction"]):
     def _categorize(self, obj: "Reaction") -> Set[str]:
         return {obj.description[0]}
 
+    def getprop(self, prop: str, obj: "Reaction") -> float:
+        return (
+            1.0
+            if prop == "count"
+            else obj.proba
+            if prop == "rate"
+            else obj.proba * log(obj.proba)
+            if prop == "entropy"
+            else self.descriptor.prop(
+                prop, str(obj.description)
+            )  # Check here... properties of reactions?
+        )
+
 
 class Collected(Ruled):
     comp_collect: CollectofCompound
     reac_collect: CollectofReaction
+
+    def collstat(
+        self, collection: str, prop: str, weight: str, method: str, full: bool
+    ) -> float:
+        return (
+            self.comp_collect.stat(prop, weight, method, full)
+            if collection == "compounds"
+            else self.reac_collect.stat(prop, weight, method, full)
+        )
+
+    def collmap(
+        self,
+        collection: str,
+        prop: str,
+        weight: str,
+        sort: str,
+        method: str,
+        full: bool,
+    ) -> Dict[float, float]:
+        return (
+            self.comp_collect.map(prop, weight, sort, method, full)
+            if collection == "compounds"
+            else self.reac_collect.map(prop, weight, sort, method, full)
+        )
 
     @classmethod
     def setcollections(
