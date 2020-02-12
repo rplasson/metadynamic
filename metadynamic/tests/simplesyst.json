@@ -9,6 +9,7 @@
     "tstep" : 0.05,
     "save" : ["a", "A", "aa", "aA", "Aa", "AA"],
     "rulemodel" : "metadynamic.polymers",
+    "hdf5" : "testlog/simplesyst.hdf5",
     "consts" :
     {
 	"P": [10.0, 10.0] ,
