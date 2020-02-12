@@ -7,6 +7,5 @@ def test_system() -> None:
     )
     syst.set_param(dropmode="drop")
     res = syst.run()
-    res.table().to_csv("testlog/test-dropreac-result.txt", sep=",")
-    syst.log.info(f"Finished: {res.end()}")
+    syst.log.info(f"Finished: {res}")
     syst.log.disconnect()

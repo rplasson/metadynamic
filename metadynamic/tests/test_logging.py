@@ -8,6 +8,5 @@ def test_system() -> None:
         loglevel="DEBUG",
     )
     res = syst.run()
-    res.table().to_csv("testlog/test-logging-result.txt", sep=",")
-    syst.log.info(f"Finished: {res.end()}")
+    syst.log.info(f"Finished: {res}")
     syst.log.disconnect()

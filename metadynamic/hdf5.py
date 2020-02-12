@@ -78,7 +78,7 @@ class MpiStatus:
             fused: List[float] = list(set().union(*[set(i) for i in data]))
             fused.sort()
         else:
-            fused = None
+            fused = []
         return self.comm.bcast(fused, root=self.rootnum)
 
 

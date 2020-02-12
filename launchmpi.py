@@ -49,9 +49,10 @@ out = h5py.File(args.output, "w", driver="mpio", comm=MPI.COMM_WORLD)
 
 dataset = out.create_dataset("data", (size, 20, cols))
 
-data = res.table()
-_, realsize = data.shape
-dataset[rank, :, :realsize] = data
+# /!\  OBSOLETE CODE !!!!
+# data = res.table()
+# _, realsize = data.shape
+# dataset[rank, :, :realsize] = data
 
 out.close()
-print(res.end())
+print(res)
