@@ -29,6 +29,7 @@ from typing import (
     Set,
     Hashable,
     Tuple,
+    Iterable,
 )
 from math import factorial, log
 from itertools import repeat
@@ -306,17 +307,18 @@ class Reaction(Chemical[ReacDescr], Probalistic):
     def serialize(self) -> Any:
         return self.const, self.proba
 
+    @staticmethod
+    def _join_compounds(stoechio: Iterable[Tuple[Any, int]]) -> str:
+        return "+".join(
+            [f"{num}{name}" if num > 1 else str(name) for name, num in stoechio]
+        )
+
     def __str__(self) -> str:
         if not self.name:
             self.name = "->".join(
                 [
-                    "+".join(
-                        [
-                            f"{num}{name}" if num > 1 else str(name)
-                            for name, num in stoechio
-                        ]
-                    )
-                    for stoechio in [self.stoechio, self._stoechproduct]
+                    self._join_compounds(self.stoechio),
+                    self._join_compounds(self._stoechproduct),
                 ]
             )
         return self.name

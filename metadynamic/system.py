@@ -24,7 +24,7 @@ from numpy import nan
 from multiprocessing import get_context
 from itertools import repeat
 from os import getpid
-from typing import Dict,  Any, List
+from typing import Dict, Any, List
 from psutil import Process
 
 from json import load, dump, JSONEncoder
@@ -139,7 +139,7 @@ class System(Probalistic, Collected):
         self.log.warning(f"maxsteps per process (={self.param.maxsteps}) too low")
         return False
 
-    def _run(self, num: int = -1, ismpi=False) -> str:
+    def _run(self, num: int = -1, ismpi: bool = False) -> str:
         statnames = list(self.stat.keys())
         lines = (
             ["#", "thread", "ptime", "memuse", "step", "time"]

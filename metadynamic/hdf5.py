@@ -29,12 +29,12 @@ from metadynamic.inval import invalidstr, invalidint, isvalid
 
 
 class MpiStatus:
-    def __init__(self, rootnum=0) -> None:
+    def __init__(self, rootnum: int = 0) -> None:
         self.comm = MPI.COMM_WORLD
         self.size: int = int(self.comm.size)
         self.rank: int = int(self.comm.rank)
         self.ismpi: bool = self.size > 1
-        self.rootnum = rootnum
+        self.rootnum: int = rootnum
         if not self.ismpi:
             self.comm = None
             # for mulithread pickling in non -mpi multithread
@@ -68,18 +68,21 @@ class MpiStatus:
             recvbuf = empty(sum(sendcounts), dtype=float)
         else:
             recvbuf = None
-        self.comm.Gatherv(sendbuf=sendbuf, recvbuf=(recvbuf, sendcounts), root=self.rootnum)
+        self.comm.Gatherv(
+            sendbuf=sendbuf, recvbuf=(recvbuf, sendcounts), root=self.rootnum
+        )
         if self.root:
             start = 0
-            data = []
+            gathered: List[ndarray] = []
             for i in sendcounts:
-                data.append(recvbuf[start:start+i])
-                start = start+i
-            fused: List[float] = list(set().union(*[set(i) for i in data]))
+                gathered.append(recvbuf[start: start + i])
+                start = start + i
+            fused: List[float] = list(set().union(*[set(i) for i in gathered]))
             fused.sort()
         else:
             fused = []
-        return self.comm.bcast(fused, root=self.rootnum)
+        fused = self.comm.bcast(fused, root=self.rootnum)
+        return fused
 
 
 class ResultWriter:

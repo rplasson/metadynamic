@@ -45,7 +45,7 @@ class Readerclass(Logged):
             return {}
         try:
             with open(filename) as json_data:
-                parameters = load(json_data)
+                parameters: Dict[str, Any] = load(json_data)
         except FileNotFoundError:
             raise FileNotFound(f"Unknown file {filename}")
         except JSONDecodeError as jerr:
