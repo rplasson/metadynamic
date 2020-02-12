@@ -61,11 +61,11 @@ class MpiStatus:
     def max(self, val: Any) -> Any:
         return self.comm.allreduce(val, op=MPI.MAX)
 
-    def sortlist(self, data: Iterable[float]) -> List[float]:
+    def sortlist(self, data: List[float]) -> List[float]:
         sendbuf = array(data)
         sendcounts = array(self.comm.gather(len(sendbuf), self.rootnum))
         if self.root:
-            recvbuf = empty(sum(sendcounts), dtype=int)
+            recvbuf = empty(sum(sendcounts), dtype=float)
         else:
             recvbuf = None
         self.comm.Gatherv(sendbuf=sendbuf, recvbuf=(recvbuf, sendcounts), root=self.rootnum)
@@ -75,7 +75,7 @@ class MpiStatus:
             for i in sendcounts:
                 data.append(recvbuf[start:start+i])
                 start = start+i
-            fused = list(set().union(*[set(i) for i in data]))
+            fused: List[float] = list(set().union(*[set(i) for i in data]))
             fused.sort()
         else:
             fused = None
@@ -141,15 +141,21 @@ class ResultWriter:
                 fillvalue=nan,
                 dtype="float32",
             )
+        self.map_cat: Dict[str, List[float]] = {}
         self._currentcol = 0
 
     def mapsize(self, name: str, categories: List[float]) -> None:
+        self.map_cat[name] = categories
         mapsize = len(categories)
         self.maps[name].resize((self.mpi.size, self.nbcol + 1, mapsize))
         self.maps[name][self.mpi.rank, 0, :] = categories
 
     def add_map(self, name: str, data: Dict[float, List[float]]) -> None:
-        ...  # Here #
+        for catnum, cat in enumerate(self.map_cat[name]):
+            try:
+                self.maps[name][self.mpi.rank, 1:, catnum] = data[cat]
+            except KeyError:
+                pass  # No problem, some categories may have been reached by only some processes
 
     def snapsize(self, maxcomp: int, maxreac: int, maxsnap: int) -> None:
         self.timesnap.resize((self.mpi.size, maxsnap))

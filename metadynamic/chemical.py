@@ -148,7 +148,7 @@ class Collected(Ruled):
         sort: str,
         method: str,
         full: bool,
-    ) -> Dict[float.float]:
+    ) -> Dict[float, float]:
         return (
             self.comp_collect.map(prop, weight, sort, method, full)
             if collection == "compounds"

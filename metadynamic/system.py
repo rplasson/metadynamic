@@ -20,6 +20,7 @@
 
 import gc
 from math import ceil
+from numpy import nan
 from multiprocessing import get_context
 from itertools import repeat
 from os import getpid
@@ -172,7 +173,7 @@ class System(Probalistic, Collected):
             + statnames
         )
         mapnames = list(self.maps.keys())
-        mapdict: Dict[str : Dict[float : List[float]]] = {name: {} for name in mapnames}
+        mapdict: Dict[str, Dict[float, List[float]]] = {name: {} for name in mapnames}
         if num >= 0:
             self.log.connect(f"Reconnected from thread {num+1}", num + 1)
         if not self.initialized:
@@ -216,18 +217,22 @@ class System(Probalistic, Collected):
                     ]
                 )
                 for name, maps in self.maps.items():
-                    for cat, val in self.collmap(
+                    collmap = self.collmap(
                         collection=maps.collection,
                         prop=maps.prop,
                         weight=maps.weight,
                         sort=maps.sort,
                         method=maps.method,
                         full=maps.full,
-                    ).items():
-                        try:
-                            mapdict[name][cat].append(val)
-                        except KeyError:
-                            mapdict[name][cat] = [val]
+                    )
+                    for cat in collmap.keys() | mapdict[name].keys():
+                        if cat in mapdict[name]:
+                            if cat in collmap:
+                                mapdict[name][cat].append(collmap[cat])
+                            else:
+                                mapdict[name][cat].append(nan)
+                        else:
+                            mapdict[name][cat] = [nan] * step + [collmap[cat]]
                 table[step] = res
                 if ismpi:
                     writer.add_data(res)
@@ -277,19 +282,25 @@ class System(Probalistic, Collected):
             if self.param.endbarrier > 0.0:
                 self.mpi.barrier(sleeptime=self.param.endbarrier)
                 self.log.info(f"#{num} joined others")
+            # Correct snapshot sizes
             nbsnap = self.mpi.max(self._nbsnap)
             nbcomp = self.mpi.max(self._nbcomp)
             nbreac = self.mpi.max(self._nbreac)
             writer.snapsize(nbcomp, nbreac, nbsnap)
-            for name in mapnames:
-                categories = self.mpi.sortlist(maps[name].keys())
-                writer.mapsize(name, categories)
+            # Write snapshots
             col = 0
             for time, filename in zip(self._snaptimes, self._snapfilenames):
                 with open(filename, "r") as reader:
                     data = load(reader)
                 writer.add_snapshot(data["Compounds"], data["Reactions"], col, time)
                 col += 1
+            # Correct and write maps
+            for name in mapnames:
+                # correct sizes
+                categories = self.mpi.sortlist(list(mapdict[name].keys()))
+                writer.mapsize(name, categories)
+                # write maps
+                writer.add_map(name, mapdict[name])
             writer.close()
             self.log.info(f"File {writer.filename} written and closed")
         if num >= 0:
