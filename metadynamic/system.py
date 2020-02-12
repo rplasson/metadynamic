@@ -233,12 +233,7 @@ class System(Probalistic, Collected):
         self.make_snapshot(num)
         if num >= 0:
             # Clean memory as much as possible to leave room to still alive threads
-            self.comp_collect.purge()
-            self.reac_collect.purge()
-            Probalistic.setprobalist(vol=self.param.vol)
-            trigger_changes()
-            gc.collect()
-            self.log.debug(f"Collection purged for #{num}")
+            self.purge(num)
         if save:
             if self.param.endbarrier > 0.0:
                 self.mpi.barrier(sleeptime=self.param.endbarrier)
@@ -267,6 +262,14 @@ class System(Probalistic, Collected):
         if num >= 0:
             self.log.disconnect(f"Disconnected from #{num}")
         return end
+
+    def purge(self, num):
+        self.comp_collect.purge()
+        self.reac_collect.purge()
+        Probalistic.setprobalist(vol=self.param.vol)
+        trigger_changes()
+        gc.collect()
+        self.log.debug(f"Collection purged for #{num}")
 
     def make_snapshot(self, num: int, time: float = invalidfloat) -> None:
         timestr = str(time) if isvalid(time) else "end"
