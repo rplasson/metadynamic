@@ -32,7 +32,7 @@ from numpy import (
     ones,
     empty,
     nan_to_num,
-    meshgrid
+    meshgrid,
 )
 from pandas import DataFrame
 
@@ -315,7 +315,7 @@ class ResultReader:
         return endnum, message.decode(), time
 
     def table(
-        self, maps=invalidstr, procnum: str = "m", meanlength: int = invalidint
+        self, maps: str = invalidstr, procnum: str = "m", meanlength: int = invalidint
     ) -> DataFrame:
         if isvalid(maps):
             data = self.getmap(field=maps, procnum=procnum, meanlength=meanlength)
@@ -345,7 +345,7 @@ class ResultReader:
         posinf: float = invalidfloat,
         neginf: float = invalidfloat,
     ) -> Tuple[ndarray, ndarray, ndarray]:
-        time = self.get(field="time",  procnum=procnum, meanlength=meanlength)
+        time = self.get(field="time", procnum=procnum, meanlength=meanlength)
         categories = self.categories(field)
         x, y = meshgrid(time, categories)
         z = nan_to_num(
