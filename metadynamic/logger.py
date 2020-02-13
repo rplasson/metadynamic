@@ -80,6 +80,8 @@ class Log:
         return datetime.now().strftime("%H:%M:%S, %d/%m/%y")
 
     def __init__(self, filename: str = invalidstr, level: str = "INFO"):
+        if not filename:
+            filename = invalidstr
         if isvalid(filename):
             if filename.count(".") != 1:
                 raise ValueError("Please enter filename as 'filename.log'")
