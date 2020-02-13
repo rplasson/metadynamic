@@ -267,7 +267,7 @@ class ResultReader:
         return self.data[:, loc]
 
     def getmap(
-        self, field: str, procnum: str = invalidstr, meanlength: int = invalidint,
+        self, field: str, procnum: str = invalidstr, meanlength: int = invalidint
     ) -> ndarray:
         try:
             data = self.maps[field][:, :, 1:]
@@ -300,5 +300,13 @@ class ResultReader:
         endnum, message, time = self.end[num]
         return endnum, message.decode(), time
 
-    def table(self, maps="data", procnum: str = invalidstr) -> DataFrame:
-        pass
+    def table(
+        self, maps=invalidstr, procnum: str = "m", meanlength: int = invalidint
+    ) -> DataFrame:
+        if isvalid(maps):
+            data = self.getmap(field=maps, procnum=procnum, meanlength=meanlength)
+            index = self.maps[maps][0, :, 0]
+        else:
+            data = self.get(procnum=procnum, meanlength=meanlength)
+            index = self.datanames
+        return DataFrame(data, index=index)
