@@ -69,9 +69,6 @@ class RunStatus(Logged):
         self.dstep: int = 0
         self.step: int = 0
         self.time: float = 0.0
-        self.tsnapshot = (
-            self.param.sstep if self.param.sstep >= 0 else 2 * self.param.tend
-        )
         self.infonames = ["#", "thread", "ptime", "memuse", "step", "dstep", "time"]
 
     @property
@@ -97,13 +94,19 @@ class RunStatus(Logged):
         self.time += dt
         self.dstep += 1
 
+    def next_step(self) -> None:
+        if self.finished:
+            self.tnext += self.param.tstep
+        self.step += 1
+
     def checkend(self) -> None:
         if self.time >= self.param.tend:
             raise TimesUp(f"t={self.time}")
         if self.log.runtime() >= self.param.rtlim:
             raise RuntimeLim(f"t={self.time}")
 
-    def over(self) -> bool:
+    @property
+    def finished(self) -> bool:
         return self.time >= self.tnext
 
 
@@ -121,6 +124,9 @@ class Statistic(Collected):
         self.mapdict: Dict[str, Dict[float, List[float]]] = {
             name: {} for name in self.mapnames
         }
+        self.tsnapshot = (
+            self.param.sstep if self.param.sstep >= 0 else 2 * self.param.tend
+        )
         self._snapfilenames: List[str] = []
         self._snaptimes: List[float] = []
         self._nbcomp: int = 0
@@ -199,17 +205,15 @@ class Statistic(Collected):
                 # write maps
                 self.writer.add_map(name, self.mapdict[name])
 
-    def next_step(self, finished: bool) -> None:
-        if finished:
-            if self.status.tnext > self.status.tsnapshot:
-                self.calcsnapshot()
-                self.status.tsnapshot += self.param.sstep
-            self.status.tnext += self.param.tstep
-        self.status.step += 1
-
     def calcsnapshot(self, final: bool = False) -> None:
-        timestr = "end" if final else str(self.status.tsnapshot)
         if self.param.snapshot:
+            if final:
+                timestr = "end"
+            else:
+                if self.status.tnext < self.tsnapshot:
+                    return None
+                timestr = str(self.tsnapshot)
+                self.tsnapshot += self.param.sstep
             basename, ext = self.param.snapshot.split(".")
             filled = "{base}-{n}_{t}" if self.status.num >= 0 else "{base}-{t}"
             basename = filled.format(base=basename, n=self.status.num, t=timestr)
@@ -226,7 +230,7 @@ class Statistic(Collected):
                     indent=4,
                 )
             self._snapfilenames.append(filename)
-            self._snaptimes.append(self.param.tend if final else self.status.tsnapshot)
+            self._snaptimes.append(self.param.tend if final else self.tsnapshot)
             self._nbsnap += 1
             self._nbcomp = max(self._nbcomp, nbcomp)
             self._nbreac = max(self._nbreac, nbreac)
@@ -305,17 +309,15 @@ class System(Probalistic, Collected):
         self.initialized = True
         self.param.lock()
 
-    def _process(self, tstop: float) -> bool:
+    def _process(self) -> None:
         # Check if a cleanup should be done
         if self.param.autoclean:
             self.probalist.clean()
-        # Check if end of time is nigh
-        self.status.checkend()
         # Then process self.maxsteps times
         for _ in repeat(None, self.param.maxsteps):
             # ... but stop is step ends
-            if self.status.over():
-                return True
+            if self.status.finished:
+                break
             # choose a random event
             chosen, dt = self.probalist.choose()
             # check if there even was an event to choose
@@ -329,8 +331,8 @@ class System(Probalistic, Collected):
                 raise Interrupted(f" by {self.signcatch.signal} at t={self.status.time}")
             # update time for next step
             self.status.inc(dt)
-        self.log.warning(f"maxsteps per process (={self.param.maxsteps}) too low")
-        return False
+        if not self.status.finished:
+            self.log.warning(f"maxsteps per process (={self.param.maxsteps}) too low")
 
     def _run(self, num: int = -1, save: bool = False) -> str:
         self.status.initialize(num)
@@ -347,12 +349,14 @@ class System(Probalistic, Collected):
         while True:
             try:
                 self.status.logstat()
-                finished = self._process(self.status.tnext)
-                statistic.writestat()
-                statistic.calcmap()
+                self._process()
                 if self.param.gcperio:
                     gc.collect()
-                statistic.next_step(finished)
+                statistic.writestat()
+                statistic.calcmap()
+                statistic.calcsnapshot()
+                self.status.next_step()
+                self.status.checkend()
             except Finished as the_end:
                 end = f"{the_end} ({self.log.runtime()} s)"
                 statistic.end(the_end)
