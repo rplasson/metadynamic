@@ -310,3 +310,14 @@ class ResultReader:
             data = self.get(procnum=procnum, meanlength=meanlength)
             index = self.datanames
         return DataFrame(data, index=index)
+
+    def xy(
+        self,
+        x: str = "time",
+        y: str = "ptime",
+        procnum: str = "m",
+        meanlength: int = invalidint,
+    ) -> Tuple[ndarray, ndarray]:
+        x = self.get(field=x, procnum=procnum, meanlength=meanlength)
+        y = self.get(field=y, procnum=procnum, meanlength=meanlength)
+        return x, y
