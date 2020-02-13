@@ -23,6 +23,7 @@ from typing import Dict, Any, List, Tuple
 from h5py import File, Group, Dataset, string_dtype
 from mpi4py import MPI
 from numpy import nan, nanmean, nanstd, ndarray, array, convolve, ones, empty
+from pandas import DataFrame
 
 from metadynamic.ends import InitError, Finished
 from metadynamic.inval import invalidstr, invalidint, isvalid
@@ -80,7 +81,7 @@ class MpiStatus:
             start = 0
             gathered: List[ndarray] = []
             for i in sendcounts:
-                gathered.append(recvbuf[start: start + i])
+                gathered.append(recvbuf[start : start + i])
                 start = start + i
             fused: List[float] = list(set().union(*[set(i) for i in gathered]))
             fused.sort()
@@ -147,8 +148,8 @@ class ResultWriter:
         for name in mapnames:
             self.maps.create_dataset(
                 name,
-                (size, nbcol + 1, 1),
-                maxshape=(size, nbcol + 1, None),
+                (size, 1, nbcol + 1),
+                maxshape=(size, None, nbcol + 1),
                 fillvalue=nan,
                 dtype="float32",
             )
@@ -158,13 +159,13 @@ class ResultWriter:
     def mapsize(self, name: str, categories: List[float]) -> None:
         self.map_cat[name] = categories
         mapsize = len(categories)
-        self.maps[name].resize((self.mpi.size, self.nbcol + 1, mapsize))
-        self.maps[name][self.mpi.rank, 0, :] = categories
+        self.maps[name].resize((self.mpi.size, mapsize, self.nbcol + 1))
+        self.maps[name][self.mpi.rank, :, 0] = categories
 
     def add_map(self, name: str, data: Dict[float, List[float]]) -> None:
         for catnum, cat in enumerate(self.map_cat[name]):
             try:
-                self.maps[name][self.mpi.rank, 1:, catnum] = data[cat]
+                self.maps[name][self.mpi.rank, catnum, 1:] = data[cat]
             except KeyError:
                 pass  # No problem, some categories may have been reached by only some processes
 
@@ -237,11 +238,11 @@ class ResultReader:
 
     def get(
         self,
-        field: str = "time",
+        field: str = invalidstr,
         procnum: str = invalidstr,
         meanlength: int = invalidint,
     ) -> ndarray:
-        loc = self._loc(field)
+        loc = self._loc(field) if isvalid(field) else slice(None, None, None)
         if isvalid(procnum):
             if procnum.isnumeric():
                 res = self.data[int(procnum), loc]
@@ -269,7 +270,7 @@ class ResultReader:
         self, field: str, procnum: str = invalidstr, meanlength: int = invalidint,
     ) -> ndarray:
         try:
-            data = self.maps[field][:,1:,:]
+            data = self.maps[field][:, :, 1:]
         except KeyError:
             raise ValueError(f"{field} is not a recorded map name")
         if isvalid(procnum):
@@ -298,3 +299,6 @@ class ResultReader:
     def ending(self, num: int) -> Tuple[int, str, float]:
         endnum, message, time = self.end[num]
         return endnum, message.decode(), time
+
+    def table(self, maps="data", procnum: str = invalidstr) -> DataFrame:
+        pass
