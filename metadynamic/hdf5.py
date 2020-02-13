@@ -22,11 +22,22 @@ from time import sleep
 from typing import Dict, Any, List, Tuple
 from h5py import File, Group, Dataset, string_dtype
 from mpi4py import MPI
-from numpy import nan, nanmean, nanstd, ndarray, array, convolve, ones, empty
+from numpy import (
+    nan,
+    nanmean,
+    nanstd,
+    ndarray,
+    array,
+    convolve,
+    ones,
+    empty,
+    nan_to_num,
+    meshgrid
+)
 from pandas import DataFrame
 
 from metadynamic.ends import InitError, Finished
-from metadynamic.inval import invalidstr, invalidint, isvalid
+from metadynamic.inval import invalidstr, invalidint, invalidfloat, isvalid
 
 
 class MpiStatus:
@@ -296,6 +307,9 @@ class ResultReader:
             )
         return data
 
+    def categories(self, field: str) -> ndarray:
+        return self.maps[field][0, :, 0]
+
     def ending(self, num: int) -> Tuple[int, str, float]:
         endnum, message, time = self.end[num]
         return endnum, message.decode(), time
@@ -305,7 +319,7 @@ class ResultReader:
     ) -> DataFrame:
         if isvalid(maps):
             data = self.getmap(field=maps, procnum=procnum, meanlength=meanlength)
-            index = self.maps[maps][0, :, 0]
+            index = self.categories(maps)
         else:
             data = self.get(procnum=procnum, meanlength=meanlength)
             index = self.datanames
@@ -321,3 +335,23 @@ class ResultReader:
         x = self.get(field=x, procnum=procnum, meanlength=meanlength)
         y = self.get(field=y, procnum=procnum, meanlength=meanlength)
         return x, y
+
+    def xyz(
+        self,
+        field: str,
+        procnum: str = "m",
+        meanlength: int = invalidint,
+        nanval: float = 0.0,
+        posinf: float = invalidfloat,
+        neginf: float = invalidfloat,
+    ) -> Tuple[ndarray, ndarray, ndarray]:
+        time = self.get(field="time",  procnum=procnum, meanlength=meanlength)
+        categories = self.categories(field)
+        x, y = meshgrid(time, categories)
+        z = nan_to_num(
+            self.getmap(field=field, procnum=procnum, meanlength=meanlength),
+            nan=nanval,
+            posinf=posinf if isvalid(posinf) else None,
+            neginf=neginf if isvalid(neginf) else None,
+        )
+        return x, y, z
