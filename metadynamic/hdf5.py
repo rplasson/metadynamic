@@ -265,6 +265,36 @@ class ResultReader:
             )
         return self.data[:, loc]
 
+    def getmap(
+        self, field: str, procnum: str = invalidstr, meanlength: int = invalidint,
+    ) -> ndarray:
+        try:
+            data = self.maps[field]
+        except KeyError:
+            raise ValueError(f"{field} is not a recorded map name")
+        if isvalid(procnum):
+            if procnum.isnumeric():
+                res = data[int(procnum)]
+            elif procnum[0] in ["m", "s", "+", "-"]:
+                mean = nanmean(data, axis=0)
+                if procnum == "m":
+                    res = mean
+                else:
+                    std = nanstd(data, axis=0)
+                    if procnum == "s":
+                        res = std
+                    else:
+                        res = mean + float(procnum) * std
+            else:
+                raise ValueError(f"'procnum'={procnum} is invalid")
+            return (
+                # Running mean from https://stackoverflow.com/questions/13728392/moving-average-or-running-mean
+                convolve(res, ones((meanlength,)) / meanlength, mode="valid")
+                if isvalid(meanlength)
+                else res
+            )
+        return data
+
     def ending(self, num: int) -> Tuple[int, str, float]:
         endnum, message, time = self.end[num]
         return endnum, message.decode(), time
