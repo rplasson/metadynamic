@@ -182,12 +182,12 @@ class Collect(Generic[K, T], Ruled):
         for v, w, s in zip(values, weights, sorts):
             try:
                 res[s] += v*w
-                tot[s] += v*w
+                tot[s] += w
             except KeyError:
                 res[s] = v*w
-                tot[s] = v*w
+                tot[s] = w
         if method == "+":
             return res
-        for s in set(sorts):
+        for s in res:
             res[s] /= tot[s]
         return res
