@@ -269,7 +269,7 @@ class ResultReader:
         self, field: str, procnum: str = invalidstr, meanlength: int = invalidint,
     ) -> ndarray:
         try:
-            data = self.maps[field]
+            data = self.maps[field][:,1:,:]
         except KeyError:
             raise ValueError(f"{field} is not a recorded map name")
         if isvalid(procnum):

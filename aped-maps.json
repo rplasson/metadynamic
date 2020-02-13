@@ -16,7 +16,7 @@
 	"weight" : "length",
 	"sort" : "length"
     },
-    "len_asym":
+    "asymdist":
     {
 	"prop" : "asym",
 	"weight" : "pop",
