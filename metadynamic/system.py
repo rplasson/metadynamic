@@ -19,6 +19,7 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 import gc
+from os import path
 from math import ceil
 from numpy import nan, seterr
 from multiprocessing import get_context
@@ -216,10 +217,10 @@ class Statistic(Collected):
                     return None
                 timestr = str(self.tsnapshot)
                 self.tsnapshot += self.param.sstep
-            basename, ext = self.param.snapshot.split(".")
+            basename, ext = path.splitext(self.param.snapshot)
             filled = "{base}-{n}_{t}" if self.status.num >= 0 else "{base}-{t}"
             basename = filled.format(base=basename, n=self.status.num, t=timestr)
-            filename = f"{basename}.{ext}"
+            filename = basename+ext
             with open(filename, "w") as outfile:
                 comp = self.comp_collect.save()
                 nbcomp = len(comp)
@@ -282,7 +283,7 @@ class System(Probalistic, Collected):
     def __init__(
             self, filename: str, logfile: str = invalidstr, loglevel: str = "INFO", comment: str = ""
     ):
-        seterr(all='ignore')
+        seterr(divide='ignore', invalid='ignore')
         self.initialized = False
         Logged.setlogger(logfile, loglevel)
         self.param: Param = Param.readfile(filename)
