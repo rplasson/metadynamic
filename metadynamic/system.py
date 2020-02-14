@@ -22,7 +22,6 @@ import gc
 from os import path
 from math import ceil
 from numpy import nan, seterr
-from multiprocessing import get_context
 from itertools import repeat
 from os import getpid
 from typing import Dict, Any, List, Union
@@ -41,6 +40,7 @@ from metadynamic.ends import (
     InitError,
     Interrupted,
     SignalCatcher,
+    FileNotFound,
 )
 from metadynamic.logger import Logged
 from metadynamic.proba import Probalistic
@@ -112,11 +112,10 @@ class RunStatus(Logged):
 
 
 class Statistic(Collected):
-    def __init__(self, param: Param, status: RunStatus, save: bool, comment: str):
+    def __init__(self, param: Param, status: RunStatus, comment: str):
         self.stat: Dict[str, StatParam] = StatParam.readmultiple(param.stat)
         self.maps: Dict[str, MapParam] = MapParam.readmultiple(param.maps)
         self.param = param
-        self.save = save
         self.mpi = MpiStatus()
         self.status = status
         self.statnames = list(self.stat.keys())
@@ -146,41 +145,39 @@ class Statistic(Collected):
         return [self.conc_of(comp) for comp in self.param.save]
 
     def startwriter(self) -> None:
-        if self.save:
-            if self.param.hdf5 == "":
-                self.log.warning("No hdf5 filename given, won't save")
-                self.save = False
-            else:
-                self.writer = ResultWriter(
-                    filename=self.param.hdf5,
-                    datanames=self.lines,
-                    mapnames=self.mapnames,
-                    params=self.param.asdict(),
-                    statparam=self.stat,
-                    mapparam=self.maps,
-                    comment=self.comment,
-                    nbcol=ceil(self.param.tend / self.param.tstep) + 1,
-                    maxstrlen=self.param.maxstrlen,
-                )
+        if self.param.hdf5 == "":
+            self.log.error("No hdf5 filename given, can't save")
+            raise FileNotFound("No hdf5 filename given, can't save")
+        else:
+            self.writer = ResultWriter(
+                filename=self.param.hdf5,
+                datanames=self.lines,
+                mapnames=self.mapnames,
+                params=self.param.asdict(),
+                statparam=self.stat,
+                mapparam=self.maps,
+                comment=self.comment,
+                nbcol=ceil(self.param.tend / self.param.tstep) + 1,
+                maxstrlen=self.param.maxstrlen,
+            )
 
     def writestat(self) -> None:
-        if self.save:
-            res = (
-                self.status.info
-                + self.concentrations
-                + [
-                    self.collstat(
-                        collection=stats.collection,
-                        prop=stats.prop,
-                        weight=stats.weight,
-                        method=stats.method,
-                        full=stats.full,
-                    )
-                    for stats in self.stat.values()
-                ]
-            )
-            self.writer.add_data(res)
-            self.log.debug(str(res))
+        res = (
+            self.status.info
+            + self.concentrations
+            + [
+                self.collstat(
+                    collection=stats.collection,
+                    prop=stats.prop,
+                    weight=stats.weight,
+                    method=stats.method,
+                    full=stats.full,
+                )
+                for stats in self.stat.values()
+            ]
+        )
+        self.writer.add_data(res)
+        self.log.debug(str(res))
 
     def calcmap(self) -> None:
         for name, maps in self.maps.items():
@@ -202,13 +199,12 @@ class Statistic(Collected):
                     self.mapdict[name][cat] = [nan] * self.status.step + [collmap[cat]]
 
     def writemap(self) -> None:
-        if self.save:
-            for name in self.mapnames:
-                # correct sizes
-                categories = self.mpi.sortlist(list(self.mapdict[name].keys()))
-                self.writer.mapsize(name, categories)
-                # write maps
-                self.writer.add_map(name, self.mapdict[name])
+        for name in self.mapnames:
+            # correct sizes
+            categories = self.mpi.sortlist(list(self.mapdict[name].keys()))
+            self.writer.mapsize(name, categories)
+            # write maps
+            self.writer.add_map(name, self.mapdict[name])
 
     def calcsnapshot(self, final: bool = False) -> None:
         if self.param.snapshot:
@@ -243,31 +239,28 @@ class Statistic(Collected):
                 Json2dot(filename).write(f"{basename}.{self.param.printsnap}")
 
     def wait(self) -> None:
-        if self.save:
-            if self.param.endbarrier > 0.0:
-                self.mpi.barrier(sleeptime=self.param.endbarrier)
-                self.log.info(f"#{self.status.num} joined others")
+        if self.param.endbarrier > 0.0:
+            self.mpi.barrier(sleeptime=self.param.endbarrier)
+            self.log.info(f"#{self.status.num} joined others")
 
     def writesnap(self) -> None:
-        if self.save:
-            # Correct snapshot sizes
-            nbsnap = self.mpi.max(self._nbsnap)
-            nbcomp = self.mpi.max(self._nbcomp)
-            nbreac = self.mpi.max(self._nbreac)
-            self.writer.snapsize(nbcomp, nbreac, nbsnap)
-            # Write snapshots
-            col = 0
-            for time, filename in zip(self._snaptimes, self._snapfilenames):
-                with open(filename, "r") as reader:
-                    data = load(reader)
-                self.writer.add_snapshot(
-                    data["Compounds"], data["Reactions"], col, time
-                )
-                col += 1
+        # Correct snapshot sizes
+        nbsnap = self.mpi.max(self._nbsnap)
+        nbcomp = self.mpi.max(self._nbcomp)
+        nbreac = self.mpi.max(self._nbreac)
+        self.writer.snapsize(nbcomp, nbreac, nbsnap)
+        # Write snapshots
+        col = 0
+        for time, filename in zip(self._snaptimes, self._snapfilenames):
+            with open(filename, "r") as reader:
+                data = load(reader)
+            self.writer.add_snapshot(
+                data["Compounds"], data["Reactions"], col, time
+            )
+            col += 1
 
     def end(self, the_end: Finished) -> None:
-        if self.save:
-            self.writer.add_end(the_end, self.log.runtime())
+        self.writer.add_end(the_end, self.log.runtime())
         if isinstance(the_end, HappyEnding):
             self.log.info(str(the_end))
         elif isinstance(the_end, BadEnding):
@@ -276,9 +269,8 @@ class Statistic(Collected):
             self.log.warning(str(the_end))
 
     def close(self) -> None:
-        if self.save:
-            self.writer.close()
-            self.log.info(f"File {self.writer.filename} written and closed")
+        self.writer.close()
+        self.log.info(f"File {self.writer.filename} written and closed")
 
 
 class System(Probalistic, Collected):
@@ -347,9 +339,9 @@ class System(Probalistic, Collected):
         if not self.status.finished:
             self.log.warning(f"maxsteps per process (={self.param.maxsteps}) too low")
 
-    def _run(self, num: int = -1, save: bool = False) -> str:
+    def _run(self, num: int = -1) -> str:
         self.status.initialize(num)
-        statistic = Statistic(self.param, self.status, save, self.comment)
+        statistic = Statistic(self.param, self.status, self.comment)
         if num >= 0:
             self.log.connect(f"Reconnected from thread {num+1}", num + 1)
         if not self.initialized:
@@ -399,30 +391,12 @@ class System(Probalistic, Collected):
         if self.mpi.ismpi:
             self.log.info(f"Launching MPI run from thread #{self.mpi.rank}")
             self.log.disconnect(reason="Launching MPI....")
-            res = [self._run(self.mpi.rank, save=True)]
+            res = [self._run(self.mpi.rank)]
             self.signcatch.reset()
             return res
-        if self.param.nbthread == 1:
-            self.log.info("Launching single run.")
-            res = [self._run(save=True)]
-            self.signcatch.reset()
-            return res
-        self.log.info("Launching threaded run.")
-        return self.multirun(self.param.nbthread)
-
-    def multirun(self, nbthread: int = -1) -> List[str]:
-        ctx = get_context(self.param.context)
-        self.signcatch.ignore()
-        if nbthread == -1:
-            nbthread = ctx.cpu_count()
-        self.log.info(f"Launching multithread from {getpid()}")
-        self.log.disconnect(reason="Launching multithreading....")
-        with ctx.Pool(nbthread) as pool:
-            running = pool.map_async(self._run, range(nbthread))
-            self.log.connect(reason="...Multithreading launched")
-            res = running.get()
-            self.log.info("Multirun finished!")
-            self.signcatch.reset()
+        self.log.info("Launching single run.")
+        res = [self._run()]
+        self.signcatch.reset()
         return res
 
     def set_param(self, **kwd) -> None:
