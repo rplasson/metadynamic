@@ -130,6 +130,11 @@ class BadJSON(InputError):
     error_message = "Bad JSON format"
 
 
+class FileCreationError(InputError):
+    num = 11
+    error_message = "The file couldn't be created"
+
+
 class InitError(Aborted):
     num = 9
     error_message = "Error during initialization"

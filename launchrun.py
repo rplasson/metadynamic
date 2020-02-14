@@ -2,7 +2,7 @@
 
 from argparse import ArgumentParser
 
-from metadynamic import System
+from metadynamic import launch
 
 
 parser = ArgumentParser(description="Launch run from a json file")
@@ -15,9 +15,10 @@ parser.add_argument(
 
 args = parser.parse_args()
 
-syst = System(args.parameters, logfile=args.log, loglevel=args.level)
 # syst.set_param(dropmode="drop")
 # syst.set_param(init={"a": 15000, "A": 30000}, maxsteps=100000)
-res = syst.run()
 
-print(res)
+
+res = launch(args.parameters, logfile=args.log, loglevel=args.level)
+
+print(res.end[...])

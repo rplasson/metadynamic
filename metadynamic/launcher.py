@@ -18,11 +18,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
+from metadynamic import System
+from metadynamic.hdf5 import ResultReader
 
-from .version import __version__
-from .system import System
-from .launcher import launch
 
-# if somebody does "from somepackage import *", this is what they will
-# be able to access:
-__all__ = ["System", "launch", "__version__"]
+def launch(parameters: str, logfile: str, loglevel: str) -> ResultReader:
+    syst = System(parameters, logfile=logfile, loglevel=loglevel)
+    syst.run()
+    return ResultReader(syst.param.hdf5)

@@ -36,7 +36,7 @@ from numpy import (
 )
 from pandas import DataFrame
 
-from metadynamic.ends import InitError, Finished
+from metadynamic.ends import InitError, Finished, FileCreationError
 from metadynamic.inval import invalidstr, invalidint, invalidfloat, isvalid
 
 
@@ -114,10 +114,13 @@ class ResultWriter:
         self.filename = filename
         self.mpi = MpiStatus()
         size = self.mpi.size
-        if self.mpi.ismpi:
-            self.h5file = File(filename, "w", driver="mpio", comm=self.mpi.comm)
-        else:
-            self.h5file = File(filename, "w")
+        try:
+            if self.mpi.ismpi:
+                self.h5file = File(filename, "w", driver="mpio", comm=self.mpi.comm)
+            else:
+                self.h5file = File(filename, "w")
+        except OSError as err:
+            raise FileCreationError(f"'{filename}': {err}")
         self.nbcol = nbcol
         self.params: Group = self.h5file.create_group("Parameters")
         self.dataset: Group = self.h5file.create_group("Dataset")
