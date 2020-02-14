@@ -18,6 +18,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
+from datetime import datetime
+from socket import gethostname
 from time import sleep
 from typing import Dict, Any, List, Tuple
 from h5py import File, Group, Dataset, string_dtype
@@ -38,6 +40,7 @@ from pandas import DataFrame
 
 from metadynamic.ends import InitError, Finished, FileCreationError
 from metadynamic.inval import invalidstr, invalidint, invalidfloat, isvalid
+from metadynamic import __version__
 
 
 class MpiStatus:
@@ -108,6 +111,7 @@ class ResultWriter:
         filename: str,
         datanames: List[str],
         mapnames: List[str],
+        comment: str,
         nbcol: int,
         maxstrlen: int = 256,
     ) -> None:
@@ -122,6 +126,12 @@ class ResultWriter:
         except OSError as err:
             raise FileCreationError(f"'{filename}': {err}")
         self.nbcol = nbcol
+        self.run: Group = self.h5file.create_group("Run")
+        self.run.attrs["version"] = __version__
+        self.run.attrs["hostname"] = gethostname()
+        self.run.attrs["date"] = datetime.now().strftime("%H:%M:%S, %d/%m/%Y")
+        self.run.attrs["threads"] = self.mpi.size
+        self.run.attrs["comment"] = comment
         self.params: Group = self.h5file.create_group("Parameters")
         self.dataset: Group = self.h5file.create_group("Dataset")
         self.dataset.attrs["datanames"] = datanames
@@ -190,6 +200,7 @@ class ResultWriter:
         self._snapsized = True
 
     def close(self) -> None:
+        self.run.attrs["end"] = datetime.now().strftime("%H:%M:%S, %d/%m/%Y")
         self.h5file.close()
 
     def add_parameter(self, params: Dict[str, Any], name: str = "") -> None:
@@ -236,6 +247,7 @@ class ResultWriter:
 class ResultReader:
     def __init__(self, filename: str) -> None:
         self.h5file: File = File(filename, "r")
+        self.run: Group = self.h5file["Run"]
         self.params: Group = self.h5file["Parameters"]
         self.dataset: Group = self.h5file["Dataset"]
         self.datanames: List[str] = list(self.dataset.attrs["datanames"])
@@ -358,3 +370,18 @@ class ResultReader:
             neginf=neginf if isvalid(neginf) else None,
         )
         return x, y, z
+
+    @property
+    def runinfo(self) -> str:
+        version = self.run.attrs["version"]
+        hostname = self.run.attrs["hostname"]
+        start = self.run.attrs["date"]
+        threads = self.run.attrs["threads"]
+        comment = self.run.attrs["comment"]
+        end = self.run.attrs["end"]
+        return (
+            f"{comment}\n"
+            f"metadynamic version {version}, "
+            f"ran on {threads} threads on {hostname} "
+            f"from {start} to {end}"
+        )

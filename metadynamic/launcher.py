@@ -22,7 +22,7 @@ from metadynamic import System
 from metadynamic.hdf5 import ResultReader
 
 
-def launch(parameters: str, logfile: str, loglevel: str) -> ResultReader:
-    syst = System(parameters, logfile=logfile, loglevel=loglevel)
+def launch(parameters: str, logfile: str, loglevel: str, comment: str = "") -> ResultReader:
+    syst = System(parameters, logfile=logfile, loglevel=loglevel, comment=comment)
     syst.run()
     return ResultReader(syst.param.hdf5)

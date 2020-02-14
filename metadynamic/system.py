@@ -20,7 +20,7 @@
 
 import gc
 from math import ceil
-from numpy import nan
+from numpy import nan, seterr
 from multiprocessing import get_context
 from itertools import repeat
 from os import getpid
@@ -111,7 +111,7 @@ class RunStatus(Logged):
 
 
 class Statistic(Collected):
-    def __init__(self, param: Param, status: RunStatus, save: bool):
+    def __init__(self, param: Param, status: RunStatus, save: bool, comment: str):
         self.stat: Dict[str, StatParam] = StatParam.readmultiple(param.stat)
         self.maps: Dict[str, MapParam] = MapParam.readmultiple(param.maps)
         self.param = param
@@ -132,6 +132,7 @@ class Statistic(Collected):
         self._nbcomp: int = 0
         self._nbreac: int = 0
         self._nbsnap: int = 0
+        self.comment = comment
 
     def conc_of(self, compound: str) -> float:
         try:
@@ -153,6 +154,7 @@ class Statistic(Collected):
                     filename=self.param.hdf5,
                     datanames=self.lines,
                     mapnames=self.mapnames,
+                    comment=self.comment,
                     nbcol=ceil(self.param.tend / self.param.tstep) + 1,
                     maxstrlen=self.param.maxstrlen,
                 )
@@ -278,8 +280,9 @@ class Statistic(Collected):
 
 class System(Probalistic, Collected):
     def __init__(
-        self, filename: str, logfile: str = invalidstr, loglevel: str = "INFO"
+            self, filename: str, logfile: str = invalidstr, loglevel: str = "INFO", comment: str = ""
     ):
+        seterr(all='ignore')
         self.initialized = False
         Logged.setlogger(logfile, loglevel)
         self.param: Param = Param.readfile(filename)
@@ -289,6 +292,7 @@ class System(Probalistic, Collected):
         self.signcatch = SignalCatcher()
         self.mpi = MpiStatus()
         self.status = RunStatus(self.param)
+        self.comment = comment
 
     def initialize(self) -> None:
         if self.initialized:
@@ -336,7 +340,7 @@ class System(Probalistic, Collected):
 
     def _run(self, num: int = -1, save: bool = False) -> str:
         self.status.initialize(num)
-        statistic = Statistic(self.param, self.status, save)
+        statistic = Statistic(self.param, self.status, save, self.comment)
         if num >= 0:
             self.log.connect(f"Reconnected from thread {num+1}", num + 1)
         if not self.initialized:

@@ -86,7 +86,7 @@ class Log:
         if isvalid(filename):
             if filename.count(".") != 1:
                 raise ValueError("Please enter filename as 'filename.log'")
-            basename, suf = path.splitext(filename.split)
+            basename, suf = path.splitext(filename)
             self.filenamethread: str = basename + "-{}" + suf
         self.filename: str = filename
         self._timer: Timer
