@@ -40,6 +40,7 @@ from pandas import DataFrame
 
 from metadynamic.ends import InitError, Finished, FileCreationError
 from metadynamic.inval import invalidstr, invalidint, invalidfloat, isvalid
+from metadynamic.inputs import Readerclass, Param, StatParam, MapParam
 from metadynamic import __version__
 
 
@@ -111,6 +112,9 @@ class ResultWriter:
         filename: str,
         datanames: List[str],
         mapnames: List[str],
+        params: Dict[str, Any],
+        statparam: Dict[str, StatParam],
+        mapparam: Dict[str, MapParam],
         comment: str,
         nbcol: int,
         maxstrlen: int = 256,
@@ -133,6 +137,11 @@ class ResultWriter:
         self.run.attrs["threads"] = self.mpi.size
         self.run.attrs["comment"] = comment
         self.params: Group = self.h5file.create_group("Parameters")
+        self.dict_as_attr(self.params, params)
+        self.statparam: Group = self.params.create_group("Stats")
+        self.multiread_as_attr(self.statparam, statparam)
+        self.mapparam: Group = self.params.create_group("Maps")
+        self.multiread_as_attr(self.mapparam, mapparam)
         self.dataset: Group = self.h5file.create_group("Dataset")
         self.dataset.attrs["datanames"] = datanames
         self.data: Dataset = self.dataset.create_dataset(
@@ -203,9 +212,6 @@ class ResultWriter:
         self.run.attrs["end"] = datetime.now().strftime("%H:%M:%S, %d/%m/%Y")
         self.h5file.close()
 
-    def add_parameter(self, params: Dict[str, Any], name: str = "") -> None:
-        self.dict_as_attr(self.params, params, name)
-
     def add_data(self, result: List[float]) -> None:
         try:
             self.data[self.mpi.rank, :, self._currentcol] = result
@@ -242,6 +248,11 @@ class ResultWriter:
                 group.attrs[key] = val
             except TypeError:
                 self.dict_as_attr(group, val, name=key)
+
+    def multiread_as_attr(self, group: Group, datas: Dict[str, Readerclass]) -> None:
+        for key, val in datas.items():
+            subgroup = group.create_group(key)
+            self.dict_as_attr(subgroup, val.asdict())
 
 
 class ResultReader:

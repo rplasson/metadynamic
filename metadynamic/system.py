@@ -155,11 +155,13 @@ class Statistic(Collected):
                     filename=self.param.hdf5,
                     datanames=self.lines,
                     mapnames=self.mapnames,
+                    params=self.param.asdict(),
+                    statparam=self.stat,
+                    mapparam=self.maps,
                     comment=self.comment,
                     nbcol=ceil(self.param.tend / self.param.tstep) + 1,
                     maxstrlen=self.param.maxstrlen,
                 )
-                self.writer.add_parameter(self.param.asdict())
 
     def writestat(self) -> None:
         if self.save:
@@ -220,7 +222,7 @@ class Statistic(Collected):
             basename, ext = path.splitext(self.param.snapshot)
             filled = "{base}-{n}_{t}" if self.status.num >= 0 else "{base}-{t}"
             basename = filled.format(base=basename, n=self.status.num, t=timestr)
-            filename = basename+ext
+            filename = basename + ext
             with open(filename, "w") as outfile:
                 comp = self.comp_collect.save()
                 nbcomp = len(comp)
@@ -281,9 +283,13 @@ class Statistic(Collected):
 
 class System(Probalistic, Collected):
     def __init__(
-            self, filename: str, logfile: str = invalidstr, loglevel: str = "INFO", comment: str = ""
+        self,
+        filename: str,
+        logfile: str = invalidstr,
+        loglevel: str = "INFO",
+        comment: str = "",
     ):
-        seterr(divide='ignore', invalid='ignore')
+        seterr(divide="ignore", invalid="ignore")
         self.initialized = False
         Logged.setlogger(logfile, loglevel)
         self.param: Param = Param.readfile(filename)
@@ -333,7 +339,9 @@ class System(Probalistic, Collected):
             if self.probalist.probtot == 0:
                 raise NoMore(f"t={self.status.time}")
             if not self.signcatch.alive:
-                raise Interrupted(f" by {self.signcatch.signal} at t={self.status.time}")
+                raise Interrupted(
+                    f" by {self.signcatch.signal} at t={self.status.time}"
+                )
             # update time for next step
             self.status.inc(dt)
         if not self.status.finished:
