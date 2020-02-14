@@ -40,7 +40,7 @@ from pandas import DataFrame
 
 from metadynamic.ends import InitError, Finished, FileCreationError
 from metadynamic.inval import invalidstr, invalidint, invalidfloat, isvalid
-from metadynamic.inputs import Readerclass, Param, StatParam, MapParam
+from metadynamic.inputs import Readerclass, StatParam, MapParam
 from metadynamic import __version__
 
 
@@ -257,6 +257,7 @@ class ResultWriter:
 
 class ResultReader:
     def __init__(self, filename: str) -> None:
+        self.filename = filename
         self.h5file: File = File(filename, "r")
         self.run: Group = self.h5file["Run"]
         self.params: Group = self.h5file["Parameters"]
@@ -340,6 +341,10 @@ class ResultReader:
         endnum, message, time = self.end[num]
         return endnum, message.decode(), time
 
+    def endmsg(self, num: int) -> str:
+        endnum, message, time = self.ending(num)
+        return f"#{num}: ending n°{endnum} at runtime t={time}s; {message}"
+
     def table(
         self, maps: str = invalidstr, procnum: str = "m", meanlength: int = invalidint
     ) -> DataFrame:
@@ -390,9 +395,16 @@ class ResultReader:
         threads = self.run.attrs["threads"]
         comment = self.run.attrs["comment"]
         end = self.run.attrs["end"]
+        endline = "\n"
         return (
+            f"----------------\n"
             f"{comment}\n"
+            f"----------------\n"
             f"metadynamic version {version}, "
-            f"ran on {threads} threads on {hostname} "
-            f"from {start} to {end}"
+            f"ran on {threads} threads on {hostname}\n"
+            f"from {start} to {end}\n"
+            f"results saved in '{self.filename}'\n"
+            f"----------------\n"
+            f"{endline.join([self.endmsg(i) for i in range(threads)])}\n"
+            f"----------------"
         )
