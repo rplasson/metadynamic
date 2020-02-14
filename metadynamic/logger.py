@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
+from os import path
 from multiprocessing import current_process
 from time import process_time
 from logging import getLogger, FileHandler, StreamHandler, Handler, Logger
@@ -85,8 +86,8 @@ class Log:
         if isvalid(filename):
             if filename.count(".") != 1:
                 raise ValueError("Please enter filename as 'filename.log'")
-            basename, suf = filename.split(".")
-            self.filenamethread: str = basename + "-{}." + suf
+            basename, suf = path.splitext(filename.split)
+            self.filenamethread: str = basename + "-{}" + suf
         self.filename: str = filename
         self._timer: Timer
         self._logger: Union[Logger, BlackholeLogger]

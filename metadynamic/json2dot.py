@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
+from os import path
 from itertools import product
 from numpy import array
 from json import load
@@ -74,7 +75,8 @@ class Graphwriter:
 
     def render(self, filename: str, engine: str = "dot", view: bool = False) -> None:
         try:
-            filename, export = filename.split(".")
+            filename, export = path.splitext(filename)
+            export = export[1:]
         except ValueError:
             export = "dot"
         if export == "dot":
