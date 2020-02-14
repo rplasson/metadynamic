@@ -21,7 +21,7 @@
 from datetime import datetime
 from socket import gethostname
 from time import sleep
-from typing import Dict, Any, List, Tuple
+from typing import Dict, Any, List, Tuple, Mapping
 from h5py import File, Group, Dataset, string_dtype
 from mpi4py import MPI
 from numpy import (
@@ -249,7 +249,7 @@ class ResultWriter:
             except TypeError:
                 self.dict_as_attr(group, val, name=key)
 
-    def multiread_as_attr(self, group: Group, datas: Dict[str, Readerclass]) -> None:
+    def multiread_as_attr(self, group: Group, datas: Mapping[str, Readerclass]) -> None:
         for key, val in datas.items():
             subgroup = group.create_group(key)
             self.dict_as_attr(subgroup, val.asdict())
