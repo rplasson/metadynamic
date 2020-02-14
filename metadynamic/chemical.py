@@ -31,7 +31,8 @@ from typing import (
     Tuple,
     Iterable,
 )
-from math import factorial, log
+from math import factorial
+from numpy import log
 from itertools import repeat
 
 from metadynamic.collector import Collect, Collectable

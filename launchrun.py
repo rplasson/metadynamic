@@ -3,7 +3,8 @@
 from argparse import ArgumentParser
 
 from metadynamic import launch
-
+from metadynamic.inputs import Param
+from tempfile import NamedTemporaryFile
 
 parser = ArgumentParser(description="Launch run from a json file")
 
@@ -15,10 +16,16 @@ parser.add_argument(
 
 args = parser.parse_args()
 
-# syst.set_param(dropmode="drop")
-# syst.set_param(init={"a": 15000, "A": 30000}, maxsteps=100000)
+param = Param.readfile(args.parameters)
+param.set_param(dropmode="drop")
+param.set_param(init={"a": 15000, "A": 30000}, maxsteps=100000)
 
+paramfile = NamedTemporaryFile()
 
-res = launch(args.parameters, logfile=args.log, loglevel=args.level)
+param.tojson(paramfile.name)
+
+res = launch(paramfile.name, logfile=args.log, loglevel=args.level)
+
+paramfile.close()
 
 print(res.end[...])
