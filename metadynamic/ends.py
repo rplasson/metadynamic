@@ -84,6 +84,10 @@ class InputError(Finished):
 
 # Exceptions expected to be raised
 
+class InternalError(BadEnding):
+    num = -1
+    error_message = "Something went bad in the code"
+
 
 class TimesUp(HappyEnding):
     num = 0

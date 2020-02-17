@@ -38,7 +38,7 @@ from numpy import (
 )
 from pandas import DataFrame
 
-from metadynamic.ends import InitError, Finished, FileCreationError
+from metadynamic.ends import InitError, Finished, FileCreationError, InternalError
 from metadynamic.inval import invalidstr, invalidint, invalidfloat, isvalid
 from metadynamic.inputs import Readerclass, StatParam, MapParam
 from metadynamic import __version__
@@ -107,9 +107,20 @@ class MpiStatus:
 
 
 class ResultWriter:
-    def __init__(
+    def __init__(self, filename: str) -> None:
+        self.filename = filename
+        self.mpi = MpiStatus()
+        try:
+            if self.mpi.ismpi:
+                self.h5file = File(filename, "w", driver="mpio", comm=self.mpi.comm)
+            else:
+                self.h5file = File(filename, "w")
+        except OSError as err:
+            raise FileCreationError(f"'{filename}': {err}")
+        self._initialized: bool = False
+
+    def init_stat(
         self,
-        filename: str,
         datanames: List[str],
         mapnames: List[str],
         params: Dict[str, Any],
@@ -119,16 +130,7 @@ class ResultWriter:
         nbcol: int,
         maxstrlen: int = 256,
     ) -> None:
-        self.filename = filename
-        self.mpi = MpiStatus()
         size = self.mpi.size
-        try:
-            if self.mpi.ismpi:
-                self.h5file = File(filename, "w", driver="mpio", comm=self.mpi.comm)
-            else:
-                self.h5file = File(filename, "w")
-        except OSError as err:
-            raise FileCreationError(f"'{filename}': {err}")
         self.nbcol = nbcol
         self.run: Group = self.h5file.create_group("Run")
         self.run.attrs["version"] = __version__
@@ -188,14 +190,21 @@ class ResultWriter:
             )
         self.map_cat: Dict[str, List[float]] = {}
         self._currentcol = 0
+        self._initialized: bool = True
+
+    def test_initialized(self):
+        if not self._initialized:
+            raise InternalError("Attempt to write in HDF5 file before intialization")
 
     def mapsize(self, name: str, categories: List[float]) -> None:
+        self.test_initialized()
         self.map_cat[name] = categories
         mapsize = len(categories)
         self.maps[name].resize((self.mpi.size, mapsize, self.nbcol + 1))
         self.maps[name][self.mpi.rank, :, 0] = categories
 
     def add_map(self, name: str, data: Dict[float, List[float]]) -> None:
+        self.test_initialized()
         for catnum, cat in enumerate(self.map_cat[name]):
             try:
                 self.maps[name][self.mpi.rank, catnum, 1:] = data[cat]
@@ -203,6 +212,7 @@ class ResultWriter:
                 pass  # No problem, some categories may have been reached by only some processes
 
     def snapsize(self, maxcomp: int, maxreac: int, maxsnap: int) -> None:
+        self.test_initialized()
         self.timesnap.resize((self.mpi.size, maxsnap))
         self.compsnap.resize((self.mpi.size, maxcomp, maxsnap))
         self.reacsnap.resize((self.mpi.size, maxreac, maxsnap))
@@ -213,6 +223,7 @@ class ResultWriter:
         self.h5file.close()
 
     def add_data(self, result: List[float]) -> None:
+        self.test_initialized()
         try:
             self.data[self.mpi.rank, :, self._currentcol] = result
             self._currentcol += 1
@@ -222,6 +233,7 @@ class ResultWriter:
             )
 
     def add_end(self, ending: Finished, time: float) -> None:
+        self.test_initialized()
         self.end[self.mpi.rank] = (ending.num, ending.message.encode(), time)
 
     def add_snapshot(
@@ -231,6 +243,7 @@ class ResultWriter:
         col: int,
         time: float,
     ) -> None:
+        self.test_initialized()
         if self._snapsized:
             self.timesnap[self.mpi.rank, col] = time
             for line, data in enumerate(complist.items()):

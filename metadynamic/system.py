@@ -149,8 +149,8 @@ class Statistic(Collected):
             self.log.error("No hdf5 filename given, can't save")
             raise FileNotFound("No hdf5 filename given, can't save")
         else:
-            self.writer = ResultWriter(
-                filename=self.param.hdf5,
+            self.writer = ResultWriter(filename=self.param.hdf5)
+            self.writer.init_stat(
                 datanames=self.lines,
                 mapnames=self.mapnames,
                 params=self.param.asdict(),
