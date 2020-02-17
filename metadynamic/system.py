@@ -90,7 +90,7 @@ class RunStatus(Logged):
         ]
 
     def logstat(self) -> None:
-        self.log.info(f"#{self.step}.{self.dstep}: {self.time} -> {self.tnext}")
+        self.log.info(f"#{self.step}'{self.dstep}'': {self.time} -> {self.tnext}")
 
     def inc(self, dt: float) -> None:
         self.time += dt
@@ -283,9 +283,9 @@ class System(Probalistic, Collected):
     ):
         seterr(divide="ignore", invalid="ignore")
         self.initialized = False
-        Logged.setlogger(logfile, loglevel)
         self.param: Param = Param.readfile(filename)
         Saver.setsaver(self.param.hdf5)
+        Logged.setlogger(logfile, loglevel)
         self.stat: Dict[str, StatParam] = StatParam.readmultiple(self.param.stat)
         self.maps: Dict[str, MapParam] = MapParam.readmultiple(self.param.maps)
         self.log.info("Parameter files loaded.")
