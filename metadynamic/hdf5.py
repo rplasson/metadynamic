@@ -38,7 +38,7 @@ from numpy import (
 )
 from pandas import DataFrame
 
-from metadynamic.ends import InitError, Finished, FileCreationError, InternalError
+from metadynamic.ends import Finished, FileCreationError, InternalError
 from metadynamic.inval import invalidstr, invalidint, invalidfloat, isvalid
 from metadynamic.inputs import Readerclass, StatParam, MapParam
 from metadynamic import __version__
@@ -228,7 +228,7 @@ class ResultWriter:
             self.data[self.mpi.rank, :, self._currentcol] = result
             self._currentcol += 1
         except ValueError:
-            raise ValueError(
+            raise InternalError(
                 f"No more space in file for #{self.mpi.rank} at column {self._currentcol}"
             )
 
@@ -251,7 +251,7 @@ class ResultWriter:
             for line, (name, (const, rate)) in enumerate(reaclist.items()):
                 self.reacsnap[self.mpi.rank, line, col] = (name.encode(), const, rate)
         else:
-            raise InitError(f"Snapshots data in hdf5 file wasn't properly sized")
+            raise InternalError(f"Snapshots data in hdf5 file wasn't properly sized")
 
     def dict_as_attr(self, group: Group, datas: Dict[str, Any], name: str = "") -> None:
         for key, val in datas.items():

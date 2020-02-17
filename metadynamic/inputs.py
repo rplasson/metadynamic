@@ -23,7 +23,6 @@ from typing import List, Dict, TypeVar, Type, Any
 from dataclasses import dataclass, field
 
 from metadynamic.ends import BadFile, FileNotFound, BadJSON
-from metadynamic.logger import Logged
 
 R = TypeVar("R", bound="Readerclass")
 
@@ -33,7 +32,7 @@ class LockedError(Exception):
 
 
 @dataclass
-class Readerclass(Logged):
+class Readerclass:
     _list_param: Dict[str, Any] = field(init=False, repr=False)
 
     def __post_init__(self) -> None:

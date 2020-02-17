@@ -41,6 +41,7 @@ from metadynamic.ends import (
     Interrupted,
     SignalCatcher,
     FileNotFound,
+    InternalError,
 )
 from metadynamic.logger import Logged
 from metadynamic.proba import Probalistic
@@ -403,5 +404,5 @@ class System(Probalistic, Collected):
         try:
             self.param.set_param(**kwd)
         except LockedError:
-            raise InitError("Parameter set after initialization")
+            raise InternalError("Parameter set after initialization")
         self.log.info(f"Parameters changed: {self.param}")
