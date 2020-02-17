@@ -19,7 +19,6 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 from os import path
-from multiprocessing import current_process
 from time import process_time
 from logging import getLogger, FileHandler, StreamHandler, Handler, Logger
 from datetime import datetime
@@ -130,18 +129,25 @@ class Log(Saver):
             self.debug(f"Attempted to redisconnect; reason: {reason}")
 
     def _format_msg(self, origin: str, msg: str) -> str:
-        return f"{origin}-{current_process().name} : {msg}   (rt={self.runtime()}, t={self.time()})"
+        return f"{origin}-{self.writer.mpi.rank} : {msg}   (rt={self.runtime()}, t={self.time()})"
+
+    def savelog(self, level: int, msg: str) -> None:
+        self.writer.write_log(level, self.time(), self.runtime(), msg)
 
     def debug(self, msg: str) -> None:
+        self.savelog(10, msg)
         self._logger.debug(self._format_msg("DEBUG", msg))
 
     def info(self, msg: str) -> None:
+        self.savelog(20, msg)
         self._logger.info(self._format_msg("INFO", msg))
 
     def warning(self, msg: str) -> None:
+        self.savelog(30, msg)
         self._logger.warning(self._format_msg("WARNING", msg))
 
     def error(self, msg: str) -> None:
+        self.savelog(40, msg)
         self._logger.error(self._format_msg("ERROR", msg))
 
     def runtime(self) -> float:

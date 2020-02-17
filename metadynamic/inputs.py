@@ -203,6 +203,7 @@ class Param(Readerclass):
     printsnap: str = "pdf"  # filetype of snapshots
     hdf5: str = ""  # filename for hdf5 file
     maxstrlen: int = 256  # max string length to be stored in hdf5
+    maxlog: int = 1024  # max log lines per process to be saved
 
     def __post_init__(self) -> None:
         self.ptot = sum([pop * len(comp) for comp, pop in self.init.items()])

@@ -158,7 +158,6 @@ class Statistic(Collected, Saver):
                 mapparam=self.maps,
                 comment=self.comment,
                 nbcol=ceil(self.param.tend / self.param.tstep) + 1,
-                maxstrlen=self.param.maxstrlen,
             )
 
     def writestat(self) -> None:
@@ -273,7 +272,7 @@ class Statistic(Collected, Saver):
         self.log.info(f"File {self.writer.filename} written and closed")
 
 
-class System(Probalistic, Collected):
+class System(Probalistic, Collected, Saver):
     def __init__(
         self,
         filename: str,
@@ -284,8 +283,9 @@ class System(Probalistic, Collected):
         seterr(divide="ignore", invalid="ignore")
         self.initialized = False
         self.param: Param = Param.readfile(filename)
-        Saver.setsaver(self.param.hdf5)
+        Saver.setsaver(self.param.hdf5, self.param.maxstrlen)
         Logged.setlogger(logfile, loglevel)
+        self.writer.init_log(self.param.maxlog)
         self.stat: Dict[str, StatParam] = StatParam.readmultiple(self.param.stat)
         self.maps: Dict[str, MapParam] = MapParam.readmultiple(self.param.maps)
         self.log.info("Parameter files loaded.")

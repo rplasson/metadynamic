@@ -107,8 +107,9 @@ class MpiStatus:
 
 
 class ResultWriter:
-    def __init__(self, filename: str) -> None:
+    def __init__(self, filename: str, maxstrlen: int = 256) -> None:
         self.filename = filename
+        self.maxstrlen = maxstrlen
         self.mpi = MpiStatus()
         try:
             if self.mpi.ismpi:
@@ -117,7 +118,36 @@ class ResultWriter:
                 self.h5file = File(filename, "w")
         except OSError as err:
             raise FileCreationError(f"'{filename}': {err}")
-        self._initialized: bool = False
+        self._init_stat: bool = False
+        self._init_log: bool = False
+
+    def init_log(self, maxlog: int) -> None:
+        self.maxlog = maxlog
+        size = self.mpi.size
+        self.logging: Group = self.h5file.create_group("Logging")
+        self.logcount: Dataset = self.logging.create_dataset(
+            "count", (size,), fillvalue=0, dtype="int32"
+        )
+        self.logs: Dataset = self.logging.create_dataset(
+            "logs",
+            (size, maxlog),
+            dtype=[
+                ("level", "int32"),
+                ("time", string_dtype(length=18)),
+                ("runtime", "float32"),
+                ("message", string_dtype(length=self.maxstrlen)),
+            ],
+        )
+        self._init_log = True
+
+    def write_log(self, level: int, time: str, runtime: float, msg: str) -> None:
+        if self._init_log:
+            rank = self.mpi.rank
+            col = self.logcount[rank]
+            self.logs[rank, col] = (level, time, runtime, msg[:self.maxstrlen])
+            self.logcount[rank] = col + 1
+            if col == self.maxlog:
+                self._init_log = False
 
     def init_stat(
         self,
@@ -128,7 +158,6 @@ class ResultWriter:
         mapparam: Dict[str, MapParam],
         comment: str,
         nbcol: int,
-        maxstrlen: int = 256,
     ) -> None:
         size = self.mpi.size
         self.nbcol = nbcol
@@ -154,7 +183,7 @@ class ResultWriter:
             (size,),
             dtype=[
                 ("num", "int32"),
-                ("message", string_dtype(length=maxstrlen)),
+                ("message", string_dtype(length=self.maxstrlen)),
                 ("runtime", "float32"),
             ],
         )
@@ -166,14 +195,14 @@ class ResultWriter:
             "compounds",
             (size, 1, 1),
             maxshape=(size, None, None),
-            dtype=[("name", string_dtype(length=maxstrlen)), ("pop", "int32")],
+            dtype=[("name", string_dtype(length=self.maxstrlen)), ("pop", "int32")],
         )
         self.reacsnap: Dataset = self.snapshots.create_dataset(
             "reactions",
             (size, 1, 1),
             maxshape=(size, None, None),
             dtype=[
-                ("name", string_dtype(length=maxstrlen)),
+                ("name", string_dtype(length=self.maxstrlen)),
                 ("const", "float32"),
                 ("rate", "float32"),
             ],
@@ -190,10 +219,10 @@ class ResultWriter:
             )
         self.map_cat: Dict[str, List[float]] = {}
         self._currentcol = 0
-        self._initialized: bool = True
+        self._init_stat = True
 
-    def test_initialized(self):
-        if not self._initialized:
+    def test_initialized(self) -> None:
+        if not self._init_stat:
             raise InternalError("Attempt to write in HDF5 file before intialization")
 
     def mapsize(self, name: str, categories: List[float]) -> None:
@@ -220,6 +249,8 @@ class ResultWriter:
 
     def close(self) -> None:
         self.run.attrs["end"] = datetime.now().strftime("%H:%M:%S, %d/%m/%Y")
+        self._init_log = False
+        self._init_stat = False
         self.h5file.close()
 
     def add_data(self, result: List[float]) -> None:
@@ -234,7 +265,7 @@ class ResultWriter:
 
     def add_end(self, ending: Finished, time: float) -> None:
         self.test_initialized()
-        self.end[self.mpi.rank] = (ending.num, ending.message.encode(), time)
+        self.end[self.mpi.rank] = (ending.num, ending.message.encode()[:self.maxstrlen], time)
 
     def add_snapshot(
         self,
@@ -247,9 +278,9 @@ class ResultWriter:
         if self._snapsized:
             self.timesnap[self.mpi.rank, col] = time
             for line, data in enumerate(complist.items()):
-                self.compsnap[self.mpi.rank, line, col] = data
+                self.compsnap[self.mpi.rank, line, col] = (data[0][:self.maxstrlen], data[1])
             for line, (name, (const, rate)) in enumerate(reaclist.items()):
-                self.reacsnap[self.mpi.rank, line, col] = (name.encode(), const, rate)
+                self.reacsnap[self.mpi.rank, line, col] = (name.encode()[:self.maxstrlen], const, rate)
         else:
             raise InternalError(f"Snapshots data in hdf5 file wasn't properly sized")
 
@@ -427,5 +458,5 @@ class Saver:
     writer: ResultWriter
 
     @classmethod
-    def setsaver(cls, filename: str) -> None:
-        cls.writer = ResultWriter(filename)
+    def setsaver(cls, filename: str, maxstrlen: int = 256) -> None:
+        cls.writer = ResultWriter(filename, maxstrlen)
