@@ -12,7 +12,12 @@ parser = ArgumentParser(description="Launch run from a json file")
 parser.add_argument("parameters", type=str, help="parameter json file")
 parser.add_argument("--log", metavar="logfile", type=str, nargs="?", help="log file")
 parser.add_argument(
-    "--comment", metavar="comment", type=str, nargs="?", help="comments on the run"
+    "--comment",
+    metavar="comment",
+    type=str,
+    nargs="?",
+    help="comments on the run",
+    default="",
 )
 parser.add_argument(
     "--level", metavar="loglevel", type=str, nargs="?", help="log level", default="INFO"

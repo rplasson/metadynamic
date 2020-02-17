@@ -108,6 +108,8 @@ class MpiStatus:
 
 class ResultWriter:
     def __init__(self, filename: str, maxstrlen: int = 256) -> None:
+        if not isvalid(filename) or filename == "":
+            raise FileNotFoundError(f"Plese enter a valid output file name")
         self.filename = filename
         self.maxstrlen = maxstrlen
         self.mpi = MpiStatus()
@@ -118,6 +120,8 @@ class ResultWriter:
                 self.h5file = File(filename, "w")
         except OSError as err:
             raise FileCreationError(f"'{filename}': {err}")
+        except ValueError as err:
+            raise FileNotFoundError(f"Couldn't find file {filename} : {err}")
         self._init_stat: bool = False
         self._init_log: bool = False
 
