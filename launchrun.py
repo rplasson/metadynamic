@@ -26,8 +26,8 @@ parser.add_argument(
 args = parser.parse_args()
 
 param = Param.readfile(args.parameters)
-param.set_param(dropmode="drop")
-param.set_param(init={"a": 1500, "A": 3000}, maxsteps=100000)
+# param.set_param(dropmode="drop")
+# param.set_param(init={"a": 1500, "A": 3000}, maxsteps=100000)
 
 paramfile = NamedTemporaryFile()
 
