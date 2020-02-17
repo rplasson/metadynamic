@@ -23,7 +23,6 @@ from typing import List, Dict, TypeVar, Type, Any
 from dataclasses import dataclass, field
 
 from metadynamic.ends import BadFile, FileNotFound, BadJSON
-from metadynamic.logger import Logged
 
 R = TypeVar("R", bound="Readerclass")
 
@@ -33,7 +32,7 @@ class LockedError(Exception):
 
 
 @dataclass
-class Readerclass(Logged):
+class Readerclass:
     _list_param: Dict[str, Any] = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
@@ -45,7 +44,7 @@ class Readerclass(Logged):
             return {}
         try:
             with open(filename) as json_data:
-                parameters = load(json_data)
+                parameters: Dict[str, Any] = load(json_data)
         except FileNotFoundError:
             raise FileNotFound(f"Unknown file {filename}")
         except JSONDecodeError as jerr:
@@ -204,6 +203,7 @@ class Param(Readerclass):
     printsnap: str = "pdf"  # filetype of snapshots
     hdf5: str = ""  # filename for hdf5 file
     maxstrlen: int = 256  # max string length to be stored in hdf5
+    maxlog: int = 1024  # max log lines per process to be saved
 
     def __post_init__(self) -> None:
         self.ptot = sum([pop * len(comp) for comp, pop in self.init.items()])

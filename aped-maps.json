@@ -15,5 +15,12 @@
 	"prop" : "pop",
 	"weight" : "length",
 	"sort" : "length"
+    },
+    "asymdist":
+    {
+	"prop" : "asym",
+	"weight" : "pop",
+	"method" : "+",
+	"sort" : "length"
     }
 }

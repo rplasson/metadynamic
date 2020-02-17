@@ -78,66 +78,93 @@ class Aborted(Finished):
     pass
 
 
-class InputError(Finished):
+class InputError(BadEnding):
     pass
 
 
 # Exceptions expected to be raised
 
+# Generic
+
+
+class InternalError(BadEnding):
+    num = 0
+    error_message = "Something went bad in the code"
+
+
+# Regular ending
+
 
 class TimesUp(HappyEnding):
-    num = 0
+    num = 10
     error_message = "Time is up"
 
 
 class NoMore(HappyEnding):
-    num = 1
+    num = 11
     error_message = "No more reactions can be processed"
 
 
+# Problems during run
+
+
 class NotFound(BadEnding):
-    num = 2
+    num = 20
     error_message = "No reaction could be find"
 
 
 class RoundError(BadEnding):
-    num = 3
+    num = 21
     error_message = "Rounding problem/negative probability detected"
 
 
 class DecrZero(BadEnding):
-    num = 4
+    num = 22
     error_message = "Tried to decrement unpopulated species"
 
 
+# Shortened runs
+
+
 class RuntimeLim(Aborted):
-    num = 5
+    num = 30
     error_message = "Runtime limit exceeded"
 
 
-class FileNotFound(InputError):
-    num = 6
-    error_message = "The provided file was not found."
-
-
-class BadFile(InputError):
-    num = 7
-    error_message = "The provided file is badly formed"
-
-
-class BadJSON(InputError):
-    num = 8
-    error_message = "Bad JSON format"
-
-
 class InitError(Aborted):
-    num = 9
+    num = 31
     error_message = "Error during initialization"
 
 
 class Interrupted(Aborted):
-    num = 10
+    num = 32
     error_message = "Asked to stop"
+
+
+# IO errors
+
+
+class FileNotFound(InputError):
+    num = 40
+    error_message = "The provided file was not found."
+
+
+class BadFile(InputError):
+    num = 41
+    error_message = "The provided file is badly formed"
+
+
+class BadJSON(InputError):
+    num = 42
+    error_message = "Bad JSON format"
+
+
+class FileCreationError(InputError):
+    num = 43
+    error_message = "The file couldn't be created"
+
+
+# Signal handling
 
 
 class SignalCatcher:

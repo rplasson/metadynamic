@@ -18,13 +18,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-from multiprocessing import current_process
+from os import path
 from time import process_time
 from logging import getLogger, FileHandler, StreamHandler, Handler, Logger
 from datetime import datetime
 from typing import Union
 
 from metadynamic.inval import invalidstr, invalidint, Invalid, isvalid
+from metadynamic.hdf5 import Saver
 
 
 class InvalidHandler(Invalid, Handler):
@@ -74,17 +75,19 @@ class BlackholeLogger:
         pass
 
 
-class Log:
+class Log(Saver):
     @staticmethod
     def time() -> str:
         return datetime.now().strftime("%H:%M:%S, %d/%m/%y")
 
     def __init__(self, filename: str = invalidstr, level: str = "INFO"):
+        if not filename:
+            filename = invalidstr
         if isvalid(filename):
             if filename.count(".") != 1:
                 raise ValueError("Please enter filename as 'filename.log'")
-            basename, suf = filename.split(".")
-            self.filenamethread: str = basename + "-{}." + suf
+            basename, suf = path.splitext(filename)
+            self.filenamethread: str = basename + "-{}" + suf
         self.filename: str = filename
         self._timer: Timer
         self._logger: Union[Logger, BlackholeLogger]
@@ -126,18 +129,25 @@ class Log:
             self.debug(f"Attempted to redisconnect; reason: {reason}")
 
     def _format_msg(self, origin: str, msg: str) -> str:
-        return f"{origin}-{current_process().name} : {msg}   (rt={self.runtime()}, t={self.time()})"
+        return f"{origin}-{self.writer.mpi.rank} : {msg}   (rt={self.runtime()}, t={self.time()})"
+
+    def savelog(self, level: int, msg: str) -> None:
+        self.writer.write_log(level, self.time(), self.runtime(), msg)
 
     def debug(self, msg: str) -> None:
+        self.savelog(10, msg)
         self._logger.debug(self._format_msg("DEBUG", msg))
 
     def info(self, msg: str) -> None:
+        self.savelog(20, msg)
         self._logger.info(self._format_msg("INFO", msg))
 
     def warning(self, msg: str) -> None:
+        self.savelog(30, msg)
         self._logger.warning(self._format_msg("WARNING", msg))
 
     def error(self, msg: str) -> None:
+        self.savelog(40, msg)
         self._logger.error(self._format_msg("ERROR", msg))
 
     def runtime(self) -> float:

@@ -51,11 +51,11 @@
 	"weight" : "pop",
 	"method" : "+"
     },
-    "ee":
+    "asym":
     {
 	"prop" : "asym",
 	"weight" : "pop",
-	"method" : "m"
+	"method" : "+"
     },
     "mix_entro":
     {

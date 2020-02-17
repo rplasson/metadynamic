@@ -164,13 +164,13 @@ class Collect(Generic[K, T], Ruled):
         values = self.proplist(prop, full)
         weights = self.proplist(weight, full)
         if method == "+":
-            return sum(values * weights)
+            return float(sum(values * weights))
         if method == "m":
-            return average(values, weights=weights)
+            return float(average(values, weights=weights))
         if method == "max":
-            return max(values * weights)
+            return float(max(values * weights))
         if method == "min":
-            return min(values * weights)
+            return float(min(values * weights))
         raise BadFile(f"the method {method} is not recognized")
 
     def map(self, prop: str, weight: str, sort: str, method: str, full: bool = False) -> Dict[float, float]:
@@ -182,12 +182,12 @@ class Collect(Generic[K, T], Ruled):
         for v, w, s in zip(values, weights, sorts):
             try:
                 res[s] += v*w
-                tot[s] += v*w
+                tot[s] += w
             except KeyError:
                 res[s] = v*w
-                tot[s] = v*w
+                tot[s] = w
         if method == "+":
             return res
-        for s in set(sorts):
+        for s in res:
             res[s] /= tot[s]
         return res
