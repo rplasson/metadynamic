@@ -26,6 +26,7 @@ from datetime import datetime
 from typing import Union
 
 from metadynamic.inval import invalidstr, invalidint, Invalid, isvalid
+from metadynamic.hdf5 import Saver
 
 
 class InvalidHandler(Invalid, Handler):
@@ -75,7 +76,7 @@ class BlackholeLogger:
         pass
 
 
-class Log:
+class Log(Saver):
     @staticmethod
     def time() -> str:
         return datetime.now().strftime("%H:%M:%S, %d/%m/%y")

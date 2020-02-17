@@ -421,3 +421,11 @@ class ResultReader:
             f"{endline.join([self.endmsg(i) for i in range(threads)])}\n"
             f"----------------"
         )
+
+
+class Saver:
+    writer: ResultWriter
+
+    @classmethod
+    def setsaver(cls, filename: str) -> None:
+        cls.writer = ResultWriter(filename)

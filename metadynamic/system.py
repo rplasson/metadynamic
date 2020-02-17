@@ -51,7 +51,7 @@ from metadynamic.chemical import Collected, trigger_changes
 from metadynamic.inputs import Param, StatParam, MapParam, LockedError
 from metadynamic.inval import invalidstr
 from metadynamic.json2dot import Json2dot
-from metadynamic.hdf5 import ResultWriter, MpiStatus
+from metadynamic.hdf5 import MpiStatus, Saver
 
 
 class Encoder(JSONEncoder):
@@ -112,7 +112,7 @@ class RunStatus(Logged):
         return self.time >= self.tnext
 
 
-class Statistic(Collected):
+class Statistic(Collected, Saver):
     def __init__(self, param: Param, status: RunStatus, comment: str):
         self.stat: Dict[str, StatParam] = StatParam.readmultiple(param.stat)
         self.maps: Dict[str, MapParam] = MapParam.readmultiple(param.maps)
@@ -150,7 +150,6 @@ class Statistic(Collected):
             self.log.error("No hdf5 filename given, can't save")
             raise FileNotFound("No hdf5 filename given, can't save")
         else:
-            self.writer = ResultWriter(filename=self.param.hdf5)
             self.writer.init_stat(
                 datanames=self.lines,
                 mapnames=self.mapnames,
@@ -286,6 +285,7 @@ class System(Probalistic, Collected):
         self.initialized = False
         Logged.setlogger(logfile, loglevel)
         self.param: Param = Param.readfile(filename)
+        Saver.setsaver(self.param.hdf5)
         self.stat: Dict[str, StatParam] = StatParam.readmultiple(self.param.stat)
         self.maps: Dict[str, MapParam] = MapParam.readmultiple(self.param.maps)
         self.log.info("Parameter files loaded.")
