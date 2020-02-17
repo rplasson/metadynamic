@@ -21,7 +21,7 @@
 from typing import Generic, TypeVar, Dict, Set, Union, Hashable, List, Any
 from weakref import WeakValueDictionary
 from collections import defaultdict
-from numpy import array, sum, average, ndarray
+from numpy import array, sum, average, ndarray, nan
 
 # from metadynamic.logger import Logged
 from metadynamic.ruleset import Ruled
@@ -166,7 +166,10 @@ class Collect(Generic[K, T], Ruled):
         if method == "+":
             return float(sum(values * weights))
         if method == "m":
-            return float(average(values, weights=weights))
+            try:
+                return float(average(values, weights=weights))
+            except ZeroDivisionError:
+                return nan
         if method == "max":
             return float(max(values * weights))
         if method == "min":

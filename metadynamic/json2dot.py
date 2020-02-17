@@ -51,11 +51,14 @@ class Scaler:
 
     @staticmethod
     def minmax(data: Any, cutoff: float = 0.0) -> Tuple[float, float]:
-        maxval = max(data)
-        data = array(data)
-        data = data[data > maxval * cutoff]
-        minval = min(data)
-        return minval, maxval
+        try:
+            maxval = max(data)
+            data = array(data)
+            data = data[data > maxval * cutoff]
+            minval = min(data)
+            return minval, maxval
+        except ValueError:
+            return 0.0, 1.0  # generic values for empty data
 
 
 class Graphwriter:

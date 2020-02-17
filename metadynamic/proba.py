@@ -24,7 +24,7 @@ from secrets import SystemRandom
 from numpy import append, log, zeros, full, dtype, float64
 from numba import jit
 
-from metadynamic.ends import RoundError
+from metadynamic.ends import RoundError, NoMore
 from metadynamic.logger import Logged
 from metadynamic.inval import isvalid
 
@@ -103,6 +103,8 @@ class Probalist(Logged):
             chosen_num = choice(self._problist, self.probtot * self.sysrand.random())
             chosen = self._mapobj[chosen_num]
             if chosen_num == -1:
+                if self.probtot == 0.0:
+                    raise NoMore("choice() had nothing to choose!")
                 raise RoundError(
                     "choice() couldn't find a suitable object."
                     f"probtot={self.probtot}=?={self._problist.sum()}; "
