@@ -334,6 +334,13 @@ class ResultReader:
         self.logcount: Dataset = self.logging["count"]
         self.logs: Dataset = self.logging["logs"]
 
+    def __getitem__(self, field: str) -> ndarray:
+        if field in self.datanames:
+            return self.get(field)
+        if field in self.mapnames:
+            return self.getmap(field)
+        raise KeyError
+
     def _loc(self, field: str) -> int:
         try:
             return self.datanames.index(field)
