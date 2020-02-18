@@ -329,6 +329,7 @@ class ResultReader:
         self.compsnap: Dataset = self.snapshots["compounds"]
         self.reacsnap: Dataset = self.snapshots["reactions"]
         self.maps: Group = self.h5file["Maps"]
+        self.mapnames = self.maps.keys()        
         self.logging: Group = self.h5file["Logging"]
         self.logcount: Dataset = self.logging["count"]
         self.logs: Dataset = self.logging["logs"]
