@@ -40,7 +40,7 @@ from pandas import DataFrame
 
 from metadynamic.ends import Finished, FileCreationError, InternalError
 from metadynamic.inval import invalidstr, invalidint, invalidfloat, isvalid
-from metadynamic.inputs import Readerclass, StatParam, MapParam
+from metadynamic.inputs import Readerclass, StatParam, MapParam, Param
 from metadynamic import __version__
 
 
@@ -482,7 +482,7 @@ class ResultReader:
         )
 
     @property
-    def parameters(self) -> Dict[str, Any]:
+    def parameters(self) -> Param:
         params = dict(self.params.attrs)
         res = params.copy()
         for key, val in params.items():
@@ -493,7 +493,7 @@ class ResultReader:
                 except KeyError:
                     res[prekey] = {postkey: val}
                 res.pop(key)
-        return res
+        return Param.readdict(res)
 
     @property
     def fulllog(self) -> ndarray:

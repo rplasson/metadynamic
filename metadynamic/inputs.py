@@ -38,9 +38,9 @@ class Converter:
             if hasattr(valfield.type, "__origin__")
             else valfield.type
         )
-        self.conv: Callable[Any, Any] = (lambda x: self.type(
-            x
-        )) if valfield.default_factory is MISSING else valfield.default_factory
+        self.conv: Callable[Any, Any] = (
+            lambda x: self.type(x)
+        ) if valfield.default_factory is MISSING else valfield.default_factory
 
 
 @dataclass
@@ -64,11 +64,13 @@ class Readerclass:
         return parameters
 
     @classmethod
-    def readfile(
-        cls: Type[R], filename: str, checktype: bool = True, autocast: bool = True,
+    def readdict(
+        cls: Type[R],
+        parameters: Dict[str, Any],
+        checktype: bool = True,
+        autocast: bool = True,
     ) -> R:
-        """Return a Readerclass object, updated by the data from filename"""
-        parameters = cls._fromfile(filename)
+        """Return a Readerclass object, updated by the data from parameters dict"""
         new = cls()
         if checktype:
             new.set_checktype()
@@ -82,6 +84,15 @@ class Readerclass:
         return new
 
     @classmethod
+    def readfile(
+        cls: Type[R], filename: str, checktype: bool = True, autocast: bool = True,
+    ) -> R:
+        """Return a Readerclass object, updated by the data from filename"""
+        return cls.readdict(
+            parameters=cls._fromfile(filename), checktype=checktype, autocast=autocast
+        )
+
+    @classmethod
     def readmultiple(
         cls: Type[R], filename: str, checktype: bool = True, autocast: bool = True,
     ) -> Dict[str, R]:
@@ -90,24 +101,17 @@ class Readerclass:
         res: Dict[str, R] = {}
         parameters = cls._fromfile(filename)
         for name, params in parameters.items():
-            new = cls()
-            if checktype:
-                new.set_checktype()
-            else:
-                new.unset_checktype()
-            if autocast:
-                new.set_autocast()
-            else:
-                new.unset_autocast()
-            new.set_param(**params)
-            res[name] = new
+            res[name] = cls.readdict(
+                parameters=params, checktype=checktype, autocast=autocast
+            )
         return res
 
     @classmethod
     def list_param(cls) -> Dict[str, Converter]:
         if not hasattr(cls, "_list_param"):
             cls._list_param = {
-                key: Converter(val) for key, val in cls.__dataclass_fields__.items()
+                key: Converter(val)
+                for key, val in cls.__dataclass_fields__.items()
                 if val.init
             }
         return cls._list_param
