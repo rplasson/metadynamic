@@ -465,6 +465,11 @@ class ResultReader:
             f"----------------"
         )
 
+    @property
+    def parameters(self) -> Dict[str, Any]:
+        # ... convert back param->x param->y into dict !!!
+        return dict(self.params.attrs)
+
 
 class Saver:
     writer: ResultWriter
