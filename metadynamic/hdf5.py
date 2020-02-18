@@ -414,12 +414,13 @@ class ResultReader:
 
     def xy(
         self,
-        x: str = "time",
         y: str = "ptime",
+        x: str = "time",
         method: str = "m",
+        xmethod: str = "m",
         meanlength: int = invalidint,
     ) -> Tuple[ndarray, ndarray]:
-        x = self.get(field=x, method=method, meanlength=meanlength)
+        x = self.get(field=x, method=xmethod, meanlength=meanlength)
         y = self.get(field=y, method=method, meanlength=meanlength)
         return x, y
 
@@ -427,12 +428,13 @@ class ResultReader:
         self,
         field: str,
         method: str = "m",
+        tmethod: str = "m",
         meanlength: int = invalidint,
         nanval: float = 0.0,
         posinf: float = invalidfloat,
         neginf: float = invalidfloat,
     ) -> Tuple[ndarray, ndarray, ndarray]:
-        time = self.get(field="time", method=method, meanlength=meanlength)
+        time = self.get(field="time", method=tmethod, meanlength=meanlength)
         categories = self.categories(field)
         x, y = meshgrid(time, categories)
         z = nan_to_num(
