@@ -329,6 +329,9 @@ class ResultReader:
         self.compsnap: Dataset = self.snapshots["compounds"]
         self.reacsnap: Dataset = self.snapshots["reactions"]
         self.maps: Group = self.h5file["Maps"]
+        self.logging: Group = self.h5file["Logging"]
+        self.logcount: Dataset = self.logging["count"]
+        self.logs: Dataset = self.logging["logs"]
 
     def _loc(self, field: str) -> int:
         return self.datanames.index(field)
@@ -471,6 +474,12 @@ class ResultReader:
     def parameters(self) -> Dict[str, Any]:
         # ... convert back param->x param->y into dict !!!
         return dict(self.params.attrs)
+
+    @property
+    def fulllog(self) -> ndarray:
+        # add simple system for log display/search (depending on level etc) ?
+        maxcol = self.logcount[...].max()
+        return self.logs[:, :maxcol]
 
 
 class Saver:
