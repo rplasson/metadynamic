@@ -483,8 +483,9 @@ class ResultReader:
 
     @property
     def parameters(self) -> Dict[str, Any]:
-        res = dict(self.params.attrs)
-        for key, val in res:
+        params = dict(self.params.attrs)
+        res = params.copy()
+        for key, val in params.items():
             if "->" in key:
                 prekey, postkey = key.split("->")
                 try:

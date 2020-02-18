@@ -19,8 +19,8 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 from json import load, dump, JSONDecodeError
-from typing import List, Dict, TypeVar, Type, Any
-from dataclasses import dataclass, field
+from typing import List, Dict, TypeVar, Type, Any, Union, Iterable, Callable
+from dataclasses import dataclass, field, Field, MISSING
 
 from metadynamic.ends import BadFile, FileNotFound, BadJSON
 
@@ -29,6 +29,18 @@ R = TypeVar("R", bound="Readerclass")
 
 class LockedError(Exception):
     pass
+
+
+class Converter:
+    def __init__(self, valfield: Field):
+        self.type = (
+            valfield.type.__origin__
+            if hasattr(valfield.type, "__origin__")
+            else valfield.type
+        )
+        self.conv: Callable[Any, Any] = (lambda x: self.type(
+            x
+        )) if valfield.default_factory is MISSING else valfield.default_factory
 
 
 @dataclass
@@ -92,14 +104,17 @@ class Readerclass:
         return res
 
     @classmethod
-    def list_param(cls) -> Dict[str, type]:
+    def list_param(cls) -> Dict[str, Converter]:
         if not hasattr(cls, "_list_param"):
             cls._list_param = {
-                key: val.__origin__ if hasattr(val, "__origin__") else val
-                for key, val in cls.__annotations__.items()
-                if key[0] != "_"
+                key: Converter(val) for key, val in cls.__dataclass_fields__.items()
+                if val.init
             }
         return cls._list_param
+
+    @classmethod
+    def conv_param(cls, param) -> Converter:
+        return cls.list_param()[param]
 
     def checked_items(self, key: str, val: Any) -> Any:
         err = ""
@@ -108,12 +123,12 @@ class Readerclass:
         else:
             if self.autocast:
                 try:
-                    val = self.list_param()[key](val)
+                    val = self.conv_param(key).conv(val)
                 except ValueError:
-                    err += f"Couldn't cast {val} into {self.list_param()[key]}"
+                    err += f"Couldn't cast {val} into {self.conv_param(key).type}. "
             if self.checktype:
-                if not isinstance(val, self.list_param()[key]):
-                    err += f"{key} parameter should be of type {self.list_param()[key]}, not {type(val)}\n"
+                if not isinstance(val, self.conv_param(key).type):
+                    err += f"{key} parameter should be of type {self.conv_param(key).type}, not {type(val)}\n"
         if err != "":
             raise BadFile(err)
         return val
@@ -170,15 +185,42 @@ class Readerclass:
         return self._checktype
 
 
+# Factories
+def dict_int_fact(data: Union[Dict[Any, Any], None] = None) -> Dict[str, int]:
+    res: Dict[str, int] = {}
+    if data is not None:
+        for key, val in data.items():
+            res[str(key)] = int(val)
+    return res
+
+
+def dict_listfloat_fact(
+    data: Union[Dict[Any, Any], None] = None
+) -> Dict[str, List[float]]:
+    res: Dict[str, List[float]] = {}
+    if data is not None:
+        for key, val in data.items():
+            res[str(key)] = [float(i) for i in val]
+    return res
+
+
+def list_str_fact(data: Union[Iterable[Any], None] = None) -> List[str]:
+    return [] if data is None else [str(i) for i in data]
+
+
 @dataclass
 class Param(Readerclass):
     # chemical
     conc: float = 0.1  # Concentration
     ptot: int = field(init=False)
     vol: float = field(init=False)
-    init: Dict[str, int] = field(default_factory=dict)  # initial concentrations
+    init: Dict[str, int] = field(
+        default_factory=dict_int_fact
+    )  # initial concentrations
     rulemodel: str = "metadynamic.polymers"  # rule model to be used
-    consts: Dict[str, List[float]] = field(default_factory=dict)  # kinetic constants
+    consts: Dict[str, List[float]] = field(
+        default_factory=dict_listfloat_fact
+    )  # kinetic constants
     # simulation
     tend: float = 1.0  # final simulation time
     tstep: float = 0.01  # timestep
@@ -195,7 +237,7 @@ class Param(Readerclass):
     endbarrier: float = 0.01  # If non zero, final threads will wait in idle loops of corresponding values
     # IO
     save: List[str] = field(
-        default_factory=list
+        default_factory=list_str_fact
     )  # list of compounds to be saved at each time step
     stat: str = ""  # json filename describing statistics
     maps: str = ""  # json filename describing stat maps
