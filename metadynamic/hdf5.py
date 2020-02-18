@@ -334,7 +334,10 @@ class ResultReader:
         self.logs: Dataset = self.logging["logs"]
 
     def _loc(self, field: str) -> int:
-        return self.datanames.index(field)
+        try:
+            return self.datanames.index(field)
+        except ValueError:
+            raise ValueError(f"{field} is not a recorded stat name")
 
     def get(
         self, field: str = invalidstr, method: str = "m", meanlength: int = invalidint,
@@ -472,8 +475,16 @@ class ResultReader:
 
     @property
     def parameters(self) -> Dict[str, Any]:
-        # ... convert back param->x param->y into dict !!!
-        return dict(self.params.attrs)
+        res = dict(self.params.attrs)
+        for key, val in res:
+            if "->" in key:
+                prekey, postkey = key.split("->")
+                try:
+                    res[prekey][postkey] = val
+                except KeyError:
+                    res[prekey] = {postkey: val}
+                res.pop(key)
+        return res
 
     @property
     def fulllog(self) -> ndarray:
