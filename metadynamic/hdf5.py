@@ -478,7 +478,7 @@ class ResultReader:
         return x, y, z
 
     @property
-    def runinfo(self) -> str:
+    def printinfo(self) -> str:
         version = self.run.attrs["version"]
         hostname = self.run.attrs["hostname"]
         start = self.run.attrs["date"]
@@ -498,6 +498,10 @@ class ResultReader:
             f"{endline.join([self.endmsg(i) for i in range(threads)])}\n"
             f"----------------"
         )
+
+    @property
+    def runinfo(self) -> Dict[str, Any]:
+        return dict(self.run.attrs)
 
     @property
     def parameters(self) -> Param:

@@ -40,4 +40,4 @@ res = launch(
 paramfile.close()
 
 if MpiStatus().rank == 0:
-    print(res.runinfo)
+    print(res.printinfo)
