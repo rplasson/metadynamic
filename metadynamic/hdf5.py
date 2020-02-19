@@ -498,7 +498,7 @@ class ResultReader:
     @property
     def fulllog(self) -> ndarray:
         # add simple system for log display/search (depending on level etc) ?
-        maxcol = self.logcount[...].max()
+        maxcol = max(self.logcount)
         return self.logs[:, :maxcol]
 
 

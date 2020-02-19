@@ -80,7 +80,7 @@ class CollectofCompound(Collect[str, "Compound"]):
         return self.descriptor.categories(obj.description)
 
     def getprop(self, prop: str, obj: "Compound") -> float:
-        return (
+        return float(
             1.0
             if prop == "count"
             else obj.pop
@@ -102,7 +102,7 @@ class CollectofReaction(Collect[ReacDescr, "Reaction"]):
         return {obj.description[0]}
 
     def getprop(self, prop: str, obj: "Reaction") -> float:
-        return (
+        return float(
             1.0
             if prop == "count"
             else obj.proba
@@ -338,7 +338,7 @@ class Compound(Chemical[str]):
         if self.description == "":
             self.log.error("Created empty compound!!!")
         self.reactions: Set[Reaction] = set()
-        self.pop = 0
+        self.pop: int = 0
         # self.length = self.descriptor("length", description)
 
     def _activate(self) -> None:

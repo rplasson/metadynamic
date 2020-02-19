@@ -21,6 +21,7 @@
 from json import load, dump, JSONDecodeError
 from typing import List, Dict, TypeVar, Type, Any, Union, Iterable, Callable
 from dataclasses import dataclass, field, Field, MISSING
+from metadynamic.caster import Caster
 
 from metadynamic.ends import BadFile, FileNotFound, BadJSON
 
@@ -29,18 +30,6 @@ R = TypeVar("R", bound="Readerclass")
 
 class LockedError(Exception):
     pass
-
-
-class Converter:
-    def __init__(self, valfield: Field):
-        self.type = (
-            valfield.type.__origin__
-            if hasattr(valfield.type, "__origin__")
-            else valfield.type
-        )
-        self.conv: Callable[Any, Any] = (
-            lambda x: self.type(x)
-        ) if valfield.default_factory is MISSING else valfield.default_factory
 
 
 @dataclass
@@ -107,17 +96,17 @@ class Readerclass:
         return res
 
     @classmethod
-    def list_param(cls) -> Dict[str, Converter]:
+    def list_param(cls) -> Dict[str, Caster]:
         if not hasattr(cls, "_list_param"):
             cls._list_param = {
-                key: Converter(val)
+                key: Caster(val.type)
                 for key, val in cls.__dataclass_fields__.items()
                 if val.init
             }
         return cls._list_param
 
     @classmethod
-    def conv_param(cls, param) -> Converter:
+    def conv_param(cls, param: str) -> Caster:
         return cls.list_param()[param]
 
     def checked_items(self, key: str, val: Any) -> Any:
@@ -127,12 +116,12 @@ class Readerclass:
         else:
             if self.autocast:
                 try:
-                    val = self.conv_param(key).conv(val)
+                    val = self.conv_param(key)(val)
                 except ValueError:
-                    err += f"Couldn't cast {val} into {self.conv_param(key).type}. "
+                    err += f"Couldn't cast '{val}' into {self.conv_param(key).dest}. "
             if self.checktype:
-                if not isinstance(val, self.conv_param(key).type):
-                    err += f"{key} parameter should be of type {self.conv_param(key).type}, not {type(val)}\n"
+                if not isinstance(val, self.conv_param(key).dest):
+                    err += f"{key} parameter should be of type {self.conv_param(key).dest}, not {type(val)}\n"
         if err != "":
             raise BadFile(err)
         return val
