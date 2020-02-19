@@ -73,6 +73,20 @@ class Readerclass:
         return new
 
     @classmethod
+    def multipledict(
+        cls: Type[R],
+        parameters: Dict[str, Dict[str, Any]],
+        checktype: bool = True,
+        autocast: bool = True,
+    ) -> Dict[str, R]:
+        res: Dict[str, R] = {}
+        for name, params in parameters.items():
+            res[name] = cls.readdict(
+                parameters=params, checktype=checktype, autocast=autocast
+            )
+        return res
+
+    @classmethod
     def readfile(
         cls: Type[R], filename: str, checktype: bool = True, autocast: bool = True,
     ) -> R:
@@ -87,13 +101,9 @@ class Readerclass:
     ) -> Dict[str, R]:
         """Return a dictionnary of Readerclass object,
            each updated by specific entry from filename"""
-        res: Dict[str, R] = {}
-        parameters = cls._fromfile(filename)
-        for name, params in parameters.items():
-            res[name] = cls.readdict(
-                parameters=params, checktype=checktype, autocast=autocast
-            )
-        return res
+        return cls.multipledict(
+            parameters=cls._fromfile(filename), checktype=checktype, autocast=autocast
+        )
 
     @classmethod
     def list_param(cls) -> Dict[str, Caster]:
@@ -202,7 +212,9 @@ class Param(Readerclass):
     context: str = "fork"  # thread context to be used (now, only "fork" is implemented)
     endbarrier: float = 0.01  # If non zero, final threads will wait in idle loops of corresponding values
     # IO
-    save: List[str] = field(default_factory=list)  # list of compounds to be saved at each time step
+    save: List[str] = field(
+        default_factory=list
+    )  # list of compounds to be saved at each time step
     stat: str = ""  # json filename describing statistics
     maps: str = ""  # json filename describing stat maps
     snapshot: str = ""  # filename for final snapshot
