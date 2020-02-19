@@ -38,6 +38,8 @@ class Caster:
             self.args = []
 
     def __call__(self, value: Any) -> Any:
+        if isinstance(value, bytes):
+            value = value.decode()
         if self.dest is dict:
             return {
                 self.args[0](key): self.args[1](val) for key, val in dict(value).items()

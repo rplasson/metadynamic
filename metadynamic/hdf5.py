@@ -24,6 +24,7 @@ from time import sleep
 from typing import Dict, Any, List, Tuple, Mapping
 from h5py import File, Group, Dataset, string_dtype
 from mpi4py import MPI
+from graphviz import Digraph
 from numpy import (
     nan,
     nanmean,
@@ -41,7 +42,13 @@ from pandas import DataFrame
 from metadynamic.ends import Finished, FileCreationError, InternalError
 from metadynamic.inval import invalidstr, invalidint, invalidfloat, isvalid
 from metadynamic.inputs import Readerclass, StatParam, MapParam, Param
+from metadynamic.caster import Caster
+from metadynamic.json2dot import Data2dot
 from metadynamic import __version__
+
+
+comp_cast = Caster(Dict[str, int])
+reac_cast = Caster(Dict[str, List[float]])
 
 
 class MpiStatus:
@@ -329,7 +336,7 @@ class ResultReader:
         self.compsnap: Dataset = self.snapshots["compounds"]
         self.reacsnap: Dataset = self.snapshots["reactions"]
         self.maps: Group = self.h5file["Maps"]
-        self.mapnames = self.maps.keys()        
+        self.mapnames = self.maps.keys()
         self.logging: Group = self.h5file["Logging"]
         self.logcount: Dataset = self.logging["count"]
         self.logs: Dataset = self.logging["logs"]
@@ -403,6 +410,17 @@ class ResultReader:
             if isvalid(meanlength)
             else res
         )
+
+    def getsnap(self, num: int, step: int, parameterfile: str = '') -> Digraph:
+        comp = comp_cast(self.snapshots["compounds"][num, step])
+        if "" in comp:
+            comp.pop("")
+        reac = reac_cast(
+            {i: (j, k) for i, j, k in self.snapshots["reactions"][num, step]}
+        )
+        if "" in reac:
+            reac.pop("")
+        return Data2dot(comp, reac, parameterfile).crn.dot
 
     def categories(self, field: str) -> ndarray:
         return self.maps[field][0, :, 0]

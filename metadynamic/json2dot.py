@@ -113,9 +113,7 @@ class Data2dot:
         self.compounds = compounds
         self.reactions = reactions
         self.param = DotParam.readfile(parameterfile) if parameterfile else DotParam()
-
-    def write(self, filename: str) -> None:
-        io = Graphwriter()
+        self.crn = Graphwriter()
         binode = self.param.binode
         compounds = set()
         reactions = set()
@@ -140,7 +138,9 @@ class Data2dot:
                     compounds.add(reacname)
                     for _ in range(num):
                         if binode:
-                            io.edge(start=reacname, end=name, width=width, color=color)
+                            self.crn.edge(
+                                start=reacname, end=name, width=width, color=color
+                            )
                         else:
                             reaclist.append(reacname)
                 for prod in products.split("+"):
@@ -148,12 +148,16 @@ class Data2dot:
                     compounds.add(prodname)
                     for _ in range(num):
                         if binode:
-                            io.edge(start=name, end=prodname, width=width, color=color)
+                            self.crn.edge(
+                                start=name, end=prodname, width=width, color=color
+                            )
                         else:
                             prodlist.append(prodname)
                 if not binode:
                     for reacname, prodname in product(reaclist, prodlist):
-                        io.edge(start=reacname, end=prodname, width=width, color=color)
+                        self.crn.edge(
+                            start=reacname, end=prodname, width=width, color=color
+                        )
         color = self.param.c_color
         scaler = Scaler(
             data=list(self.compounds.values()),
@@ -175,7 +179,7 @@ class Data2dot:
             except KeyError:
                 width = 0
                 fontsize = 0
-            io.compound(name=name, width=width, fontsize=fontsize, color=color)
+            self.crn.compound(name=name, width=width, fontsize=fontsize, color=color)
         if binode:
             color = self.param.r_color
             scaler = Scaler(
@@ -187,8 +191,13 @@ class Data2dot:
             for name in reactions:
                 const, _ = self.reactions[name]
                 width = scaler(const)
-                io.reaction(name=name, width=width, color=color)
-        io.render(filename)
+                self.crn.reaction(name=name, width=width, color=color)
+
+    def write(self, filename: str) -> None:
+        self.crn.render(filename)
+
+    def view(self, filename: str) -> None:
+        self.crn.view()
 
     @staticmethod
     def cutdown(name: str) -> Tuple[int, str]:
