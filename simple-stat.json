@@ -1,0 +1,27 @@
+{
+    "nbcomp":
+    {
+	"method" : "+"
+    },
+    "poolsize":
+    {
+	"method" : "+",
+	"full" : true
+    },
+    "nbreac":
+    {
+	"method" : "+",
+	"collection" : "reactions"
+    },
+    "poolreac":
+    {
+	"method" : "+",
+	"collection" : "reactions",
+	"full" : true
+    },
+    "mix_entro":
+    {
+	"prop" : "entropy",
+	"method" : "m"
+    }
+}

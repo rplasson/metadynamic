@@ -1,0 +1,17 @@
+{
+    "init" :
+    {
+	"abc": 1000
+    },
+    "conc" : 1.0,
+    "tend" : 10.0,
+    "tstep" : 0.1,
+    "save" : ["a", "b", "c", "abc", "ab", "bc"],
+    "stat" : "simple-stat.json",
+   "consts" :{
+	"H": [1.0, 1.0]
+    },
+    "snapshot" : "runlog/aped-snapshot.json",
+    "hdf5" : "results/aped-fulldata.hdf5",
+    "endbarrier" : 0.1
+}
