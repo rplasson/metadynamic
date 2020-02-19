@@ -24,6 +24,7 @@ from time import sleep
 from typing import Dict, Any, List, Tuple, Mapping
 from h5py import File, Group, Dataset, string_dtype
 from mpi4py import MPI
+from graphviz import Digraph
 from numpy import (
     nan,
     nanmean,
@@ -40,8 +41,14 @@ from pandas import DataFrame
 
 from metadynamic.ends import Finished, FileCreationError, InternalError
 from metadynamic.inval import invalidstr, invalidint, invalidfloat, isvalid
-from metadynamic.inputs import Readerclass, StatParam, MapParam
+from metadynamic.inputs import Readerclass, StatParam, MapParam, Param
+from metadynamic.caster import Caster
+from metadynamic.json2dot import Data2dot
 from metadynamic import __version__
+
+
+comp_cast = Caster(Dict[str, int])
+reac_cast = Caster(Dict[str, List[float]])
 
 
 class MpiStatus:
@@ -148,7 +155,7 @@ class ResultWriter:
         if self._init_log:
             rank = self.mpi.rank
             col = self.logcount[rank]
-            self.logs[rank, col] = (level, time, runtime, msg[:self.maxstrlen])
+            self.logs[rank, col] = (level, time, runtime, msg[: self.maxstrlen])
             self.logcount[rank] = col + 1
             if col == self.maxlog:
                 self._init_log = False
@@ -247,8 +254,8 @@ class ResultWriter:
     def snapsize(self, maxcomp: int, maxreac: int, maxsnap: int) -> None:
         self.test_initialized()
         self.timesnap.resize((self.mpi.size, maxsnap))
-        self.compsnap.resize((self.mpi.size, maxcomp, maxsnap))
-        self.reacsnap.resize((self.mpi.size, maxreac, maxsnap))
+        self.compsnap.resize((self.mpi.size, maxsnap, maxcomp))
+        self.reacsnap.resize((self.mpi.size, maxsnap, maxreac))
         self._snapsized = True
 
     def close(self) -> None:
@@ -269,7 +276,11 @@ class ResultWriter:
 
     def add_end(self, ending: Finished, time: float) -> None:
         self.test_initialized()
-        self.end[self.mpi.rank] = (ending.num, ending.message.encode()[:self.maxstrlen], time)
+        self.end[self.mpi.rank] = (
+            ending.num,
+            ending.message.encode()[: self.maxstrlen],
+            time,
+        )
 
     def add_snapshot(
         self,
@@ -282,9 +293,16 @@ class ResultWriter:
         if self._snapsized:
             self.timesnap[self.mpi.rank, col] = time
             for line, data in enumerate(complist.items()):
-                self.compsnap[self.mpi.rank, line, col] = (data[0][:self.maxstrlen], data[1])
+                self.compsnap[self.mpi.rank, col, line] = (
+                    data[0][: self.maxstrlen],
+                    data[1],
+                )
             for line, (name, (const, rate)) in enumerate(reaclist.items()):
-                self.reacsnap[self.mpi.rank, line, col] = (name.encode()[:self.maxstrlen], const, rate)
+                self.reacsnap[self.mpi.rank, col, line] = (
+                    name.encode()[: self.maxstrlen],
+                    const,
+                    rate,
+                )
         else:
             raise InternalError(f"Snapshots data in hdf5 file wasn't properly sized")
 
@@ -318,69 +336,91 @@ class ResultReader:
         self.compsnap: Dataset = self.snapshots["compounds"]
         self.reacsnap: Dataset = self.snapshots["reactions"]
         self.maps: Group = self.h5file["Maps"]
+        self.mapnames = self.maps.keys()
+        self.logging: Group = self.h5file["Logging"]
+        self.logcount: Dataset = self.logging["count"]
+        self.logs: Dataset = self.logging["logs"]
+
+    def __getitem__(self, field: str) -> ndarray:
+        if field in self.datanames:
+            return self.get(field)
+        if field in self.mapnames:
+            return self.getmap(field)
+        raise KeyError
 
     def _loc(self, field: str) -> int:
-        return self.datanames.index(field)
+        try:
+            return self.datanames.index(field)
+        except ValueError:
+            raise ValueError(f"{field} is not a recorded stat name")
 
     def get(
-        self,
-        field: str = invalidstr,
-        procnum: str = invalidstr,
-        meanlength: int = invalidint,
+        self, field: str = invalidstr, method: str = "m", meanlength: int = invalidint,
     ) -> ndarray:
         loc = self._loc(field) if isvalid(field) else slice(None, None, None)
-        if isvalid(procnum):
-            if procnum.isnumeric():
-                res = self.data[int(procnum), loc]
-            elif procnum[0] in ["m", "s", "+", "-"]:
-                mean = nanmean(self.data[:, loc, :], axis=0)
-                if procnum == "m":
-                    res = mean
-                else:
-                    std = nanstd(self.data[:, loc, :], axis=0)
-                    if procnum == "s":
-                        res = std
-                    else:
-                        res = mean + float(procnum) * std
+        if method == "*":
+            return self.data[:, loc]
+        if method[0] == "p":
+            res = self.data[int(method[1:]), loc]
+        elif method[0] in ["m", "s", "+", "-"]:
+            mean = nanmean(self.data[:, loc, :], axis=0)
+            if method == "m":
+                res = mean
             else:
-                raise ValueError(f"'procnum'={procnum} is invalid")
-            return (
-                # Running mean from https://stackoverflow.com/questions/13728392/moving-average-or-running-mean
-                convolve(res, ones((meanlength,)) / meanlength, mode="valid")
-                if isvalid(meanlength)
-                else res
-            )
-        return self.data[:, loc]
+                std = nanstd(self.data[:, loc, :], axis=0)
+                if method == "s":
+                    res = std
+                else:
+                    res = mean + float(method) * std
+        else:
+            raise ValueError(f"'method'={method} is invalid")
+        return (
+            # Running mean from https://stackoverflow.com/questions/13728392/moving-average-or-running-mean
+            convolve(res, ones((meanlength,)) / meanlength, mode="valid")
+            if isvalid(meanlength)
+            else res
+        )
 
     def getmap(
-        self, field: str, procnum: str = invalidstr, meanlength: int = invalidint
+        self, field: str, method: str = "m", meanlength: int = invalidint
     ) -> ndarray:
         try:
             data = self.maps[field][:, :, 1:]
         except KeyError:
             raise ValueError(f"{field} is not a recorded map name")
-        if isvalid(procnum):
-            if procnum.isnumeric():
-                res = data[int(procnum)]
-            elif procnum[0] in ["m", "s", "+", "-"]:
-                mean = nanmean(data, axis=0)
-                if procnum == "m":
-                    res = mean
-                else:
-                    std = nanstd(data, axis=0)
-                    if procnum == "s":
-                        res = std
-                    else:
-                        res = mean + float(procnum) * std
+        if method == "*":
+            return data
+        if method[0] == "p":
+            res = data[int(method[1:])]
+        elif method[0] in ["m", "s", "+", "-"]:
+            mean = nanmean(data, axis=0)
+            if method == "m":
+                res = mean
             else:
-                raise ValueError(f"'procnum'={procnum} is invalid")
-            return (
-                # Running mean from https://stackoverflow.com/questions/13728392/moving-average-or-running-mean
-                convolve(res, ones((meanlength,)) / meanlength, mode="valid")
-                if isvalid(meanlength)
-                else res
-            )
-        return data
+                std = nanstd(data, axis=0)
+                if method == "s":
+                    res = std
+                else:
+                    res = mean + float(method) * std
+        else:
+            raise ValueError(f"'method'={method} is invalid")
+        return (
+            # Running mean from https://stackoverflow.com/questions/13728392/moving-average-or-running-mean
+            convolve(res, ones((meanlength,)) / meanlength, mode="valid")
+            if isvalid(meanlength)
+            else res
+        )
+
+    def getsnap(self, num: int, step: int, parameterfile: str = "") -> Digraph:
+        comp = comp_cast(self.snapshots["compounds"][num, step])
+        if "" in comp:
+            comp.pop("")
+        reac = reac_cast(
+            {i: (j, k) for i, j, k in self.snapshots["reactions"][num, step]}
+        )
+        if "" in reac:
+            reac.pop("")
+        return Data2dot(comp, reac, parameterfile).crn.dot
 
     def categories(self, field: str) -> ndarray:
         return self.maps[field][0, :, 0]
@@ -394,41 +434,43 @@ class ResultReader:
         return f"#{num}: ending n°{endnum} at runtime t={time}s; {message}"
 
     def table(
-        self, maps: str = invalidstr, procnum: str = "m", meanlength: int = invalidint
+        self, maps: str = invalidstr, method: str = "m", meanlength: int = invalidint
     ) -> DataFrame:
         if isvalid(maps):
-            data = self.getmap(field=maps, procnum=procnum, meanlength=meanlength)
+            data = self.getmap(field=maps, method=method, meanlength=meanlength)
             index = self.categories(maps)
         else:
-            data = self.get(procnum=procnum, meanlength=meanlength)
+            data = self.get(method=method, meanlength=meanlength)
             index = self.datanames
         return DataFrame(data, index=index)
 
     def xy(
         self,
-        x: str = "time",
         y: str = "ptime",
-        procnum: str = "m",
+        x: str = "time",
+        method: str = "m",
+        xmethod: str = "m",
         meanlength: int = invalidint,
     ) -> Tuple[ndarray, ndarray]:
-        x = self.get(field=x, procnum=procnum, meanlength=meanlength)
-        y = self.get(field=y, procnum=procnum, meanlength=meanlength)
+        x = self.get(field=x, method=xmethod, meanlength=meanlength)
+        y = self.get(field=y, method=method, meanlength=meanlength)
         return x, y
 
     def xyz(
         self,
         field: str,
-        procnum: str = "m",
+        method: str = "m",
+        tmethod: str = "m",
         meanlength: int = invalidint,
         nanval: float = 0.0,
         posinf: float = invalidfloat,
         neginf: float = invalidfloat,
     ) -> Tuple[ndarray, ndarray, ndarray]:
-        time = self.get(field="time", procnum=procnum, meanlength=meanlength)
+        time = self.get(field="time", method=tmethod, meanlength=meanlength)
         categories = self.categories(field)
         x, y = meshgrid(time, categories)
         z = nan_to_num(
-            self.getmap(field=field, procnum=procnum, meanlength=meanlength),
+            self.getmap(field=field, method=method, meanlength=meanlength),
             nan=nanval,
             posinf=posinf if isvalid(posinf) else None,
             neginf=neginf if isvalid(neginf) else None,
@@ -436,7 +478,7 @@ class ResultReader:
         return x, y, z
 
     @property
-    def runinfo(self) -> str:
+    def printinfo(self) -> str:
         version = self.run.attrs["version"]
         hostname = self.run.attrs["hostname"]
         start = self.run.attrs["date"]
@@ -456,6 +498,42 @@ class ResultReader:
             f"{endline.join([self.endmsg(i) for i in range(threads)])}\n"
             f"----------------"
         )
+
+    @property
+    def runinfo(self) -> Dict[str, Any]:
+        return dict(self.run.attrs)
+
+    @property
+    def parameters(self) -> Param:
+        params = dict(self.params.attrs)
+        res = params.copy()
+        for key, val in params.items():
+            if "->" in key:
+                prekey, postkey = key.split("->")
+                try:
+                    res[prekey][postkey] = val
+                except KeyError:
+                    res[prekey] = {postkey: val}
+                res.pop(key)
+        return Param.readdict(res)
+
+    @property
+    def statparam(self) -> Dict[str, StatParam]:
+        return StatParam.multipledict(
+            {key: dict(val.attrs) for key, val in self.params["Stats"].items()}
+        )
+
+    @property
+    def mapparam(self) -> Dict[str, MapParam]:
+        return MapParam.multipledict(
+            {key: dict(val.attrs) for key, val in self.params["Maps"].items()}
+        )
+
+    @property
+    def fulllog(self) -> ndarray:
+        # add simple system for log display/search (depending on level etc) ?
+        maxcol = max(self.logcount)
+        return self.logs[:, :maxcol]
 
 
 class Saver:

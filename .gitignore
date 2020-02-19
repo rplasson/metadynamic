@@ -22,3 +22,7 @@ packages
 MPI-doc/
 log
 results
+<<<<<<< HEAD
+=======
+runlog
+>>>>>>> devel

@@ -106,19 +106,17 @@ class Json2dot:
 class Data2dot:
     def __init__(
         self,
-        compounds: Dict[str, int],
-        reactions: Dict[str, List[float]],
+        compdict: Dict[str, int],
+        reacdict: Dict[str, List[float]],
         parameterfile: str = "",
     ):
-        self.compounds = compounds
-        self.reactions = reactions
+        self.compounds = compdict
+        self.reactions = reacdict
         self.param = DotParam.readfile(parameterfile) if parameterfile else DotParam()
-
-    def write(self, filename: str) -> None:
-        io = Graphwriter()
+        self.crn = Graphwriter()
         binode = self.param.binode
-        compounds = set()
-        reactions = set()
+        compset = set()
+        reacset = set()
         color = self.param.f_color
         scaler = Scaler(
             data=[rate for _, rate in self.reactions.values()],
@@ -129,7 +127,7 @@ class Data2dot:
         )
         for name, (_, rate) in self.reactions.items():
             if rate >= scaler.minval:
-                reactions.add(name)
+                reacset.add(name)
                 width = scaler(rate)
                 reactants, products = name.split("->")
                 if not binode:
@@ -137,23 +135,29 @@ class Data2dot:
                     prodlist = []
                 for reac in reactants.split("+"):
                     num, reacname = self.cutdown(reac)
-                    compounds.add(reacname)
+                    compset.add(reacname)
                     for _ in range(num):
                         if binode:
-                            io.edge(start=reacname, end=name, width=width, color=color)
+                            self.crn.edge(
+                                start=reacname, end=name, width=width, color=color
+                            )
                         else:
                             reaclist.append(reacname)
                 for prod in products.split("+"):
                     num, prodname = self.cutdown(prod)
-                    compounds.add(prodname)
+                    compset.add(prodname)
                     for _ in range(num):
                         if binode:
-                            io.edge(start=name, end=prodname, width=width, color=color)
+                            self.crn.edge(
+                                start=name, end=prodname, width=width, color=color
+                            )
                         else:
                             prodlist.append(prodname)
                 if not binode:
                     for reacname, prodname in product(reaclist, prodlist):
-                        io.edge(start=reacname, end=prodname, width=width, color=color)
+                        self.crn.edge(
+                            start=reacname, end=prodname, width=width, color=color
+                        )
         color = self.param.c_color
         scaler = Scaler(
             data=list(self.compounds.values()),
@@ -167,7 +171,7 @@ class Data2dot:
             maximal=self.param.max_fontsize,
             powerscale=self.param.font_powerscale,
         )
-        for name in compounds:
+        for name in compset:
             try:
                 pop = self.compounds[name]
                 width = scaler(pop)
@@ -175,7 +179,7 @@ class Data2dot:
             except KeyError:
                 width = 0
                 fontsize = 0
-            io.compound(name=name, width=width, fontsize=fontsize, color=color)
+            self.crn.compound(name=name, width=width, fontsize=fontsize, color=color)
         if binode:
             color = self.param.r_color
             scaler = Scaler(
@@ -184,11 +188,16 @@ class Data2dot:
                 maximal=self.param.max_r_width,
                 powerscale=self.param.r_powerscale,
             )
-            for name in reactions:
+            for name in reacset:
                 const, _ = self.reactions[name]
                 width = scaler(const)
-                io.reaction(name=name, width=width, color=color)
-        io.render(filename)
+                self.crn.reaction(name=name, width=width, color=color)
+
+    def write(self, filename: str) -> None:
+        self.crn.render(filename)
+
+    def view(self, filename: str) -> None:
+        self.crn.dot.view()
 
     @staticmethod
     def cutdown(name: str) -> Tuple[int, str]:

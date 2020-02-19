@@ -40,4 +40,8 @@ res = launch(
 paramfile.close()
 
 if MpiStatus().rank == 0:
+<<<<<<< HEAD
     print(res.runinfo)
+=======
+    print(res.printinfo)
+>>>>>>> devel

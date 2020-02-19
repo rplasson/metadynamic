@@ -19,8 +19,9 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 from json import load, dump, JSONDecodeError
-from typing import List, Dict, TypeVar, Type, Any
-from dataclasses import dataclass, field
+from typing import List, Dict, TypeVar, Type, Any, Union, Iterable, Callable
+from dataclasses import dataclass, field, Field, MISSING
+from metadynamic.caster import Caster
 
 from metadynamic.ends import BadFile, FileNotFound, BadJSON
 
@@ -52,11 +53,13 @@ class Readerclass:
         return parameters
 
     @classmethod
-    def readfile(
-        cls: Type[R], filename: str, checktype: bool = True, autocast: bool = True,
+    def readdict(
+        cls: Type[R],
+        parameters: Dict[str, Any],
+        checktype: bool = True,
+        autocast: bool = True,
     ) -> R:
-        """Return a Readerclass object, updated by the data from filename"""
-        parameters = cls._fromfile(filename)
+        """Return a Readerclass object, updated by the data from parameters dict"""
         new = cls()
         if checktype:
             new.set_checktype()
@@ -70,36 +73,51 @@ class Readerclass:
         return new
 
     @classmethod
+    def multipledict(
+        cls: Type[R],
+        parameters: Dict[str, Dict[str, Any]],
+        checktype: bool = True,
+        autocast: bool = True,
+    ) -> Dict[str, R]:
+        res: Dict[str, R] = {}
+        for name, params in parameters.items():
+            res[name] = cls.readdict(
+                parameters=params, checktype=checktype, autocast=autocast
+            )
+        return res
+
+    @classmethod
+    def readfile(
+        cls: Type[R], filename: str, checktype: bool = True, autocast: bool = True,
+    ) -> R:
+        """Return a Readerclass object, updated by the data from filename"""
+        return cls.readdict(
+            parameters=cls._fromfile(filename), checktype=checktype, autocast=autocast
+        )
+
+    @classmethod
     def readmultiple(
         cls: Type[R], filename: str, checktype: bool = True, autocast: bool = True,
     ) -> Dict[str, R]:
         """Return a dictionnary of Readerclass object,
            each updated by specific entry from filename"""
-        res: Dict[str, R] = {}
-        parameters = cls._fromfile(filename)
-        for name, params in parameters.items():
-            new = cls()
-            if checktype:
-                new.set_checktype()
-            else:
-                new.unset_checktype()
-            if autocast:
-                new.set_autocast()
-            else:
-                new.unset_autocast()
-            new.set_param(**params)
-            res[name] = new
-        return res
+        return cls.multipledict(
+            parameters=cls._fromfile(filename), checktype=checktype, autocast=autocast
+        )
 
     @classmethod
-    def list_param(cls) -> Dict[str, type]:
+    def list_param(cls) -> Dict[str, Caster]:
         if not hasattr(cls, "_list_param"):
             cls._list_param = {
-                key: val.__origin__ if hasattr(val, "__origin__") else val
-                for key, val in cls.__annotations__.items()
-                if key[0] != "_"
+                key: Caster(val.type)
+                for key, val in cls.__dataclass_fields__.items()
+                if val.init
             }
         return cls._list_param
+
+    @classmethod
+    def conv_param(cls, param: str) -> Caster:
+        return cls.list_param()[param]
 
     def checked_items(self, key: str, val: Any) -> Any:
         err = ""
@@ -108,12 +126,12 @@ class Readerclass:
         else:
             if self.autocast:
                 try:
-                    val = self.list_param()[key](val)
+                    val = self.conv_param(key)(val)
                 except ValueError:
-                    err += f"Couldn't cast {val} into {self.list_param()[key]}"
+                    err += f"Couldn't cast '{val}' into {self.conv_param(key).dest}. "
             if self.checktype:
-                if not isinstance(val, self.list_param()[key]):
-                    err += f"{key} parameter should be of type {self.list_param()[key]}, not {type(val)}\n"
+                if not isinstance(val, self.conv_param(key).dest):
+                    err += f"{key} parameter should be of type {self.conv_param(key).dest}, not {type(val)}\n"
         if err != "":
             raise BadFile(err)
         return val
