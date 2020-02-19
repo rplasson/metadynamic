@@ -247,8 +247,8 @@ class ResultWriter:
     def snapsize(self, maxcomp: int, maxreac: int, maxsnap: int) -> None:
         self.test_initialized()
         self.timesnap.resize((self.mpi.size, maxsnap))
-        self.compsnap.resize((self.mpi.size, maxcomp, maxsnap))
-        self.reacsnap.resize((self.mpi.size, maxreac, maxsnap))
+        self.compsnap.resize((self.mpi.size, maxsnap, maxcomp))
+        self.reacsnap.resize((self.mpi.size, maxsnap, maxreac))
         self._snapsized = True
 
     def close(self) -> None:
@@ -286,12 +286,12 @@ class ResultWriter:
         if self._snapsized:
             self.timesnap[self.mpi.rank, col] = time
             for line, data in enumerate(complist.items()):
-                self.compsnap[self.mpi.rank, line, col] = (
+                self.compsnap[self.mpi.rank, col, line] = (
                     data[0][: self.maxstrlen],
                     data[1],
                 )
             for line, (name, (const, rate)) in enumerate(reaclist.items()):
-                self.reacsnap[self.mpi.rank, line, col] = (
+                self.reacsnap[self.mpi.rank, col, line] = (
                     name.encode()[: self.maxstrlen],
                     const,
                     rate,
