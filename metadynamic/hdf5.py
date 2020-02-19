@@ -411,7 +411,7 @@ class ResultReader:
             else res
         )
 
-    def getsnap(self, num: int, step: int, parameterfile: str = '') -> Digraph:
+    def getsnap(self, num: int, step: int, parameterfile: str = "") -> Digraph:
         comp = comp_cast(self.snapshots["compounds"][num, step])
         if "" in comp:
             comp.pop("")
@@ -516,6 +516,18 @@ class ResultReader:
                     res[prekey] = {postkey: val}
                 res.pop(key)
         return Param.readdict(res)
+
+    @property
+    def statparam(self) -> Dict[str, StatParam]:
+        return StatParam.multipledict(
+            {key: dict(val.attrs) for key, val in self.params["Stats"].items()}
+        )
+
+    @property
+    def mapparam(self) -> Dict[str, MapParam]:
+        return MapParam.multipledict(
+            {key: dict(val.attrs) for key, val in self.params["Maps"].items()}
+        )
 
     @property
     def fulllog(self) -> ndarray:
