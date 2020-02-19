@@ -106,17 +106,17 @@ class Json2dot:
 class Data2dot:
     def __init__(
         self,
-        compounds: Dict[str, int],
-        reactions: Dict[str, List[float]],
+        compdict: Dict[str, int],
+        reacdict: Dict[str, List[float]],
         parameterfile: str = "",
     ):
-        self.compounds = compounds
-        self.reactions = reactions
+        self.compounds = compdict
+        self.reactions = reacdict
         self.param = DotParam.readfile(parameterfile) if parameterfile else DotParam()
         self.crn = Graphwriter()
         binode = self.param.binode
-        compounds = set()
-        reactions = set()
+        compset = set()
+        reacset = set()
         color = self.param.f_color
         scaler = Scaler(
             data=[rate for _, rate in self.reactions.values()],
@@ -127,7 +127,7 @@ class Data2dot:
         )
         for name, (_, rate) in self.reactions.items():
             if rate >= scaler.minval:
-                reactions.add(name)
+                reacset.add(name)
                 width = scaler(rate)
                 reactants, products = name.split("->")
                 if not binode:
@@ -135,7 +135,7 @@ class Data2dot:
                     prodlist = []
                 for reac in reactants.split("+"):
                     num, reacname = self.cutdown(reac)
-                    compounds.add(reacname)
+                    compset.add(reacname)
                     for _ in range(num):
                         if binode:
                             self.crn.edge(
@@ -145,7 +145,7 @@ class Data2dot:
                             reaclist.append(reacname)
                 for prod in products.split("+"):
                     num, prodname = self.cutdown(prod)
-                    compounds.add(prodname)
+                    compset.add(prodname)
                     for _ in range(num):
                         if binode:
                             self.crn.edge(
@@ -171,7 +171,7 @@ class Data2dot:
             maximal=self.param.max_fontsize,
             powerscale=self.param.font_powerscale,
         )
-        for name in compounds:
+        for name in compset:
             try:
                 pop = self.compounds[name]
                 width = scaler(pop)
@@ -188,7 +188,7 @@ class Data2dot:
                 maximal=self.param.max_r_width,
                 powerscale=self.param.r_powerscale,
             )
-            for name in reactions:
+            for name in reacset:
                 const, _ = self.reactions[name]
                 width = scaler(const)
                 self.crn.reaction(name=name, width=width, color=color)
@@ -197,7 +197,7 @@ class Data2dot:
         self.crn.render(filename)
 
     def view(self, filename: str) -> None:
-        self.crn.view()
+        self.crn.dot.view()
 
     @staticmethod
     def cutdown(name: str) -> Tuple[int, str]:
