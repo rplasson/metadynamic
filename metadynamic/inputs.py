@@ -178,42 +178,15 @@ class Readerclass:
         return self._checktype
 
 
-# Factories
-def dict_int_fact(data: Union[Dict[Any, Any], None] = None) -> Dict[str, int]:
-    res: Dict[str, int] = {}
-    if data is not None:
-        for key, val in data.items():
-            res[str(key)] = int(val)
-    return res
-
-
-def dict_listfloat_fact(
-    data: Union[Dict[Any, Any], None] = None
-) -> Dict[str, List[float]]:
-    res: Dict[str, List[float]] = {}
-    if data is not None:
-        for key, val in data.items():
-            res[str(key)] = [float(i) for i in val]
-    return res
-
-
-def list_str_fact(data: Union[Iterable[Any], None] = None) -> List[str]:
-    return [] if data is None else [str(i) for i in data]
-
-
 @dataclass
 class Param(Readerclass):
     # chemical
     conc: float = 0.1  # Concentration
     ptot: int = field(init=False)
     vol: float = field(init=False)
-    init: Dict[str, int] = field(
-        default_factory=dict_int_fact
-    )  # initial concentrations
+    init: Dict[str, int] = field(default_factory=dict)  # initial concentrations
     rulemodel: str = "metadynamic.polymers"  # rule model to be used
-    consts: Dict[str, List[float]] = field(
-        default_factory=dict_listfloat_fact
-    )  # kinetic constants
+    consts: Dict[str, List[float]] = field(default_factory=dict)  # kinetic constants
     # simulation
     tend: float = 1.0  # final simulation time
     tstep: float = 0.01  # timestep
@@ -229,9 +202,7 @@ class Param(Readerclass):
     context: str = "fork"  # thread context to be used (now, only "fork" is implemented)
     endbarrier: float = 0.01  # If non zero, final threads will wait in idle loops of corresponding values
     # IO
-    save: List[str] = field(
-        default_factory=list_str_fact
-    )  # list of compounds to be saved at each time step
+    save: List[str] = field(default_factory=list)  # list of compounds to be saved at each time step
     stat: str = ""  # json filename describing statistics
     maps: str = ""  # json filename describing stat maps
     snapshot: str = ""  # filename for final snapshot
