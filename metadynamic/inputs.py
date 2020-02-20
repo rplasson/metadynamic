@@ -251,22 +251,28 @@ class MapParam(Readerclass):
 class DotParam(Readerclass):
     # type
     binode: bool = False
+    # Graph rendering
+    margin: float = 0.0
+    concentrate: bool = True
+    maxsize: float = 5.0
     # compounds
-    min_fontsize: int = 20
-    max_fontsize: int = 200
-    min_c_width: float = 0.5
-    max_c_width: float = 5.0
+    min_fontsize: float = 1.0
+    max_fontsize: float = 20.0
+    min_c_width: float = 0.05
+    max_c_width: float = 0.5
+    c_penwidth: float = 0.5
+    c_margin: float = 0.01
     c_color: str = "blue"
     c_powerscale: float = 0.5
     font_powerscale: float = 1.0
     # reactions
-    min_r_width: float = 0.02
-    max_r_width: float = 0.2
+    min_r_width: float = 0.01
+    max_r_width: float = 0.1
     r_color: str = "red"
     r_powerscale: float = 1.0
     # flows
-    min_f_width: float = 0.1
-    max_f_width: float = 20.0
+    min_f_width: float = 0.001
+    max_f_width: float = 5.0
     f_color: str = "black"
     cutoff: float = 0.05
     f_powerscale: float = 1.0

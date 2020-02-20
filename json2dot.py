@@ -25,7 +25,8 @@ parser = ArgumentParser(description="Test multithread.")
 
 parser.add_argument("file_in", type=str, help="input file (json)")
 parser.add_argument("file_out", type=str, help="output file (dot)")
+parser.add_argument("--param", metavar="param", type=str, help="output file (dot)", default="", nargs="?")
 
 args = parser.parse_args()
 
-Json2dot(args.file_in).write(args.file_out)
+Json2dot(args.file_in, parameterfile=args.param).write(args.file_out)

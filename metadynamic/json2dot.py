@@ -62,12 +62,33 @@ class Scaler:
 
 
 class Graphwriter:
-    def __init__(self) -> None:
-        self.dot = Digraph()
+    def __init__(self, margin: float, concentrate: bool, maxsize: float) -> None:
+        self.dot = Digraph(
+            graph_attr={
+                "margin": str(margin),
+                "concentrate": str(concentrate).lower(),
+                "size": str(maxsize),
+            }
+        )
 
-    def compound(self, name: str, width: float, fontsize: float, color: str) -> None:
+    def compound(
+        self,
+        name: str,
+        width: float,
+        fontsize: float,
+        color: str,
+        margin: float,
+        penwidth: float,
+    ) -> None:
         self.dot.node(
-            name, shape="circle", width=str(width), fontsize=str(fontsize), color=color
+            name,
+            shape="square",
+            margin=str(margin),
+            style="rounded",
+            width=str(width),
+            fontsize=str(fontsize),
+            color=color,
+            penwidth=str(penwidth),
         )
 
     def reaction(self, name: str, width: float, color: str) -> None:
@@ -113,7 +134,11 @@ class Data2dot:
         self.compounds = compdict
         self.reactions = reacdict
         self.param = DotParam.readfile(parameterfile) if parameterfile else DotParam()
-        self.crn = Graphwriter()
+        self.crn = Graphwriter(
+            margin=self.param.margin,
+            concentrate=self.param.concentrate,
+            maxsize=self.param.maxsize,
+        )
         binode = self.param.binode
         compset = set()
         reacset = set()
@@ -179,7 +204,14 @@ class Data2dot:
             except KeyError:
                 width = 0
                 fontsize = 0
-            self.crn.compound(name=name, width=width, fontsize=fontsize, color=color)
+            self.crn.compound(
+                name=name,
+                width=width,
+                fontsize=fontsize,
+                color=color,
+                margin=self.param.c_margin,
+                penwidth=self.param.c_penwidth,
+            )
         if binode:
             color = self.param.r_color
             scaler = Scaler(
