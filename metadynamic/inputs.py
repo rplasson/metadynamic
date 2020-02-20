@@ -149,7 +149,7 @@ class Readerclass:
 
     def tojson(self, filename: str) -> None:
         with open(filename, "w") as out:
-            dump(self.asdict(), out)
+            dump(self.asdict(), out, indent=4)
 
     def lock(self) -> None:
         self._locked = True
