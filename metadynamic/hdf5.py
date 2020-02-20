@@ -456,6 +456,30 @@ class ResultReader:
         y = self.get(field=y, method=method, meanlength=meanlength)
         return x, y
 
+    def xypm(
+        self,
+        y: str = "ptime",
+        x: str = "time",
+        delta: float = 1.0,
+        meanlength: int = invalidint,
+    ) -> Tuple[ndarray, ndarray, ndarray]:
+        x = self.get(field=x, method="m", meanlength=meanlength)
+        yp = self.get(field=y, method=f"+{delta}", meanlength=meanlength)
+        ym = self.get(field=y, method=f"-{delta}", meanlength=meanlength)
+        return x, yp, ym
+
+    def xyerr(
+        self,
+        y: str = "ptime",
+        x: str = "time",
+        delta: float = 1.0,
+        meanlength: int = invalidint,
+    ) -> Tuple[ndarray, ndarray, ndarray]:
+        x = self.get(field=x, method="m", meanlength=meanlength)
+        y = self.get(field=y, method=f"m", meanlength=meanlength)
+        err = self.get(field=y, method=f"s", meanlength=meanlength)*delta
+        return x, y, err
+
     def xyz(
         self,
         field: str,
