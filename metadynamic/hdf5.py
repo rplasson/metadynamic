@@ -20,20 +20,16 @@
 
 from datetime import datetime
 from socket import gethostname
-from time import sleep
 from typing import Dict, Any, List, Tuple, Mapping
 from h5py import File, Group, Dataset, string_dtype
-from mpi4py import MPI
 from graphviz import Digraph
 from numpy import (
     nan,
     nanmean,
     nanstd,
     ndarray,
-    array,
     convolve,
     ones,
-    empty,
     nan_to_num,
     meshgrid,
 )
@@ -44,73 +40,12 @@ from metadynamic.inval import invalidstr, invalidint, invalidfloat, isvalid
 from metadynamic.inputs import Readerclass, StatParam, MapParam, Param
 from metadynamic.caster import Caster
 from metadynamic.json2dot import Data2dot
+from metadynamic.mpi import MpiStatus
 from metadynamic import __version__
 
 
 comp_cast = Caster(Dict[str, int])
 reac_cast = Caster(Dict[str, List[float]])
-
-
-class MpiStatus:
-    def __init__(self, rootnum: int = 0) -> None:
-        self.comm = MPI.COMM_WORLD
-        self.size: int = int(self.comm.size)
-        self.rank: int = int(self.comm.rank)
-        self.ismpi: bool = self.size > 1
-        self.rootnum: int = rootnum
-        if not self.ismpi:
-            self.comm = None
-            # for mulithread pickling in non -mpi multithread
-            # temporary hack, non-mpi multithread to be removed at term.
-
-    @property
-    def root(self) -> bool:
-        return self.rank == self.rootnum
-
-    def barrier(self, sleeptime: float = 0.01, tag: int = 0) -> None:
-        # From  https://goo.gl/NofOO9
-        if self.ismpi:
-            mask = 1
-            while mask < self.size:
-                dst = (self.rank + mask) % self.size
-                src = (self.rank - mask + self.size) % self.size
-                req = self.comm.isend(None, dst, tag)
-                while not self.comm.Iprobe(src, tag):
-                    sleep(sleeptime)
-                self.comm.recv(None, src, tag)
-                req.Wait()
-                mask <<= 1
-
-    def max(self, val: Any) -> Any:
-        if self.ismpi:
-            return self.comm.allreduce(val, op=MPI.MAX)
-        return val
-
-    def sortlist(self, data: List[float]) -> List[float]:
-        if not self.ismpi:
-            data.sort()
-            return data
-        sendbuf = array(data)
-        sendcounts = array(self.comm.gather(len(sendbuf), self.rootnum))
-        if self.root:
-            recvbuf = empty(sum(sendcounts), dtype=float)
-        else:
-            recvbuf = None
-        self.comm.Gatherv(
-            sendbuf=sendbuf, recvbuf=(recvbuf, sendcounts), root=self.rootnum
-        )
-        if self.root:
-            start = 0
-            gathered: List[ndarray] = []
-            for i in sendcounts:
-                gathered.append(recvbuf[start : start + i])
-                start = start + i
-            fused: List[float] = list(set().union(*[set(i) for i in gathered]))
-            fused.sort()
-        else:
-            fused = []
-        fused = self.comm.bcast(fused, root=self.rootnum)
-        return fused
 
 
 class ResultWriter:

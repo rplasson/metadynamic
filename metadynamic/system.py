@@ -51,7 +51,8 @@ from metadynamic.chemical import Collected, trigger_changes
 from metadynamic.inputs import Param, StatParam, MapParam, LockedError
 from metadynamic.inval import invalidstr
 from metadynamic.json2dot import Json2dot
-from metadynamic.hdf5 import MpiStatus, Saver
+from metadynamic.hdf5 import Saver
+from metadynamic.mpi import MpiStatus
 
 
 class Encoder(JSONEncoder):
@@ -239,7 +240,7 @@ class Statistic(Collected, Saver):
 
     def wait(self) -> None:
         if self.param.endbarrier > 0.0:
-            self.mpi.barrier(sleeptime=self.param.endbarrier)
+            self.mpi.gate.exit(sleeptime=self.param.endbarrier)
             self.log.info(f"#{self.status.num} joined others")
 
     def writesnap(self) -> None:
