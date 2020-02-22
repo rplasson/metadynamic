@@ -29,7 +29,11 @@ def nop() -> None:
 
 
 class MpiGate:
-    def __init__(self, taginit=1) -> None:
+    def __init__(
+        self,
+        taginit: int = 1,
+        operations: Optional[Dict[str, Callable[[], None]]] = None,
+    ) -> None:
         self.comm: MPI.Intracomm = MPI.COMM_WORLD
         self.size: int = int(self.comm.size)
         self.rank: int = int(self.comm.rank)
@@ -41,6 +45,9 @@ class MpiGate:
         self.msg: List[int] = [0] * (self.size)
         self._op: Dict[int, Callable[[], None]] = {1: nop, 2: nop}
         self._opnum: Dict[str, int] = {"nop": 1, "final": 2}
+        if operations:
+            for name, op in operations.items():
+                self.register_function(name, op)
 
     def register_function(self, opname: str, func: Callable[[], None]) -> None:
         funcnum = len(self._op) + 1
@@ -111,6 +118,12 @@ class MpiGate:
             if sum(self.out) == self.size:
                 break
             sleep(sleeptime)
+
+    def __enter__(self) -> None:
+        return self
+
+    def __exit__(self, type, value, tb) -> None:
+        self.exit()
 
 
 class MpiStatus:

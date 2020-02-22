@@ -15,11 +15,6 @@ def op2():
     logmsg("Operation 2")
 
 
-gate = MpiGate(taginit=100)
-gate.register_function("op1", op1)
-gate.register_function("op2", op2)
-
-
 def dostuff():
     sleep(1 + random())
     if random() > 0.9:
@@ -29,10 +24,9 @@ def dostuff():
     sleep(random())
 
 
-logmsg("Entering")
-for i in range(30):
-    dostuff()
-    gate.checkpoint()
-logmsg("Exiting...")
-gate.exit()
+with MpiGate(taginit=100, operations={"op1": op1, "op2": op2}) as gate:
+    logmsg("Entering")
+    for i in range(30):
+        dostuff()
+        gate.checkpoint()
 logmsg("... I am free!")
