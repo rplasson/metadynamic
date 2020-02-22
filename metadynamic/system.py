@@ -239,9 +239,8 @@ class Statistic(Collected, Saver):
                 Json2dot(filename).write(f"{basename}.{self.param.printsnap}")
 
     def wait(self) -> None:
-        if self.param.endbarrier > 0.0:
-            self.mpi.gate.exit(sleeptime=self.param.endbarrier)
-            self.log.info(f"#{self.status.num} joined others")
+        self.mpi.gate.exit(sleeptime=self.param.endbarrier)
+        self.log.info(f"#{self.status.num} joined others")
 
     def writesnap(self) -> None:
         # Correct snapshot sizes

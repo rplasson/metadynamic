@@ -21,7 +21,11 @@
 from mpi4py import MPI
 from time import sleep
 from numpy import array, ndarray, empty
-from typing import List, Any, Optional
+from typing import List, Dict, Any, Callable, Optional
+
+
+def nop() -> None:
+    pass
 
 
 class MpiGate:
@@ -29,24 +33,29 @@ class MpiGate:
         self.comm: MPI.Intracomm = MPI.COMM_WORLD
         self.size: int = int(self.comm.size)
         self.rank: int = int(self.comm.rank)
-        self.other: List[int] = list(range(self.size))
-        self.other.pop(self.rank)
+        self.procs: List[int] = range(self.size)
         self.snd_state: List[Optional[MPI.Request]] = [None] * (self.size)
         self.sender: bool = False
         self.rcv_state: List[bool] = [False] * (self.size)
         self.gatenum: int = 1
         self.out: List[bool] = [False] * (self.size)
         self.msg: List[int] = [0] * (self.size)
+        self._op: Dict[int, Callable[[], None]] = {1: nop, 2: nop}
+        self._opnum: Dict[str, int] = {"nop": 1, "final": 2}
+
+    def register_function(self, opname: str, func: Callable[[], None]) -> None:
+        funcnum = len(self._op) + 1
+        self._op[funcnum] = func
+        self._opnum[opname] = funcnum
+
+    def operate(self, funcnum: int):
+        self._op[funcnum]()
 
     def checktag(self, src: int, tag: int = 0) -> None:
-        if src == self.rank:
-            raise ValueError(f"Don't talk to yourself")
         received = self.comm.Iprobe(source=src, tag=tag)
         self.rcv_state[src] = received
 
     def readtag(self, src: int, tag: int = 0) -> None:
-        if src == self.rank:
-            raise ValueError(f"Don't talk to yourself")
         if self.rcv_state[src]:
             msg = self.comm.recv(source=src, tag=tag)
             if msg == 2:
@@ -54,17 +63,13 @@ class MpiGate:
             self.msg[src] = msg
             self.rcv_state[src] = False
 
-    def sendtag(self, dest: int, tag: int = 0, final: bool = False) -> None:
-        if dest == self.rank:
-            raise ValueError(f"Don't talk to yourself")
+    def sendtag(self, dest: int, tag: int = 0, msg: str = "nop") -> None:
         if self.snd_state[dest] is None:
-            msg = 2 if final else 1
-            self.snd_state[dest] = self.comm.isend(msg, dest=dest, tag=tag)
+            msgnum = self._opnum[msg]
+            self.snd_state[dest] = self.comm.isend(msgnum, dest=dest, tag=tag)
             self.sender = True
 
     def wait_sent_tag(self, dest: int, tag: int = 0) -> None:
-        if dest == self.rank:
-            raise ValueError(f"Don't talk to yourself")
         req = self.snd_state[dest]
         if req is not None:
             req.Wait()
@@ -72,47 +77,52 @@ class MpiGate:
         self.sender = False
 
     def check_mail(self, tag: int = 0) -> int:
-        for src in self.other:
+        for src in self.procs:
             self.checktag(src, tag)
         return sum(self.rcv_state)
 
     def read_mail(self, tag: int = 0) -> List[int]:
         self.check_mail(tag)
-        for src in self.other:
+        for src in self.procs:
             self.readtag(src, tag)
         res = self.msg.copy()
         self.msg = [0] * self.size
         return res
 
     def wait_sent(self, tag: int = 0) -> None:
-        for dest in self.other:
+        for dest in self.procs:
             self.wait_sent_tag(dest, tag)
 
-    def send_mails(self, tag: int = 0, final: bool = False) -> None:
-        for dest in self.other:
-            self.sendtag(dest, tag, final)
+    def send_mails(self, tag: int = 0, msg="nop") -> None:
+        for dest in self.procs:
+            self.sendtag(dest=dest, tag=tag, msg=msg)
 
     def closed(self) -> bool:
-        return self.sender or (self.check_mail(self.gatenum) > 0)
+        return self.check_mail(self.gatenum) > 0
 
-    def close(self, final: bool = False) -> None:
-        self.send_mails(self.gatenum, final)
+    def checkpoint(self) -> None:
+        if self.closed():
+            self.open()
+
+    def close(self, msg="nop") -> None:
+        self.send_mails(tag=self.gatenum, msg=msg)
 
     def open(self) -> None:
         self.comm.Barrier()
-        self.read_mail(self.gatenum)
+        operations = set(self.read_mail(tag=self.gatenum)) - {0}
         self.wait_sent(self.gatenum)
         self.gatenum += 1
         self.comm.Barrier()
+        for op in operations:
+            self.operate(op)
 
     def exit(self, sleeptime: float = 0.1) -> None:
         self.out[self.rank] = True
-        self.close(final=True)
+        self.close(msg="final")
         while True:
-            if self.closed():
-                self.open()
-                if sum(self.out) == self.size:
-                    break
+            self.checkpoint()
+            if sum(self.out) == self.size:
+                break
             sleep(sleeptime)
 
 
