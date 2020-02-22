@@ -51,65 +51,54 @@ class MpiGate:
     def operate(self, funcnum: int):
         self._op[funcnum]()
 
-    def checktag(self, src: int, tag: int = 0) -> None:
-        received = self.comm.Iprobe(source=src, tag=tag)
-        self.rcv_state[src] = received
-
-    def readtag(self, src: int, tag: int = 0) -> None:
-        if self.rcv_state[src]:
-            msg = self.comm.recv(source=src, tag=tag)
-            if msg == 2:
-                self.out[src] = True
-            self.msg[src] = msg
-            self.rcv_state[src] = False
-
-    def sendtag(self, dest: int, tag: int = 0, msg: str = "nop") -> None:
-        if self.snd_state[dest] is None:
-            msgnum = self._opnum[msg]
-            self.snd_state[dest] = self.comm.isend(msgnum, dest=dest, tag=tag)
-            self.sender = True
-
-    def wait_sent_tag(self, dest: int, tag: int = 0) -> None:
-        req = self.snd_state[dest]
-        if req is not None:
-            req.Wait()
-            self.snd_state[dest] = None
-        self.sender = False
-
-    def check_mail(self, tag: int = 0) -> int:
+    def check_msg(self, tag: int = 0) -> int:
         for src in self.procs:
-            self.checktag(src, tag)
+            received = self.comm.Iprobe(source=src, tag=tag)
+            self.rcv_state[src] = received
         return sum(self.rcv_state)
 
-    def read_mail(self, tag: int = 0) -> List[int]:
-        self.check_mail(tag)
+    def read_msg(self, tag: int = 0) -> List[int]:
+        self.check_msg(tag)
         for src in self.procs:
-            self.readtag(src, tag)
+            if self.rcv_state[src]:
+                msg = self.comm.recv(source=src, tag=tag)
+                if msg == 2:
+                    self.out[src] = True
+                self.msg[src] = msg
+                self.rcv_state[src] = False
         res = self.msg.copy()
         self.msg = [0] * self.size
         return res
 
     def wait_sent(self, tag: int = 0) -> None:
         for dest in self.procs:
-            self.wait_sent_tag(dest, tag)
+            req = self.snd_state[dest]
+            if req is not None:
+                req.Wait()
+                self.snd_state[dest] = None
+            self.sender = False
 
-    def send_mails(self, tag: int = 0, msg="nop") -> None:
+    def send_msg(self, tag: int = 0, msg="nop") -> None:
         for dest in self.procs:
-            self.sendtag(dest=dest, tag=tag, msg=msg)
+            if self.snd_state[dest] is None:
+                msgnum = self._opnum[msg]
+                self.snd_state[dest] = self.comm.isend(msgnum, dest=dest, tag=tag)
+                self.sender = True
 
     def closed(self) -> bool:
-        return self.check_mail(self.gatenum) > 0
+        return self.check_msg(self.gatenum) > 0
 
     def checkpoint(self) -> None:
         if self.closed():
             self.open()
 
     def close(self, msg="nop") -> None:
-        self.send_mails(tag=self.gatenum, msg=msg)
+        self.send_msg(tag=self.gatenum, msg=msg)
 
     def open(self) -> None:
         self.comm.Barrier()
-        operations = set(self.read_mail(tag=self.gatenum)) - {0}
+        operations = list(set(self.read_msg(tag=self.gatenum)) - {0})
+        operations.sort()
         self.wait_sent(self.gatenum)
         self.gatenum += 1
         self.comm.Barrier()
