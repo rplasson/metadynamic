@@ -21,12 +21,15 @@ def dostuff():
         msg = choice(["op1", "op2"])
         logmsg(f"Send message {msg}")
         gate.close(msg)
+    if random() > 0.98:
+        logmsg(f"Made a mistake")
+        raise ValueError("Oups")
     sleep(random())
 
 
 with MpiGate(taginit=100, operations={"op1": op1, "op2": op2}) as gate:
     logmsg("Entering")
-    for i in range(30):
+    for i in range(20):
         dostuff()
         gate.checkpoint()
 logmsg("... I am free!")

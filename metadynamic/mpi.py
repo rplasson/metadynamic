@@ -124,6 +124,9 @@ class MpiGate:
 
     def __exit__(self, type, value, tb) -> None:
         self.exit()
+        self.comm.Barrier()
+        if type is not None:
+            print(f"#{self.rank} had a problem of type {type} and reported '{value}'")
 
 
 class MpiStatus:
