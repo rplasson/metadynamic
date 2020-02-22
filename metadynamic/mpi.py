@@ -29,15 +29,14 @@ def nop() -> None:
 
 
 class MpiGate:
-    def __init__(self) -> None:
+    def __init__(self, taginit=1) -> None:
         self.comm: MPI.Intracomm = MPI.COMM_WORLD
         self.size: int = int(self.comm.size)
         self.rank: int = int(self.comm.rank)
         self.procs: List[int] = range(self.size)
         self.snd_state: List[Optional[MPI.Request]] = [None] * (self.size)
-        self.sender: bool = False
         self.rcv_state: List[bool] = [False] * (self.size)
-        self.gatenum: int = 1
+        self.gatenum: int = taginit
         self.out: List[bool] = [False] * (self.size)
         self.msg: List[int] = [0] * (self.size)
         self._op: Dict[int, Callable[[], None]] = {1: nop, 2: nop}
@@ -51,13 +50,12 @@ class MpiGate:
     def operate(self, funcnum: int):
         self._op[funcnum]()
 
-    def check_msg(self, tag: int = 0) -> int:
+    def check_msg(self, tag: int) -> None:
         for src in self.procs:
             received = self.comm.Iprobe(source=src, tag=tag)
             self.rcv_state[src] = received
-        return sum(self.rcv_state)
 
-    def read_msg(self, tag: int = 0) -> List[int]:
+    def read_msg(self, tag: int) -> List[int]:
         self.check_msg(tag)
         for src in self.procs:
             if self.rcv_state[src]:
@@ -70,27 +68,23 @@ class MpiGate:
         self.msg = [0] * self.size
         return res
 
-    def wait_sent(self, tag: int = 0) -> None:
+    def wait_sent(self, tag: int) -> None:
         for dest in self.procs:
             req = self.snd_state[dest]
             if req is not None:
                 req.Wait()
                 self.snd_state[dest] = None
-            self.sender = False
 
-    def send_msg(self, tag: int = 0, msg="nop") -> None:
+    def send_msg(self, tag: int, msg: str) -> None:
         for dest in self.procs:
             if self.snd_state[dest] is None:
                 msgnum = self._opnum[msg]
                 self.snd_state[dest] = self.comm.isend(msgnum, dest=dest, tag=tag)
-                self.sender = True
 
+    @property
     def closed(self) -> bool:
-        return self.check_msg(self.gatenum) > 0
-
-    def checkpoint(self) -> None:
-        if self.closed():
-            self.open()
+        self.check_msg(self.gatenum)
+        return sum(self.rcv_state) > 0
 
     def close(self, msg="nop") -> None:
         self.send_msg(tag=self.gatenum, msg=msg)
@@ -104,6 +98,10 @@ class MpiGate:
         self.comm.Barrier()
         for op in operations:
             self.operate(op)
+
+    def checkpoint(self) -> None:
+        if self.closed:
+            self.open()
 
     def exit(self, sleeptime: float = 0.1) -> None:
         self.out[self.rank] = True
