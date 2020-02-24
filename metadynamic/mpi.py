@@ -21,7 +21,8 @@
 from mpi4py import MPI
 from time import sleep
 from numpy import array, ndarray, empty
-from typing import List, Dict, Any, Callable, Optional
+from typing import List, Dict, Any, Callable, Iterable, Optional, Type
+from types import TracebackType
 
 
 def nop() -> None:
@@ -29,17 +30,17 @@ def nop() -> None:
 
 
 class Cont:
-    def __init__(self):
+    def __init__(self) -> None:
         self._cont = True
 
-    def stop(self):
+    def stop(self) -> None:
         self._cont = False
 
-    def reset(self):
+    def reset(self) -> None:
         self._cont = True
 
     @property
-    def ok(self):
+    def ok(self) -> bool:
         return self._cont
 
 
@@ -52,7 +53,7 @@ class MpiGate:
         self.comm: MPI.Intracomm = MPI.COMM_WORLD
         self.size: int = int(self.comm.size)
         self.rank: int = int(self.comm.rank)
-        self.procs: List[int] = range(self.size)
+        self.procs: Iterable[int] = range(self.size)
         self.snd_state: List[Optional[MPI.Request]] = [None] * (self.size)
         self.rcv_state: List[bool] = [False] * (self.size)
         self.gatenum: int = taginit
@@ -60,17 +61,21 @@ class MpiGate:
         self.still_running: bool = True
         self.cont = Cont()
         self.msg: List[int] = [0] * (self.size)
-        self._op: Dict[int, Callable[[], None]] = {1: nop, 2: self.check_all_out, 3: self.cont.stop}
+        self._op: Dict[int, Callable[[], None]] = {
+            1: nop,
+            2: self.check_all_out,
+            3: self.cont.stop,
+        }
         self._opnum: Dict[str, int] = {"nop": 1, "final": 2, "exit": 3}
         if operations:
             for name, op in operations.items():
                 self.register_function(name, op)
 
-    def __enter__(self) -> None:
+    def __enter__(self) -> "MpiGate":
         self.cont.reset()
         return self
 
-    def __exit__(self, type, value, tb) -> None:
+    def __exit__(self, type: type, value: Exception, tb: TracebackType) -> None:
         self.exit()
 
     def register_function(self, opname: str, func: Callable[[], None]) -> None:
@@ -80,7 +85,7 @@ class MpiGate:
         self._op[funcnum] = func
         self._opnum[opname] = funcnum
 
-    def operate(self, funcnum: int):
+    def operate(self, funcnum: int) -> None:
         self._op[funcnum]()
 
     def check_all_out(self) -> None:
@@ -120,7 +125,7 @@ class MpiGate:
         self.check_msg(tag=self.gatenum)
         return sum(self.rcv_state) > 0
 
-    def close(self, msg="nop") -> None:
+    def close(self, msg: str = "nop") -> None:
         self.send_msg(tag=self.gatenum, msg=msg)
 
     def open(self) -> None:
