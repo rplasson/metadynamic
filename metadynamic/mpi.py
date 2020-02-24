@@ -75,7 +75,12 @@ class MpiGate:
         self.cont.reset()
         return self
 
-    def __exit__(self, type: type, value: Exception, tb: TracebackType) -> None:
+    def __exit__(
+        self,
+        exctype: Optional[Type[BaseException]],
+        excinst: Optional[BaseException],
+        exctb: Optional[TracebackType],
+    ) -> None:
         self.exit()
 
     def register_function(self, opname: str, func: Callable[[], None]) -> None:
