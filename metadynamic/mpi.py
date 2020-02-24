@@ -35,22 +35,12 @@ class Cont:
     def stop(self):
         self._cont = False
 
+    def reset(self):
+        self._cont = True
+
     @property
     def ok(self):
         return self._cont
-
-
-class GateContext:
-    def __init__(self, gate: "MpiGate"):
-        self.gate = gate
-
-    def __enter__(self) -> None:
-        return self.gate
-
-    def __exit__(self, type, value, tb) -> None:
-        self.gate.exit()
-        if type is not None:
-            print(f"#{self.gate.rank} had a problem of type {type} and reported '{value}'")
 
 
 class MpiGate:
@@ -76,7 +66,18 @@ class MpiGate:
             for name, op in operations.items():
                 self.register_function(name, op)
 
+    def __enter__(self) -> None:
+        self.cont.reset()
+        return self
+
+    def __exit__(self, type, value, tb) -> None:
+        self.exit()
+        if type is not None:
+            print(f"#{self.rank} had a problem of type {type} and reported '{value}'")
+
     def register_function(self, opname: str, func: Callable[[], None]) -> None:
+        if opname in self._opnum:
+            raise ValueError(f"Operation {opname} already defined.")
         funcnum = len(self._op) + 1
         self._op[funcnum] = func
         self._opnum[opname] = funcnum
@@ -85,7 +86,7 @@ class MpiGate:
         self._op[funcnum]()
 
     def check_all_out(self) -> None:
-        self.still_running = (self.comm.allreduce(self.out, op=MPI.SUM) < self.size)
+        self.still_running = not self.comm.allreduce(self.out, op=MPI.LAND)
 
     def check_msg(self, tag: int) -> None:
         for src in self.procs:
@@ -125,11 +126,15 @@ class MpiGate:
         self.send_msg(tag=self.gatenum, msg=msg)
 
     def open(self) -> None:
+        # Wait for everyone for exchanging messages
         self.comm.Barrier()
+        # get operation list, sorted to be processed in order.
+        # 0 is removed as it corresponds to 'no message'
         operations = list(set(self.read_msg(tag=self.gatenum)) - {0})
         operations.sort()
         self.wait_sent(self.gatenum)
         self.gatenum += 1
+        # Wait for everyone for processing operations
         self.comm.Barrier()
         for op in operations:
             self.operate(op)
@@ -145,8 +150,8 @@ class MpiGate:
             self.checkpoint()
             sleep(sleeptime)
 
-    def context(self) -> GateContext:
-        return GateContext(self)
+    def context(self) -> "MpiGate":
+        return self
 
 
 class MpiStatus:

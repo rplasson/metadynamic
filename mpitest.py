@@ -15,9 +15,9 @@ def op2():
     logmsg("Operation 2")
 
 
-mygate = MpiGate(taginit=100, operations={"op1": op1, "op2": op2})
+gate = MpiGate(taginit=100, operations={"op1": op1, "op2": op2})
 
-with mygate.context() as gate:
+with gate.context():
     logmsg("Entering")
     while gate.cont.ok:
         # Do stuff!
