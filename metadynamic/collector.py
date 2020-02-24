@@ -112,7 +112,7 @@ class Collect(Generic[K, T], Ruled):
             # del self.active[key]
             self.active.pop(key)
         except KeyError:
-            self.log.debug(f"Tried to unactivate twice {key}")
+            pass  # Ok to try to unactivate already unactivated object
         if self.categorize:
             for cat in self.categories.values():
                 try:

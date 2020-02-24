@@ -24,5 +24,6 @@
 	"a": [1.0, 0.0]
     },
     "dropmode" : "keep",
-    "maxsteps" : 1000
+    "maxsteps" : 1000,
+    "maxlog" : 100
 }

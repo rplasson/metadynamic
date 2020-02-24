@@ -68,6 +68,7 @@ class ResultWriter(Parallel):
 
     def init_log(self, maxlog: int) -> None:
         self.maxlog = maxlog
+        self.dlog = maxlog
         size = self.mpi.size
         self.logging: Group = self.h5file.create_group("Logging")
         self.logcount: Dataset = self.logging.create_dataset(
@@ -76,6 +77,7 @@ class ResultWriter(Parallel):
         self.logs: Dataset = self.logging.create_dataset(
             "logs",
             (size, maxlog),
+            maxshape=(size, None),
             dtype=[
                 ("level", "int32"),
                 ("time", string_dtype(length=18)),
@@ -83,7 +85,12 @@ class ResultWriter(Parallel):
                 ("message", string_dtype(length=self.maxstrlen)),
             ],
         )
+        self.gate.register_function("addlog", self.add_log_line)
         self._init_log = True
+
+    def add_log_line(self) -> None:
+        self.maxlog = self.maxlog + self.dlog
+        self.logs.resize(self.maxlog, axis=1)
 
     def write_log(self, level: int, time: str, runtime: float, msg: str) -> None:
         if self._init_log:
@@ -91,8 +98,8 @@ class ResultWriter(Parallel):
             col = self.logcount[rank]
             self.logs[rank, col] = (level, time, runtime, msg[: self.maxstrlen])
             self.logcount[rank] = col + 1
-            if col == self.maxlog:
-                self._init_log = False
+            if (self.maxlog - col) < 10:
+                self.gate.close("addlog")
 
     def init_stat(
         self,
@@ -173,7 +180,6 @@ class ResultWriter(Parallel):
             raise InternalError("Attempt to write in HDF5 file before intialization")
 
     def add_col(self) -> None:
-        print("Extending cols!")
         self.nbcol = self.nbcol + self.dcol
         self.data.resize(self.nbcol, axis=2)
         for datamap in self.maps.values():
