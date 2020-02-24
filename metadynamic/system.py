@@ -352,27 +352,28 @@ class System(Probalistic, Collected, Saver):
         self.log.info(f"Run #{num}={getpid()} launched")
         self.signcatch.listen()
         # Process(getpid()).cpu_affinity([num % cpu_count()])
-        while True:
-            try:
-                self.status.logstat()
-                self._process()
-                if self.param.gcperio:
-                    gc.collect()
-                statistic.writestat()
-                statistic.calcmap()
-                statistic.calcsnapshot()
-                self.status.next_step()
-                self.status.checkend()
-            except Finished as the_end:
-                end = f"{the_end} ({self.log.runtime()} s)"
-                statistic.end(the_end)
-                break
+        with self.mpi.gate.context() as gate:
+            while gate.cont.ok:
+                try:
+                    self.status.logstat()
+                    self._process()
+                    if self.param.gcperio:
+                        gc.collect()
+                    statistic.writestat()
+                    statistic.calcmap()
+                    statistic.calcsnapshot()
+                    self.status.next_step()
+                    self.status.checkend()
+                    gate.checkpoint()
+                except Finished as the_end:
+                    end = f"{the_end} ({self.log.runtime()} s)"
+                    statistic.end(the_end)
+                    break
         self.log.debug(f"Run #{num}={getpid()} finished")
         statistic.calcsnapshot(final=True)
         if num >= 0:
             # Clean memory as much as possible to leave room to still alive threads
             self.purge(num)
-        statistic.wait()
         statistic.writesnap()
         statistic.writemap()
         statistic.close()

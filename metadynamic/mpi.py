@@ -72,8 +72,6 @@ class MpiGate:
 
     def __exit__(self, type, value, tb) -> None:
         self.exit()
-        if type is not None:
-            print(f"#{self.rank} had a problem of type {type} and reported '{value}'")
 
     def register_function(self, opname: str, func: Callable[[], None]) -> None:
         if opname in self._opnum:
