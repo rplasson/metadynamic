@@ -122,7 +122,7 @@ class ResultWriter:
         self.dataset: Group = self.h5file.create_group("Dataset")
         self.dataset.attrs["datanames"] = datanames
         self.data: Dataset = self.dataset.create_dataset(
-            "results", (size, len(datanames), nbcol), fillvalue=nan
+            "results", (size, len(datanames), nbcol), maxshape=(size, len(datanames), nbcol), fillvalue=nan
         )
         self.end: Dataset = self.dataset.create_dataset(
             "end",
@@ -159,7 +159,7 @@ class ResultWriter:
             self.maps.create_dataset(
                 name,
                 (size, 1, nbcol + 1),
-                maxshape=(size, None, nbcol + 1),
+                maxshape=(size, None, None),
                 fillvalue=nan,
                 dtype="float32",
             )
@@ -175,7 +175,7 @@ class ResultWriter:
         self.test_initialized()
         self.map_cat[name] = categories
         mapsize = len(categories)
-        self.maps[name].resize((self.mpi.size, mapsize, self.nbcol + 1))
+        self.maps[name].resize(mapsize, axis=1)
         self.maps[name][self.mpi.rank, :, 0] = categories
 
     def add_map(self, name: str, data: Dict[float, List[float]]) -> None:
