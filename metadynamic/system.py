@@ -52,7 +52,7 @@ from metadynamic.inputs import Param, StatParam, MapParam, LockedError
 from metadynamic.inval import invalidstr
 from metadynamic.json2dot import Json2dot
 from metadynamic.hdf5 import Saver
-from metadynamic.mpi import MpiStatus
+from metadynamic.mpi import Parallel
 
 
 class Encoder(JSONEncoder):
@@ -113,12 +113,11 @@ class RunStatus(Logged):
         return self.time >= self.tnext
 
 
-class Statistic(Collected, Saver):
+class Statistic(Collected, Saver, Parallel):
     def __init__(self, param: Param, status: RunStatus, comment: str):
         self.stat: Dict[str, StatParam] = StatParam.readmultiple(param.stat)
         self.maps: Dict[str, MapParam] = MapParam.readmultiple(param.maps)
         self.param = param
-        self.mpi = MpiStatus()
         self.status = status
         self.statnames = list(self.stat.keys())
         self.lines = self.status.infonames + self.param.save + self.statnames
@@ -238,15 +237,12 @@ class Statistic(Collected, Saver):
             if self.param.printsnap:
                 Json2dot(filename).write(f"{basename}.{self.param.printsnap}")
 
-    def wait(self) -> None:
-        self.mpi.gate.exit(sleeptime=self.param.endbarrier)
-        self.log.info(f"#{self.status.num} joined others")
-
     def writesnap(self) -> None:
         # Correct snapshot sizes
         nbsnap = self.mpi.max(self._nbsnap)
         nbcomp = self.mpi.max(self._nbcomp)
         nbreac = self.mpi.max(self._nbreac)
+        self.log.debug(f"resize snapshot with {nbsnap}-{nbcomp}-{nbreac}")
         self.writer.snapsize(nbcomp, nbreac, nbsnap)
         # Write snapshots
         col = 0
@@ -272,7 +268,7 @@ class Statistic(Collected, Saver):
         self.log.info(f"File {self.writer.filename} written and closed")
 
 
-class System(Probalistic, Collected, Saver):
+class System(Probalistic, Collected, Saver, Parallel):
     def __init__(
         self,
         filename: str,
@@ -283,6 +279,7 @@ class System(Probalistic, Collected, Saver):
         seterr(divide="ignore", invalid="ignore")
         self.initialized = False
         self.param: Param = Param.readfile(filename)
+        Parallel.setmpi(taginit=100)
         Saver.setsaver(self.param.hdf5, self.param.maxstrlen)
         Logged.setlogger(logfile, loglevel)
         self.writer.init_log(self.param.maxlog)
@@ -290,7 +287,6 @@ class System(Probalistic, Collected, Saver):
         self.maps: Dict[str, MapParam] = MapParam.readmultiple(self.param.maps)
         self.log.info("Parameter files loaded.")
         self.signcatch = SignalCatcher()
-        self.mpi = MpiStatus()
         self.status = RunStatus(self.param)
         self.comment = comment
 
@@ -352,7 +348,7 @@ class System(Probalistic, Collected, Saver):
         self.log.info(f"Run #{num}={getpid()} launched")
         self.signcatch.listen()
         # Process(getpid()).cpu_affinity([num % cpu_count()])
-        with self.mpi.gate.context() as gate:
+        with self.gate.context() as gate:
             while gate.cont.ok:
                 try:
                     self.status.logstat()

@@ -169,7 +169,6 @@ class MpiStatus:
         self.rank: int = int(self.comm.rank)
         self.ismpi: bool = self.size > 1
         self.rootnum: int = rootnum
-        self.gate = MpiGate()
 
     @property
     def root(self) -> bool:
@@ -205,3 +204,18 @@ class MpiStatus:
             fused = []
         fused = self.comm.bcast(fused, root=self.rootnum)
         return fused
+
+
+class Parallel:
+    mpi: MpiStatus
+    gate: MpiGate
+
+    @classmethod
+    def setmpi(
+        cls,
+        rootnum: int = 0,
+        taginit: int = 1,
+        operations: Optional[Dict[str, Callable[[], None]]] = None,
+    ) -> None:
+        cls.mpi = MpiStatus(rootnum)
+        cls.gate = MpiGate(taginit, operations)

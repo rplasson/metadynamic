@@ -5,7 +5,7 @@
 	"A": 2100
     },
     "conc" : 30.0,
-    "tend" : 50.0,
+    "tend" : 10.0,
     "tstep" : 1.0,
     "sstep" : 10.0,
     "save" : ["a", "aa", "aaa", "aaaa", "A", "Aa", "aA", "AA", "a*", "A*"],
@@ -23,5 +23,6 @@
 	"E": [1.0, 0.0, 0.0],
 	"a": [1.0, 0.0]
     },
-    "dropmode" : "keep"
+    "dropmode" : "keep",
+    "maxsteps" : 1000
 }

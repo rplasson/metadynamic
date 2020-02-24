@@ -40,7 +40,7 @@ from metadynamic.inval import invalidstr, invalidint, invalidfloat, isvalid
 from metadynamic.inputs import Readerclass, StatParam, MapParam, Param
 from metadynamic.caster import Caster
 from metadynamic.json2dot import Data2dot
-from metadynamic.mpi import MpiStatus
+from metadynamic.mpi import Parallel
 from metadynamic import __version__
 
 
@@ -48,13 +48,12 @@ comp_cast = Caster(Dict[str, int])
 reac_cast = Caster(Dict[str, List[float]])
 
 
-class ResultWriter:
+class ResultWriter(Parallel):
     def __init__(self, filename: str, maxstrlen: int = 256) -> None:
         if not isvalid(filename) or filename == "":
             raise FileNotFoundError(f"Plese enter a valid output file name")
         self.filename = filename
         self.maxstrlen = maxstrlen
-        self.mpi = MpiStatus()
         try:
             if self.mpi.ismpi:
                 self.h5file = File(filename, "w", driver="mpio", comm=self.mpi.comm)
@@ -106,7 +105,8 @@ class ResultWriter:
         nbcol: int,
     ) -> None:
         size = self.mpi.size
-        self.nbcol = nbcol
+        self.nbcol = nbcol+10
+        self.dcol = nbcol
         self.run: Group = self.h5file.create_group("Run")
         self.run.attrs["version"] = __version__
         self.run.attrs["hostname"] = gethostname()
@@ -122,7 +122,7 @@ class ResultWriter:
         self.dataset: Group = self.h5file.create_group("Dataset")
         self.dataset.attrs["datanames"] = datanames
         self.data: Dataset = self.dataset.create_dataset(
-            "results", (size, len(datanames), nbcol), maxshape=(size, len(datanames), nbcol), fillvalue=nan
+            "results", (size, len(datanames), self.nbcol), maxshape=(size, len(datanames), None), fillvalue=nan
         )
         self.end: Dataset = self.dataset.create_dataset(
             "end",
@@ -158,18 +158,26 @@ class ResultWriter:
         for name in mapnames:
             self.maps.create_dataset(
                 name,
-                (size, 1, nbcol + 1),
+                (size, 1, self.nbcol + 1),
                 maxshape=(size, None, None),
                 fillvalue=nan,
                 dtype="float32",
             )
         self.map_cat: Dict[str, List[float]] = {}
         self._currentcol = 0
+        self.gate.register_function("addcol", self.add_col)
         self._init_stat = True
 
     def test_initialized(self) -> None:
         if not self._init_stat:
             raise InternalError("Attempt to write in HDF5 file before intialization")
+
+    def add_col(self) -> None:
+        print("Extending cols!")
+        self.nbcol = self.nbcol + self.dcol
+        self.data.resize(self.nbcol, axis=2)
+        for datamap in self.maps.values():
+            datamap.resize(self.nbcol+1, axis=2)
 
     def mapsize(self, name: str, categories: List[float]) -> None:
         self.test_initialized()
@@ -182,7 +190,8 @@ class ResultWriter:
         self.test_initialized()
         for catnum, cat in enumerate(self.map_cat[name]):
             try:
-                self.maps[name][self.mpi.rank, catnum, 1:] = data[cat]
+                length = len(data[cat])
+                self.maps[name][self.mpi.rank, catnum, 1:length+1] = data[cat]
             except KeyError:
                 pass  # No problem, some categories may have been reached by only some processes
 
@@ -204,6 +213,8 @@ class ResultWriter:
         try:
             self.data[self.mpi.rank, :, self._currentcol] = result
             self._currentcol += 1
+            if (self.nbcol - self._currentcol) < 10:
+                self.gate.close("addcol")
         except ValueError:
             raise InternalError(
                 f"No more space in file for #{self.mpi.rank} at column {self._currentcol}"

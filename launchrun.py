@@ -4,7 +4,7 @@ from argparse import ArgumentParser
 
 from metadynamic import launch
 from metadynamic.inputs import Param
-from metadynamic.hdf5 import MpiStatus
+from metadynamic.mpi import Parallel
 from tempfile import NamedTemporaryFile
 
 parser = ArgumentParser(description="Launch run from a json file")
@@ -39,5 +39,5 @@ res = launch(
 
 paramfile.close()
 
-if MpiStatus().rank == 0:
+if Parallel.mpi.rank == 0:
     print(res.printinfo)
