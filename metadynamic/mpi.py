@@ -28,6 +28,31 @@ def nop() -> None:
     pass
 
 
+class Cont:
+    def __init__(self):
+        self._cont = True
+
+    def stop(self):
+        self._cont = False
+
+    @property
+    def ok(self):
+        return self._cont
+
+
+class GateContext:
+    def __init__(self, gate: "MpiGate"):
+        self.gate = gate
+
+    def __enter__(self) -> None:
+        return self.gate
+
+    def __exit__(self, type, value, tb) -> None:
+        self.gate.exit()
+        if type is not None:
+            print(f"#{self.gate.rank} had a problem of type {type} and reported '{value}'")
+
+
 class MpiGate:
     def __init__(
         self,
@@ -41,10 +66,12 @@ class MpiGate:
         self.snd_state: List[Optional[MPI.Request]] = [None] * (self.size)
         self.rcv_state: List[bool] = [False] * (self.size)
         self.gatenum: int = taginit
-        self.out: List[bool] = [False] * (self.size)
+        self.out: bool = False
+        self.still_running: bool = True
+        self.cont = Cont()
         self.msg: List[int] = [0] * (self.size)
-        self._op: Dict[int, Callable[[], None]] = {1: nop, 2: nop}
-        self._opnum: Dict[str, int] = {"nop": 1, "final": 2}
+        self._op: Dict[int, Callable[[], None]] = {1: nop, 2: self.check_all_out, 3: self.cont.stop}
+        self._opnum: Dict[str, int] = {"nop": 1, "final": 2, "exit": 3}
         if operations:
             for name, op in operations.items():
                 self.register_function(name, op)
@@ -57,6 +84,9 @@ class MpiGate:
     def operate(self, funcnum: int):
         self._op[funcnum]()
 
+    def check_all_out(self) -> None:
+        self.still_running = (self.comm.allreduce(self.out, op=MPI.SUM) < self.size)
+
     def check_msg(self, tag: int) -> None:
         for src in self.procs:
             received = self.comm.Iprobe(source=src, tag=tag)
@@ -67,8 +97,6 @@ class MpiGate:
         for src in self.procs:
             if self.rcv_state[src]:
                 msg = self.comm.recv(source=src, tag=tag)
-                if msg == 2:
-                    self.out[src] = True
                 self.msg[src] = msg
                 self.rcv_state[src] = False
         res = self.msg.copy()
@@ -90,7 +118,7 @@ class MpiGate:
 
     @property
     def closed(self) -> bool:
-        self.check_msg(self.gatenum)
+        self.check_msg(tag=self.gatenum)
         return sum(self.rcv_state) > 0
 
     def close(self, msg="nop") -> None:
@@ -111,22 +139,14 @@ class MpiGate:
             self.open()
 
     def exit(self, sleeptime: float = 0.1) -> None:
-        self.out[self.rank] = True
-        self.close(msg="final")
-        while True:
+        self.out = True
+        self.close("final")
+        while self.still_running:
             self.checkpoint()
-            if sum(self.out) == self.size:
-                break
             sleep(sleeptime)
 
-    def __enter__(self) -> None:
-        return self
-
-    def __exit__(self, type, value, tb) -> None:
-        self.exit()
-        self.comm.Barrier()
-        if type is not None:
-            print(f"#{self.rank} had a problem of type {type} and reported '{value}'")
+    def context(self) -> GateContext:
+        return GateContext(self)
 
 
 class MpiStatus:
