@@ -1,5 +1,5 @@
 {
-    "rulemodel" : "metadynamic.target-polymers",
+    "rulemodel" : "metadynamic.target_polymer",
     "categories" : {
 	"mono" :
 	{

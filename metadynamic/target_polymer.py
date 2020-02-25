@@ -34,16 +34,16 @@ def iscomplex(name: str) -> bool:  # Categorizer
     """ complex compounds are the aggregation of a target and a polymer
     {abcd}:efgh
     """
-    if ":" in name:
-        left, right = name.split(":")
+    if "." in name:
+        left, right = name.split(".")
         return ispolym(right) and istarget(left)
     return False
 
 
-complexation: ProdBuilder = joiner(sep=":")
-dissociation: ProdBuilder = splitter(sep=":")
+complexation: ProdBuilder = joiner(sep=".")
+dissociation: ProdBuilder = splitter(sep=".")
 
 k_complex: ConstBuilder = kinvar
 k_disso: ConstBuilder = lambda names, k, variant: k[0] * k[1] ** (
-    -float(ratio(*names[0].split(":"))) / 100
+    -float(ratio(*names[0].split("."))) / 100
 )
