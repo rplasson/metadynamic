@@ -38,7 +38,7 @@ from pandas import DataFrame
 
 from metadynamic.ends import Finished, FileCreationError, InternalError
 from metadynamic.inval import invalidstr, invalidint, invalidfloat, isvalid
-from metadynamic.inputs import Readerclass, StatParam, MapParam, Param
+from metadynamic.inputs import Readerclass, StatParam, MapParam, Param, RulesetParam
 from metadynamic.caster import Caster
 from metadynamic.json2dot import Data2dot
 from metadynamic.mpi import Parallel
@@ -111,14 +111,12 @@ class ResultWriter(Parallel):
         self,
         datanames: List[str],
         mapnames: List[str],
-        params: Dict[str, Any],
-        statparam: Dict[str, StatParam],
-        mapparam: Dict[str, MapParam],
+        params: Param,
         comment: str,
         nbcol: int,
     ) -> None:
         size = self.mpi.size
-        self.nbcol = nbcol+self.lengrow
+        self.nbcol = nbcol + self.lengrow
         self.dcol = nbcol
         self.run: Group = self.h5file.create_group("Run")
         self.run.attrs["version"] = __version__
@@ -127,15 +125,22 @@ class ResultWriter(Parallel):
         self.run.attrs["threads"] = self.mpi.size
         self.run.attrs["comment"] = comment
         self.params: Group = self.h5file.create_group("Parameters")
-        self.dict_as_attr(self.params, params)
+        self.dict_as_attr(self.params, params.asdict())
         self.statparam: Group = self.params.create_group("Stats")
-        self.multiread_as_attr(self.statparam, statparam)
+        self.multiread_as_attr(self.statparam, params.statparam)
         self.mapparam: Group = self.params.create_group("Maps")
-        self.multiread_as_attr(self.mapparam, mapparam)
+        self.multiread_as_attr(self.mapparam, params.mapsparam)
+        self.ruleparam: Group = self.params.create_group("Rules")
+        self.dict_as_attr(
+            self.ruleparam, RulesetParam.readfile(params.rulemodel).asdict()
+        )
         self.dataset: Group = self.h5file.create_group("Dataset")
         self.dataset.attrs["datanames"] = datanames
         self.data: Dataset = self.dataset.create_dataset(
-            "results", (size, len(datanames), self.nbcol), maxshape=(size, len(datanames), None), fillvalue=nan
+            "results",
+            (size, len(datanames), self.nbcol),
+            maxshape=(size, len(datanames), None),
+            fillvalue=nan,
         )
         self.end: Dataset = self.dataset.create_dataset(
             "end",
@@ -192,7 +197,7 @@ class ResultWriter(Parallel):
     def data_resize(self, maxcol: int) -> None:
         self.data.resize(maxcol, axis=2)
         for datamap in self.maps.values():
-            datamap.resize(maxcol+1, axis=2)
+            datamap.resize(maxcol + 1, axis=2)
 
     def mapsize(self, name: str, categories: List[float]) -> None:
         self.test_initialized()
@@ -206,7 +211,7 @@ class ResultWriter(Parallel):
         for catnum, cat in enumerate(self.map_cat[name]):
             try:
                 length = len(data[cat])
-                self.maps[name][self.mpi.rank, catnum, 1:length+1] = data[cat]
+                self.maps[name][self.mpi.rank, catnum, 1 : length + 1] = data[cat]
             except KeyError:
                 pass  # No problem, some categories may have been reached by only some processes
 
@@ -427,7 +432,12 @@ class ResultReader:
         meanlength: int = invalidint,
     ) -> Tuple[ndarray, ndarray]:
         x = self.get(field=x, method=xmethod, meanlength=meanlength)
-        y = array([self.get(field=y, method=f"p{proc}", meanlength=meanlength) for proc in range(self.size)]).T
+        y = array(
+            [
+                self.get(field=y, method=f"p{proc}", meanlength=meanlength)
+                for proc in range(self.size)
+            ]
+        ).T
         return x, y
 
     def xypm(
@@ -451,7 +461,7 @@ class ResultReader:
     ) -> Tuple[ndarray, ndarray, ndarray]:
         x = self.get(field=x, method="m", meanlength=meanlength)
         y = self.get(field=y, method=f"m", meanlength=meanlength)
-        err = self.get(field=y, method=f"s", meanlength=meanlength)*delta
+        err = self.get(field=y, method=f"s", meanlength=meanlength) * delta
         return x, y, err
 
     def xyz(
@@ -476,7 +486,9 @@ class ResultReader:
             )
         except TypeError:
             # older numpy version cannot set replacement values for nan/posinf/neginf
-            z = nan_to_num(self.getmap(field=field, method=method, meanlength=meanlength))
+            z = nan_to_num(
+                self.getmap(field=field, method=method, meanlength=meanlength)
+            )
         return x, y, z
 
     @property
@@ -518,6 +530,22 @@ class ResultReader:
                     res[prekey] = {postkey: val}
                 res.pop(key)
         return Param.readdict(res)
+
+    @property
+    def ruleset(self) -> Param:
+        ruleset = dict(self.params["Rules"].attrs)
+        res = ruleset.copy()
+        for key, val in ruleset.items():
+            if "->" in key:
+                key1, key2, key3 = key.split("->")
+                if key1 not in res:
+                    res[key1] = {key2: {key3: val}}
+                elif key2 not in res[key1]:
+                    res[key1][key2] = {key3: val}
+                else:
+                    res[key1][key2][key3] = val
+                res.pop(key)
+        return RulesetParam.readdict(res)
 
     @property
     def statparam(self) -> Dict[str, StatParam]:

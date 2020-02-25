@@ -151,9 +151,7 @@ class Statistic(Collected, Saver, Parallel):
             self.writer.init_stat(
                 datanames=self.lines,
                 mapnames=self.mapnames,
-                params=self.param.asdict(),
-                statparam=self.param.statparam,
-                mapparam=self.param.mapsparam,
+                params=self.param,
                 comment=self.comment,
                 nbcol=ceil(self.param.tend / self.param.tstep) + 1,
             )
