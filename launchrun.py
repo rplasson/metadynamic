@@ -1,6 +1,8 @@
 #!/usr/bin/env -S python3 -O
 
 from argparse import ArgumentParser
+from subprocess import call
+from os import rename
 
 from metadynamic import launch
 from metadynamic.inputs import Param
@@ -36,6 +38,15 @@ param.tojson(paramfile.name)
 res = launch(
     paramfile.name, logfile=args.log, loglevel=args.level, comment=args.comment
 )
+
+if Parallel.mpi.rank == 0:
+    try:
+        old = param.hdf5
+        new = old+".repacked"
+        call(["h5repack", "-f", "GZIP=9", old, new])
+        rename(new, old)
+    except FileNotFoundError:
+        print("Couldn't find 'h5repack' utility, outputfile is uncompressed")
 
 paramfile.close()
 
