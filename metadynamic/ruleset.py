@@ -30,6 +30,7 @@ from dataclasses import dataclass, field
 
 from metadynamic.ends import InitError
 from metadynamic.logger import Logged
+from metadynamic.inputs import RulesetParam
 
 
 # Type alias (~~ data struct)
@@ -186,9 +187,27 @@ class Ruleset(Logged):
 
 
 class Model(Logged):
-    def __init__(self) -> None:
+    def __init__(self, filename="") -> None:
         self.descriptor = Descriptor()
         self.rules: Dict[str, Rule] = {}
+        if filename:
+            self.param = RulesetParam.readfile(filename)
+            rulepath = import_module(self.param.rulemodel)
+            for catname, catparam in self.param.categories.items():
+                self.add_cat(catname, getattr(rulepath, catparam.func))
+            for propname, propparam in self.param.properties.items():
+                self.add_prop(propname, getattr(rulepath, propparam.func))
+            for rulename, ruleparam in self.param.rules.items():
+                self.add_rule(
+                    rulename=rulename,
+                    reactants=ruleparam.reactants,
+                    builder=(
+                        getattr(rulepath, ruleparam.builder_func),
+                        getattr(rulepath, ruleparam.builder_const),
+                        getattr(rulepath, ruleparam.builder_variant),
+                    ),
+                    descr=ruleparam.descr,
+                )
 
     def add_cat(self, catname: str, rule: Categorizer) -> None:
         self.descriptor.add_cat(catname, rule)
