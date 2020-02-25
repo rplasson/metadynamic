@@ -154,7 +154,20 @@ class Readerclass:
         self.__post_init__()
 
     def asdict(self) -> Dict[str, Any]:
-        return {key: getattr(self, key) for key in self.list_param().keys()}
+        res = {}
+        for key in self.list_param().keys():
+            val = getattr(self, key)
+            if isinstance(val, Readerclass):
+                val = val.asdict()
+            elif isinstance(val, dict):
+                val = {
+                    subkey: subval.asdict()
+                    if isinstance(subval, Readerclass)
+                    else subval
+                    for subkey, subval in val.items()
+                }
+            res[key] = val
+        return res
 
     def tojson(self, filename: str) -> None:
         with open(filename, "w") as out:
