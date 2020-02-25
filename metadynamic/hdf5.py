@@ -24,6 +24,7 @@ from typing import Dict, Any, List, Tuple, Mapping
 from h5py import File, Group, Dataset, string_dtype
 from graphviz import Digraph
 from numpy import (
+    array,
     nan,
     nanmean,
     nanstd,
@@ -292,6 +293,7 @@ class ResultReader:
         self.logging: Group = self.h5file["Logging"]
         self.logcount: Dataset = self.logging["count"]
         self.logs: Dataset = self.logging["logs"]
+        self.size = self.run.attrs["threads"]
 
     def __getitem__(self, field: str) -> ndarray:
         if field in self.datanames:
@@ -408,6 +410,18 @@ class ResultReader:
         y = self.get(field=y, method=method, meanlength=meanlength)
         return x, y
 
+    def xyproc(
+        self,
+        y: str = "ptime",
+        x: str = "time",
+        method: str = "m",
+        xmethod: str = "m",
+        meanlength: int = invalidint,
+    ) -> Tuple[ndarray, ndarray]:
+        x = self.get(field=x, method=xmethod, meanlength=meanlength)
+        y = array([self.get(field=y, method=f"p{proc}", meanlength=meanlength) for proc in range(self.size)]).T
+        return x, y
+
     def xypm(
         self,
         y: str = "ptime",
@@ -445,12 +459,16 @@ class ResultReader:
         time = self.get(field="time", method=tmethod, meanlength=meanlength)
         categories = self.categories(field)
         x, y = meshgrid(time, categories)
-        z = nan_to_num(
-            self.getmap(field=field, method=method, meanlength=meanlength),
-            nan=nanval,
-            posinf=posinf if isvalid(posinf) else None,
-            neginf=neginf if isvalid(neginf) else None,
-        )
+        try:
+            z = nan_to_num(
+                self.getmap(field=field, method=method, meanlength=meanlength),
+                nan=nanval,
+                posinf=posinf if isvalid(posinf) else None,
+                neginf=neginf if isvalid(neginf) else None,
+            )
+        except TypeError:
+            # older numpy version cannot set replacement values for nan/posinf/neginf
+            z = nan_to_num(self.getmap(field=field, method=method, meanlength=meanlength))
         return x, y, z
 
     @property
