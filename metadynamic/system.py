@@ -48,7 +48,7 @@ from metadynamic.proba import Probalistic
 from metadynamic.ruleset import Ruled
 from metadynamic.collector import Collectable
 from metadynamic.chemical import Collected, trigger_changes
-from metadynamic.inputs import Param, StatParam, MapParam, LockedError
+from metadynamic.inputs import Param, LockedError
 from metadynamic.inval import invalidstr
 from metadynamic.json2dot import Json2dot
 from metadynamic.hdf5 import Saver
@@ -115,13 +115,11 @@ class RunStatus(Logged):
 
 class Statistic(Collected, Saver, Parallel):
     def __init__(self, param: Param, status: RunStatus, comment: str):
-        self.stat: Dict[str, StatParam] = StatParam.readmultiple(param.stat)
-        self.maps: Dict[str, MapParam] = MapParam.readmultiple(param.maps)
         self.param = param
         self.status = status
-        self.statnames = list(self.stat.keys())
+        self.statnames = list(self.param.statparam.keys())
         self.lines = self.status.infonames + self.param.save + self.statnames
-        self.mapnames = list(self.maps.keys())
+        self.mapnames = list(self.param.mapsparam.keys())
         self.mapdict: Dict[str, Dict[float, List[float]]] = {
             name: {} for name in self.mapnames
         }
@@ -154,8 +152,8 @@ class Statistic(Collected, Saver, Parallel):
                 datanames=self.lines,
                 mapnames=self.mapnames,
                 params=self.param.asdict(),
-                statparam=self.stat,
-                mapparam=self.maps,
+                statparam=self.param.statparam,
+                mapparam=self.param.mapsparam,
                 comment=self.comment,
                 nbcol=ceil(self.param.tend / self.param.tstep) + 1,
             )
@@ -172,14 +170,14 @@ class Statistic(Collected, Saver, Parallel):
                     method=stats.method,
                     full=stats.full,
                 )
-                for stats in self.stat.values()
+                for stats in self.param.statparam.values()
             ]
         )
         self.writer.add_data(res)
         self.log.debug(str(res))
 
     def calcmap(self) -> None:
-        for name, maps in self.maps.items():
+        for name, maps in self.param.mapsparam.items():
             collmap = self.collmap(
                 collection=maps.collection,
                 prop=maps.prop,
@@ -292,8 +290,6 @@ class System(Probalistic, Collected, Saver, Parallel):
         Saver.setsaver(self.param.hdf5, self.param.maxstrlen, self.param.lengrow)
         Logged.setlogger(logfile, loglevel)
         self.writer.init_log(self.param.maxlog)
-        self.stat: Dict[str, StatParam] = StatParam.readmultiple(self.param.stat)
-        self.maps: Dict[str, MapParam] = MapParam.readmultiple(self.param.maps)
         self.log.info("Parameter files loaded.")
         self.signcatch = SignalCatcher()
         self.status = RunStatus(self.param)

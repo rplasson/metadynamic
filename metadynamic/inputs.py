@@ -189,6 +189,25 @@ class Readerclass:
 
 
 @dataclass
+class StatParam(Readerclass):
+    prop: str = "count"
+    weight: str = "count"
+    method: str = "m"
+    full: bool = False
+    collection: str = "compounds"
+
+
+@dataclass
+class MapParam(Readerclass):
+    prop: str = "count"
+    weight: str = "count"
+    sort: str = "count"
+    method: str = "+"
+    full: bool = False
+    collection: str = "compounds"
+
+
+@dataclass
 class Param(Readerclass):
     # chemical
     conc: float = 0.1  # Concentration
@@ -216,7 +235,9 @@ class Param(Readerclass):
         default_factory=list
     )  # list of compounds to be saved at each time step
     stat: str = ""  # json filename describing statistics
+    statparam: Dict[str, StatParam] = field(init=False)
     maps: str = ""  # json filename describing stat maps
+    mapsparam: Dict[str, MapParam] = field(init=False)
     snapshot: str = ""  # filename for final snapshot
     printsnap: str = "pdf"  # filetype of snapshots
     hdf5: str = ""  # filename for hdf5 file
@@ -227,26 +248,8 @@ class Param(Readerclass):
     def __post_init__(self) -> None:
         self.ptot = sum([pop * len(comp) for comp, pop in self.init.items()])
         self.vol = self.ptot / self.conc
-
-
-@dataclass
-class StatParam(Readerclass):
-    prop: str = "count"
-    weight: str = "count"
-    method: str = "m"
-    full: bool = False
-    collection: str = "compounds"
-
-
-@dataclass
-class MapParam(Readerclass):
-    prop: str = "count"
-    weight: str = "count"
-    sort: str = "count"
-    method: str = "+"
-    full: bool = False
-    collection: str = "compounds"
-
+        self.statparam = StatParam.readmultiple(self.stat)
+        self.mapsparam = MapParam.readmultiple(self.maps)
 
 @dataclass
 class DotParam(Readerclass):
