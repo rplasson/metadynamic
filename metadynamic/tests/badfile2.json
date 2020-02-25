@@ -8,7 +8,7 @@
     "tend" : 1,
     "tstep" : 0.05,
     "save" : ["a", "A", "aa", "aA", "Aa", "AA"],
-    "rulemodel" : "metadynamic.polymers",
+    "rulemodel" : "polymers-ruleset.json",
     "consts" :{
 	"P": [10.0, 10.0] ,
 	"A": [10.0, 10.0] ,

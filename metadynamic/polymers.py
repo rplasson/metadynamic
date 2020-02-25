@@ -27,7 +27,6 @@ from metadynamic.ruleset import (
     VariantBuilder,
     Compset,
     Paramset,
-    Model,
 )
 
 # Categorizer
@@ -147,73 +146,3 @@ def singlevariant(num: int) -> VariantBuilder:
 
 
 firstonly: VariantBuilder = singlevariant(0)
-
-
-# Define a specific ruleset model
-
-
-model = Model()
-
-
-# Maybe only add necessary properties/categories on used model ? on demand?
-
-model.add_cat("mono", ismono)
-model.add_cat("polym", ispolym)
-model.add_cat("longpol", islongpol)
-model.add_cat("actpol", isact)
-model.add_cat("actmono", isactmono)
-model.add_cat("left", isleft)
-model.add_cat("right", isright)
-
-model.add_prop("length", length)
-model.add_prop("asym", asym)
-
-
-model.add_rule(
-    rulename="P",
-    reactants=("polym", "polym"),
-    builder=(joiner(""), kslowmono, novariant),
-    descr="Polymerization",
-)
-model.add_rule(
-    rulename="A",
-    reactants=("actpol", "polym"),
-    builder=(act_polym, kactselect, novariant),
-    descr="Activated Polymerization",
-)
-model.add_rule(
-    rulename="M",
-    reactants=("actmono", "polym"),
-    builder=(act_polym, kactselect, novariant),
-    descr="Activated Monomer Polymerization",
-)
-model.add_rule(
-    rulename="a",
-    reactants=("polym",),
-    builder=(activ, kfastmono, novariant),
-    descr="Activation",
-)
-model.add_rule(
-    rulename="d",
-    reactants=("actpol",),
-    builder=(deactiv, kfastmono, novariant),
-    descr="Deactivation",
-)
-model.add_rule(
-    rulename="H",
-    reactants=("polym",),
-    builder=(cut, khyd, intervariant),
-    descr="Hydrolysis",
-)
-model.add_rule(
-    rulename="R",
-    reactants=("longpol",),
-    builder=(epimer, kmidselect, lenvariant),
-    descr="Epimerization",
-)
-model.add_rule(
-    rulename="E",
-    reactants=("longpol",),
-    builder=(epimer, kmidselect, singlevariant(0)),
-    descr="Epimerization at first end",
-)

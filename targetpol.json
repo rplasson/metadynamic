@@ -1,5 +1,5 @@
 {
-    "rulemodel" : "metadynamic.target_polymer",
+    "rulemodel" : "target-polymers-ruleset.json",
     "init" :
     {
         "A" : 1000,
