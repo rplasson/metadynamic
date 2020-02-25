@@ -20,16 +20,9 @@
 
 from copy import deepcopy
 
-# import * should be sufficient, but explicit everything used for better readability
-# from metadynamic.polymers import *
-from metadynamic.polymers import (
-    model,
-    Categorizer,
-    ProdBuilder,
-    ConstBuilder,
-    novariant,
-    ispolym,
-)
+from metadynamic.ruleset import Categorizer, ProdBuilder, ConstBuilder
+
+from metadynamic.polymers import model, novariant, ispolym
 
 # Necessary/useful for avinding clash between polymers/catpolymers model?
 model = deepcopy(model)

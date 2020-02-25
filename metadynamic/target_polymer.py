@@ -22,13 +22,10 @@
 
 from fuzzywuzzy.fuzz import ratio
 
-# import * should be sufficient, but explicit everything used for better readability
-# from metadynamic.polymers import *
+from metadynamic.ruleset import Categorizer, ProdBuilder, ConstBuilder
+
 from metadynamic.polymers import (
     model,
-    Categorizer,
-    ProdBuilder,
-    ConstBuilder,
     novariant,
     ispolym,
     joiner,
@@ -60,7 +57,7 @@ dissociation: ProdBuilder = splitter(sep=":")
 
 k_complex: ConstBuilder = kinvar
 k_disso: ConstBuilder = lambda names, k, variant: k[0] * k[1] ** (
-    -ratio(*names[0].split(":")) / 100
+    -float(ratio(*names[0].split(":"))) / 100
 )
 
 
