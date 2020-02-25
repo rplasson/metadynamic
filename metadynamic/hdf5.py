@@ -50,11 +50,12 @@ reac_cast = Caster(Dict[str, List[float]])
 
 
 class ResultWriter(Parallel):
-    def __init__(self, filename: str, maxstrlen: int = 256) -> None:
+    def __init__(self, filename: str, maxstrlen: int = 256, lengrow: int = 10) -> None:
         if not isvalid(filename) or filename == "":
             raise FileNotFoundError(f"Plese enter a valid output file name")
         self.filename = filename
         self.maxstrlen = maxstrlen
+        self.lengrow = lengrow
         try:
             if self.mpi.ismpi:
                 self.h5file = File(filename, "w", driver="mpio", comm=self.mpi.comm)
@@ -99,7 +100,7 @@ class ResultWriter(Parallel):
             col = self.logcount[rank]
             self.logs[rank, col] = (level, time, runtime, msg[: self.maxstrlen])
             self.logcount[rank] = col + 1
-            if (self.maxlog - col) < 10:
+            if (self.maxlog - col) < self.lengrow:
                 self.gate.close("addlog")
 
     def init_stat(
@@ -113,7 +114,7 @@ class ResultWriter(Parallel):
         nbcol: int,
     ) -> None:
         size = self.mpi.size
-        self.nbcol = nbcol+10
+        self.nbcol = nbcol+self.lengrow
         self.dcol = nbcol
         self.run: Group = self.h5file.create_group("Run")
         self.run.attrs["version"] = __version__
@@ -220,7 +221,7 @@ class ResultWriter(Parallel):
         try:
             self.data[self.mpi.rank, :, self._currentcol] = result
             self._currentcol += 1
-            if (self.nbcol - self._currentcol) < 10:
+            if (self.nbcol - self._currentcol) < self.lengrow:
                 self.gate.close("addcol")
         except ValueError:
             raise InternalError(
@@ -534,5 +535,5 @@ class Saver:
     writer: ResultWriter
 
     @classmethod
-    def setsaver(cls, filename: str, maxstrlen: int = 256) -> None:
-        cls.writer = ResultWriter(filename, maxstrlen)
+    def setsaver(cls, filename: str, maxstrlen: int = 256, lengrow: int = 10) -> None:
+        cls.writer = ResultWriter(filename, maxstrlen, lengrow)

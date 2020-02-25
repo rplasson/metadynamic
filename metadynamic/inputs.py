@@ -221,7 +221,8 @@ class Param(Readerclass):
     printsnap: str = "pdf"  # filetype of snapshots
     hdf5: str = ""  # filename for hdf5 file
     maxstrlen: int = 256  # max string length to be stored in hdf5
-    maxlog: int = 1024  # max log lines per process to be saved
+    lengrow: int = 10  # number of length left before requesting a resize
+    maxlog: int = 100  # max log lines per process to be saved
 
     def __post_init__(self) -> None:
         self.ptot = sum([pop * len(comp) for comp, pop in self.init.items()])
@@ -254,7 +255,7 @@ class DotParam(Readerclass):
     # Graph rendering
     margin: float = 0.0
     concentrate: bool = True
-    maxsize: float = 5.0
+    maxsize: float = 10.0
     # compounds
     min_fontsize: float = 1.0
     max_fontsize: float = 20.0

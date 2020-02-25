@@ -249,9 +249,7 @@ class Statistic(Collected, Saver, Parallel):
         for time, filename in zip(self._snaptimes, self._snapfilenames):
             with open(filename, "r") as reader:
                 data = load(reader)
-            self.writer.add_snapshot(
-                data["Compounds"], data["Reactions"], col, time
-            )
+            self.writer.add_snapshot(data["Compounds"], data["Reactions"], col, time)
             col += 1
 
     def end(self, the_end: Finished) -> None:
@@ -280,7 +278,7 @@ class System(Probalistic, Collected, Saver, Parallel):
         self.initialized = False
         self.param: Param = Param.readfile(filename)
         Parallel.setmpi(taginit=100)
-        Saver.setsaver(self.param.hdf5, self.param.maxstrlen)
+        Saver.setsaver(self.param.hdf5, self.param.maxstrlen, self.param.lengrow)
         Logged.setlogger(logfile, loglevel)
         self.writer.init_log(self.param.maxlog)
         self.stat: Dict[str, StatParam] = StatParam.readmultiple(self.param.stat)
