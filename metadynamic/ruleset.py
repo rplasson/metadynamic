@@ -229,7 +229,7 @@ class Ruled(Logged):
     model: Model
 
     @classmethod
-    def setrules(cls, modelpath: str, paramdict: Dict[str, Paramset]) -> None:
+    def setrulesold(cls, modelpath: str, paramdict: Dict[str, Paramset]) -> None:
         """The set of rules must be set from a python file that can be reached
         from 'modelpath'.
         This file must contain a Model object named 'model'."""
@@ -245,6 +245,21 @@ class Ruled(Logged):
             raise InitError(
                 f"the object 'model' from {modelpath} must be of type Model"
             )
+        cls.ruleset = Ruleset(cls.descriptor)
+        for rulename in paramdict:
+            try:
+                cls.ruleset.add_rule(rulename, cls.model.rules[rulename])
+            except KeyError:
+                raise InitError(
+                    f"The rule named '{rulename}' is not defined in '{modelpath}'"
+                )
+        cls.ruleset.initialize(paramdict)
+
+
+    @classmethod
+    def setrules(cls, modelparam: str, paramdict: Dict[str, Paramset]) -> None:
+        cls.model = Model(modelparam)
+        cls.descriptor = cls.model.descriptor
         cls.ruleset = Ruleset(cls.descriptor)
         for rulename in paramdict:
             try:

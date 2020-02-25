@@ -252,7 +252,7 @@ class Param(Readerclass):
     ptot: int = field(init=False)
     vol: float = field(init=False)
     init: Dict[str, int] = field(default_factory=dict)  # initial concentrations
-    rulemodel: str = "metadynamic.polymers"  # rule model to be used
+    rulemodel: str = "polymers-ruleset.json"  # rule model to be used
     consts: Dict[str, List[float]] = field(default_factory=dict)  # kinetic constants
     # simulation
     tend: float = 1.0  # final simulation time
