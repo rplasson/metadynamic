@@ -19,8 +19,8 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 from json import load, dump, JSONDecodeError
-from typing import List, Dict, TypeVar, Type, Any, Union, Iterable, Callable
-from dataclasses import dataclass, field, Field, MISSING
+from typing import List, Dict, TypeVar, Type, Any
+from dataclasses import dataclass, field
 from metadynamic.caster import Caster
 
 from metadynamic.ends import BadFile, FileNotFound, BadJSON
@@ -30,6 +30,15 @@ R = TypeVar("R", bound="Readerclass")
 
 class LockedError(Exception):
     pass
+
+
+class Castreader(Caster):
+    def __call__(self, value: Any) -> Any:
+        if issubclass(self.dest, Readerclass):
+            return self.dest.readdict(value)
+        if self.dest is dict and issubclass(self.args[1].dest, Readerclass):
+            return self.args[1].dest.multipledict(value)
+        return super().__call__(value)
 
 
 @dataclass
@@ -106,17 +115,17 @@ class Readerclass:
         )
 
     @classmethod
-    def list_param(cls) -> Dict[str, Caster]:
+    def list_param(cls) -> Dict[str, Castreader]:
         if not hasattr(cls, "_list_param"):
             cls._list_param = {
-                key: Caster(val.type)
+                key: Castreader(val.type)
                 for key, val in cls.__dataclass_fields__.items()
                 if val.init
             }
         return cls._list_param
 
     @classmethod
-    def conv_param(cls, param: str) -> Caster:
+    def conv_param(cls, param: str) -> Castreader:
         return cls.list_param()[param]
 
     def checked_items(self, key: str, val: Any) -> Any:
@@ -189,6 +198,35 @@ class Readerclass:
 
 
 @dataclass
+class CategoryParam(Readerclass):
+    func: str = ""
+    descr: str = ""
+
+
+@dataclass
+class PropertyParam(Readerclass):
+    func: str = ""
+    descr: str = ""
+
+
+@dataclass
+class RuleParam(Readerclass):
+    reactants: List[str] = field(default_factory=list)
+    builder_func: str = ""
+    builder_const: str = "kinvar"
+    builder_variant: str = "novariant"
+    descr: str = ""
+
+
+@dataclass
+class RulesetParam(Readerclass):
+    rulemodel: str = "metadynamic.polymers"  # rulemodel to be used
+    categories: Dict[str, CategoryParam] = field(default_factory=dict)  # categories
+    properties: Dict[str, PropertyParam] = field(default_factory=dict)  # properties
+    rules: Dict[str, RuleParam] = field(default_factory=dict)  # rules
+
+
+@dataclass
 class StatParam(Readerclass):
     prop: str = "count"
     weight: str = "count"
@@ -250,6 +288,7 @@ class Param(Readerclass):
         self.vol = self.ptot / self.conc
         self.statparam = StatParam.readmultiple(self.stat)
         self.mapsparam = MapParam.readmultiple(self.maps)
+
 
 @dataclass
 class DotParam(Readerclass):

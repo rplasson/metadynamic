@@ -85,6 +85,7 @@ def splitter(sep: str) -> ProdBuilder:
     return lambda names, variant: tuple(names[0].split(sep))
 
 
+merge: ProdBuilder = joiner("")
 cut: ProdBuilder = lambda names, variant: (names[0][:variant], names[0][variant:])
 act_polym: ProdBuilder = lambda names, variant: (names[0][:-1] + names[1],)
 activ: ProdBuilder = lambda names, variant: (names[0] + "*",)
@@ -143,6 +144,9 @@ lenvariant: VariantBuilder = lambda reactants: range(int(length(reactants[0])))
 
 def singlevariant(num: int) -> VariantBuilder:
     return lambda reactants: (num,)
+
+
+firstonly: VariantBuilder = singlevariant(0)
 
 
 # Define a specific ruleset model
