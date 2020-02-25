@@ -261,9 +261,20 @@ class Statistic(Collected, Saver, Parallel):
         else:
             self.log.warning(str(the_end))
 
+    def close_log(self) -> None:
+        cutline = self.mpi.max(self.writer.logcount[self.mpi.rank])
+        self.writer.close_log(cutline)
+
+    def data_recut(self) -> None:
+        maxcol = self.mpi.max(self.writer.currentcol)
+        self.writer.data_resize(maxcol)
+
     def close(self) -> None:
+        self.log.info(f"File {self.writer.filename} to be written and closed...")
+        self.data_recut()
+        self.close_log()
         self.writer.close()
-        self.log.info(f"File {self.writer.filename} written and closed")
+        self.log.info(f"...written and closed, done.")
 
 
 class System(Probalistic, Collected, Saver, Parallel):

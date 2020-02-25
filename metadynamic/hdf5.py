@@ -103,6 +103,10 @@ class ResultWriter(Parallel):
             if (self.maxlog - col) < self.lengrow:
                 self.gate.close("addlog")
 
+    def close_log(self, cutline: int) -> None:
+        self.logs.resize(cutline, axis=1)
+        self._init_log = False
+
     def init_stat(
         self,
         datanames: List[str],
@@ -173,7 +177,7 @@ class ResultWriter(Parallel):
                 dtype="float32",
             )
         self.map_cat: Dict[str, List[float]] = {}
-        self._currentcol = 0
+        self.currentcol = 0
         self.gate.register_function("addcol", self.add_col)
         self._init_stat = True
 
@@ -183,9 +187,12 @@ class ResultWriter(Parallel):
 
     def add_col(self) -> None:
         self.nbcol = self.nbcol + self.dcol
-        self.data.resize(self.nbcol, axis=2)
+        self.data_resize(self.nbcol)
+
+    def data_resize(self, maxcol: int) -> None:
+        self.data.resize(maxcol, axis=2)
         for datamap in self.maps.values():
-            datamap.resize(self.nbcol+1, axis=2)
+            datamap.resize(maxcol+1, axis=2)
 
     def mapsize(self, name: str, categories: List[float]) -> None:
         self.test_initialized()
@@ -219,13 +226,13 @@ class ResultWriter(Parallel):
     def add_data(self, result: List[float]) -> None:
         self.test_initialized()
         try:
-            self.data[self.mpi.rank, :, self._currentcol] = result
-            self._currentcol += 1
-            if (self.nbcol - self._currentcol) < self.lengrow:
+            self.data[self.mpi.rank, :, self.currentcol] = result
+            self.currentcol += 1
+            if (self.nbcol - self.currentcol) < self.lengrow:
                 self.gate.close("addcol")
         except ValueError:
             raise InternalError(
-                f"No more space in file for #{self.mpi.rank} at column {self._currentcol}"
+                f"No more space in file for #{self.mpi.rank} at column {self.currentcol}"
             )
 
     def add_end(self, ending: Finished, time: float) -> None:

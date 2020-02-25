@@ -169,7 +169,7 @@ class Collect(Generic[K, T], Ruled):
             try:
                 return float(average(values, weights=weights))
             except ZeroDivisionError:
-                return nan
+                return float(nan)   # float conversion for mypy...
         if method == "max":
             return float(max(values * weights))
         if method == "min":
