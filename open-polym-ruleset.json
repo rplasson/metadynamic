@@ -1,0 +1,53 @@
+{
+    "rulemodel" : "metadynamic.open-polym",
+    "categories" : {
+	"polym" : {
+	    "func": "ispolym",
+	    "descr": "A polymer is a chain of characters, e.g. abc"
+	},
+	"source" : {
+	    "func": "issource",
+	    "descr": "A source is a polymer postfixed by a '#', e.g. abc#"
+	}
+    },
+    "properties" : {
+	"length" : {
+	    "func" : "length",
+	    "descr": "Polymer length"
+	}
+    },
+    "rules" : {
+	"P":
+	{
+	    "reactants" : ["polym", "polym"],
+	    "builder_func" : "merge",
+	    "builder_const" : "kpol",
+	    "builder_variant" : "novariant",
+	    "descr" : "Polymerization"
+	},
+	"H":
+	{
+	    "reactants" : ["polym"],
+	    "builder_func" : "cut",
+	    "builder_const" : "khyd",
+	    "builder_variant" : "intervariant",
+	    "descr" : "Hydrolysis"
+	},
+	"in":
+	{
+	    "reactants" : ["source"],
+	    "builder_func" : "fromsource",
+	    "builder_const" : "kinvar",
+	    "builder_variant" : "novariant",
+	    "descr" : "Constant input from source"
+	},
+	"out":
+	{
+	    "reactants" : ["polym"],
+	    "builder_func" : "destroy",
+	    "builder_const" : "kout",
+	    "builder_variant" : "novariant",
+	    "descr" : "Compound destruction (or output to sink)"
+	}
+    }
+}

@@ -30,6 +30,7 @@ from dataclasses import dataclass, field
 
 from metadynamic.ends import InitError
 from metadynamic.logger import Logged
+from metadynamic.inputs import RulesetParam
 
 
 # Type alias (~~ data struct)
@@ -186,9 +187,27 @@ class Ruleset(Logged):
 
 
 class Model(Logged):
-    def __init__(self) -> None:
+    def __init__(self, filename: str = "") -> None:
         self.descriptor = Descriptor()
         self.rules: Dict[str, Rule] = {}
+        if filename:
+            self.param = RulesetParam.readfile(filename)
+            rulepath = import_module(self.param.rulemodel)
+            for catname, catparam in self.param.categories.items():
+                self.add_cat(catname, getattr(rulepath, catparam.func))
+            for propname, propparam in self.param.properties.items():
+                self.add_prop(propname, getattr(rulepath, propparam.func))
+            for rulename, ruleparam in self.param.rules.items():
+                self.add_rule(
+                    rulename=rulename,
+                    reactants=tuple(ruleparam.reactants),
+                    builder=(
+                        getattr(rulepath, ruleparam.builder_func),
+                        getattr(rulepath, ruleparam.builder_const),
+                        getattr(rulepath, ruleparam.builder_variant),
+                    ),
+                    descr=ruleparam.descr,
+                )
 
     def add_cat(self, catname: str, rule: Categorizer) -> None:
         self.descriptor.add_cat(catname, rule)
@@ -210,28 +229,15 @@ class Ruled(Logged):
     model: Model
 
     @classmethod
-    def setrules(cls, modelpath: str, paramdict: Dict[str, Paramset]) -> None:
-        """The set of rules must be set from a python file that can be reached
-        from 'modelpath'.
-        This file must contain a Model object named 'model'."""
-        try:
-            cls.model = import_module(modelpath).model
-        except AttributeError:
-            raise InitError(
-                f"The given modelpath '{modelpath}' must contain a Model object named 'model'"
-            )
-        try:
-            cls.descriptor = cls.model.descriptor
-        except AttributeError:
-            raise InitError(
-                f"the object 'model' from {modelpath} must be of type Model"
-            )
+    def setrules(cls, modelparam: str, paramdict: Dict[str, Paramset]) -> None:
+        cls.model = Model(modelparam)
+        cls.descriptor = cls.model.descriptor
         cls.ruleset = Ruleset(cls.descriptor)
         for rulename in paramdict:
             try:
                 cls.ruleset.add_rule(rulename, cls.model.rules[rulename])
             except KeyError:
                 raise InitError(
-                    f"The rule named '{rulename}' is not defined in '{modelpath}'"
+                    f"The rule named '{rulename}' is not defined in '{modelparam}'"
                 )
         cls.ruleset.initialize(paramdict)

@@ -131,12 +131,3 @@ class Probalist(Logged):
            This functions is intended to be called regularly for cleaning
            these rounding errors."""
         self.probtot = self._problist.sum()
-
-    @staticmethod
-    def seed(seed: int) -> None:
-        pass
-        # disabled with system random numbers
-        # if seed == 0:
-        #     random.seed()
-        # else:
-        #     random.seed(seed)

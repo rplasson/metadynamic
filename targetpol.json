@@ -1,5 +1,5 @@
 {
-    "rulemodel" : "metadynamic.target_polymer",
+    "rulemodel" : "target-polymers-ruleset.json",
     "init" :
     {
         "A" : 1000,
@@ -13,6 +13,7 @@
     "sstep" : 20.0,
     "save" : ["A", "B", "C", "{ABBA}", "ABBA", "AA", "AB", "AC", "BA", "BB", "BC", "CA", "CB", "CC"],
     "snapshot" : "testlog/target-snapshot.json",
+    "hdf5" : "results/target.hdf5",
     "consts" :
     {
         "A" : [10.0, 10.0],
@@ -22,7 +23,6 @@
 	"ct" : [100.0],
 	"dt" : [1.0, 1000.0]
     },
-    "nbthread" : 1,
     "gcperio" : false    
 }
 

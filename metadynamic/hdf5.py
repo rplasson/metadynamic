@@ -24,6 +24,7 @@ from typing import Dict, Any, List, Tuple, Mapping
 from h5py import File, Group, Dataset, string_dtype
 from graphviz import Digraph
 from numpy import (
+    array,
     nan,
     nanmean,
     nanstd,
@@ -37,7 +38,7 @@ from pandas import DataFrame
 
 from metadynamic.ends import Finished, FileCreationError, InternalError
 from metadynamic.inval import invalidstr, invalidint, invalidfloat, isvalid
-from metadynamic.inputs import Readerclass, StatParam, MapParam, Param
+from metadynamic.inputs import Readerclass, StatParam, MapParam, Param, RulesetParam
 from metadynamic.caster import Caster
 from metadynamic.json2dot import Data2dot
 from metadynamic.mpi import Parallel
@@ -49,11 +50,12 @@ reac_cast = Caster(Dict[str, List[float]])
 
 
 class ResultWriter(Parallel):
-    def __init__(self, filename: str, maxstrlen: int = 256) -> None:
+    def __init__(self, filename: str, maxstrlen: int = 256, lengrow: int = 10) -> None:
         if not isvalid(filename) or filename == "":
             raise FileNotFoundError(f"Plese enter a valid output file name")
         self.filename = filename
         self.maxstrlen = maxstrlen
+        self.lengrow = lengrow
         try:
             if self.mpi.ismpi:
                 self.h5file = File(filename, "w", driver="mpio", comm=self.mpi.comm)
@@ -98,21 +100,23 @@ class ResultWriter(Parallel):
             col = self.logcount[rank]
             self.logs[rank, col] = (level, time, runtime, msg[: self.maxstrlen])
             self.logcount[rank] = col + 1
-            if (self.maxlog - col) < 10:
+            if (self.maxlog - col) < self.lengrow:
                 self.gate.close("addlog")
+
+    def close_log(self, cutline: int) -> None:
+        self.logs.resize(cutline, axis=1)
+        self._init_log = False
 
     def init_stat(
         self,
         datanames: List[str],
         mapnames: List[str],
-        params: Dict[str, Any],
-        statparam: Dict[str, StatParam],
-        mapparam: Dict[str, MapParam],
+        params: Param,
         comment: str,
         nbcol: int,
     ) -> None:
         size = self.mpi.size
-        self.nbcol = nbcol+10
+        self.nbcol = nbcol + self.lengrow
         self.dcol = nbcol
         self.run: Group = self.h5file.create_group("Run")
         self.run.attrs["version"] = __version__
@@ -121,15 +125,22 @@ class ResultWriter(Parallel):
         self.run.attrs["threads"] = self.mpi.size
         self.run.attrs["comment"] = comment
         self.params: Group = self.h5file.create_group("Parameters")
-        self.dict_as_attr(self.params, params)
+        self.dict_as_attr(self.params, params.asdict())
         self.statparam: Group = self.params.create_group("Stats")
-        self.multiread_as_attr(self.statparam, statparam)
+        self.multiread_as_attr(self.statparam, params.statparam)
         self.mapparam: Group = self.params.create_group("Maps")
-        self.multiread_as_attr(self.mapparam, mapparam)
+        self.multiread_as_attr(self.mapparam, params.mapsparam)
+        self.ruleparam: Group = self.params.create_group("Rules")
+        self.dict_as_attr(
+            self.ruleparam, RulesetParam.readfile(params.rulemodel).asdict()
+        )
         self.dataset: Group = self.h5file.create_group("Dataset")
         self.dataset.attrs["datanames"] = datanames
         self.data: Dataset = self.dataset.create_dataset(
-            "results", (size, len(datanames), self.nbcol), maxshape=(size, len(datanames), None), fillvalue=nan
+            "results",
+            (size, len(datanames), self.nbcol),
+            maxshape=(size, len(datanames), None),
+            fillvalue=nan,
         )
         self.end: Dataset = self.dataset.create_dataset(
             "end",
@@ -171,7 +182,7 @@ class ResultWriter(Parallel):
                 dtype="float32",
             )
         self.map_cat: Dict[str, List[float]] = {}
-        self._currentcol = 0
+        self.currentcol = 0
         self.gate.register_function("addcol", self.add_col)
         self._init_stat = True
 
@@ -181,9 +192,12 @@ class ResultWriter(Parallel):
 
     def add_col(self) -> None:
         self.nbcol = self.nbcol + self.dcol
-        self.data.resize(self.nbcol, axis=2)
+        self.data_resize(self.nbcol)
+
+    def data_resize(self, maxcol: int) -> None:
+        self.data.resize(maxcol, axis=2)
         for datamap in self.maps.values():
-            datamap.resize(self.nbcol+1, axis=2)
+            datamap.resize(maxcol + 1, axis=2)
 
     def mapsize(self, name: str, categories: List[float]) -> None:
         self.test_initialized()
@@ -197,7 +211,7 @@ class ResultWriter(Parallel):
         for catnum, cat in enumerate(self.map_cat[name]):
             try:
                 length = len(data[cat])
-                self.maps[name][self.mpi.rank, catnum, 1:length+1] = data[cat]
+                self.maps[name][self.mpi.rank, catnum, 1 : length + 1] = data[cat]
             except KeyError:
                 pass  # No problem, some categories may have been reached by only some processes
 
@@ -217,13 +231,13 @@ class ResultWriter(Parallel):
     def add_data(self, result: List[float]) -> None:
         self.test_initialized()
         try:
-            self.data[self.mpi.rank, :, self._currentcol] = result
-            self._currentcol += 1
-            if (self.nbcol - self._currentcol) < 10:
+            self.data[self.mpi.rank, :, self.currentcol] = result
+            self.currentcol += 1
+            if (self.nbcol - self.currentcol) < self.lengrow:
                 self.gate.close("addcol")
         except ValueError:
             raise InternalError(
-                f"No more space in file for #{self.mpi.rank} at column {self._currentcol}"
+                f"No more space in file for #{self.mpi.rank} at column {self.currentcol}"
             )
 
     def add_end(self, ending: Finished, time: float) -> None:
@@ -292,6 +306,7 @@ class ResultReader:
         self.logging: Group = self.h5file["Logging"]
         self.logcount: Dataset = self.logging["count"]
         self.logs: Dataset = self.logging["logs"]
+        self.size = self.run.attrs["threads"]
 
     def __getitem__(self, field: str) -> ndarray:
         if field in self.datanames:
@@ -408,6 +423,23 @@ class ResultReader:
         y = self.get(field=y, method=method, meanlength=meanlength)
         return x, y
 
+    def xyproc(
+        self,
+        y: str = "ptime",
+        x: str = "time",
+        method: str = "m",
+        xmethod: str = "m",
+        meanlength: int = invalidint,
+    ) -> Tuple[ndarray, ndarray]:
+        x = self.get(field=x, method=xmethod, meanlength=meanlength)
+        y = array(
+            [
+                self.get(field=y, method=f"p{proc}", meanlength=meanlength)
+                for proc in range(self.size)
+            ]
+        ).T
+        return x, y
+
     def xypm(
         self,
         y: str = "ptime",
@@ -429,7 +461,7 @@ class ResultReader:
     ) -> Tuple[ndarray, ndarray, ndarray]:
         x = self.get(field=x, method="m", meanlength=meanlength)
         y = self.get(field=y, method=f"m", meanlength=meanlength)
-        err = self.get(field=y, method=f"s", meanlength=meanlength)*delta
+        err = self.get(field=y, method=f"s", meanlength=meanlength) * delta
         return x, y, err
 
     def xyz(
@@ -445,12 +477,18 @@ class ResultReader:
         time = self.get(field="time", method=tmethod, meanlength=meanlength)
         categories = self.categories(field)
         x, y = meshgrid(time, categories)
-        z = nan_to_num(
-            self.getmap(field=field, method=method, meanlength=meanlength),
-            nan=nanval,
-            posinf=posinf if isvalid(posinf) else None,
-            neginf=neginf if isvalid(neginf) else None,
-        )
+        try:
+            z = nan_to_num(
+                self.getmap(field=field, method=method, meanlength=meanlength),
+                nan=nanval,
+                posinf=posinf if isvalid(posinf) else None,
+                neginf=neginf if isvalid(neginf) else None,
+            )
+        except TypeError:
+            # older numpy version cannot set replacement values for nan/posinf/neginf
+            z = nan_to_num(
+                self.getmap(field=field, method=method, meanlength=meanlength)
+            )
         return x, y, z
 
     @property
@@ -494,6 +532,22 @@ class ResultReader:
         return Param.readdict(res)
 
     @property
+    def ruleset(self) -> RulesetParam:
+        ruleset = dict(self.params["Rules"].attrs)
+        res = ruleset.copy()
+        for key, val in ruleset.items():
+            if "->" in key:
+                key1, key2, key3 = key.split("->")
+                if key1 not in res:
+                    res[key1] = {key2: {key3: val}}
+                elif key2 not in res[key1]:
+                    res[key1][key2] = {key3: val}
+                else:
+                    res[key1][key2][key3] = val
+                res.pop(key)
+        return RulesetParam.readdict(res)
+
+    @property
     def statparam(self) -> Dict[str, StatParam]:
         return StatParam.multipledict(
             {key: dict(val.attrs) for key, val in self.params["Stats"].items()}
@@ -516,5 +570,5 @@ class Saver:
     writer: ResultWriter
 
     @classmethod
-    def setsaver(cls, filename: str, maxstrlen: int = 256) -> None:
-        cls.writer = ResultWriter(filename, maxstrlen)
+    def setsaver(cls, filename: str, maxstrlen: int = 256, lengrow: int = 10) -> None:
+        cls.writer = ResultWriter(filename, maxstrlen, lengrow)

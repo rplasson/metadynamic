@@ -1,7 +1,7 @@
 {
     "binode": false,
     "margin": 0.0,
-    "concentrate": true,
+    "concentrate": false,
     "maxsize": 5.0,
     "min_fontsize": 1.0,
     "max_fontsize": 20.0,

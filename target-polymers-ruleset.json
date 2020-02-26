@@ -1,0 +1,104 @@
+{
+    "rulemodel" : "metadynamic.target_polymer",
+    "categories" : {
+	"mono" :
+	{
+	    "func": "ismono",
+	    "descr": "check if the compound is a monomer"
+	},
+	"polym" : {"func": "ispolym"},
+	"longpol" : {"func" : "islongpol"},
+	"actpol" : {"func" : "isact"},
+	"actmono" : {"func" : "isactmono"},
+	"left" : {"func" : "isleft"},
+	"right" : {"func" : "isright"},
+	"target" : {"func" : "istarget"},
+	"complex" : {"func" : "iscomplex"}
+    },
+    "properties" : {
+	"length" : {"func" : "length"},
+	"asym" : {"func": "asym"}
+    },
+    "rules" : {
+	"P":
+	{
+	    "reactants" : ["polym", "polym"],
+	    "builder_func" : "merge",
+	    "builder_const" : "kslowmono",
+	    "builder_variant" : "novariant",
+	    "descr" : "Polymerization"
+	},
+	"A":
+	{
+	    "reactants" : ["actpol", "polym"],
+	    "builder_func" : "act_polym",
+	    "builder_const" : "kactselect",
+	    "builder_variant" : "novariant",
+	    "descr" : "Activated Polymerization"
+	},
+	"M":
+	{
+	    "reactants" : ["actmono", "polym"],
+	    "builder_func" : "act_polym",
+	    "builder_const" : "kactselect",
+	    "builder_variant" : "novariant",
+	    "descr" : "Activated Monomer Polymerization"
+	},
+	"a":
+	{
+	    "reactants" : ["polym"],
+	    "builder_func" : "activ",
+	    "builder_const" : "kfastmono",
+	    "builder_variant" : "novariant",
+	    "descr" : "Activation"
+	},
+	"d":
+	{
+	    "reactants" : ["actpol"],
+	    "builder_func" : "deactiv",
+	    "builder_const" : "kfastmono",
+	    "builder_variant" : "novariant",
+	    "descr" : "Deactivation"
+	},
+	"H":
+	{
+	    "reactants" : ["polym"],
+	    "builder_func" : "cut",
+	    "builder_const" : "khyd",
+	    "builder_variant" : "intervariant",
+	    "descr" : "Hydrolysis"
+	},
+	"R":
+	{
+	    "reactants" : ["longpol"],
+	    "builder_func" : "epimer",
+	    "builder_const" : "kmidselect",
+	    "builder_variant" : "lenvariant",
+	    "descr" : "Epimerization"
+	},
+	"E":
+	{
+	    "reactants" : ["longpol"],
+	    "builder_func" : "epimer",
+	    "builder_const" : "kmidselect",
+	    "builder_variant" : "firstonly",
+	    "descr" : "Epimerization at first end"
+	},
+	"ct":
+	{
+	    "reactants" : ["target", "polym"],
+	    "builder_func" : "complexation",
+	    "builder_const" : "k_complex",
+	    "builder_variant" : "novariant",
+	    "descr" : "complexation between a target and a polymer"
+	},
+	"dt":
+	{
+	    "reactants" : ["complex"],
+	    "builder_func" : "dissociation",
+	    "builder_const" : "k_disso",
+	    "builder_variant" : "novariant",
+	    "descr" : "dissociation of a complex into  a target and a polymer"
+	}
+    }
+}

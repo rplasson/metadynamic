@@ -19,8 +19,8 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 from json import load, dump, JSONDecodeError
-from typing import List, Dict, TypeVar, Type, Any, Union, Iterable, Callable
-from dataclasses import dataclass, field, Field, MISSING
+from typing import List, Dict, TypeVar, Type, Any
+from dataclasses import dataclass, field
 from metadynamic.caster import Caster
 
 from metadynamic.ends import BadFile, FileNotFound, BadJSON
@@ -30,6 +30,15 @@ R = TypeVar("R", bound="Readerclass")
 
 class LockedError(Exception):
     pass
+
+
+class Castreader(Caster):
+    def __call__(self, value: Any) -> Any:
+        if issubclass(self.dest, Readerclass):
+            return self.dest.readdict(value)
+        if self.dest is dict and issubclass(self.args[1].dest, Readerclass):
+            return self.args[1].dest.multipledict(value)
+        return super().__call__(value)
 
 
 @dataclass
@@ -106,17 +115,17 @@ class Readerclass:
         )
 
     @classmethod
-    def list_param(cls) -> Dict[str, Caster]:
+    def list_param(cls) -> Dict[str, Castreader]:
         if not hasattr(cls, "_list_param"):
             cls._list_param = {
-                key: Caster(val.type)
+                key: Castreader(val.type)
                 for key, val in cls.__dataclass_fields__.items()
                 if val.init
             }
         return cls._list_param
 
     @classmethod
-    def conv_param(cls, param: str) -> Caster:
+    def conv_param(cls, param: str) -> Castreader:
         return cls.list_param()[param]
 
     def checked_items(self, key: str, val: Any) -> Any:
@@ -145,7 +154,20 @@ class Readerclass:
         self.__post_init__()
 
     def asdict(self) -> Dict[str, Any]:
-        return {key: getattr(self, key) for key in self.list_param().keys()}
+        res = {}
+        for key in self.list_param().keys():
+            val = getattr(self, key)
+            if isinstance(val, Readerclass):
+                val = val.asdict()
+            elif isinstance(val, dict):
+                val = {
+                    subkey: subval.asdict()
+                    if isinstance(subval, Readerclass)
+                    else subval
+                    for subkey, subval in val.items()
+                }
+            res[key] = val
+        return res
 
     def tojson(self, filename: str) -> None:
         with open(filename, "w") as out:
@@ -189,43 +211,32 @@ class Readerclass:
 
 
 @dataclass
-class Param(Readerclass):
-    # chemical
-    conc: float = 0.1  # Concentration
-    ptot: int = field(init=False)
-    vol: float = field(init=False)
-    init: Dict[str, int] = field(default_factory=dict)  # initial concentrations
-    rulemodel: str = "metadynamic.polymers"  # rule model to be used
-    consts: Dict[str, List[float]] = field(default_factory=dict)  # kinetic constants
-    # simulation
-    tend: float = 1.0  # final simulation time
-    tstep: float = 0.01  # timestep
-    sstep: float = -1  # snapshot step (if <0: only at end, if = 0: at each step)
-    rtlim: float = 900.0  # Limit runtime
-    maxsteps: int = 10000  # maximum time steps
-    seed: int = 0  # random initial seed (now ignored)
-    # System
-    nbthread: int = 1  # number of thread (-1 is to use as many threads as detected cores)
-    autoclean: bool = True  # Perform a periodic cleaning of probabilities if Treu
-    dropmode: str = ""  # drop mode (can be 'keep', 'drop' or 'soft')
-    gcperio: bool = True  # if True, only call garbage collector at each timestep.
-    context: str = "fork"  # thread context to be used (now, only "fork" is implemented)
-    endbarrier: float = 0.01  # If non zero, final threads will wait in idle loops of corresponding values
-    # IO
-    save: List[str] = field(
-        default_factory=list
-    )  # list of compounds to be saved at each time step
-    stat: str = ""  # json filename describing statistics
-    maps: str = ""  # json filename describing stat maps
-    snapshot: str = ""  # filename for final snapshot
-    printsnap: str = "pdf"  # filetype of snapshots
-    hdf5: str = ""  # filename for hdf5 file
-    maxstrlen: int = 256  # max string length to be stored in hdf5
-    maxlog: int = 1024  # max log lines per process to be saved
+class CategoryParam(Readerclass):
+    func: str = ""
+    descr: str = ""
 
-    def __post_init__(self) -> None:
-        self.ptot = sum([pop * len(comp) for comp, pop in self.init.items()])
-        self.vol = self.ptot / self.conc
+
+@dataclass
+class PropertyParam(Readerclass):
+    func: str = ""
+    descr: str = ""
+
+
+@dataclass
+class RuleParam(Readerclass):
+    reactants: List[str] = field(default_factory=list)
+    builder_func: str = ""
+    builder_const: str = "kinvar"
+    builder_variant: str = "novariant"
+    descr: str = ""
+
+
+@dataclass
+class RulesetParam(Readerclass):
+    rulemodel: str = "metadynamic.polymers"  # rulemodel to be used
+    categories: Dict[str, CategoryParam] = field(default_factory=dict)  # categories
+    properties: Dict[str, PropertyParam] = field(default_factory=dict)  # properties
+    rules: Dict[str, RuleParam] = field(default_factory=dict)  # rules
 
 
 @dataclass
@@ -248,13 +259,55 @@ class MapParam(Readerclass):
 
 
 @dataclass
+class Param(Readerclass):
+    # chemical
+    conc: float = 0.1  # Concentration
+    ptot: int = field(init=False)
+    vol: float = field(init=False)
+    init: Dict[str, int] = field(default_factory=dict)  # initial concentrations
+    rulemodel: str = "polymers-ruleset.json"  # rule model to be used
+    consts: Dict[str, List[float]] = field(default_factory=dict)  # kinetic constants
+    # simulation
+    tend: float = 1.0  # final simulation time
+    tstep: float = 0.01  # timestep
+    sstep: float = -1  # snapshot step (if <0: only at end, if = 0: at each step)
+    rtlim: float = 900.0  # Limit runtime
+    maxsteps: int = 10000  # maximum time steps
+    # System
+    autoclean: bool = True  # Perform a periodic cleaning of probabilities if Treu
+    dropmode: str = ""  # drop mode (can be 'keep', 'drop' or 'soft')
+    gcperio: bool = True  # if True, only call garbage collector at each timestep.
+    endbarrier: float = 0.01  # If non zero, final threads will wait in idle loops of corresponding values
+    # IO
+    save: List[str] = field(
+        default_factory=list
+    )  # list of compounds to be saved at each time step
+    stat: str = ""  # json filename describing statistics
+    statparam: Dict[str, StatParam] = field(init=False)
+    maps: str = ""  # json filename describing stat maps
+    mapsparam: Dict[str, MapParam] = field(init=False)
+    snapshot: str = ""  # filename for final snapshot
+    printsnap: str = "pdf"  # filetype of snapshots
+    hdf5: str = ""  # filename for hdf5 file
+    maxstrlen: int = 256  # max string length to be stored in hdf5
+    lengrow: int = 10  # number of length left before requesting a resize
+    maxlog: int = 100  # max log lines per process to be saved
+
+    def __post_init__(self) -> None:
+        self.ptot = sum([pop * len(comp) for comp, pop in self.init.items()])
+        self.vol = self.ptot / self.conc
+        self.statparam = StatParam.readmultiple(self.stat)
+        self.mapsparam = MapParam.readmultiple(self.maps)
+
+
+@dataclass
 class DotParam(Readerclass):
     # type
     binode: bool = False
     # Graph rendering
     margin: float = 0.0
-    concentrate: bool = True
-    maxsize: float = 5.0
+    concentrate: bool = False
+    maxsize: float = 10.0
     # compounds
     min_fontsize: float = 1.0
     max_fontsize: float = 20.0
