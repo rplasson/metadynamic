@@ -100,12 +100,12 @@ class Graphwriter:
 
     def render(self, filename: str, engine: str = "dot", view: bool = False) -> bool:
         try:
-            filename, export = path.splitext(filename)
+            _, export = path.splitext(filename)
             export = export[1:]
         except ValueError:
             export = "dot"
         if export == "dot":
-            with open(filename + ".dot", "w") as out:
+            with open(filename, "w") as out:
                 out.write(self.dot.source)
         else:
             self.dot.engine = engine
@@ -125,8 +125,8 @@ class Json2dot:
         reactions = data["Reactions"]
         self.converter = Data2dot(compounds, reactions, parameterfile)
 
-    def write(self, outfilename: str) -> None:
-        self.converter.write(outfilename)
+    def write(self, outfilename: str) -> bool:
+        return self.converter.write(outfilename)
 
 
 class Data2dot:
