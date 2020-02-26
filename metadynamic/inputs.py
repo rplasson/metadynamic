@@ -274,10 +274,11 @@ class Param(Readerclass):
     rtlim: float = 900.0  # Limit runtime
     maxsteps: int = 10000  # maximum time steps
     # System
-    autoclean: bool = True  # Perform a periodic cleaning of probabilities if Treu
+    autoclean: bool = True  # Perform a periodic cleaning of probabilities if True
     dropmode: str = ""  # drop mode (can be 'keep', 'drop' or 'soft')
     gcperio: bool = True  # if True, only call garbage collector at each timestep.
     endbarrier: float = 0.01  # If non zero, final threads will wait in idle loops of corresponding values
+    maxmem: int = 2048  # Max memory (in Mb).
     # IO
     save: List[str] = field(
         default_factory=list

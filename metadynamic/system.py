@@ -76,6 +76,7 @@ class RunStatus(Logged):
 
     @property
     def memuse(self) -> float:
+        """Return the memory used by the process in Mb"""
         return float(Process(getpid()).memory_info().rss) / 1024 / 1024
 
     @property
@@ -357,6 +358,9 @@ class System(Probalistic, Collected, Saver, Parallel):
                 try:
                     self.status.logstat()
                     self._process()
+                    if self.status.memuse > self.param.maxmem/gate.mem_divide:
+                        self.log.warning(f"{self.status.memuse}>{self.param.maxmem/gate.mem_divide}, call oom")
+                        gate.close("oom")
                     if self.param.gcperio:
                         gc.collect()
                     statistic.writestat()
@@ -369,11 +373,12 @@ class System(Probalistic, Collected, Saver, Parallel):
                     end = f"{the_end} ({self.log.runtime()} s)"
                     statistic.end(the_end)
                     break
-        self.log.debug(f"Run #{num}={getpid()} finished")
+            else:
+                the_end = Interrupted("by kind request of OOM killer")
+                end = f"{the_end} ({self.log.runtime()} s)"
+                statistic.end(the_end)
+        self.log.info(f"Run #{num}={getpid()} finished")
         statistic.calcsnapshot(final=True)
-        if num >= 0:
-            # Clean memory as much as possible to leave room to still alive threads
-            self.purge(num)
         statistic.writesnap()
         statistic.writemap()
         statistic.close()

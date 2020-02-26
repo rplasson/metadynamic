@@ -59,6 +59,7 @@ class MpiGate:
         self.gatenum: int = taginit
         self.running: bool = True
         self.nb_running: int = self.size
+        self.mem_divide: int = self.size
         self.cont = Cont()
         self.msg: List[int] = [0] * (self.size)
         self._op: Dict[int, Callable[[], None]] = {
@@ -95,10 +96,12 @@ class MpiGate:
         self._op[funcnum]()
 
     def oomkill(self) -> None:
+        self.mem_divide = self.nb_running
         runningpos = where(self.comm.allgather(self.running))
         for running in runningpos[0][::2]:
             if running == self.rank:
                 self.cont.stop()
+            self.mem_divide -= 1
 
     def check_all_out(self) -> None:
         self.nb_running = self.comm.allreduce(self.running, op=MPI.SUM)

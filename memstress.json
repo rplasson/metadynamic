@@ -7,17 +7,20 @@
         "c" : 1000
     },
     "conc" : 1.0,
-    "tend" : 0.5,
-    "tstep" : 0.001,
+    "tend" : 4.0,
+    "tstep" : 0.01,
     "sstep" : 0.1,
     "save" : ["a", "aa", "aaa", "ba", "baba", "aaaa", "A", "Aa", "aA", "AA"],
     "snapshot" : "testlog/memstress-snapshot.json",
+    "hdf5" : "results/memstress.hdf5",
     "consts" :
     {
         "P" : [10.0, 10.0],
 	"H" : [1.0, 1.0],
         "E" : [0.1, 0.1, 0.1]
     },
-    "gcperio" : false    
+    "gcperio" : false,
+    "dropmode" : "keep",
+    "maxmem" : 1024
 }
 
