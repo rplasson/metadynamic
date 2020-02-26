@@ -23,7 +23,6 @@
 	"ct" : [100.0],
 	"dt" : [1.0, 1000.0]
     },
-    "nbthread" : 1,
     "gcperio" : false    
 }
 

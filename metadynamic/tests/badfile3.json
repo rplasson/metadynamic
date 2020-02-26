@@ -17,6 +17,5 @@
 	"d": 1.0,
 	"R": 0.1,
     },
-    "dropmode" : "drop",
-    "context" : "spawn"
+    "dropmode" : "drop"
 }

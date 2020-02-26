@@ -532,7 +532,7 @@ class ResultReader:
         return Param.readdict(res)
 
     @property
-    def ruleset(self) -> Param:
+    def ruleset(self) -> RulesetParam:
         ruleset = dict(self.params["Rules"].attrs)
         res = ruleset.copy()
         for key, val in ruleset.items():

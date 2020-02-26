@@ -18,6 +18,5 @@
 	"d": [1.0 , 1.0] ,
 	"R": [0.1 , 0.1, 0.1]
     },
-    "dropmo" : "drop",
-    "context" : 125
+    "dropmo" : "drop"
 }
