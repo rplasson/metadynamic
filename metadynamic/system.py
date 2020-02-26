@@ -301,9 +301,7 @@ class System(Probalistic, Collected, Saver, Parallel):
             raise InitError("Double Initialization")
         if self.param.gcperio:
             gc.disable()
-        # If seed set, always restart from the same seed. For timing/debugging purpose
         Probalistic.setprobalist(vol=self.param.vol)
-        self.probalist.seed(self.param.seed)
         # Add all options for collections
         Collected.setcollections(dropmode_reac=self.param.dropmode)
         Ruled.setrules(self.param.rulemodel, self.param.consts)

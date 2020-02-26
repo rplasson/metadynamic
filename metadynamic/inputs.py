@@ -273,7 +273,6 @@ class Param(Readerclass):
     sstep: float = -1  # snapshot step (if <0: only at end, if = 0: at each step)
     rtlim: float = 900.0  # Limit runtime
     maxsteps: int = 10000  # maximum time steps
-    seed: int = 0  # random initial seed (now ignored)
     # System
     nbthread: int = 1  # number of thread (-1 is to use as many threads as detected cores)
     autoclean: bool = True  # Perform a periodic cleaning of probabilities if Treu
