@@ -309,7 +309,7 @@ class DotParam(Readerclass):
     binode: bool = False
     # Graph rendering
     margin: float = 0.0
-    concentrate: bool = True
+    concentrate: bool = False
     maxsize: float = 10.0
     # compounds
     min_fontsize: float = 1.0
