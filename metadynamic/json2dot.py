@@ -23,6 +23,7 @@ from itertools import product
 from numpy import array
 from json import load
 from graphviz import Digraph
+from subprocess import CalledProcessError
 from typing import Any, Tuple, Dict, List
 
 from metadynamic.inputs import DotParam
@@ -97,7 +98,7 @@ class Graphwriter:
     def edge(self, start: str, end: str, width: float, color: str) -> None:
         self.dot.edge(start, end, penwidth=str(width), color=color)
 
-    def render(self, filename: str, engine: str = "dot", view: bool = False) -> None:
+    def render(self, filename: str, engine: str = "dot", view: bool = False) -> bool:
         try:
             filename, export = path.splitext(filename)
             export = export[1:]
@@ -109,7 +110,11 @@ class Graphwriter:
         else:
             self.dot.engine = engine
             self.dot.format = export
-            self.dot.render(filename, view=view, cleanup=True)
+            try:
+                self.dot.render(filename, view=view, cleanup=True)
+            except CalledProcessError:
+                return False
+        return True
 
 
 class Json2dot:
@@ -225,8 +230,8 @@ class Data2dot:
                 width = scaler(const)
                 self.crn.reaction(name=name, width=width, color=color)
 
-    def write(self, filename: str) -> None:
-        self.crn.render(filename)
+    def write(self, filename: str) -> bool:
+        return self.crn.render(filename)
 
     def view(self, filename: str) -> None:
         self.crn.dot.view()

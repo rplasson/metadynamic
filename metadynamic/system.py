@@ -231,7 +231,8 @@ class Statistic(Collected, Saver, Parallel):
             self._nbcomp = max(self._nbcomp, nbcomp)
             self._nbreac = max(self._nbreac, nbreac)
             if self.param.printsnap:
-                Json2dot(filename).write(f"{basename}.{self.param.printsnap}")
+                if not Json2dot(filename).write(f"{basename}.{self.param.printsnap}"):
+                    self.log.error(f"Couldn't create snapshot {filename}")
 
     def writesnap(self) -> None:
         # Correct snapshot sizes
