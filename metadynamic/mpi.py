@@ -57,8 +57,8 @@ class MpiGate:
         self.snd_state: List[Optional[MPI.Request]] = [None] * (self.size)
         self.rcv_state: List[bool] = [False] * (self.size)
         self.gatenum: int = taginit
-        self.out: bool = False
-        self.still_running: bool = True
+        self.running: bool = True
+        self.nb_running: int = self.size
         self.cont = Cont()
         self.msg: List[int] = [0] * (self.size)
         self._op: Dict[int, Callable[[], None]] = {
@@ -94,7 +94,7 @@ class MpiGate:
         self._op[funcnum]()
 
     def check_all_out(self) -> None:
-        self.still_running = not self.comm.allreduce(self.out, op=MPI.LAND)
+        self.nb_running = self.comm.allreduce(self.running, op=MPI.SUM)
 
     def check_msg(self, tag: int) -> None:
         for src in self.procs:
@@ -152,9 +152,9 @@ class MpiGate:
             self.open()
 
     def exit(self, sleeptime: float = 0.1) -> None:
-        self.out = True
+        self.running = False
         self.close("final")
-        while self.still_running:
+        while self.nb_running > 0:
             self.checkpoint()
             sleep(sleeptime)
 
