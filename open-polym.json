@@ -1,0 +1,26 @@
+{
+    "init" :
+    {
+	"a": 1000,
+	"a#" : 1
+    },
+    "conc" : 1.0,
+    "tend" : 100.0,
+    "tstep" : 10.0,
+    "sstep" : 10.0,
+    "save" : ["a", "aa", "aaa", "aaaa", "aaaaa"],
+    "snapshot" : "log/open-polym-snapshot.json",
+    "hdf5" : "results/open-polym.hdf5",
+    "endbarrier" : 0.1,
+    "rtlim" : 600.0,
+    "rulemodel" : "open-polym-ruleset.json",
+    "consts" :{
+	"P": [10.0, 1.0],
+	"H": [1.0, 0.1],
+	"in": [10.0],
+	"out": [0.01]
+    },
+    "dropmode" : "keep",
+    "maxsteps" : 10000,
+    "maxlog" : 100
+}
