@@ -249,7 +249,7 @@ class Statistic(Collected, Saver, Parallel):
         for time, filename in zip(self._snaptimes, self._snapfilenames):
             with open(filename, "r") as reader:
                 data = load(reader)
-            self.writer.add_snapshot(data["Compounds"], data["Reactions"], col, time)
+            self.writer.add_snapshot(data["Compounds"], data["Reactions"]  if self.param.store_snapreac else {}, col, time)
             col += 1
 
     def end(self, the_end: Finished) -> None:
@@ -374,9 +374,9 @@ class System(Probalistic, Collected, Saver, Parallel):
                     statistic.end(the_end)
                     break
             else:
-                the_end = Interrupted("by kind request of OOM killer")
-                end = f"{the_end} ({self.log.runtime()} s)"
-                statistic.end(the_end)
+                gate_end = Interrupted("by kind request of OOM killer")
+                end = f"{gate_end} ({self.log.runtime()} s)"
+                statistic.end(gate_end)
         self.log.info(f"Run #{num}={getpid()} finished")
         statistic.calcsnapshot(final=True)
         statistic.writesnap()

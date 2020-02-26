@@ -290,6 +290,7 @@ class Param(Readerclass):
     snapshot: str = ""  # filename for final snapshot
     printsnap: str = "pdf"  # filetype of snapshots
     hdf5: str = ""  # filename for hdf5 file
+    store_snapreac: bool = False  # Store reaction snapshots? (can take lots of time)
     maxstrlen: int = 256  # max string length to be stored in hdf5
     lengrow: int = 10  # number of length left before requesting a resize
     maxlog: int = 100  # max log lines per process to be saved
