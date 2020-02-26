@@ -141,6 +141,11 @@ class Interrupted(Aborted):
     error_message = "Asked to stop"
 
 
+class OOMError(Aborted):
+    num = 33
+    error_message = "Out of Memory"
+
+
 # IO errors
 
 

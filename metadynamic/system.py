@@ -42,6 +42,7 @@ from metadynamic.ends import (
     SignalCatcher,
     FileNotFound,
     InternalError,
+    OOMError,
 )
 from metadynamic.logger import Logged
 from metadynamic.proba import Probalistic
@@ -374,7 +375,7 @@ class System(Probalistic, Collected, Saver, Parallel):
                     statistic.end(the_end)
                     break
             else:
-                gate_end = Interrupted("by kind request of OOM killer")
+                gate_end = OOMError("Stopped by kind request of OOM killer")
                 end = f"{gate_end} ({self.log.runtime()} s)"
                 statistic.end(gate_end)
         self.log.info(f"Run #{num}={getpid()} finished")
