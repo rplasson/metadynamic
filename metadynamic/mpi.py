@@ -20,7 +20,7 @@
 
 from mpi4py import MPI
 from time import sleep
-from numpy import array, ndarray, empty
+from numpy import array, ndarray, empty, where
 from typing import List, Dict, Any, Callable, Iterable, Optional, Type
 from types import TracebackType
 
@@ -65,8 +65,9 @@ class MpiGate:
             1: nop,
             2: self.check_all_out,
             3: self.cont.stop,
+            4: self.oomkill,
         }
-        self._opnum: Dict[str, int] = {"nop": 1, "final": 2, "exit": 3}
+        self._opnum: Dict[str, int] = {"nop": 1, "final": 2, "exit": 3, "oom": 4}
         if operations:
             for name, op in operations.items():
                 self.register_function(name, op)
@@ -92,6 +93,12 @@ class MpiGate:
 
     def operate(self, funcnum: int) -> None:
         self._op[funcnum]()
+
+    def oomkill(self) -> None:
+        runningpos = where(self.comm.allgather(self.running))
+        for running in runningpos[0][::2]:
+            if running == self.rank:
+                self.cont.stop()
 
     def check_all_out(self) -> None:
         self.nb_running = self.comm.allreduce(self.running, op=MPI.SUM)

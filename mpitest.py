@@ -29,9 +29,9 @@ with gate.context():
         if random() > 0.98:
             logmsg(f"Made a mistake")
             raise ValueError("Oups")
-        if random() > 0.99:
-            logmsg(f"Please, exit")
-            gate.close("exit")
+        if random() > 0.95:
+            logmsg(f"Kill half !")
+            gate.close("oom")
         sleep(random())
         # Stuff done
         gate.checkpoint()
