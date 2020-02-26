@@ -24,6 +24,9 @@ parser.add_argument(
 parser.add_argument(
     "--level", metavar="loglevel", type=str, nargs="?", help="log level", default="INFO"
 )
+parser.add_argument(
+    "--compress", metavar="compress", type=str, nargs="?", help="log level", default="GZIP=9"
+)
 
 args = parser.parse_args()
 
@@ -39,11 +42,11 @@ res = launch(
     paramfile.name, logfile=args.log, loglevel=args.level, comment=args.comment
 )
 
-if Parallel.mpi.rank == 0:
+if args.compress != "no" and Parallel.mpi.rank == 0:
     try:
         old = param.hdf5
         new = old+".repacked"
-        call(["h5repack", "-f", "GZIP=9", old, new])
+        call(["h5repack", "-f", args.compress, old, new])
         rename(new, old)
     except FileNotFoundError:
         print("Couldn't find 'h5repack' utility, outputfile is uncompressed")
