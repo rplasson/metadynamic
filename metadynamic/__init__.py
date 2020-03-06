@@ -19,10 +19,10 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 
-from .version import __version__
-from .system import System
-from .result import ResultReader
-from .launcher import launch
+from metadynamic.version import __version__
+from metadynamic.system import System
+from metadynamic.result import ResultReader
+from metadynamic.launcher import launch
 
 # if somebody does "from somepackage import *", this is what they will
 # be able to access:
