@@ -37,7 +37,7 @@ from itertools import repeat
 
 from metadynamic.collector import Collect, Collectable
 from metadynamic.proba import Probalistic
-from metadynamic.ends import DecrZero
+from metadynamic.ends import DecrZero, NoMore
 from metadynamic.ruleset import Ruled, ReacDescr
 from metadynamic.inval import isvalid, Invalid, invalidint
 
@@ -283,6 +283,8 @@ class Reaction(Chemical[ReacDescr], Probalistic):
         for reac, order in self.stoechio:
             reac.change_pop(-order)
         trigger_changes(self)
+        if self.probalist.probtot == 0:
+            raise NoMore(f"t={self.status.time}")
 
     def _ordern(self, pop: int, order: int) -> int:
         return pop if order == 1 else pop * self._ordern(pop - 1, order - 1)

@@ -34,7 +34,6 @@ from metadynamic.ends import (
     TimesUp,
     RuntimeLim,
     NotFound,
-    NoMore,
     HappyEnding,
     BadEnding,
     InitError,
@@ -250,7 +249,12 @@ class Statistic(Collected, Saver, Parallel):
         for time, filename in zip(self._snaptimes, self._snapfilenames):
             with open(filename, "r") as reader:
                 data = load(reader)
-            self.writer.add_snapshot(data["Compounds"], data["Reactions"]  if self.param.store_snapreac else {}, col, time)
+            self.writer.add_snapshot(
+                data["Compounds"],
+                data["Reactions"] if self.param.store_snapreac else {},
+                col,
+                time,
+            )
             col += 1
 
     def end(self, the_end: Finished) -> None:
@@ -331,8 +335,6 @@ class System(Probalistic, Collected, Saver, Parallel):
                 raise NotFound(f"t={self.status.time}")
             # perform the (chosen one) event
             chosen.process()
-            if self.probalist.probtot == 0:
-                raise NoMore(f"t={self.status.time}")
             if not self.signcatch.alive:
                 raise Interrupted(
                     f" by {self.signcatch.signal} at t={self.status.time}"
@@ -359,8 +361,10 @@ class System(Probalistic, Collected, Saver, Parallel):
                 try:
                     self.status.logstat()
                     self._process()
-                    if self.status.memuse > self.param.maxmem/gate.mem_divide:
-                        self.log.warning(f"{self.status.memuse}>{self.param.maxmem/gate.mem_divide}, call oom")
+                    if self.status.memuse > self.param.maxmem / gate.mem_divide:
+                        self.log.warning(
+                            f"{self.status.memuse}>{self.param.maxmem/gate.mem_divide}, call oom"
+                        )
                         gate.close("oom")
                     if self.param.gcperio:
                         gc.collect()
