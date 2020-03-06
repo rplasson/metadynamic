@@ -137,16 +137,6 @@ class Collect(Generic[K, T], Ruled):
         Must be implemented in subclasses"""
         raise NotImplementedError
 
-    def purge(self) -> None:
-        keys: List[K] = list(self.pool.keys())
-        for key in keys:
-            self.pool[key].delete()
-            try:
-                del self.pool[key]
-            except KeyError:
-                # Already purged by delete process
-                pass
-
     def save(self, full: bool = False) -> Dict[str, T]:
         dataset = self.pool if full else self.active
         return {str(val): val for val in dataset.values()}

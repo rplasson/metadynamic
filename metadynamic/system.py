@@ -391,14 +391,6 @@ class System(Probalistic, Collected, Saver, Parallel):
             self.log.disconnect(f"Disconnected from #{num}")
         return end
 
-    def purge(self, num: int) -> None:
-        self.comp_collect.purge()
-        self.reac_collect.purge()
-        Probalistic.setprobalist(vol=self.param.vol)
-        trigger_changes()
-        gc.collect()
-        self.log.debug(f"Collection purged for #{num}")
-
     def run(self) -> List[str]:
         if self.mpi.ismpi:
             self.log.info(f"Launching MPI run from thread #{self.mpi.rank}")
