@@ -158,6 +158,9 @@ class ResultWriter(Parallel):
                 ("rate", "float32"),
             ],
         )
+        self.reacsnapsaved: Dataset = self.snapshots.create_dataset(
+            "reactions_saved", (size, 1), maxshape=(size, None), dtype=bool,
+        )
         self._snapsized: bool = False
         self.maps: Group = self.h5file.create_group("Maps")
         for name in mapnames:
@@ -207,6 +210,7 @@ class ResultWriter(Parallel):
         self.timesnap.resize((self.mpi.size, maxsnap))
         self.compsnap.resize((self.mpi.size, maxsnap, maxcomp))
         self.reacsnap.resize((self.mpi.size, maxsnap, maxreac))
+        self.reacsnapsaved.resize((self.mpi.size, maxsnap))
         self._snapsized = True
 
     def close(self) -> None:
@@ -245,6 +249,7 @@ class ResultWriter(Parallel):
         self.test_initialized()
         if self._snapsized:
             self.timesnap[self.mpi.rank, col] = time
+            self.reacsnapsaved[self.mpi.rank, col] = len(reaclist) > 0
             for line, data in enumerate(complist.items()):
                 self.compsnap[self.mpi.rank, col, line] = (
                     data[0][: self.maxstrlen],
