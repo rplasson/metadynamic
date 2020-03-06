@@ -282,7 +282,19 @@ class Statistic(Collected, Saver, Parallel):
         self.log.info(f"...written and closed, done.")
 
 
-class System(Probalistic, Collected, Saver, Parallel):
+class CRN(Probalistic, Collected):
+    def __init__(self, param: Param):
+        Probalistic.setprobalist(vol=param.vol)
+        # Add all options for collections
+        Collected.setcollections(dropmode_reac=param.dropmode)
+        Ruled.setrules(param.rulemodel, param.consts)
+        for compound, pop in param.init.items():
+            self.comp_collect[compound].change_pop(pop)
+        trigger_changes()
+        self.log.info(f"Initialized with {param}")
+
+
+class System(Saver, Parallel, Logged):
     def __init__(
         self,
         filename: str,
@@ -307,29 +319,22 @@ class System(Probalistic, Collected, Saver, Parallel):
             raise InitError("Double Initialization")
         if self.param.gcperio:
             gc.disable()
-        Probalistic.setprobalist(vol=self.param.vol)
-        # Add all options for collections
-        Collected.setcollections(dropmode_reac=self.param.dropmode)
-        Ruled.setrules(self.param.rulemodel, self.param.consts)
+        self.crn = CRN(self.param)
         self.log.info("System created")
-        for compound, pop in self.param.init.items():
-            self.comp_collect[compound].change_pop(pop)
-        trigger_changes()
-        self.log.info(f"Initialized with {self.param}")
         self.initialized = True
         self.param.lock()
 
     def _process(self) -> None:
         # Check if a cleanup should be done
         if self.param.autoclean:
-            self.probalist.clean()
+            self.crn.probalist.clean()
         # Then process self.maxsteps times
         for _ in repeat(None, self.param.maxsteps):
             # ... but stop is step ends
             if self.status.finished:
                 break
             # choose a random event
-            chosen, dt = self.probalist.choose()
+            chosen, dt = self.crn.probalist.choose()
             # check if there even was an event to choose
             if chosen is None:
                 raise NotFound(f"t={self.status.time}")
