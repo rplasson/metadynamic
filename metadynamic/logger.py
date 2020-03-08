@@ -74,6 +74,9 @@ class BlackholeLogger:
     def removeHandler(self, handler: Handler) -> None:
         pass
 
+    def setLevel(self, level: str) -> None:
+        pass
+
 
 class Log(Saver):
     @staticmethod
@@ -81,6 +84,19 @@ class Log(Saver):
         return datetime.now().strftime("%H:%M:%S, %d/%m/%y")
 
     def __init__(self, filename: str = invalidstr, level: str = "INFO"):
+        self._timer: Timer
+        self._logger: Union[Logger, BlackholeLogger]
+        self._handler: Handler
+        self.connected: bool = False
+        self.setlevel(level)
+        self.tofile(filename)
+
+    def setlevel(self, level: str = "INFO") -> None:
+        self.level: str = level
+        if self.connected:
+            self._logger.setLevel(self.level)
+
+    def tofile(self, filename: str = invalidstr) -> None:
         if not filename:
             filename = invalidstr
         if isvalid(filename):
@@ -89,12 +105,8 @@ class Log(Saver):
             basename, suf = path.splitext(filename)
             self.filenamethread: str = basename + "-{}" + suf
         self.filename: str = filename
-        self._timer: Timer
-        self._logger: Union[Logger, BlackholeLogger]
-        self._handler: Handler
-        self.level: str = level
-        self.connected: bool = False
-        self.connect("Logger creation")
+        dest = filename if isvalid(filename) else "stream"
+        self.connect(f"Logger directed to {dest}")
 
     def connect(self, reason: str = "unknown", thread: int = invalidint) -> None:
         if not self.connected:
@@ -163,3 +175,6 @@ class Logged:
     @classmethod
     def setlogger(cls, filename: str = invalidstr, level: str = "INFO") -> None:
         cls.log = Log(filename, level)
+
+
+#LOGGER = Log()  # Problem at initial creation, looks for a Writer....
