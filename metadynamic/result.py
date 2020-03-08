@@ -29,6 +29,7 @@ from metadynamic.inval import invalidstr, invalidint, isvalid, invalidfloat
 from metadynamic.inputs import StatParam, MapParam, Param, RulesetParam
 from metadynamic.caster import Caster
 from metadynamic.json2dot import Data2dot
+from metadynamic.system import CRN
 
 
 comp_cast = Caster(Dict[str, int])
@@ -49,6 +50,7 @@ class ResultReader:
         self.timesnap: Dataset = self.snapshots["time"]
         self.compsnap: Dataset = self.snapshots["compounds"]
         self.reacsnap: Dataset = self.snapshots["reactions"]
+        self.reacsnapsave: Dataset = self.snapshots["reactions_saved"]
         self.maps: Group = self.h5file["Maps"]
         self.mapnames = self.maps.keys()
         self.logging: Group = self.h5file["Logging"]
@@ -126,13 +128,21 @@ class ResultReader:
             else res
         )
 
+    def getcrn(self, comp: Dict[str, int]) -> CRN:
+        param = self.parameters
+        param.set_param(init=comp)
+        return CRN(param)
+
     def getsnap(self, num: int, step: int, parameterfile: str = "") -> Digraph:
-        comp = comp_cast(self.snapshots["compounds"][num, step])
+        comp = comp_cast(self.compsnap[num, step])
         if "" in comp:
             comp.pop("")
-        reac = reac_cast(
-            {i: (j, k) for i, j, k in self.snapshots["reactions"][num, step]}
-        )
+        if self.reacsnapsave[num, step]:
+            reac = reac_cast(
+                {i: (j, k) for i, j, k in self.snapshots["reactions"][num, step]}
+            )
+        else:
+            reac = reac_cast(self.getcrn(comp).reac_collect.asdict())
         if "" in reac:
             reac.pop("")
         return Data2dot(comp, reac, parameterfile).crn.dot

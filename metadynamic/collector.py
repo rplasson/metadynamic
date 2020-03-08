@@ -141,6 +141,10 @@ class Collect(Generic[K, T], Ruled):
         dataset = self.pool if full else self.active
         return {str(val): val for val in dataset.values()}
 
+    def asdict(self, full: bool = False) -> Dict[str, Any]:
+        dataset = self.pool if full else self.active
+        return {str(val): val.serialize() for val in dataset.values()}
+
     def getprop(self, prop: str, obj: T) -> float:
         if prop != "count":
             raise BadFile(f"Unknown property {prop}")
