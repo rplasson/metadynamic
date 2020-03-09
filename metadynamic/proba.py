@@ -25,7 +25,7 @@ from numpy import append, log, zeros, full, dtype, float64
 from numba import jit
 
 from metadynamic.ends import RoundError, NoMore
-from metadynamic.logger import Logged
+from metadynamic.logger import LOGGER
 from metadynamic.inval import isvalid
 
 
@@ -40,7 +40,7 @@ def choice(data: Iterable[float], proba: float) -> int:
     return -1
 
 
-class Probalistic(Logged):
+class Probalistic:
     probalist: "Probalist"
 
     @classmethod
@@ -48,7 +48,7 @@ class Probalistic(Logged):
         cls.probalist = Probalist(vol)
 
 
-class Probalist(Logged):
+class Probalist:
     def __init__(self, vol: float = 1, maxlength: int = 100):
         self.vol = vol
         # List of objects ### Check replacement with list instead of numpy array !
@@ -112,7 +112,7 @@ class Probalist(Logged):
                 )
             dt = log(1 / self.sysrand.random()) / self.probtot
             if chosen is None:
-                self.log.error(
+                LOGGER.error(
                     f"Badly destroyed reaction from {self._mapobj} with proba {self._problist}"
                 )
             return (chosen, dt)

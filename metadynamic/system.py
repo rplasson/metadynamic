@@ -43,7 +43,7 @@ from metadynamic.ends import (
     InternalError,
     OOMError,
 )
-from metadynamic.logger import Logged
+from metadynamic.logger import LOGGER
 from metadynamic.proba import Probalistic
 from metadynamic.ruleset import Ruled
 from metadynamic.collector import Collectable
@@ -62,7 +62,7 @@ class Encoder(JSONEncoder):
         return super().default(obj)
 
 
-class RunStatus(Logged):
+class RunStatus:
     def __init__(self, param: Param):
         self.param = param
 
@@ -84,7 +84,7 @@ class RunStatus(Logged):
         return [
             1,
             self.num,
-            self.log.runtime(),
+            LOGGER.runtime(),
             self.memuse,
             self.step,
             self.dstep,
@@ -92,7 +92,7 @@ class RunStatus(Logged):
         ]
 
     def logstat(self) -> None:
-        self.log.info(f"#{self.step}'{self.dstep}'': {self.time} -> {self.tnext}")
+        LOGGER.info(f"#{self.step}'{self.dstep}'': {self.time} -> {self.tnext}")
 
     def inc(self, dt: float) -> None:
         self.time += dt
@@ -106,7 +106,7 @@ class RunStatus(Logged):
     def checkend(self) -> None:
         if self.time >= self.param.tend:
             raise TimesUp(f"t={self.time}")
-        if self.log.runtime() >= self.param.rtlim:
+        if LOGGER.runtime() >= self.param.rtlim:
             raise RuntimeLim(f"t={self.time}")
 
     @property
@@ -149,7 +149,7 @@ class Statistic(Collected, Parallel):
 
     def startwriter(self) -> None:
         if self.param.hdf5 == "":
-            self.log.error("No hdf5 filename given, can't save")
+            LOGGER.error("No hdf5 filename given, can't save")
             raise FileNotFound("No hdf5 filename given, can't save")
         else:
             self.writer.init_stat(
@@ -176,7 +176,7 @@ class Statistic(Collected, Parallel):
             ]
         )
         self.writer.add_data(res)
-        self.log.debug(str(res))
+        LOGGER.debug(str(res))
 
     def calcmap(self) -> None:
         for name, maps in self.param.mapsparam.items():
@@ -236,7 +236,7 @@ class Statistic(Collected, Parallel):
             self._nbreac = max(self._nbreac, nbreac)
             if self.param.printsnap:
                 if not Json2dot(filename).write(f"{basename}.{self.param.printsnap}"):
-                    self.log.error(
+                    LOGGER.error(
                         f"Couldn't create snapshot {basename}.{self.param.printsnap} from {filename}"
                     )
 
@@ -245,7 +245,7 @@ class Statistic(Collected, Parallel):
         nbsnap = self.mpi.max(self._nbsnap)
         nbcomp = self.mpi.max(self._nbcomp)
         nbreac = self.mpi.max(self._nbreac)
-        self.log.debug(f"resize snapshot with {nbsnap}-{nbcomp}-{nbreac}")
+        LOGGER.debug(f"resize snapshot with {nbsnap}-{nbcomp}-{nbreac}")
         self.writer.snapsize(nbcomp, nbreac, nbsnap)
         # Write snapshots
         col = 0
@@ -261,13 +261,13 @@ class Statistic(Collected, Parallel):
             col += 1
 
     def end(self, the_end: Finished) -> None:
-        self.writer.add_end(the_end, self.log.runtime())
+        self.writer.add_end(the_end, LOGGER.runtime())
         if isinstance(the_end, HappyEnding):
-            self.log.info(str(the_end))
+            LOGGER.info(str(the_end))
         elif isinstance(the_end, BadEnding):
-            self.log.error(str(the_end))
+            LOGGER.error(str(the_end))
         else:
-            self.log.warning(str(the_end))
+            LOGGER.warning(str(the_end))
 
     def close_log(self) -> None:
         cutline = self.mpi.max(self.writer.logcount[self.mpi.rank])
@@ -278,11 +278,11 @@ class Statistic(Collected, Parallel):
         self.writer.data_resize(maxcol)
 
     def close(self) -> None:
-        self.log.info(f"File {self.writer.filename} to be written and closed...")
+        LOGGER.info(f"File {self.writer.filename} to be written and closed...")
         self.data_recut()
         self.close_log()
         self.writer.close()
-        self.log.info(f"...written and closed, done.")
+        LOGGER.info(f"...written and closed, done.")
 
 
 class CRN(Probalistic, Collected):
@@ -294,10 +294,10 @@ class CRN(Probalistic, Collected):
         for compound, pop in param.init.items():
             self.comp_collect[compound].change_pop(pop)
         trigger_changes()
-        self.log.info(f"Initialized with {param}")
+        LOGGER.info(f"Initialized with {param}")
 
 
-class System(Parallel, Logged):
+class System(Parallel):
     def __init__(
         self,
         filename: str,
@@ -312,10 +312,11 @@ class System(Parallel, Logged):
         self.writer = ResultWriter(
             self.param.hdf5, self.param.maxstrlen, self.param.lengrow
         )
-        Logged.setlogger(logfile, loglevel)
-        self.log.setsaver(self.writer)
+        LOGGER.setlevel(loglevel)
+        LOGGER.settxt(logfile)
+        LOGGER.setsaver(self.writer)
         self.writer.init_log(self.param.maxlog)
-        self.log.info("Parameter files loaded.")
+        LOGGER.info("Parameter files loaded.")
         self.signcatch = SignalCatcher()
         self.status = RunStatus(self.param)
         self.comment = comment
@@ -326,7 +327,7 @@ class System(Parallel, Logged):
         if self.param.gcperio:
             gc.disable()
         self.crn = CRN(self.param)
-        self.log.info("System created")
+        LOGGER.info("System created")
         self.initialized = True
         self.param.lock()
 
@@ -353,18 +354,18 @@ class System(Parallel, Logged):
             # update time for next step
             self.status.inc(dt)
         if not self.status.finished:
-            self.log.warning(f"maxsteps per process (={self.param.maxsteps}) too low")
+            LOGGER.warning(f"maxsteps per process (={self.param.maxsteps}) too low")
 
     def _run(self, num: int = -1) -> str:
         self.status.initialize(num)
         statistic = Statistic(self.writer, self.param, self.status, self.comment)
         if num >= 0:
-            self.log.connect(f"Reconnected from thread {num+1}", num + 1)
+            LOGGER.connect(f"Reconnected from thread {num+1}", num + 1)
         if not self.initialized:
-            self.log.info("Will initialize")
+            LOGGER.info("Will initialize")
             self.initialize()
         statistic.startwriter()
-        self.log.info(f"Run #{num}={getpid()} launched")
+        LOGGER.info(f"Run #{num}={getpid()} launched")
         self.signcatch.listen()
         # Process(getpid()).cpu_affinity([num % cpu_count()])
         with self.gate.context() as gate:
@@ -373,7 +374,7 @@ class System(Parallel, Logged):
                     self.status.logstat()
                     self._process()
                     if self.status.memuse > self.param.maxmem / gate.mem_divide:
-                        self.log.warning(
+                        LOGGER.warning(
                             f"{self.status.memuse}>{self.param.maxmem/gate.mem_divide}, call oom"
                         )
                         gate.close("oom")
@@ -386,30 +387,30 @@ class System(Parallel, Logged):
                     self.status.checkend()
                     gate.checkpoint()
                 except Finished as the_end:
-                    end = f"{the_end} ({self.log.runtime()} s)"
+                    end = f"{the_end} ({LOGGER.runtime()} s)"
                     statistic.end(the_end)
                     break
             else:
                 gate_end = OOMError("Stopped by kind request of OOM killer")
-                end = f"{gate_end} ({self.log.runtime()} s)"
+                end = f"{gate_end} ({LOGGER.runtime()} s)"
                 statistic.end(gate_end)
-        self.log.info(f"Run #{num}={getpid()} finished")
+        LOGGER.info(f"Run #{num}={getpid()} finished")
         statistic.calcsnapshot(final=True)
         statistic.writesnap()
         statistic.writemap()
         statistic.close()
         if num >= 0:
-            self.log.disconnect(f"Disconnected from #{num}")
+            LOGGER.disconnect(f"Disconnected from #{num}")
         return end
 
     def run(self) -> List[str]:
         if self.mpi.ismpi:
-            self.log.info(f"Launching MPI run from thread #{self.mpi.rank}")
-            self.log.disconnect(reason="Launching MPI....")
+            LOGGER.info(f"Launching MPI run from thread #{self.mpi.rank}")
+            LOGGER.disconnect(reason="Launching MPI....")
             res = [self._run(self.mpi.rank)]
             self.signcatch.reset()
             return res
-        self.log.info("Launching single run.")
+        LOGGER.info("Launching single run.")
         res = [self._run()]
         self.signcatch.reset()
         return res
@@ -419,4 +420,4 @@ class System(Parallel, Logged):
             self.param.set_param(**kwd)
         except LockedError:
             raise InternalError("Parameter set after initialization")
-        self.log.info(f"Parameters changed: {self.param}")
+        LOGGER.info(f"Parameters changed: {self.param}")

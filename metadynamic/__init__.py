@@ -23,7 +23,8 @@ from metadynamic.version import __version__
 from metadynamic.system import System, CRN
 from metadynamic.result import ResultReader
 from metadynamic.launcher import launch
+from metadynamic.logger import LOGGER
 
 # if somebody does "from somepackage import *", this is what they will
 # be able to access:
-__all__ = ["System", "CRN", "ResultReader", "launch", "__version__"]
+__all__ = ["System", "CRN", "ResultReader", "launch", "LOGGER", "__version__"]

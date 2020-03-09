@@ -92,7 +92,7 @@ class Log:
         self.writer: Optional[ResultWriter] = None
         self.connected: bool = False
         self.setlevel(level)
-        self.tofile(filename)
+        self.settxt(filename)
 
     def setsaver(self, writer: ResultWriter) -> None:
         self.writer = writer
@@ -102,7 +102,7 @@ class Log:
         if self.connected:
             self._logger.setLevel(self.level)
 
-    def tofile(self, filename: str = invalidstr) -> None:
+    def settxt(self, filename: str = invalidstr) -> None:
         if not filename:
             filename = invalidstr
         if isvalid(filename):
@@ -174,14 +174,6 @@ class Log:
 
     def reset_timer(self) -> None:
         self._timer.reset()
-
-
-class Logged:
-    log: Log
-
-    @classmethod
-    def setlogger(cls, filename: str = invalidstr, level: str = "INFO") -> None:
-        cls.log = Log(filename, level)
 
 
 LOGGER = Log()

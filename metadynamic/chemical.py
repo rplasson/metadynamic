@@ -40,7 +40,7 @@ from metadynamic.proba import Probalistic
 from metadynamic.ends import DecrZero, NoMore
 from metadynamic.ruleset import Ruled, ReacDescr
 from metadynamic.inval import isvalid, Invalid, invalidint
-
+from metadynamic.logger import LOGGER
 
 class Memcalc:
     def __init__(self, func: Callable[[int], int]):
@@ -162,7 +162,7 @@ class Chemical(Generic[K], Collected, Collectable):
     def __init__(self, description: K):
         self.description: K = description
         self.activated: bool = False
-        # self.log.debug(f"Creating {self}")
+        # LOGGER.debug(f"Creating {self}")
 
     def __repr__(self) -> str:
         return f"{self._descrtype}: {self}"
@@ -338,7 +338,7 @@ class Compound(Chemical[str]):
     def __init__(self, description: str):
         super().__init__(description)
         if self.description == "":
-            self.log.error("Created empty compound!!!")
+            LOGGER.error("Created empty compound!!!")
         self.reactions: Set[Reaction] = set()
         self.pop: int = 0
         # self.length = self.descriptor("length", description)
@@ -357,7 +357,7 @@ class Compound(Chemical[str]):
         try:
             self.reactions.remove(reaction)
         except KeyError:
-            self.log.debug(
+            LOGGER.debug(
                 f"Tried to unregister twice {reaction} from {self} (p={self.pop})"
             )
 
@@ -371,7 +371,7 @@ class Compound(Chemical[str]):
 
     def update(self, change: int = 0) -> None:
         if change != 0:
-            # self.log.debug(f"Really updating {self}")
+            # LOGGER.debug(f"Really updating {self}")
             pop0 = self.pop
             self.pop = pop0 + change
             if self.pop < 0:

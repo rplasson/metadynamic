@@ -1,4 +1,4 @@
-from metadynamic import System
+from metadynamic import System, LOGGER
 
 
 def test_system() -> None:
@@ -8,5 +8,5 @@ def test_system() -> None:
     syst.set_param(dropmode="drop")
     syst.set_param(hdf5="testlog/simplesyst-dropreac.hdf5")
     res = syst.run()
-    syst.log.info(f"Finished: {res}")
-    syst.log.disconnect()
+    LOGGER.info(f"Finished: {res}")
+    LOGGER.disconnect()

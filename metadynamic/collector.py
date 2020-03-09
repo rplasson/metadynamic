@@ -23,9 +23,9 @@ from weakref import WeakValueDictionary
 from collections import defaultdict
 from numpy import array, sum, average, ndarray, nan
 
-# from metadynamic.logger import Logged
 from metadynamic.ruleset import Ruled
 from metadynamic.ends import BadFile
+from metadynamic.logger import LOGGER
 
 
 class Collectable:
@@ -71,7 +71,7 @@ class Collect(Generic[K, T], Ruled):
         self.categories: Dict[str, Set[K]] = defaultdict(set)
         self.active: WDict[K, T] = self.pool if self.dropmode == "drop" else {}
         self.categorize = categorize
-        self.log.info(
+        LOGGER.info(
             f"Created {self} as drop={self.dropmode}, with pool of type {type(self.pool)}"
         )
 

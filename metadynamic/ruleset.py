@@ -29,7 +29,7 @@ from dataclasses import dataclass, field
 
 
 from metadynamic.ends import InitError
-from metadynamic.logger import Logged
+# from metadynamic.logger import LOGGER
 from metadynamic.inputs import RulesetParam
 
 
@@ -53,7 +53,7 @@ ReacProp = Tuple[Stoechio, Stoechio, float]
 ChemDescr = str
 
 
-class Descriptor(Logged):
+class Descriptor:
     def __init__(self) -> None:
         self.cat_dict: Dict[str, Categorizer] = {}
         self.prop_dict: Dict[str, Propertizer] = {}
@@ -86,7 +86,7 @@ class Descriptor(Logged):
 
 
 @dataclass
-class Rule(Logged):
+class Rule:
     name: str
     reactants: Compset
     builder: Builder
@@ -127,7 +127,7 @@ class Rule(Logged):
         return self.descr
 
 
-class Ruleset(Logged):
+class Ruleset:
     def __init__(self, descriptor: Descriptor):
         self.descriptor: Descriptor = descriptor
         self.categories: Dict[str, Set[str]] = {}
@@ -186,7 +186,7 @@ class Ruleset(Logged):
         return self.rules[reacdescr[0]].build(reacdescr)
 
 
-class Model(Logged):
+class Model:
     def __init__(self, filename: str = "") -> None:
         self.descriptor = Descriptor()
         self.rules: Dict[str, Rule] = {}
@@ -223,7 +223,7 @@ class Model(Logged):
         )
 
 
-class Ruled(Logged):
+class Ruled:
     ruleset: Ruleset
     descriptor: Descriptor
     model: Model
