@@ -6,7 +6,7 @@ from os import rename
 
 from metadynamic import launch
 from metadynamic.inputs import Param
-from metadynamic.mpi import Parallel
+from metadynamic import MPI_STATUS
 from tempfile import NamedTemporaryFile
 
 parser = ArgumentParser(description="Launch run from a json file")
@@ -42,7 +42,7 @@ res = launch(
     paramfile.name, logfile=args.log, loglevel=args.level, comment=args.comment
 )
 
-if args.compress != "no" and Parallel.mpi.rank == 0:
+if args.compress != "no" and MPI_STATUS.root:
     try:
         old = param.hdf5
         new = old+".repacked"
@@ -53,5 +53,5 @@ if args.compress != "no" and Parallel.mpi.rank == 0:
 
 paramfile.close()
 
-if Parallel.mpi.rank == 0:
+if MPI_STATUS.root:
     print(res.printinfo)

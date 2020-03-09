@@ -56,7 +56,8 @@ class MpiGate:
         self.procs: Iterable[int] = range(self.size)
         self.snd_state: List[Optional[MPI.Request]] = [None] * (self.size)
         self.rcv_state: List[bool] = [False] * (self.size)
-        self.gatenum: int = taginit
+        self.gatenum: int
+        self.init(taginit)
         self.running: bool = True
         self.nb_running: int = self.size
         self.mem_divide: int = self.size
@@ -72,6 +73,9 @@ class MpiGate:
         if operations:
             for name, op in operations.items():
                 self.register_function(name, op)
+
+    def init(self, taginit: int = 1) -> None:
+        self.gatenum = taginit
 
     def __enter__(self) -> "MpiGate":
         self.cont.reset()
@@ -216,16 +220,5 @@ class MpiStatus:
         return fused
 
 
-class Parallel:
-    mpi: MpiStatus
-    gate: MpiGate
-
-    @classmethod
-    def setmpi(
-        cls,
-        rootnum: int = 0,
-        taginit: int = 1,
-        operations: Optional[Dict[str, Callable[[], None]]] = None,
-    ) -> None:
-        cls.mpi = MpiStatus(rootnum)
-        cls.gate = MpiGate(taginit, operations)
+MPI_STATUS = MpiStatus()
+MPI_GATE = MpiGate()

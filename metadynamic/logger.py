@@ -26,6 +26,7 @@ from typing import Union, Optional
 
 from metadynamic.inval import invalidstr, invalidint, Invalid, isvalid
 from metadynamic.hdf5 import ResultWriter
+from metadynamic.mpi import MPI_STATUS
 
 
 class InvalidHandler(Invalid, Handler):
@@ -147,7 +148,7 @@ class Log:
             self.debug(f"Attempted to redisconnect; reason: {reason}")
 
     def _format_msg(self, origin: str, msg: str) -> str:
-        return f"{origin}-###self.writer.mpi.rank### : {msg}   (rt={self.runtime()}, t={self.time()})"
+        return f"{origin}-{MPI_STATUS.rank} : {msg}   (rt={self.runtime()}, t={self.time()})"
 
     def savelog(self, level: int, msg: str) -> None:
         if self.writer is not None:

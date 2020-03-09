@@ -52,7 +52,7 @@ from metadynamic.inputs import Param, LockedError
 from metadynamic.inval import invalidstr
 from metadynamic.json2dot import Json2dot
 from metadynamic.hdf5 import ResultWriter
-from metadynamic.mpi import Parallel
+from metadynamic.mpi import MPI_GATE, MPI_STATUS
 
 
 class Encoder(JSONEncoder):
@@ -114,7 +114,7 @@ class RunStatus:
         return self.time >= self.tnext
 
 
-class Statistic(Collected, Parallel):
+class Statistic(Collected):
     def __init__(
         self, writer: ResultWriter, param: Param, status: RunStatus, comment: str
     ):
@@ -200,7 +200,7 @@ class Statistic(Collected, Parallel):
     def writemap(self) -> None:
         for name in self.mapnames:
             # correct sizes
-            categories = self.mpi.sortlist(list(self.mapdict[name].keys()))
+            categories = MPI_STATUS.sortlist(list(self.mapdict[name].keys()))
             self.writer.mapsize(name, categories)
             # write maps
             self.writer.add_map(name, self.mapdict[name])
@@ -242,9 +242,9 @@ class Statistic(Collected, Parallel):
 
     def writesnap(self) -> None:
         # Correct snapshot sizes
-        nbsnap = self.mpi.max(self._nbsnap)
-        nbcomp = self.mpi.max(self._nbcomp)
-        nbreac = self.mpi.max(self._nbreac)
+        nbsnap = MPI_STATUS.max(self._nbsnap)
+        nbcomp = MPI_STATUS.max(self._nbcomp)
+        nbreac = MPI_STATUS.max(self._nbreac)
         LOGGER.debug(f"resize snapshot with {nbsnap}-{nbcomp}-{nbreac}")
         self.writer.snapsize(nbcomp, nbreac, nbsnap)
         # Write snapshots
@@ -270,11 +270,11 @@ class Statistic(Collected, Parallel):
             LOGGER.warning(str(the_end))
 
     def close_log(self) -> None:
-        cutline = self.mpi.max(self.writer.logcount[self.mpi.rank])
+        cutline = MPI_STATUS.max(self.writer.logcount[MPI_STATUS.rank])
         self.writer.close_log(cutline)
 
     def data_recut(self) -> None:
-        maxcol = self.mpi.max(self.writer.currentcol)
+        maxcol = MPI_STATUS.max(self.writer.currentcol)
         self.writer.data_resize(maxcol)
 
     def close(self) -> None:
@@ -297,7 +297,7 @@ class CRN(Probalistic, Collected):
         LOGGER.info(f"Initialized with {param}")
 
 
-class System(Parallel):
+class System:
     def __init__(
         self,
         filename: str,
@@ -308,7 +308,7 @@ class System(Parallel):
         seterr(divide="ignore", invalid="ignore")
         self.initialized = False
         self.param: Param = Param.readfile(filename)
-        Parallel.setmpi(taginit=100)
+        MPI_GATE.init(taginit=100)
         self.writer = ResultWriter(
             self.param.hdf5, self.param.maxstrlen, self.param.lengrow
         )
@@ -368,7 +368,7 @@ class System(Parallel):
         LOGGER.info(f"Run #{num}={getpid()} launched")
         self.signcatch.listen()
         # Process(getpid()).cpu_affinity([num % cpu_count()])
-        with self.gate.context() as gate:
+        with MPI_GATE.context() as gate:
             while gate.cont.ok:
                 try:
                     self.status.logstat()
@@ -404,10 +404,10 @@ class System(Parallel):
         return end
 
     def run(self) -> List[str]:
-        if self.mpi.ismpi:
-            LOGGER.info(f"Launching MPI run from thread #{self.mpi.rank}")
+        if MPI_STATUS.ismpi:
+            LOGGER.info(f"Launching MPI run from thread #{MPI_STATUS.rank}")
             LOGGER.disconnect(reason="Launching MPI....")
-            res = [self._run(self.mpi.rank)]
+            res = [self._run(MPI_STATUS.rank)]
             self.signcatch.reset()
             return res
         LOGGER.info("Launching single run.")

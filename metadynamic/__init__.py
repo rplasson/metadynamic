@@ -24,7 +24,8 @@ from metadynamic.system import System, CRN
 from metadynamic.result import ResultReader
 from metadynamic.launcher import launch
 from metadynamic.logger import LOGGER
+from metadynamic.mpi import MPI_STATUS, MPI_GATE
 
 # if somebody does "from somepackage import *", this is what they will
 # be able to access:
-__all__ = ["System", "CRN", "ResultReader", "launch", "LOGGER", "__version__"]
+__all__ = ["System", "CRN", "ResultReader", "launch", "LOGGER", "MPI_GATE", "MPI_STATUS", "__version__"]

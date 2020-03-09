@@ -28,7 +28,7 @@ from metadynamic.ends import Finished, FileCreationError, InternalError
 from metadynamic.inval import isvalid
 from metadynamic.inputs import Readerclass, Param, RulesetParam
 from metadynamic.caster import Caster
-from metadynamic.mpi import Parallel
+from metadynamic.mpi import MPI_GATE, MPI_STATUS
 from metadynamic import __version__
 
 
@@ -36,7 +36,7 @@ comp_cast = Caster(Dict[str, int])
 reac_cast = Caster(Dict[str, List[float]])
 
 
-class ResultWriter(Parallel):
+class ResultWriter:
     def __init__(self, filename: str, maxstrlen: int = 256, lengrow: int = 10) -> None:
         if not isvalid(filename) or filename == "":
             raise FileNotFoundError(f"Plese enter a valid output file name")
@@ -44,8 +44,8 @@ class ResultWriter(Parallel):
         self.maxstrlen = maxstrlen
         self.lengrow = lengrow
         try:
-            if self.mpi.ismpi:
-                self.h5file = File(filename, "w", driver="mpio", comm=self.mpi.comm)
+            if MPI_STATUS.ismpi:
+                self.h5file = File(filename, "w", driver="mpio", comm=MPI_STATUS.comm)
             else:
                 self.h5file = File(filename, "w")
         except OSError as err:
@@ -58,7 +58,7 @@ class ResultWriter(Parallel):
     def init_log(self, maxlog: int) -> None:
         self.maxlog = maxlog
         self.dlog = maxlog
-        size = self.mpi.size
+        size = MPI_STATUS.size
         self.logging: Group = self.h5file.create_group("Logging")
         self.logcount: Dataset = self.logging.create_dataset(
             "count", (size,), fillvalue=0, dtype="int32"
@@ -74,7 +74,7 @@ class ResultWriter(Parallel):
                 ("message", string_dtype(length=self.maxstrlen)),
             ],
         )
-        self.gate.register_function("addlog", self.add_log_line)
+        MPI_GATE.register_function("addlog", self.add_log_line)
         self._init_log = True
 
     def add_log_line(self) -> None:
@@ -83,12 +83,12 @@ class ResultWriter(Parallel):
 
     def write_log(self, level: int, time: str, runtime: float, msg: str) -> None:
         if self._init_log:
-            rank = self.mpi.rank
+            rank = MPI_STATUS.rank
             col = self.logcount[rank]
             self.logs[rank, col] = (level, time, runtime, msg[: self.maxstrlen])
             self.logcount[rank] = col + 1
             if (self.maxlog - col) < self.lengrow:
-                self.gate.close("addlog")
+                MPI_GATE.close("addlog")
 
     def close_log(self, cutline: int) -> None:
         self.logs.resize(cutline, axis=1)
@@ -102,14 +102,14 @@ class ResultWriter(Parallel):
         comment: str,
         nbcol: int,
     ) -> None:
-        size = self.mpi.size
+        size = MPI_STATUS.size
         self.nbcol = nbcol + self.lengrow
         self.dcol = nbcol
         self.run: Group = self.h5file.create_group("Run")
         self.run.attrs["version"] = __version__
         self.run.attrs["hostname"] = gethostname()
         self.run.attrs["date"] = datetime.now().strftime("%H:%M:%S, %d/%m/%Y")
-        self.run.attrs["threads"] = self.mpi.size
+        self.run.attrs["threads"] = MPI_STATUS.size
         self.run.attrs["comment"] = comment
         self.params: Group = self.h5file.create_group("Parameters")
         self.dict_as_attr(self.params, params.asdict())
@@ -173,7 +173,7 @@ class ResultWriter(Parallel):
             )
         self.map_cat: Dict[str, List[float]] = {}
         self.currentcol = 0
-        self.gate.register_function("addcol", self.add_col)
+        MPI_GATE.register_function("addcol", self.add_col)
         self._init_stat = True
 
     def test_initialized(self) -> None:
@@ -194,23 +194,23 @@ class ResultWriter(Parallel):
         self.map_cat[name] = categories
         mapsize = len(categories)
         self.maps[name].resize(mapsize, axis=1)
-        self.maps[name][self.mpi.rank, :, 0] = categories
+        self.maps[name][MPI_STATUS.rank, :, 0] = categories
 
     def add_map(self, name: str, data: Dict[float, List[float]]) -> None:
         self.test_initialized()
         for catnum, cat in enumerate(self.map_cat[name]):
             try:
                 length = len(data[cat])
-                self.maps[name][self.mpi.rank, catnum, 1 : length + 1] = data[cat]
+                self.maps[name][MPI_STATUS.rank, catnum, 1 : length + 1] = data[cat]
             except KeyError:
                 pass  # No problem, some categories may have been reached by only some processes
 
     def snapsize(self, maxcomp: int, maxreac: int, maxsnap: int) -> None:
         self.test_initialized()
-        self.timesnap.resize((self.mpi.size, maxsnap))
-        self.compsnap.resize((self.mpi.size, maxsnap, maxcomp))
-        self.reacsnap.resize((self.mpi.size, maxsnap, maxreac))
-        self.reacsnapsaved.resize((self.mpi.size, maxsnap))
+        self.timesnap.resize((MPI_STATUS.size, maxsnap))
+        self.compsnap.resize((MPI_STATUS.size, maxsnap, maxcomp))
+        self.reacsnap.resize((MPI_STATUS.size, maxsnap, maxreac))
+        self.reacsnapsaved.resize((MPI_STATUS.size, maxsnap))
         self._snapsized = True
 
     def close(self) -> None:
@@ -222,18 +222,18 @@ class ResultWriter(Parallel):
     def add_data(self, result: List[float]) -> None:
         self.test_initialized()
         try:
-            self.data[self.mpi.rank, :, self.currentcol] = result
+            self.data[MPI_STATUS.rank, :, self.currentcol] = result
             self.currentcol += 1
             if (self.nbcol - self.currentcol) < self.lengrow:
-                self.gate.close("addcol")
+                MPI_GATE.close("addcol")
         except ValueError:
             raise InternalError(
-                f"No more space in file for #{self.mpi.rank} at column {self.currentcol}"
+                f"No more space in file for #{MPI_STATUS.rank} at column {self.currentcol}"
             )
 
     def add_end(self, ending: Finished, time: float) -> None:
         self.test_initialized()
-        self.end[self.mpi.rank] = (
+        self.end[MPI_STATUS.rank] = (
             ending.num,
             ending.message.encode()[: self.maxstrlen],
             time,
@@ -248,15 +248,15 @@ class ResultWriter(Parallel):
     ) -> None:
         self.test_initialized()
         if self._snapsized:
-            self.timesnap[self.mpi.rank, col] = time
-            self.reacsnapsaved[self.mpi.rank, col] = len(reaclist) > 0
+            self.timesnap[MPI_STATUS.rank, col] = time
+            self.reacsnapsaved[MPI_STATUS.rank, col] = len(reaclist) > 0
             for line, data in enumerate(complist.items()):
-                self.compsnap[self.mpi.rank, col, line] = (
+                self.compsnap[MPI_STATUS.rank, col, line] = (
                     data[0][: self.maxstrlen],
                     data[1],
                 )
             for line, (name, (const, rate)) in enumerate(reaclist.items()):
-                self.reacsnap[self.mpi.rank, col, line] = (
+                self.reacsnap[MPI_STATUS.rank, col, line] = (
                     name.encode()[: self.maxstrlen],
                     const,
                     rate,
