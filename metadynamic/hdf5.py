@@ -277,11 +277,3 @@ class ResultWriter(Parallel):
         for key, val in datas.items():
             subgroup = group.create_group(key)
             self.dict_as_attr(subgroup, val.asdict())
-
-
-class Saver:
-    writer: ResultWriter
-
-    @classmethod
-    def setsaver(cls, filename: str, maxstrlen: int = 256, lengrow: int = 10) -> None:
-        cls.writer = ResultWriter(filename, maxstrlen, lengrow)

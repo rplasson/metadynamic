@@ -51,7 +51,7 @@ from metadynamic.chemical import Collected, trigger_changes
 from metadynamic.inputs import Param, LockedError
 from metadynamic.inval import invalidstr
 from metadynamic.json2dot import Json2dot
-from metadynamic.hdf5 import Saver
+from metadynamic.hdf5 import ResultWriter
 from metadynamic.mpi import Parallel
 
 
@@ -114,8 +114,11 @@ class RunStatus(Logged):
         return self.time >= self.tnext
 
 
-class Statistic(Collected, Saver, Parallel):
-    def __init__(self, param: Param, status: RunStatus, comment: str):
+class Statistic(Collected, Parallel):
+    def __init__(
+        self, writer: ResultWriter, param: Param, status: RunStatus, comment: str
+    ):
+        self.writer = writer
         self.param = param
         self.status = status
         self.statnames = list(self.param.statparam.keys())
@@ -294,7 +297,7 @@ class CRN(Probalistic, Collected):
         self.log.info(f"Initialized with {param}")
 
 
-class System(Saver, Parallel, Logged):
+class System(Parallel, Logged):
     def __init__(
         self,
         filename: str,
@@ -306,7 +309,9 @@ class System(Saver, Parallel, Logged):
         self.initialized = False
         self.param: Param = Param.readfile(filename)
         Parallel.setmpi(taginit=100)
-        Saver.setsaver(self.param.hdf5, self.param.maxstrlen, self.param.lengrow)
+        self.writer = ResultWriter(
+            self.param.hdf5, self.param.maxstrlen, self.param.lengrow
+        )
         Logged.setlogger(logfile, loglevel)
         self.log.setsaver(self.writer)
         self.writer.init_log(self.param.maxlog)
@@ -352,7 +357,7 @@ class System(Saver, Parallel, Logged):
 
     def _run(self, num: int = -1) -> str:
         self.status.initialize(num)
-        statistic = Statistic(self.param, self.status, self.comment)
+        statistic = Statistic(self.writer, self.param, self.status, self.comment)
         if num >= 0:
             self.log.connect(f"Reconnected from thread {num+1}", num + 1)
         if not self.initialized:
