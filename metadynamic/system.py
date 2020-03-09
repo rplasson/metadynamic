@@ -303,10 +303,10 @@ class System:
         loglevel: str = "INFO",
         comment: str = "",
     ):
+        LOGGER.info("Creating the system.")
         seterr(divide="ignore", invalid="ignore")
         self.initialized = False
         self.param: Param = Param.readfile(filename)
-        LOGGER.info("Parameter files loaded.")
         self.writer = ResultWriter(
             self.param.hdf5, self.param.maxstrlen, self.param.lengrow
         )
@@ -314,11 +314,11 @@ class System:
         LOGGER.setlevel(loglevel)
         LOGGER.settxt(logfile)
         LOGGER.setsaver(self.writer)
-        LOGGER.connect("Logger initialized.")
         self.signcatch = SignalCatcher()
         self.status = RunStatus(self.param)
         self.comment = comment
         MPI_GATE.init(taginit=100)
+        LOGGER.info("System created")
 
     def initialize(self) -> None:
         if self.initialized:
@@ -356,11 +356,12 @@ class System:
             LOGGER.warning(f"maxsteps per process (={self.param.maxsteps}) too low")
 
     def run(self) -> str:
+        self.signcatch.listen()
+        LOGGER.reset_timer()
         if MPI_STATUS.ismpi:
             LOGGER.info(f"Launching MPI run from thread #{MPI_STATUS.rank}")
         else:
             LOGGER.info("Launching single run.")
-        self.signcatch.listen()
         self.status.initialize()
         statistic = Statistic(self.writer, self.param, self.status, self.comment)
         if not self.initialized:

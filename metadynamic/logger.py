@@ -22,18 +22,11 @@ from os import path
 from time import process_time
 from logging import getLogger, FileHandler, StreamHandler, Handler, Logger
 from datetime import datetime
-from typing import Union, Optional
+from typing import Optional
 
-from metadynamic.inval import invalidstr, invalidint, Invalid, isvalid
+from metadynamic.inval import invalidstr, isvalid
 from metadynamic.hdf5 import ResultWriter
 from metadynamic.mpi import MPI_STATUS
-
-
-class InvalidHandler(Invalid, Handler):
-    _invalrepr = "Invalid Handler"
-
-
-invalidhandler = InvalidHandler()
 
 
 class Timer:
@@ -48,37 +41,16 @@ class Timer:
         return process_time() - self._ptime0
 
 
-class BlackholeLogger:
-    """a fake Logger object that does nothing"""
-
-    def debug(self, msg: str) -> None:
-        pass
-
-    def info(self, msg: str) -> None:
-        pass
-
-    def warning(self, msg: str) -> None:
-        pass
-
-    def error(self, msg: str) -> None:
-        pass
-
-    def removeHandler(self, handler: Handler) -> None:
-        pass
-
-    def setLevel(self, level: str) -> None:
-        pass
-
-
 class Log:
     @staticmethod
     def time() -> str:
         return datetime.now().strftime("%H:%M:%S, %d/%m/%y")
 
     def __init__(self, filename: str = invalidstr, level: str = "INFO"):
+        self.connected: bool = False
         self._timer: Timer = Timer()
-        self._logger: Union[Logger, BlackholeLogger] = BlackholeLogger()
-        self._handler: Handler = invalidhandler
+        self._logger: Logger = getLogger("Metadynamic Log")
+        self._handler: Handler
         self.level: str
         self.filename: str
         self.writer: Optional[ResultWriter] = None
@@ -89,6 +61,7 @@ class Log:
         self.writer = writer
 
     def setlevel(self, level: str = "INFO") -> None:
+        self.debug(f"Switched to level {level}")
         self.level = level
         self._logger.setLevel(self.level)
 
@@ -105,26 +78,25 @@ class Log:
         self.connect(f"Logger directed to {dest}")
 
     def connect(self, reason: str = "unknown") -> None:
-        self.disconnect("Reconnecting...")
+        if self.connected:
+            self.disconnect("Reconnecting old handler before reconnection.")
         filename = (
             self.filenamethread.format(MPI_STATUS.rank)
             if isvalid(self.filename)
             else self.filename
         )
-        self._logger = getLogger("Polymer Log")
         self._handler = (
             FileHandler(filename) if isvalid(filename) else StreamHandler()
         )
         self._logger.addHandler(self._handler)
-        self._logger.setLevel(self.level)
         self.debug(f"Connected to {filename}; reason: {reason}")
+        self.connected = True
 
     def disconnect(self, reason: str = "unknown") -> None:
         self.debug(f"Disconnecting; reason: {reason}")
         self._logger.removeHandler(self._handler)
         self._handler.close()
-        self._logger = BlackholeLogger()
-        self._handler = invalidhandler
+        self.connected = False
 
     def _format_msg(self, origin: str, msg: str) -> str:
         return f"{origin}-{MPI_STATUS.rank} : {msg}   (rt={self.runtime()}, t={self.time()})"
@@ -153,6 +125,7 @@ class Log:
         return self._timer.time
 
     def reset_timer(self) -> None:
+        self.debug("Will reset the timer")
         self._timer.reset()
 
 
