@@ -90,11 +90,10 @@ class MpiGate:
         self.exit()
 
     def register_function(self, opname: str, func: Callable[[], None]) -> None:
-        if opname in self._opnum:
-            raise ValueError(f"Operation {opname} already defined.")
-        funcnum = len(self._op) + 1
-        self._op[funcnum] = func
-        self._opnum[opname] = funcnum
+        if opname not in self._opnum:
+            funcnum = len(self._op) + 1
+            self._op[funcnum] = func
+            self._opnum[opname] = funcnum
 
     def operate(self, funcnum: int) -> None:
         self._op[funcnum]()
