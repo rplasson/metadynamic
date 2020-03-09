@@ -61,15 +61,25 @@ class Encoder(JSONEncoder):
 
 
 class RunStatus:
-    def __init__(self, param: Param):
-        self.param = param
+    infonames = ["#", "thread", "ptime", "memuse", "step", "dstep", "time"]
 
-    def initialize(self) -> None:
+    def __init__(self):
         self.tnext: float = 0.0
         self.dstep: int = 0
         self.step: int = 0
         self.time: float = 0.0
-        self.infonames = ["#", "thread", "ptime", "memuse", "step", "dstep", "time"]
+        self.tstep: float = 1.0
+        self.tend: float = 0.0
+        self.rtlim: float = 0.0
+
+    def initialize(self, param: Param) -> None:
+        self.tnext = 0.0
+        self.dstep = 0
+        self.step = 0
+        self.time = 0.0
+        self.tstep = param.tstep
+        self.tend = param.tend
+        self.rtlim = param.rtlim
 
     @property
     def memuse(self) -> float:
@@ -97,13 +107,13 @@ class RunStatus:
 
     def next_step(self) -> None:
         if self.finished:
-            self.tnext += self.param.tstep
+            self.tnext += self.tstep
         self.step += 1
 
     def checkend(self) -> None:
-        if self.time >= self.param.tend:
+        if self.time >= self.tend:
             raise TimesUp(f"t={self.time}")
-        if LOGGER.runtime >= self.param.rtlim:
+        if LOGGER.runtime >= self.rtlim:
             raise RuntimeLim(f"t={self.time}")
 
     @property
@@ -119,7 +129,7 @@ class Statistic(Collected):
         self.param = param
         self.status = status
         self.statnames = list(self.param.statparam.keys())
-        self.lines = self.status.infonames + self.param.save + self.statnames
+        self.lines = RunStatus.infonames + self.param.save + self.statnames
         self.mapnames = list(self.param.mapsparam.keys())
         self.mapdict: Dict[str, Dict[float, List[float]]] = {
             name: {} for name in self.mapnames
@@ -302,7 +312,7 @@ class System:
         LOGGER.setsaver(self.writer)
         LOGGER.timeformat = self.param.timeformat
         self.signcatch = SignalCatcher()
-        self.status = RunStatus(self.param)
+        self.status = RunStatus()
         self.comment = comment
         MPI_GATE.init(taginit=100)
         LOGGER.info("System created")
@@ -349,7 +359,7 @@ class System:
             LOGGER.info(f"Launching MPI run from thread #{MPI_STATUS.rank}")
         else:
             LOGGER.info("Launching single run.")
-        self.status.initialize()
+        self.status.initialize(self.param)
         statistic = Statistic(self.writer, self.param, self.status, self.comment)
         if not self.initialized:
             LOGGER.info("Will initialize")
