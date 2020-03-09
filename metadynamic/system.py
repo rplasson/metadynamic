@@ -66,8 +66,7 @@ class RunStatus:
     def __init__(self, param: Param):
         self.param = param
 
-    def initialize(self, num: int) -> None:
-        self.num: int = num
+    def initialize(self) -> None:
         self.tnext: float = 0.0
         self.dstep: int = 0
         self.step: int = 0
@@ -83,7 +82,7 @@ class RunStatus:
     def info(self) -> List[Union[float, int]]:
         return [
             1,
-            self.num,
+            MPI_STATUS.rank,
             LOGGER.runtime(),
             self.memuse,
             self.step,
@@ -215,8 +214,7 @@ class Statistic(Collected):
                 timestr = str(self.tsnapshot)
                 self.tsnapshot += self.param.sstep
             basename, ext = path.splitext(self.param.snapshot)
-            filled = "{base}-{n}_{t}" if self.status.num >= 0 else "{base}-{t}"
-            basename = filled.format(base=basename, n=self.status.num, t=timestr)
+            basename = f"{basename}-{MPI_STATUS.rank}_{timestr}"
             filename = basename + ext
             with open(filename, "w") as outfile:
                 comp = self.comp_collect.save()
@@ -308,18 +306,19 @@ class System:
         seterr(divide="ignore", invalid="ignore")
         self.initialized = False
         self.param: Param = Param.readfile(filename)
-        MPI_GATE.init(taginit=100)
+        LOGGER.info("Parameter files loaded.")
         self.writer = ResultWriter(
             self.param.hdf5, self.param.maxstrlen, self.param.lengrow
         )
+        self.writer.init_log(self.param.maxlog)
         LOGGER.setlevel(loglevel)
         LOGGER.settxt(logfile)
         LOGGER.setsaver(self.writer)
-        self.writer.init_log(self.param.maxlog)
-        LOGGER.info("Parameter files loaded.")
+        LOGGER.connect("Logger initialized.")
         self.signcatch = SignalCatcher()
         self.status = RunStatus(self.param)
         self.comment = comment
+        MPI_GATE.init(taginit=100)
 
     def initialize(self) -> None:
         if self.initialized:
@@ -356,18 +355,19 @@ class System:
         if not self.status.finished:
             LOGGER.warning(f"maxsteps per process (={self.param.maxsteps}) too low")
 
-    def _run(self, num: int = -1) -> str:
-        self.status.initialize(num)
+    def run(self) -> str:
+        if MPI_STATUS.ismpi:
+            LOGGER.info(f"Launching MPI run from thread #{MPI_STATUS.rank}")
+        else:
+            LOGGER.info("Launching single run.")
+        self.signcatch.listen()
+        self.status.initialize()
         statistic = Statistic(self.writer, self.param, self.status, self.comment)
-        if num >= 0:
-            LOGGER.connect(f"Reconnected from thread {num+1}", num + 1)
         if not self.initialized:
             LOGGER.info("Will initialize")
             self.initialize()
         statistic.startwriter()
-        LOGGER.info(f"Run #{num}={getpid()} launched")
-        self.signcatch.listen()
-        # Process(getpid()).cpu_affinity([num % cpu_count()])
+        LOGGER.info(f"Run #{MPI_STATUS.rank}={getpid()} launched")
         with MPI_GATE.launch() as gate:
             while gate.cont:
                 try:
@@ -394,26 +394,13 @@ class System:
                 gate_end = OOMError("Stopped by kind request of OOM killer")
                 end = f"{gate_end} ({LOGGER.runtime()} s)"
                 statistic.end(gate_end)
-        LOGGER.info(f"Run #{num}={getpid()} finished")
+        LOGGER.info(f"Run #{MPI_STATUS.rank}={getpid()} finished")
         statistic.calcsnapshot(final=True)
         statistic.writesnap()
         statistic.writemap()
         statistic.close()
-        if num >= 0:
-            LOGGER.disconnect(f"Disconnected from #{num}")
-        return end
-
-    def run(self) -> List[str]:
-        if MPI_STATUS.ismpi:
-            LOGGER.info(f"Launching MPI run from thread #{MPI_STATUS.rank}")
-            LOGGER.disconnect(reason="Launching MPI....")
-            res = [self._run(MPI_STATUS.rank)]
-            self.signcatch.reset()
-            return res
-        LOGGER.info("Launching single run.")
-        res = [self._run()]
         self.signcatch.reset()
-        return res
+        return end
 
     def set_param(self, **kwd) -> None:
         try:

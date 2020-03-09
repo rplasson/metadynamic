@@ -48,15 +48,6 @@ class Timer:
         return process_time() - self._ptime0
 
 
-class DummyTimer(Timer):
-    def reset(self) -> None:
-        self._ptime0 = 0.0
-
-    @property
-    def time(self) -> float:
-        return 0
-
-
 class BlackholeLogger:
     """a fake Logger object that does nothing"""
 
@@ -85,13 +76,12 @@ class Log:
         return datetime.now().strftime("%H:%M:%S, %d/%m/%y")
 
     def __init__(self, filename: str = invalidstr, level: str = "INFO"):
-        self._timer: Timer
-        self._logger: Union[Logger, BlackholeLogger]
-        self._handler: Handler
+        self._timer: Timer = Timer()
+        self._logger: Union[Logger, BlackholeLogger] = BlackholeLogger()
+        self._handler: Handler = invalidhandler
         self.level: str
         self.filename: str
         self.writer: Optional[ResultWriter] = None
-        self.connected: bool = False
         self.setlevel(level)
         self.settxt(filename)
 
@@ -100,8 +90,7 @@ class Log:
 
     def setlevel(self, level: str = "INFO") -> None:
         self.level = level
-        if self.connected:
-            self._logger.setLevel(self.level)
+        self._logger.setLevel(self.level)
 
     def settxt(self, filename: str = invalidstr) -> None:
         if not filename:
@@ -115,37 +104,27 @@ class Log:
         dest = filename if isvalid(filename) else "stream"
         self.connect(f"Logger directed to {dest}")
 
-    def connect(self, reason: str = "unknown", thread: int = invalidint) -> None:
-        if not self.connected:
-            self._timer = Timer()
-            filename = (
-                self.filenamethread.format(thread)
-                if isvalid(thread) and isvalid(self.filename)
-                else self.filename
-            )
-            self._logger = getLogger("Polymer Log")
-            self._handler = (
-                FileHandler(filename) if isvalid(filename) else StreamHandler()
-            )
-            self._logger.addHandler(self._handler)
-            self._logger.setLevel(self.level)
-            self.debug(f"Connected to {filename}; reason: {reason}")
-            self.connected = True
-        else:
-            self.reset_timer()
-            self.debug(f"Attempted to reconnect; reason: {reason}")
+    def connect(self, reason: str = "unknown") -> None:
+        self.disconnect("Reconnecting...")
+        filename = (
+            self.filenamethread.format(MPI_STATUS.rank)
+            if isvalid(self.filename)
+            else self.filename
+        )
+        self._logger = getLogger("Polymer Log")
+        self._handler = (
+            FileHandler(filename) if isvalid(filename) else StreamHandler()
+        )
+        self._logger.addHandler(self._handler)
+        self._logger.setLevel(self.level)
+        self.debug(f"Connected to {filename}; reason: {reason}")
 
     def disconnect(self, reason: str = "unknown") -> None:
-        if self.connected:
-            self.debug(f"Disconnecting; reason: {reason}")
-            self._timer = DummyTimer()
-            self._logger.removeHandler(self._handler)
-            self._handler.close()
-            self._logger = BlackholeLogger()
-            self._handler = invalidhandler
-            self.connected = False
-        else:
-            self.debug(f"Attempted to redisconnect; reason: {reason}")
+        self.debug(f"Disconnecting; reason: {reason}")
+        self._logger.removeHandler(self._handler)
+        self._handler.close()
+        self._logger = BlackholeLogger()
+        self._handler = invalidhandler
 
     def _format_msg(self, origin: str, msg: str) -> str:
         return f"{origin}-{MPI_STATUS.rank} : {msg}   (rt={self.runtime()}, t={self.time()})"
