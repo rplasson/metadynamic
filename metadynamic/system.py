@@ -71,6 +71,8 @@ class RunStatus:
         self.tstep: float = 1.0
         self.tend: float = 0.0
         self.rtlim: float = 0.0
+        self.maxmem: float = 0.0
+        self.gcperio: bool = False
 
     def initialize(self, param: Param) -> None:
         self.tnext = 0.0
@@ -80,6 +82,8 @@ class RunStatus:
         self.tstep = param.tstep
         self.tend = param.tend
         self.rtlim = param.rtlim
+        self.maxmem = param.maxmem
+        self.gcperio = param.gcperio
 
     @property
     def memuse(self) -> float:
@@ -115,6 +119,13 @@ class RunStatus:
             raise TimesUp(f"t={self.time}")
         if LOGGER.runtime >= self.rtlim:
             raise RuntimeLim(f"t={self.time}")
+
+    def checkmem(self) -> None:
+        if self.gcperio:
+            gc.collect()
+        if self.memuse > self.maxmem / MPI_GATE.mem_divide:
+            LOGGER.warning(f"{self.memuse}>{self.maxmem/MPI_GATE.mem_divide}, call oom")
+            MPI_GATE.close("oom")
 
     @property
     def finished(self) -> bool:
@@ -348,49 +359,55 @@ class System:
             LOGGER.warning(f"maxsteps per process (={self.param.maxsteps}) too low")
 
     def run(self) -> str:
-        self.signcatch.listen()
         LOGGER.reset_timer()
         if MPI_STATUS.ismpi:
             LOGGER.info(f"Launching MPI run from thread #{MPI_STATUS.rank}")
         else:
             LOGGER.info("Launching single run.")
+        # Setup working environment
+        self.signcatch.listen()
         self.status.initialize(self.param)
         statistic = Statistic(self.writer, self.param, self.status, self.comment)
         if not self.initialized:
             LOGGER.info("Will initialize")
             self.initialize()
         statistic.startwriter()
+        # Ready, let's run
         LOGGER.info(f"Run #{MPI_STATUS.rank}={getpid()} launched")
-        with MPI_GATE.launch() as gate:
-            while gate.cont:
+        with MPI_GATE.launch():
+            # Do not stop except if asked to exit the gate
+            while MPI_GATE.cont:
                 try:
+                    # Log stat info
                     self.status.logstat()
+                    # perform a step
                     self._process()
-                    if self.status.memuse > self.param.maxmem / gate.mem_divide:
-                        LOGGER.warning(
-                            f"{self.status.memuse}>{self.param.maxmem/gate.mem_divide}, call oom"
-                        )
-                        gate.close("oom")
-                    if self.param.gcperio:
-                        gc.collect()
+                    # Write data statistics
                     statistic.writestat()
                     statistic.calcmap()
                     statistic.calcsnapshot()
+                    # Check memory
+                    self.status.checkmem()
                     self.status.next_step()
                     self.status.checkend()
-                    gate.checkpoint()
+                    # Pass gate checkpoint
+                    MPI_GATE.checkpoint()
+                # exit the gate because the work is finished.
                 except Finished as the_end:
                     end = f"{the_end} ({LOGGER.runtime} s)"
                     statistic.end(the_end)
                     break
+            # exit the gate because asked by collective decision.
             else:
                 gate_end = OOMError("Stopped by kind request of OOM killer")
                 end = f"{gate_end} ({LOGGER.runtime} s)"
                 statistic.end(gate_end)
+        # Write and log final data
         LOGGER.info(f"Run #{MPI_STATUS.rank}={getpid()} finished")
         statistic.calcsnapshot(final=True)
         statistic.writesnap()
         statistic.writemap()
+        # Then cleanly exit
         statistic.close()
         self.signcatch.reset()
         return end
