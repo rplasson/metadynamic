@@ -331,20 +331,20 @@ class System:
         # Check if a cleanup should be done
         if self.param.autoclean:
             self.crn.clean()
-        # Then process self.maxsteps times
+        # Process self.maxsteps times
         for _ in repeat(None, self.param.maxsteps):
-            # ... but stop is step ends
+            # ... but stop if step ends
             if self.status.finished:
                 break
-            # perform a random event
-            dt = self.crn.stepping()
+            # ... or if process is stopped by a signal
             if not self.signcatch.alive:
                 raise Interrupted(
                     f" by {self.signcatch.signal} at t={self.status.time}"
                 )
-            # update time for next step
-            self.status.inc(dt)
-        if not self.status.finished:
+            # perform a random event
+            self.status.inc(self.crn.stepping())
+        else:
+            #  had to performed loop until maxsteps
             LOGGER.warning(f"maxsteps per process (={self.param.maxsteps}) too low")
 
     def run(self) -> str:
