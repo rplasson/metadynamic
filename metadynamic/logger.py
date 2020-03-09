@@ -46,7 +46,7 @@ class Log:
         self,
         filename: str = invalidstr,
         level: str = "INFO",
-        timeformat="%H:%M:%S, %d/%m/%y",
+        timeformat: str = "%H:%M:%S, %d/%m/%y",
     ):
         self.connected: bool = False
         self.timeformat = timeformat

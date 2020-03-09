@@ -44,15 +44,13 @@ from metadynamic.ends import (
     OOMError,
 )
 from metadynamic.logger import LOGGER
-from metadynamic.proba import Probalistic
-from metadynamic.ruleset import Ruled
+from metadynamic.mpi import MPI_GATE, MPI_STATUS
 from metadynamic.collector import Collectable
-from metadynamic.chemical import Collected, trigger_changes
+from metadynamic.chemical import Collected, CRN
 from metadynamic.inputs import Param, LockedError
 from metadynamic.inval import invalidstr
 from metadynamic.json2dot import Json2dot
 from metadynamic.hdf5 import ResultWriter
-from metadynamic.mpi import MPI_GATE, MPI_STATUS
 
 
 class Encoder(JSONEncoder):
@@ -281,18 +279,6 @@ class Statistic(Collected):
         self.close_log()
         self.writer.close()
         LOGGER.info(f"...written and closed, done.")
-
-
-class CRN(Probalistic, Collected):
-    def __init__(self, param: Param):
-        Probalistic.setprobalist(vol=param.vol)
-        # Add all options for collections
-        Collected.setcollections(dropmode_reac=param.dropmode)
-        Ruled.setrules(param.rulemodel, param.consts)
-        for compound, pop in param.init.items():
-            self.comp_collect[compound].change_pop(pop)
-        trigger_changes()
-        LOGGER.info(f"Initialized with {param}")
 
 
 class System:

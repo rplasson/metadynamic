@@ -41,6 +41,7 @@ from metadynamic.ends import DecrZero, NoMore
 from metadynamic.ruleset import Ruled, ReacDescr
 from metadynamic.inval import isvalid, Invalid, invalidint
 from metadynamic.logger import LOGGER
+from metadynamic.inputs import Param
 
 class Memcalc:
     def __init__(self, func: Callable[[int], int]):
@@ -284,7 +285,7 @@ class Reaction(Chemical[ReacDescr], Probalistic):
             reac.change_pop(-order)
         trigger_changes(self)
         if self.probalist.probtot == 0:
-            raise NoMore(f"after processing {self.description}")
+            raise NoMore(f"after processing {self}")
 
     def _ordern(self, pop: int, order: int) -> int:
         return pop if order == 1 else pop * self._ordern(pop - 1, order - 1)
@@ -424,3 +425,15 @@ def trigger_changes(fromreac: Reaction = invalidreaction) -> None:
                 detail += ")"
         raise DecrZero(detail)
     Reaction.trigger_update()
+
+
+class CRN(Probalistic, Collected):
+    def __init__(self, param: Param):
+        # Add all options for collections
+        Probalistic.setprobalist(vol=param.vol)
+        Collected.setcollections(dropmode_reac=param.dropmode)
+        Ruled.setrules(param.rulemodel, param.consts)
+        for compound, pop in param.init.items():
+            self.comp_collect[compound].change_pop(pop)
+        trigger_changes()
+        LOGGER.info(f"Initialized with {param}")

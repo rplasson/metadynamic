@@ -29,7 +29,7 @@ from metadynamic.inval import invalidstr, invalidint, isvalid, invalidfloat
 from metadynamic.inputs import StatParam, MapParam, Param, RulesetParam
 from metadynamic.caster import Caster
 from metadynamic.json2dot import Data2dot
-from metadynamic.system import CRN
+from metadynamic.chemical import CRN
 
 
 comp_cast = Caster(Dict[str, int])
