@@ -42,8 +42,14 @@ class Timer:
 
 
 class Log:
-    def __init__(self, filename: str = invalidstr, level: str = "INFO"):
+    def __init__(
+        self,
+        filename: str = invalidstr,
+        level: str = "INFO",
+        timeformat="%H:%M:%S, %d/%m/%y",
+    ):
         self.connected: bool = False
+        self.timeformat = timeformat
         self._timer: Timer = Timer()
         self._logger: Logger = getLogger("Metadynamic Log")
         self._handler: Handler
@@ -81,9 +87,7 @@ class Log:
             if isvalid(self.filename)
             else self.filename
         )
-        self._handler = (
-            FileHandler(filename) if isvalid(filename) else StreamHandler()
-        )
+        self._handler = FileHandler(filename) if isvalid(filename) else StreamHandler()
         self._logger.addHandler(self._handler)
         self.debug(f"Connected to {filename}; reason: {reason}")
         self.connected = True
@@ -95,7 +99,9 @@ class Log:
         self.connected = False
 
     def _format_msg(self, origin: str, msg: str) -> str:
-        return f"{origin}-{MPI_STATUS.rank} : {msg}   (rt={self.runtime}, t={self.time})"
+        return (
+            f"{origin}-{MPI_STATUS.rank} : {msg}   (rt={self.runtime}, t={self.time})"
+        )
 
     def savelog(self, level: int, msg: str) -> None:
         if self.writer is not None:
@@ -119,7 +125,7 @@ class Log:
 
     @property
     def time(self) -> str:
-        return datetime.now().strftime("%H:%M:%S, %d/%m/%y")
+        return datetime.now().strftime(self.timeformat)
 
     @property
     def runtime(self) -> float:

@@ -314,6 +314,7 @@ class System:
         LOGGER.setlevel(loglevel)
         LOGGER.settxt(logfile)
         LOGGER.setsaver(self.writer)
+        LOGGER.timeformat = self.param.timeformat
         self.signcatch = SignalCatcher()
         self.status = RunStatus(self.param)
         self.comment = comment
