@@ -368,8 +368,8 @@ class System:
         LOGGER.info(f"Run #{num}={getpid()} launched")
         self.signcatch.listen()
         # Process(getpid()).cpu_affinity([num % cpu_count()])
-        with MPI_GATE.context() as gate:
-            while gate.cont.ok:
+        with MPI_GATE.launch() as gate:
+            while gate.cont:
                 try:
                     self.status.logstat()
                     self._process()

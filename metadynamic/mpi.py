@@ -39,8 +39,7 @@ class Cont:
     def reset(self) -> None:
         self._cont = True
 
-    @property
-    def ok(self) -> bool:
+    def __bool__(self) -> bool:
         return self._cont
 
 
@@ -58,7 +57,8 @@ class MpiGate:
         self.rcv_state: List[bool] = [False] * (self.size)
         self.gatenum: int
         self.init(taginit)
-        self.running: bool = True
+        self.running: bool = False
+        self.launched: bool = False
         self.nb_running: int = self.size
         self.mem_divide: int = self.size
         self.cont = Cont()
@@ -144,10 +144,14 @@ class MpiGate:
         return sum(self.rcv_state) > 0
 
     def close(self, msg: str = "nop") -> None:
+        if not self.launched:
+            raise ValueError("Cannot close a gate that has not been launched.")
         self.send_msg(tag=self.gatenum, msg=msg)
 
     def open(self) -> None:
         # Wait for everyone for exchanging messages
+        if not self.launched:
+            raise ValueError("Cannot open a gate that has not been launched.")
         self.comm.Barrier()
         # get operation list, sorted to be processed in order.
         # 0 is removed as it corresponds to 'no message'
@@ -170,8 +174,11 @@ class MpiGate:
         while self.nb_running > 0:
             self.checkpoint()
             sleep(sleeptime)
+        self.launched = False
 
-    def context(self) -> "MpiGate":
+    def launch(self) -> "MpiGate":
+        self.running = True
+        self.launched = True
         return self
 
 
