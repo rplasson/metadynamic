@@ -22,10 +22,10 @@ from os import path
 from time import process_time
 from logging import getLogger, FileHandler, StreamHandler, Handler, Logger
 from datetime import datetime
-from typing import Union
+from typing import Union, Optional
 
 from metadynamic.inval import invalidstr, invalidint, Invalid, isvalid
-from metadynamic.hdf5 import Saver
+from metadynamic.hdf5 import ResultWriter
 
 
 class InvalidHandler(Invalid, Handler):
@@ -78,7 +78,7 @@ class BlackholeLogger:
         pass
 
 
-class Log(Saver):
+class Log:
     @staticmethod
     def time() -> str:
         return datetime.now().strftime("%H:%M:%S, %d/%m/%y")
@@ -87,12 +87,18 @@ class Log(Saver):
         self._timer: Timer
         self._logger: Union[Logger, BlackholeLogger]
         self._handler: Handler
+        self.level: str
+        self.filename: str
+        self.writer: Optional[ResultWriter] = None
         self.connected: bool = False
         self.setlevel(level)
         self.tofile(filename)
 
+    def setsaver(self, writer: ResultWriter) -> None:
+        self.writer = writer
+
     def setlevel(self, level: str = "INFO") -> None:
-        self.level: str = level
+        self.level = level
         if self.connected:
             self._logger.setLevel(self.level)
 
@@ -104,7 +110,7 @@ class Log(Saver):
                 raise ValueError("Please enter filename as 'filename.log'")
             basename, suf = path.splitext(filename)
             self.filenamethread: str = basename + "-{}" + suf
-        self.filename: str = filename
+        self.filename = filename
         dest = filename if isvalid(filename) else "stream"
         self.connect(f"Logger directed to {dest}")
 
@@ -141,10 +147,11 @@ class Log(Saver):
             self.debug(f"Attempted to redisconnect; reason: {reason}")
 
     def _format_msg(self, origin: str, msg: str) -> str:
-        return f"{origin}-{self.writer.mpi.rank} : {msg}   (rt={self.runtime()}, t={self.time()})"
+        return f"{origin}-###self.writer.mpi.rank### : {msg}   (rt={self.runtime()}, t={self.time()})"
 
     def savelog(self, level: int, msg: str) -> None:
-        self.writer.write_log(level, self.time(), self.runtime(), msg)
+        if self.writer is not None:
+            self.writer.write_log(level, self.time(), self.runtime(), msg)
 
     def debug(self, msg: str) -> None:
         self.savelog(10, msg)
@@ -177,4 +184,4 @@ class Logged:
         cls.log = Log(filename, level)
 
 
-#LOGGER = Log()  # Problem at initial creation, looks for a Writer....
+LOGGER = Log()

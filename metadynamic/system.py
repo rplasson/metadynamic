@@ -308,6 +308,7 @@ class System(Saver, Parallel, Logged):
         Parallel.setmpi(taginit=100)
         Saver.setsaver(self.param.hdf5, self.param.maxstrlen, self.param.lengrow)
         Logged.setlogger(logfile, loglevel)
+        self.log.setsaver(self.writer)
         self.writer.init_log(self.param.maxlog)
         self.log.info("Parameter files loaded.")
         self.signcatch = SignalCatcher()
