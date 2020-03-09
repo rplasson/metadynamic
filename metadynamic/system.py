@@ -33,10 +33,8 @@ from metadynamic.ends import (
     Finished,
     TimesUp,
     RuntimeLim,
-    NotFound,
     HappyEnding,
     BadEnding,
-    InitError,
     Interrupted,
     SignalCatcher,
     FileNotFound,
@@ -84,6 +82,8 @@ class RunStatus:
         self.rtlim = param.rtlim
         self.maxmem = param.maxmem
         self.gcperio = param.gcperio
+        if self.gcperio:
+            gc.disable()
 
     @property
     def memuse(self) -> float:
@@ -126,6 +126,10 @@ class RunStatus:
         if self.memuse > self.maxmem / MPI_GATE.mem_divide:
             LOGGER.warning(f"{self.memuse}>{self.maxmem/MPI_GATE.mem_divide}, call oom")
             MPI_GATE.close("oom")
+
+    def finalize(self) -> None:
+        if self.gcperio:
+            gc.enable()
 
     @property
     def finished(self) -> bool:
@@ -329,14 +333,11 @@ class System:
         LOGGER.info("System created")
 
     def initialize(self) -> None:
-        if self.initialized:
-            raise InitError("Double Initialization")
-        if self.param.gcperio:
-            gc.disable()
-        self.crn = CRN(self.param)
-        LOGGER.info("System created")
-        self.initialized = True
-        self.param.lock()
+        if not self.initialized:
+            self.crn = CRN(self.param)
+            self.param.lock()
+            LOGGER.info("System fully initialized")
+            self.initialized = True
 
     def _process(self) -> None:
         # Check if a cleanup should be done
@@ -368,9 +369,7 @@ class System:
         self.signcatch.listen()
         self.status.initialize(self.param)
         statistic = Statistic(self.writer, self.param, self.status, self.comment)
-        if not self.initialized:
-            LOGGER.info("Will initialize")
-            self.initialize()
+        self.initialize()
         statistic.startwriter()
         # Ready, let's run
         LOGGER.info(f"Run #{MPI_STATUS.rank}={getpid()} launched")
@@ -409,6 +408,7 @@ class System:
         statistic.writemap()
         # Then cleanly exit
         statistic.close()
+        self.status.finalize()
         self.signcatch.reset()
         return end
 
