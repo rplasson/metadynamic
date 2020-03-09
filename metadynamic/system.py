@@ -63,7 +63,7 @@ class Encoder(JSONEncoder):
 class RunStatus:
     infonames = ["#", "thread", "ptime", "memuse", "step", "dstep", "time"]
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.tnext: float = 0.0
         self.dstep: int = 0
         self.step: int = 0
@@ -125,16 +125,16 @@ class Statistic(Collected):
     def __init__(
         self, writer: ResultWriter, param: Param, status: RunStatus, comment: str
     ):
-        self.writer = writer
-        self.param = param
-        self.status = status
-        self.statnames = list(self.param.statparam.keys())
-        self.lines = RunStatus.infonames + self.param.save + self.statnames
-        self.mapnames = list(self.param.mapsparam.keys())
+        self.writer: ResultWriter = writer
+        self.param: Param = param
+        self.status: RunStatus = status
+        self.statnames: List[str] = list(self.param.statparam.keys())
+        self.lines: List[str] = RunStatus.infonames + self.param.save + self.statnames
+        self.mapnames: List[str] = list(self.param.mapsparam.keys())
         self.mapdict: Dict[str, Dict[float, List[float]]] = {
             name: {} for name in self.mapnames
         }
-        self.tsnapshot = (
+        self.tsnapshot: float = (
             self.param.sstep if self.param.sstep >= 0 else 2 * self.param.tend
         )
         self._snapfilenames: List[str] = []
