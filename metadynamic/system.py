@@ -83,7 +83,7 @@ class RunStatus:
         return [
             1,
             MPI_STATUS.rank,
-            LOGGER.runtime(),
+            LOGGER.runtime,
             self.memuse,
             self.step,
             self.dstep,
@@ -105,7 +105,7 @@ class RunStatus:
     def checkend(self) -> None:
         if self.time >= self.param.tend:
             raise TimesUp(f"t={self.time}")
-        if LOGGER.runtime() >= self.param.rtlim:
+        if LOGGER.runtime >= self.param.rtlim:
             raise RuntimeLim(f"t={self.time}")
 
     @property
@@ -259,7 +259,7 @@ class Statistic(Collected):
             col += 1
 
     def end(self, the_end: Finished) -> None:
-        self.writer.add_end(the_end, LOGGER.runtime())
+        self.writer.add_end(the_end, LOGGER.runtime)
         if isinstance(the_end, HappyEnding):
             LOGGER.info(str(the_end))
         elif isinstance(the_end, BadEnding):
@@ -388,12 +388,12 @@ class System:
                     self.status.checkend()
                     gate.checkpoint()
                 except Finished as the_end:
-                    end = f"{the_end} ({LOGGER.runtime()} s)"
+                    end = f"{the_end} ({LOGGER.runtime} s)"
                     statistic.end(the_end)
                     break
             else:
                 gate_end = OOMError("Stopped by kind request of OOM killer")
-                end = f"{gate_end} ({LOGGER.runtime()} s)"
+                end = f"{gate_end} ({LOGGER.runtime} s)"
                 statistic.end(gate_end)
         LOGGER.info(f"Run #{MPI_STATUS.rank}={getpid()} finished")
         statistic.calcsnapshot(final=True)

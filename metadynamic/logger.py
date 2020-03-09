@@ -42,10 +42,6 @@ class Timer:
 
 
 class Log:
-    @staticmethod
-    def time() -> str:
-        return datetime.now().strftime("%H:%M:%S, %d/%m/%y")
-
     def __init__(self, filename: str = invalidstr, level: str = "INFO"):
         self.connected: bool = False
         self._timer: Timer = Timer()
@@ -99,11 +95,11 @@ class Log:
         self.connected = False
 
     def _format_msg(self, origin: str, msg: str) -> str:
-        return f"{origin}-{MPI_STATUS.rank} : {msg}   (rt={self.runtime()}, t={self.time()})"
+        return f"{origin}-{MPI_STATUS.rank} : {msg}   (rt={self.runtime}, t={self.time})"
 
     def savelog(self, level: int, msg: str) -> None:
         if self.writer is not None:
-            self.writer.write_log(level, self.time(), self.runtime(), msg)
+            self.writer.write_log(level, self.time, self.runtime, msg)
 
     def debug(self, msg: str) -> None:
         self.savelog(10, msg)
@@ -121,6 +117,11 @@ class Log:
         self.savelog(40, msg)
         self._logger.error(self._format_msg("ERROR", msg))
 
+    @property
+    def time(self) -> str:
+        return datetime.now().strftime("%H:%M:%S, %d/%m/%y")
+
+    @property
     def runtime(self) -> float:
         return self._timer.time
 
