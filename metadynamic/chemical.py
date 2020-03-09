@@ -37,11 +37,12 @@ from itertools import repeat
 
 from metadynamic.collector import Collect, Collectable
 from metadynamic.proba import Probalistic
-from metadynamic.ends import DecrZero, NoMore
+from metadynamic.ends import DecrZero, NoMore, NotFound
 from metadynamic.ruleset import Ruled, ReacDescr
 from metadynamic.inval import isvalid, Invalid, invalidint
 from metadynamic.logger import LOGGER
 from metadynamic.inputs import Param
+
 
 class Memcalc:
     def __init__(self, func: Callable[[int], int]):
@@ -437,3 +438,16 @@ class CRN(Probalistic, Collected):
             self.comp_collect[compound].change_pop(pop)
         trigger_changes()
         LOGGER.info(f"Initialized with {param}")
+
+    def clean(self) -> None:
+        self.probalist.clean()
+
+    def stepping(self) -> float:
+        # choose a random event
+        chosen, dt = self.probalist.choose()
+        # check if there even was an event to choose
+        if chosen is None:
+            raise NotFound(f"dt={dt}")
+        # perform the (chosen one) event
+        chosen.process()
+        return dt

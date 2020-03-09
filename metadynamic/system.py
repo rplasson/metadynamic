@@ -330,19 +330,14 @@ class System:
     def _process(self) -> None:
         # Check if a cleanup should be done
         if self.param.autoclean:
-            self.crn.probalist.clean()
+            self.crn.clean()
         # Then process self.maxsteps times
         for _ in repeat(None, self.param.maxsteps):
             # ... but stop is step ends
             if self.status.finished:
                 break
-            # choose a random event
-            chosen, dt = self.crn.probalist.choose()
-            # check if there even was an event to choose
-            if chosen is None:
-                raise NotFound(f"t={self.status.time}")
-            # perform the (chosen one) event
-            chosen.process()
+            # perform a random event
+            dt = self.crn.stepping()
             if not self.signcatch.alive:
                 raise Interrupted(
                     f" by {self.signcatch.signal} at t={self.status.time}"
