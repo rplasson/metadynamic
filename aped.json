@@ -14,7 +14,6 @@
     "snapshot" : "log/aped-snapshot.json",
     "hdf5" : "results/aped-fulldata.hdf5",
     "endbarrier" : 0.1,
-    "seed" : 1234,
     "rtlim" : 600.0,
     "rulemodel" : "polymers-ruleset.json",
     "consts" :{
