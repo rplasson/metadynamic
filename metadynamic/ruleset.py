@@ -29,7 +29,8 @@ from dataclasses import dataclass, field
 
 
 from metadynamic.ends import InitError
-from metadynamic.logger import Logged
+
+# from metadynamic.logger import LOGGER
 from metadynamic.inputs import RulesetParam
 
 
@@ -53,7 +54,7 @@ ReacProp = Tuple[Stoechio, Stoechio, float]
 ChemDescr = str
 
 
-class Descriptor(Logged):
+class Descriptor:
     def __init__(self) -> None:
         self.cat_dict: Dict[str, Categorizer] = {}
         self.prop_dict: Dict[str, Propertizer] = {}
@@ -86,7 +87,7 @@ class Descriptor(Logged):
 
 
 @dataclass
-class Rule(Logged):
+class Rule:
     name: str
     reactants: Compset
     builder: Builder
@@ -127,7 +128,7 @@ class Rule(Logged):
         return self.descr
 
 
-class Ruleset(Logged):
+class Ruleset:
     def __init__(self, descriptor: Descriptor):
         self.descriptor: Descriptor = descriptor
         self.categories: Dict[str, Set[str]] = {}
@@ -186,58 +187,46 @@ class Ruleset(Logged):
         return self.rules[reacdescr[0]].build(reacdescr)
 
 
-class Model(Logged):
-    def __init__(self, filename: str = "") -> None:
-        self.descriptor = Descriptor()
-        self.rules: Dict[str, Rule] = {}
-        if filename:
-            self.param = RulesetParam.readfile(filename)
-            rulepath = import_module(self.param.rulemodel)
-            for catname, catparam in self.param.categories.items():
-                self.add_cat(catname, getattr(rulepath, catparam.func))
-            for propname, propparam in self.param.properties.items():
-                self.add_prop(propname, getattr(rulepath, propparam.func))
-            for rulename, ruleparam in self.param.rules.items():
-                self.add_rule(
-                    rulename=rulename,
-                    reactants=tuple(ruleparam.reactants),
-                    builder=(
-                        getattr(rulepath, ruleparam.builder_func),
-                        getattr(rulepath, ruleparam.builder_const),
-                        getattr(rulepath, ruleparam.builder_variant),
-                    ),
-                    descr=ruleparam.descr,
-                )
-
-    def add_cat(self, catname: str, rule: Categorizer) -> None:
-        self.descriptor.add_cat(catname, rule)
-
-    def add_prop(self, propname: str, func: Propertizer) -> None:
-        self.descriptor.add_prop(propname, func)
-
-    def add_rule(
-        self, rulename: str, reactants: Compset, builder: Builder, descr: str,
-    ) -> None:
-        self.rules[rulename] = Rule(
-            name=rulename, reactants=reactants, builder=builder, descr=descr,
-        )
-
-
-class Ruled(Logged):
-    ruleset: Ruleset
-    descriptor: Descriptor
-    model: Model
-
-    @classmethod
-    def setrules(cls, modelparam: str, paramdict: Dict[str, Paramset]) -> None:
-        cls.model = Model(modelparam)
-        cls.descriptor = cls.model.descriptor
-        cls.ruleset = Ruleset(cls.descriptor)
+class Model:
+    def __init__(self, modelparam: str, paramdict: Dict[str, Paramset]) -> None:
+        # load parameters an rule module
+        self.param = RulesetParam.readfile(modelparam)
+        self.rulepath = import_module(self.param.rulemodel)
+        # create descriptors
+        self.descriptor: Descriptor = Descriptor()
+        for catname, catparam in self.param.categories.items():
+            self.descriptor.add_cat(catname, getattr(self.rulepath, catparam.func))
+        for propname, propparam in self.param.properties.items():
+            self.descriptor.add_prop(propname, getattr(self.rulepath, propparam.func))
+        # create rules
+        self.ruleset: Ruleset = Ruleset(self.descriptor)
         for rulename in paramdict:
-            try:
-                cls.ruleset.add_rule(rulename, cls.model.rules[rulename])
-            except KeyError:
-                raise InitError(
-                    f"The rule named '{rulename}' is not defined in '{modelparam}'"
-                )
-        cls.ruleset.initialize(paramdict)
+            # Gate rule from parameter file
+            if rulename in self.param.rules:
+                ruleparam = self.param.rules[rulename]
+                try:
+                    # then create it from rule module
+                    rule = Rule(
+                        name=rulename,
+                        reactants=tuple(ruleparam.reactants),
+                        builder=(
+                            getattr(self.rulepath, ruleparam.builder_func),
+                            getattr(self.rulepath, ruleparam.builder_const),
+                            getattr(self.rulepath, ruleparam.builder_variant),
+                        ),
+                        descr=ruleparam.descr,
+                    )
+                except KeyError:
+                    # raise an error if the rule from paramdict is not in parameter file
+                    raise InitError(
+                        f"The rule '{rulename}' from '{paramdict}' is not defined in '{modelparam}'"
+                    )
+                except AttributeError:
+                    # raise an error if the rule from file is not in the module
+                    raise InitError(
+                        f"The rule '{rulename}' from '{modelparam}' is not defined in '{self.rulepath}'"
+                    )
+                # Register the created rule
+                self.ruleset.add_rule(rulename, rule)
+        # intialize the rules parameters
+        self.ruleset.initialize(paramdict)

@@ -274,10 +274,11 @@ class Param(Readerclass):
     rtlim: float = 900.0  # Limit runtime
     maxsteps: int = 10000  # maximum time steps
     # System
-    autoclean: bool = True  # Perform a periodic cleaning of probabilities if Treu
+    autoclean: bool = True  # Perform a periodic cleaning of probabilities if True
     dropmode: str = ""  # drop mode (can be 'keep', 'drop' or 'soft')
     gcperio: bool = True  # if True, only call garbage collector at each timestep.
     endbarrier: float = 0.01  # If non zero, final threads will wait in idle loops of corresponding values
+    maxmem: int = 2048  # Max memory (in Mb).
     # IO
     save: List[str] = field(
         default_factory=list
@@ -289,9 +290,11 @@ class Param(Readerclass):
     snapshot: str = ""  # filename for final snapshot
     printsnap: str = "pdf"  # filetype of snapshots
     hdf5: str = ""  # filename for hdf5 file
+    store_snapreac: bool = False  # Store reaction snapshots? (can take lots of time)
     maxstrlen: int = 256  # max string length to be stored in hdf5
     lengrow: int = 10  # number of length left before requesting a resize
     maxlog: int = 100  # max log lines per process to be saved
+    timeformat: str = "%H:%M:%S, %d/%m/%y"  # timeformat used in log files
 
     def __post_init__(self) -> None:
         self.ptot = sum([pop * len(comp) for comp, pop in self.init.items()])

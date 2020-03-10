@@ -18,14 +18,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-from typing import Generic, TypeVar, Dict, Set, Union, Hashable, List, Any
+from typing import Generic, TypeVar, Dict, Set, Union, Hashable, Any
 from weakref import WeakValueDictionary
 from collections import defaultdict
 from numpy import array, sum, average, ndarray, nan
 
-# from metadynamic.logger import Logged
-from metadynamic.ruleset import Ruled
+from metadynamic.ruleset import Model
 from metadynamic.ends import BadFile
+from metadynamic.logger import LOGGER
 
 
 class Collectable:
@@ -58,10 +58,11 @@ class WeakDict(Generic[K, T], WeakValueDictionary):
 WDict = Union[Dict[K, T], WeakDict[K, T]]
 
 
-class Collect(Generic[K, T], Ruled):
+class Collect(Generic[K, T]):
     _colltype = "Generic"
 
-    def __init__(self, categorize: bool = True, dropmode: str = "drop"):
+    def __init__(self, model: Model, categorize: bool = True, dropmode: str = "drop"):
+        self.model = model
         self.dropmode = dropmode
         self.pool: WDict[K, T]
         if self.dropmode == "soft":
@@ -71,7 +72,7 @@ class Collect(Generic[K, T], Ruled):
         self.categories: Dict[str, Set[K]] = defaultdict(set)
         self.active: WDict[K, T] = self.pool if self.dropmode == "drop" else {}
         self.categorize = categorize
-        self.log.info(
+        LOGGER.info(
             f"Created {self} as drop={self.dropmode}, with pool of type {type(self.pool)}"
         )
 
@@ -137,19 +138,13 @@ class Collect(Generic[K, T], Ruled):
         Must be implemented in subclasses"""
         raise NotImplementedError
 
-    def purge(self) -> None:
-        keys: List[K] = list(self.pool.keys())
-        for key in keys:
-            self.pool[key].delete()
-            try:
-                del self.pool[key]
-            except KeyError:
-                # Already purged by delete process
-                pass
-
     def save(self, full: bool = False) -> Dict[str, T]:
         dataset = self.pool if full else self.active
         return {str(val): val for val in dataset.values()}
+
+    def asdict(self, full: bool = False) -> Dict[str, Any]:
+        dataset = self.pool if full else self.active
+        return {str(val): val.serialize() for val in dataset.values()}
 
     def getprop(self, prop: str, obj: T) -> float:
         if prop != "count":

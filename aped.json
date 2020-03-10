@@ -24,5 +24,6 @@
     },
     "dropmode" : "keep",
     "maxsteps" : 1000,
-    "maxlog" : 100
+    "maxlog" : 100,
+    "timeformat" :  "at %H:%M:%S on %d/%m/%y"
 }

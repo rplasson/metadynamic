@@ -22,26 +22,13 @@ from datetime import datetime
 from socket import gethostname
 from typing import Dict, Any, List, Tuple, Mapping
 from h5py import File, Group, Dataset, string_dtype
-from graphviz import Digraph
-from numpy import (
-    array,
-    nan,
-    nanmean,
-    nanstd,
-    ndarray,
-    convolve,
-    ones,
-    nan_to_num,
-    meshgrid,
-)
-from pandas import DataFrame
+from numpy import nan
 
 from metadynamic.ends import Finished, FileCreationError, InternalError
-from metadynamic.inval import invalidstr, invalidint, invalidfloat, isvalid
-from metadynamic.inputs import Readerclass, StatParam, MapParam, Param, RulesetParam
+from metadynamic.inval import isvalid
+from metadynamic.inputs import Readerclass, Param, RulesetParam
 from metadynamic.caster import Caster
-from metadynamic.json2dot import Data2dot
-from metadynamic.mpi import Parallel
+from metadynamic.mpi import MPI_GATE, MPI_STATUS
 from metadynamic import __version__
 
 
@@ -49,7 +36,7 @@ comp_cast = Caster(Dict[str, int])
 reac_cast = Caster(Dict[str, List[float]])
 
 
-class ResultWriter(Parallel):
+class ResultWriter:
     def __init__(self, filename: str, maxstrlen: int = 256, lengrow: int = 10) -> None:
         if not isvalid(filename) or filename == "":
             raise FileNotFoundError(f"Plese enter a valid output file name")
@@ -57,8 +44,8 @@ class ResultWriter(Parallel):
         self.maxstrlen = maxstrlen
         self.lengrow = lengrow
         try:
-            if self.mpi.ismpi:
-                self.h5file = File(filename, "w", driver="mpio", comm=self.mpi.comm)
+            if MPI_STATUS.ismpi:
+                self.h5file = File(filename, "w", driver="mpio", comm=MPI_STATUS.comm)
             else:
                 self.h5file = File(filename, "w")
         except OSError as err:
@@ -71,7 +58,7 @@ class ResultWriter(Parallel):
     def init_log(self, maxlog: int) -> None:
         self.maxlog = maxlog
         self.dlog = maxlog
-        size = self.mpi.size
+        size = MPI_STATUS.size
         self.logging: Group = self.h5file.create_group("Logging")
         self.logcount: Dataset = self.logging.create_dataset(
             "count", (size,), fillvalue=0, dtype="int32"
@@ -87,7 +74,7 @@ class ResultWriter(Parallel):
                 ("message", string_dtype(length=self.maxstrlen)),
             ],
         )
-        self.gate.register_function("addlog", self.add_log_line)
+        MPI_GATE.register_function("addlog", self.add_log_line)
         self._init_log = True
 
     def add_log_line(self) -> None:
@@ -96,12 +83,16 @@ class ResultWriter(Parallel):
 
     def write_log(self, level: int, time: str, runtime: float, msg: str) -> None:
         if self._init_log:
-            rank = self.mpi.rank
+            rank = MPI_STATUS.rank
             col = self.logcount[rank]
             self.logs[rank, col] = (level, time, runtime, msg[: self.maxstrlen])
             self.logcount[rank] = col + 1
             if (self.maxlog - col) < self.lengrow:
-                self.gate.close("addlog")
+                MPI_GATE.close("addlog")
+
+    def close_log(self, cutline: int) -> None:
+        self.logs.resize(cutline, axis=1)
+        self._init_log = False
 
     def close_log(self, cutline: int) -> None:
         self.logs.resize(cutline, axis=1)
@@ -115,14 +106,14 @@ class ResultWriter(Parallel):
         comment: str,
         nbcol: int,
     ) -> None:
-        size = self.mpi.size
+        size = MPI_STATUS.size
         self.nbcol = nbcol + self.lengrow
         self.dcol = nbcol
         self.run: Group = self.h5file.create_group("Run")
         self.run.attrs["version"] = __version__
         self.run.attrs["hostname"] = gethostname()
         self.run.attrs["date"] = datetime.now().strftime("%H:%M:%S, %d/%m/%Y")
-        self.run.attrs["threads"] = self.mpi.size
+        self.run.attrs["threads"] = MPI_STATUS.size
         self.run.attrs["comment"] = comment
         self.params: Group = self.h5file.create_group("Parameters")
         self.dict_as_attr(self.params, params.asdict())
@@ -171,6 +162,9 @@ class ResultWriter(Parallel):
                 ("rate", "float32"),
             ],
         )
+        self.reacsnapsaved: Dataset = self.snapshots.create_dataset(
+            "reactions_saved", (size, 1), maxshape=(size, None), dtype=bool,
+        )
         self._snapsized: bool = False
         self.maps: Group = self.h5file.create_group("Maps")
         for name in mapnames:
@@ -183,7 +177,7 @@ class ResultWriter(Parallel):
             )
         self.map_cat: Dict[str, List[float]] = {}
         self.currentcol = 0
-        self.gate.register_function("addcol", self.add_col)
+        MPI_GATE.register_function("addcol", self.add_col)
         self._init_stat = True
 
     def test_initialized(self) -> None:
@@ -204,22 +198,23 @@ class ResultWriter(Parallel):
         self.map_cat[name] = categories
         mapsize = len(categories)
         self.maps[name].resize(mapsize, axis=1)
-        self.maps[name][self.mpi.rank, :, 0] = categories
+        self.maps[name][MPI_STATUS.rank, :, 0] = categories
 
     def add_map(self, name: str, data: Dict[float, List[float]]) -> None:
         self.test_initialized()
         for catnum, cat in enumerate(self.map_cat[name]):
             try:
                 length = len(data[cat])
-                self.maps[name][self.mpi.rank, catnum, 1 : length + 1] = data[cat]
+                self.maps[name][MPI_STATUS.rank, catnum, 1 : length + 1] = data[cat]
             except KeyError:
                 pass  # No problem, some categories may have been reached by only some processes
 
     def snapsize(self, maxcomp: int, maxreac: int, maxsnap: int) -> None:
         self.test_initialized()
-        self.timesnap.resize((self.mpi.size, maxsnap))
-        self.compsnap.resize((self.mpi.size, maxsnap, maxcomp))
-        self.reacsnap.resize((self.mpi.size, maxsnap, maxreac))
+        self.timesnap.resize((MPI_STATUS.size, maxsnap))
+        self.compsnap.resize((MPI_STATUS.size, maxsnap, maxcomp))
+        self.reacsnap.resize((MPI_STATUS.size, maxsnap, maxreac))
+        self.reacsnapsaved.resize((MPI_STATUS.size, maxsnap))
         self._snapsized = True
 
     def close(self) -> None:
@@ -231,18 +226,18 @@ class ResultWriter(Parallel):
     def add_data(self, result: List[float]) -> None:
         self.test_initialized()
         try:
-            self.data[self.mpi.rank, :, self.currentcol] = result
+            self.data[MPI_STATUS.rank, :, self.currentcol] = result
             self.currentcol += 1
             if (self.nbcol - self.currentcol) < self.lengrow:
-                self.gate.close("addcol")
+                MPI_GATE.close("addcol")
         except ValueError:
             raise InternalError(
-                f"No more space in file for #{self.mpi.rank} at column {self.currentcol}"
+                f"No more space in file for #{MPI_STATUS.rank} at column {self.currentcol}"
             )
 
     def add_end(self, ending: Finished, time: float) -> None:
         self.test_initialized()
-        self.end[self.mpi.rank] = (
+        self.end[MPI_STATUS.rank] = (
             ending.num,
             ending.message.encode()[: self.maxstrlen],
             time,
@@ -257,14 +252,15 @@ class ResultWriter(Parallel):
     ) -> None:
         self.test_initialized()
         if self._snapsized:
-            self.timesnap[self.mpi.rank, col] = time
+            self.timesnap[MPI_STATUS.rank, col] = time
+            self.reacsnapsaved[MPI_STATUS.rank, col] = len(reaclist) > 0
             for line, data in enumerate(complist.items()):
-                self.compsnap[self.mpi.rank, col, line] = (
+                self.compsnap[MPI_STATUS.rank, col, line] = (
                     data[0][: self.maxstrlen],
                     data[1],
                 )
             for line, (name, (const, rate)) in enumerate(reaclist.items()):
-                self.reacsnap[self.mpi.rank, col, line] = (
+                self.reacsnap[MPI_STATUS.rank, col, line] = (
                     name.encode()[: self.maxstrlen],
                     const,
                     rate,
@@ -285,290 +281,3 @@ class ResultWriter(Parallel):
         for key, val in datas.items():
             subgroup = group.create_group(key)
             self.dict_as_attr(subgroup, val.asdict())
-
-
-class ResultReader:
-    def __init__(self, filename: str) -> None:
-        self.filename = filename
-        self.h5file: File = File(filename, "r")
-        self.run: Group = self.h5file["Run"]
-        self.params: Group = self.h5file["Parameters"]
-        self.dataset: Group = self.h5file["Dataset"]
-        self.datanames: List[str] = list(self.dataset.attrs["datanames"])
-        self.data: Dataset = self.dataset["results"]
-        self.end: Dataset = self.dataset["end"]
-        self.snapshots: Group = self.h5file["Snapshots"]
-        self.timesnap: Dataset = self.snapshots["time"]
-        self.compsnap: Dataset = self.snapshots["compounds"]
-        self.reacsnap: Dataset = self.snapshots["reactions"]
-        self.maps: Group = self.h5file["Maps"]
-        self.mapnames = self.maps.keys()
-        self.logging: Group = self.h5file["Logging"]
-        self.logcount: Dataset = self.logging["count"]
-        self.logs: Dataset = self.logging["logs"]
-        self.size = self.run.attrs["threads"]
-
-    def __getitem__(self, field: str) -> ndarray:
-        if field in self.datanames:
-            return self.get(field)
-        if field in self.mapnames:
-            return self.getmap(field)
-        raise KeyError
-
-    def _loc(self, field: str) -> int:
-        try:
-            return self.datanames.index(field)
-        except ValueError:
-            raise ValueError(f"{field} is not a recorded stat name")
-
-    def get(
-        self, field: str = invalidstr, method: str = "m", meanlength: int = invalidint,
-    ) -> ndarray:
-        loc = self._loc(field) if isvalid(field) else slice(None, None, None)
-        if method == "*":
-            return self.data[:, loc]
-        if method[0] == "p":
-            res = self.data[int(method[1:]), loc]
-        elif method[0] in ["m", "s", "+", "-"]:
-            mean = nanmean(self.data[:, loc, :], axis=0)
-            if method == "m":
-                res = mean
-            else:
-                std = nanstd(self.data[:, loc, :], axis=0)
-                if method == "s":
-                    res = std
-                else:
-                    res = mean + float(method) * std
-        else:
-            raise ValueError(f"'method'={method} is invalid")
-        return (
-            # Running mean from https://stackoverflow.com/questions/13728392/moving-average-or-running-mean
-            convolve(res, ones((meanlength,)) / meanlength, mode="valid")
-            if isvalid(meanlength)
-            else res
-        )
-
-    def getmap(
-        self, field: str, method: str = "m", meanlength: int = invalidint
-    ) -> ndarray:
-        try:
-            data = self.maps[field][:, :, 1:]
-        except KeyError:
-            raise ValueError(f"{field} is not a recorded map name")
-        if method == "*":
-            return data
-        if method[0] == "p":
-            res = data[int(method[1:])]
-        elif method[0] in ["m", "s", "+", "-"]:
-            mean = nanmean(data, axis=0)
-            if method == "m":
-                res = mean
-            else:
-                std = nanstd(data, axis=0)
-                if method == "s":
-                    res = std
-                else:
-                    res = mean + float(method) * std
-        else:
-            raise ValueError(f"'method'={method} is invalid")
-        return (
-            # Running mean from https://stackoverflow.com/questions/13728392/moving-average-or-running-mean
-            convolve(res, ones((meanlength,)) / meanlength, mode="valid")
-            if isvalid(meanlength)
-            else res
-        )
-
-    def getsnap(self, num: int, step: int, parameterfile: str = "") -> Digraph:
-        comp = comp_cast(self.snapshots["compounds"][num, step])
-        if "" in comp:
-            comp.pop("")
-        reac = reac_cast(
-            {i: (j, k) for i, j, k in self.snapshots["reactions"][num, step]}
-        )
-        if "" in reac:
-            reac.pop("")
-        return Data2dot(comp, reac, parameterfile).crn.dot
-
-    def categories(self, field: str) -> ndarray:
-        return self.maps[field][0, :, 0]
-
-    def ending(self, num: int) -> Tuple[int, str, float]:
-        endnum, message, time = self.end[num]
-        return endnum, message.decode(), time
-
-    def endmsg(self, num: int) -> str:
-        endnum, message, time = self.ending(num)
-        return f"#{num}: ending n°{endnum} at runtime t={time}s; {message}"
-
-    def table(
-        self, maps: str = invalidstr, method: str = "m", meanlength: int = invalidint
-    ) -> DataFrame:
-        if isvalid(maps):
-            data = self.getmap(field=maps, method=method, meanlength=meanlength)
-            index = self.categories(maps)
-        else:
-            data = self.get(method=method, meanlength=meanlength)
-            index = self.datanames
-        return DataFrame(data, index=index)
-
-    def xy(
-        self,
-        y: str = "ptime",
-        x: str = "time",
-        method: str = "m",
-        xmethod: str = "m",
-        meanlength: int = invalidint,
-    ) -> Tuple[ndarray, ndarray]:
-        x = self.get(field=x, method=xmethod, meanlength=meanlength)
-        y = self.get(field=y, method=method, meanlength=meanlength)
-        return x, y
-
-    def xyproc(
-        self,
-        y: str = "ptime",
-        x: str = "time",
-        method: str = "m",
-        xmethod: str = "m",
-        meanlength: int = invalidint,
-    ) -> Tuple[ndarray, ndarray]:
-        x = self.get(field=x, method=xmethod, meanlength=meanlength)
-        y = array(
-            [
-                self.get(field=y, method=f"p{proc}", meanlength=meanlength)
-                for proc in range(self.size)
-            ]
-        ).T
-        return x, y
-
-    def xypm(
-        self,
-        y: str = "ptime",
-        x: str = "time",
-        delta: float = 1.0,
-        meanlength: int = invalidint,
-    ) -> Tuple[ndarray, ndarray, ndarray]:
-        x = self.get(field=x, method="m", meanlength=meanlength)
-        yp = self.get(field=y, method=f"+{delta}", meanlength=meanlength)
-        ym = self.get(field=y, method=f"-{delta}", meanlength=meanlength)
-        return x, yp, ym
-
-    def xyerr(
-        self,
-        y: str = "ptime",
-        x: str = "time",
-        delta: float = 1.0,
-        meanlength: int = invalidint,
-    ) -> Tuple[ndarray, ndarray, ndarray]:
-        x = self.get(field=x, method="m", meanlength=meanlength)
-        y = self.get(field=y, method=f"m", meanlength=meanlength)
-        err = self.get(field=y, method=f"s", meanlength=meanlength) * delta
-        return x, y, err
-
-    def xyz(
-        self,
-        field: str,
-        method: str = "m",
-        tmethod: str = "m",
-        meanlength: int = invalidint,
-        nanval: float = 0.0,
-        posinf: float = invalidfloat,
-        neginf: float = invalidfloat,
-    ) -> Tuple[ndarray, ndarray, ndarray]:
-        time = self.get(field="time", method=tmethod, meanlength=meanlength)
-        categories = self.categories(field)
-        x, y = meshgrid(time, categories)
-        try:
-            z = nan_to_num(
-                self.getmap(field=field, method=method, meanlength=meanlength),
-                nan=nanval,
-                posinf=posinf if isvalid(posinf) else None,
-                neginf=neginf if isvalid(neginf) else None,
-            )
-        except TypeError:
-            # older numpy version cannot set replacement values for nan/posinf/neginf
-            z = nan_to_num(
-                self.getmap(field=field, method=method, meanlength=meanlength)
-            )
-        return x, y, z
-
-    @property
-    def printinfo(self) -> str:
-        version = self.run.attrs["version"]
-        hostname = self.run.attrs["hostname"]
-        start = self.run.attrs["date"]
-        threads = self.run.attrs["threads"]
-        comment = self.run.attrs["comment"]
-        end = self.run.attrs["end"]
-        endline = "\n"
-        return (
-            f"----------------\n"
-            f"{comment}\n"
-            f"----------------\n"
-            f"metadynamic version {version}, "
-            f"ran on {threads} threads on {hostname}\n"
-            f"from {start} to {end}\n"
-            f"results saved in '{self.filename}'\n"
-            f"----------------\n"
-            f"{endline.join([self.endmsg(i) for i in range(threads)])}\n"
-            f"----------------"
-        )
-
-    @property
-    def runinfo(self) -> Dict[str, Any]:
-        return dict(self.run.attrs)
-
-    @property
-    def parameters(self) -> Param:
-        params = dict(self.params.attrs)
-        res = params.copy()
-        for key, val in params.items():
-            if "->" in key:
-                prekey, postkey = key.split("->")
-                try:
-                    res[prekey][postkey] = val
-                except KeyError:
-                    res[prekey] = {postkey: val}
-                res.pop(key)
-        return Param.readdict(res)
-
-    @property
-    def ruleset(self) -> RulesetParam:
-        ruleset = dict(self.params["Rules"].attrs)
-        res = ruleset.copy()
-        for key, val in ruleset.items():
-            if "->" in key:
-                key1, key2, key3 = key.split("->")
-                if key1 not in res:
-                    res[key1] = {key2: {key3: val}}
-                elif key2 not in res[key1]:
-                    res[key1][key2] = {key3: val}
-                else:
-                    res[key1][key2][key3] = val
-                res.pop(key)
-        return RulesetParam.readdict(res)
-
-    @property
-    def statparam(self) -> Dict[str, StatParam]:
-        return StatParam.multipledict(
-            {key: dict(val.attrs) for key, val in self.params["Stats"].items()}
-        )
-
-    @property
-    def mapparam(self) -> Dict[str, MapParam]:
-        return MapParam.multipledict(
-            {key: dict(val.attrs) for key, val in self.params["Maps"].items()}
-        )
-
-    @property
-    def fulllog(self) -> ndarray:
-        # add simple system for log display/search (depending on level etc) ?
-        maxcol = max(self.logcount)
-        return self.logs[:, :maxcol]
-
-
-class Saver:
-    writer: ResultWriter
-
-    @classmethod
-    def setsaver(cls, filename: str, maxstrlen: int = 256, lengrow: int = 10) -> None:
-        cls.writer = ResultWriter(filename, maxstrlen, lengrow)

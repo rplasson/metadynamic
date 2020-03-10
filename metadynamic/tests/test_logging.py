@@ -1,4 +1,4 @@
-from metadynamic import System
+from metadynamic import System, LOGGER
 
 
 def test_system() -> None:
@@ -8,5 +8,5 @@ def test_system() -> None:
         loglevel="DEBUG",
     )
     res = syst.run()
-    syst.log.info(f"Finished: {res}")
-    syst.log.disconnect()
+    LOGGER.info(f"Finished: {res}")
+    LOGGER.disconnect()

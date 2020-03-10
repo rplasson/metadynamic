@@ -20,7 +20,7 @@
 
 from mpi4py import MPI
 from time import sleep
-from numpy import array, ndarray, empty
+from numpy import array, ndarray, empty, where
 from typing import List, Dict, Any, Callable, Iterable, Optional, Type
 from types import TracebackType
 
@@ -39,8 +39,7 @@ class Cont:
     def reset(self) -> None:
         self._cont = True
 
-    @property
-    def ok(self) -> bool:
+    def __bool__(self) -> bool:
         return self._cont
 
 
@@ -56,20 +55,27 @@ class MpiGate:
         self.procs: Iterable[int] = range(self.size)
         self.snd_state: List[Optional[MPI.Request]] = [None] * (self.size)
         self.rcv_state: List[bool] = [False] * (self.size)
-        self.gatenum: int = taginit
-        self.out: bool = False
-        self.still_running: bool = True
+        self.gatenum: int
+        self.init(taginit)
+        self.running: bool = False
+        self.launched: bool = False
+        self.nb_running: int = self.size
+        self.mem_divide: int = self.size
         self.cont = Cont()
         self.msg: List[int] = [0] * (self.size)
         self._op: Dict[int, Callable[[], None]] = {
             1: nop,
             2: self.check_all_out,
             3: self.cont.stop,
+            4: self.oomkill,
         }
-        self._opnum: Dict[str, int] = {"nop": 1, "final": 2, "exit": 3}
+        self._opnum: Dict[str, int] = {"nop": 1, "final": 2, "exit": 3, "oom": 4}
         if operations:
             for name, op in operations.items():
                 self.register_function(name, op)
+
+    def init(self, taginit: int = 1) -> None:
+        self.gatenum = taginit
 
     def __enter__(self) -> "MpiGate":
         self.cont.reset()
@@ -84,17 +90,24 @@ class MpiGate:
         self.exit()
 
     def register_function(self, opname: str, func: Callable[[], None]) -> None:
-        if opname in self._opnum:
-            raise ValueError(f"Operation {opname} already defined.")
-        funcnum = len(self._op) + 1
-        self._op[funcnum] = func
-        self._opnum[opname] = funcnum
+        if opname not in self._opnum:
+            funcnum = len(self._op) + 1
+            self._op[funcnum] = func
+            self._opnum[opname] = funcnum
 
     def operate(self, funcnum: int) -> None:
         self._op[funcnum]()
 
+    def oomkill(self) -> None:
+        self.mem_divide = self.nb_running
+        runningpos = where(self.comm.allgather(self.running))
+        for running in runningpos[0][::2]:
+            if running == self.rank:
+                self.cont.stop()
+            self.mem_divide -= 1
+
     def check_all_out(self) -> None:
-        self.still_running = not self.comm.allreduce(self.out, op=MPI.LAND)
+        self.nb_running = self.comm.allreduce(self.running, op=MPI.SUM)
 
     def check_msg(self, tag: int) -> None:
         for src in self.procs:
@@ -131,10 +144,14 @@ class MpiGate:
         return sum(self.rcv_state) > 0
 
     def close(self, msg: str = "nop") -> None:
+        if not self.launched:
+            raise ValueError("Cannot close a gate that has not been launched.")
         self.send_msg(tag=self.gatenum, msg=msg)
 
     def open(self) -> None:
         # Wait for everyone for exchanging messages
+        if not self.launched:
+            raise ValueError("Cannot open a gate that has not been launched.")
         self.comm.Barrier()
         # get operation list, sorted to be processed in order.
         # 0 is removed as it corresponds to 'no message'
@@ -152,13 +169,16 @@ class MpiGate:
             self.open()
 
     def exit(self, sleeptime: float = 0.1) -> None:
-        self.out = True
+        self.running = False
         self.close("final")
-        while self.still_running:
+        while self.nb_running > 0:
             self.checkpoint()
             sleep(sleeptime)
+        self.launched = False
 
-    def context(self) -> "MpiGate":
+    def launch(self) -> "MpiGate":
+        self.running = True
+        self.launched = True
         return self
 
 
@@ -206,16 +226,5 @@ class MpiStatus:
         return fused
 
 
-class Parallel:
-    mpi: MpiStatus
-    gate: MpiGate
-
-    @classmethod
-    def setmpi(
-        cls,
-        rootnum: int = 0,
-        taginit: int = 1,
-        operations: Optional[Dict[str, Callable[[], None]]] = None,
-    ) -> None:
-        cls.mpi = MpiStatus(rootnum)
-        cls.gate = MpiGate(taginit, operations)
+MPI_STATUS = MpiStatus()
+MPI_GATE = MpiGate()

@@ -33,26 +33,22 @@ from metadynamic.ends import (
     Finished,
     TimesUp,
     RuntimeLim,
-    NotFound,
-    NoMore,
     HappyEnding,
     BadEnding,
-    InitError,
     Interrupted,
     SignalCatcher,
     FileNotFound,
     InternalError,
+    OOMError,
 )
-from metadynamic.logger import Logged
-from metadynamic.proba import Probalistic
-from metadynamic.ruleset import Ruled
+from metadynamic.logger import LOGGER
+from metadynamic.mpi import MPI_GATE, MPI_STATUS
 from metadynamic.collector import Collectable
-from metadynamic.chemical import Collected, trigger_changes
+from metadynamic.chemical import CRN
 from metadynamic.inputs import Param, LockedError
 from metadynamic.inval import invalidstr
 from metadynamic.json2dot import Json2dot
-from metadynamic.hdf5 import Saver
-from metadynamic.mpi import Parallel
+from metadynamic.hdf5 import ResultWriter
 
 
 class Encoder(JSONEncoder):
@@ -62,28 +58,43 @@ class Encoder(JSONEncoder):
         return super().default(obj)
 
 
-class RunStatus(Logged):
-    def __init__(self, param: Param):
-        self.param = param
+class RunStatus:
+    infonames = ["thread", "ptime", "memuse", "step", "dstep", "time"]
 
-    def initialize(self, num: int) -> None:
-        self.num: int = num
+    def __init__(self) -> None:
         self.tnext: float = 0.0
         self.dstep: int = 0
         self.step: int = 0
         self.time: float = 0.0
-        self.infonames = ["#", "thread", "ptime", "memuse", "step", "dstep", "time"]
+        self.tstep: float = 1.0
+        self.tend: float = 0.0
+        self.rtlim: float = 0.0
+        self.maxmem: float = 0.0
+        self.gcperio: bool = False
+
+    def initialize(self, param: Param) -> None:
+        self.tnext = 0.0
+        self.dstep = 0
+        self.step = 0
+        self.time = 0.0
+        self.tstep = param.tstep
+        self.tend = param.tend
+        self.rtlim = param.rtlim
+        self.maxmem = param.maxmem
+        self.gcperio = param.gcperio
+        if self.gcperio:
+            gc.disable()
 
     @property
     def memuse(self) -> float:
+        """Return the memory used by the process in Mb"""
         return float(Process(getpid()).memory_info().rss) / 1024 / 1024
 
     @property
     def info(self) -> List[Union[float, int]]:
         return [
-            1,
-            self.num,
-            self.log.runtime(),
+            MPI_STATUS.rank,
+            LOGGER.runtime,
             self.memuse,
             self.step,
             self.dstep,
@@ -91,7 +102,7 @@ class RunStatus(Logged):
         ]
 
     def logstat(self) -> None:
-        self.log.info(f"#{self.step}'{self.dstep}'': {self.time} -> {self.tnext}")
+        LOGGER.info(f"#{self.step}'{self.dstep}'': {self.time} -> {self.tnext}")
 
     def inc(self, dt: float) -> None:
         self.time += dt
@@ -99,31 +110,46 @@ class RunStatus(Logged):
 
     def next_step(self) -> None:
         if self.finished:
-            self.tnext += self.param.tstep
+            self.tnext += self.tstep
         self.step += 1
 
     def checkend(self) -> None:
-        if self.time >= self.param.tend:
+        if self.time >= self.tend:
             raise TimesUp(f"t={self.time}")
-        if self.log.runtime() >= self.param.rtlim:
+        if LOGGER.runtime >= self.rtlim:
             raise RuntimeLim(f"t={self.time}")
+
+    def checkmem(self) -> None:
+        if self.gcperio:
+            gc.collect()
+        if self.memuse > self.maxmem / MPI_GATE.mem_divide:
+            LOGGER.warning(f"{self.memuse}>{self.maxmem/MPI_GATE.mem_divide}, call oom")
+            MPI_GATE.close("oom")
+
+    def finalize(self) -> None:
+        if self.gcperio:
+            gc.enable()
 
     @property
     def finished(self) -> bool:
         return self.time >= self.tnext
 
 
-class Statistic(Collected, Saver, Parallel):
-    def __init__(self, param: Param, status: RunStatus, comment: str):
-        self.param = param
-        self.status = status
-        self.statnames = list(self.param.statparam.keys())
-        self.lines = self.status.infonames + self.param.save + self.statnames
-        self.mapnames = list(self.param.mapsparam.keys())
+class Statistic:
+    def __init__(
+            self, crn: CRN, writer: ResultWriter, param: Param, status: RunStatus, comment: str
+    ):
+        self.crn: CRN = crn
+        self.writer: ResultWriter = writer
+        self.param: Param = param
+        self.status: RunStatus = status
+        self.statnames: List[str] = list(self.param.statparam.keys())
+        self.lines: List[str] = RunStatus.infonames + self.param.save + self.statnames
+        self.mapnames: List[str] = list(self.param.mapsparam.keys())
         self.mapdict: Dict[str, Dict[float, List[float]]] = {
             name: {} for name in self.mapnames
         }
-        self.tsnapshot = (
+        self.tsnapshot: float = (
             self.param.sstep if self.param.sstep >= 0 else 2 * self.param.tend
         )
         self._snapfilenames: List[str] = []
@@ -135,7 +161,7 @@ class Statistic(Collected, Saver, Parallel):
 
     def conc_of(self, compound: str) -> float:
         try:
-            return self.comp_collect.active[compound].pop / self.param.vol
+            return self.crn.comp_collect.active[compound].pop / self.param.vol
         except KeyError:  # compounds doesn't exist => conc=0
             return 0.0
 
@@ -145,7 +171,7 @@ class Statistic(Collected, Saver, Parallel):
 
     def startwriter(self) -> None:
         if self.param.hdf5 == "":
-            self.log.error("No hdf5 filename given, can't save")
+            LOGGER.error("No hdf5 filename given, can't save")
             raise FileNotFound("No hdf5 filename given, can't save")
         else:
             self.writer.init_stat(
@@ -161,7 +187,7 @@ class Statistic(Collected, Saver, Parallel):
             self.status.info
             + self.concentrations
             + [
-                self.collstat(
+                self.crn.collstat(
                     collection=stats.collection,
                     prop=stats.prop,
                     weight=stats.weight,
@@ -172,11 +198,11 @@ class Statistic(Collected, Saver, Parallel):
             ]
         )
         self.writer.add_data(res)
-        self.log.debug(str(res))
+        LOGGER.debug(str(res))
 
     def calcmap(self) -> None:
         for name, maps in self.param.mapsparam.items():
-            collmap = self.collmap(
+            collmap = self.crn.collmap(
                 collection=maps.collection,
                 prop=maps.prop,
                 weight=maps.weight,
@@ -196,7 +222,7 @@ class Statistic(Collected, Saver, Parallel):
     def writemap(self) -> None:
         for name in self.mapnames:
             # correct sizes
-            categories = self.mpi.sortlist(list(self.mapdict[name].keys()))
+            categories = MPI_STATUS.sortlist(list(self.mapdict[name].keys()))
             self.writer.mapsize(name, categories)
             # write maps
             self.writer.add_map(name, self.mapdict[name])
@@ -211,13 +237,12 @@ class Statistic(Collected, Saver, Parallel):
                 timestr = str(self.tsnapshot)
                 self.tsnapshot += self.param.sstep
             basename, ext = path.splitext(self.param.snapshot)
-            filled = "{base}-{n}_{t}" if self.status.num >= 0 else "{base}-{t}"
-            basename = filled.format(base=basename, n=self.status.num, t=timestr)
+            basename = f"{basename}-{MPI_STATUS.rank}_{timestr}"
             filename = basename + ext
             with open(filename, "w") as outfile:
-                comp = self.comp_collect.save()
+                comp = self.crn.comp_collect.save()
                 nbcomp = len(comp)
-                reac = self.reac_collect.save()
+                reac = self.crn.reac_collect.save()
                 nbreac = len(reac)
                 dump(
                     {"Compounds": comp, "Reactions": reac},
@@ -232,33 +257,46 @@ class Statistic(Collected, Saver, Parallel):
             self._nbreac = max(self._nbreac, nbreac)
             if self.param.printsnap:
                 if not Json2dot(filename).write(f"{basename}.{self.param.printsnap}"):
-                    self.log.error(
+                    LOGGER.error(
                         f"Couldn't create snapshot {basename}.{self.param.printsnap} from {filename}"
                     )
 
     def writesnap(self) -> None:
         # Correct snapshot sizes
-        nbsnap = self.mpi.max(self._nbsnap)
-        nbcomp = self.mpi.max(self._nbcomp)
-        nbreac = self.mpi.max(self._nbreac)
-        self.log.debug(f"resize snapshot with {nbsnap}-{nbcomp}-{nbreac}")
+        nbsnap = MPI_STATUS.max(self._nbsnap)
+        nbcomp = MPI_STATUS.max(self._nbcomp)
+        nbreac = MPI_STATUS.max(self._nbreac)
+        LOGGER.debug(f"resize snapshot with {nbsnap}-{nbcomp}-{nbreac}")
         self.writer.snapsize(nbcomp, nbreac, nbsnap)
         # Write snapshots
         col = 0
         for time, filename in zip(self._snaptimes, self._snapfilenames):
             with open(filename, "r") as reader:
                 data = load(reader)
-            self.writer.add_snapshot(data["Compounds"], data["Reactions"], col, time)
+            self.writer.add_snapshot(
+                data["Compounds"],
+                data["Reactions"] if self.param.store_snapreac else {},
+                col,
+                time,
+            )
             col += 1
 
     def end(self, the_end: Finished) -> None:
-        self.writer.add_end(the_end, self.log.runtime())
+        self.writer.add_end(the_end, LOGGER.runtime)
         if isinstance(the_end, HappyEnding):
-            self.log.info(str(the_end))
+            LOGGER.info(str(the_end))
         elif isinstance(the_end, BadEnding):
-            self.log.error(str(the_end))
+            LOGGER.error(str(the_end))
         else:
-            self.log.warning(str(the_end))
+            LOGGER.warning(str(the_end))
+
+    def close_log(self) -> None:
+        cutline = MPI_STATUS.max(self.writer.logcount[MPI_STATUS.rank])
+        self.writer.close_log(cutline)
+
+    def data_recut(self) -> None:
+        maxcol = MPI_STATUS.max(self.writer.currentcol)
+        self.writer.data_resize(maxcol)
 
     def close_log(self) -> None:
         cutline = self.mpi.max(self.writer.logcount[self.mpi.rank])
@@ -269,14 +307,14 @@ class Statistic(Collected, Saver, Parallel):
         self.writer.data_resize(maxcol)
 
     def close(self) -> None:
-        self.log.info(f"File {self.writer.filename} to be written and closed...")
+        LOGGER.info(f"File {self.writer.filename} to be written and closed...")
         self.data_recut()
         self.close_log()
         self.writer.close()
-        self.log.info(f"...written and closed, done.")
+        LOGGER.info(f"...written and closed, done.")
 
 
-class System(Probalistic, Collected, Saver, Parallel):
+class System:
     def __init__(
         self,
         filename: str,
@@ -284,126 +322,107 @@ class System(Probalistic, Collected, Saver, Parallel):
         loglevel: str = "INFO",
         comment: str = "",
     ):
+        LOGGER.info("Creating the system.")
         seterr(divide="ignore", invalid="ignore")
         self.initialized = False
         self.param: Param = Param.readfile(filename)
-        Parallel.setmpi(taginit=100)
-        Saver.setsaver(self.param.hdf5, self.param.maxstrlen, self.param.lengrow)
-        Logged.setlogger(logfile, loglevel)
+        self.writer = ResultWriter(
+            self.param.hdf5, self.param.maxstrlen, self.param.lengrow
+        )
         self.writer.init_log(self.param.maxlog)
-        self.log.info("Parameter files loaded.")
+        LOGGER.setlevel(loglevel)
+        LOGGER.settxt(logfile)
+        LOGGER.setsaver(self.writer)
+        LOGGER.timeformat = self.param.timeformat
         self.signcatch = SignalCatcher()
-        self.status = RunStatus(self.param)
+        self.status = RunStatus()
         self.comment = comment
+        MPI_GATE.init(taginit=100)
+        LOGGER.info("System created")
 
     def initialize(self) -> None:
-        if self.initialized:
-            raise InitError("Double Initialization")
-        if self.param.gcperio:
-            gc.disable()
-        Probalistic.setprobalist(vol=self.param.vol)
-        # Add all options for collections
-        Collected.setcollections(dropmode_reac=self.param.dropmode)
-        Ruled.setrules(self.param.rulemodel, self.param.consts)
-        self.log.info("System created")
-        for compound, pop in self.param.init.items():
-            self.comp_collect[compound].change_pop(pop)
-        trigger_changes()
-        self.log.info(f"Initialized with {self.param}")
-        self.initialized = True
-        self.param.lock()
+        if not self.initialized:
+            self.crn = CRN(self.param)
+            self.param.lock()
+            LOGGER.info("System fully initialized")
+            self.initialized = True
 
     def _process(self) -> None:
         # Check if a cleanup should be done
         if self.param.autoclean:
-            self.probalist.clean()
-        # Then process self.maxsteps times
+            self.crn.clean()
+        # Process self.maxsteps times
         for _ in repeat(None, self.param.maxsteps):
-            # ... but stop is step ends
+            # ... but stop if step ends
             if self.status.finished:
                 break
-            # choose a random event
-            chosen, dt = self.probalist.choose()
-            # check if there even was an event to choose
-            if chosen is None:
-                raise NotFound(f"t={self.status.time}")
-            # perform the (chosen one) event
-            chosen.process()
-            if self.probalist.probtot == 0:
-                raise NoMore(f"t={self.status.time}")
+            # ... or if process is stopped by a signal
             if not self.signcatch.alive:
                 raise Interrupted(
                     f" by {self.signcatch.signal} at t={self.status.time}"
                 )
-            # update time for next step
-            self.status.inc(dt)
-        if not self.status.finished:
-            self.log.warning(f"maxsteps per process (={self.param.maxsteps}) too low")
+            # perform a random event
+            self.status.inc(self.crn.stepping())
+        else:
+            #  had to performed loop until maxsteps
+            LOGGER.warning(f"maxsteps per process (={self.param.maxsteps}) too low")
 
-    def _run(self, num: int = -1) -> str:
-        self.status.initialize(num)
-        statistic = Statistic(self.param, self.status, self.comment)
-        if num >= 0:
-            self.log.connect(f"Reconnected from thread {num+1}", num + 1)
-        if not self.initialized:
-            self.log.info("Will initialize")
-            self.initialize()
-        statistic.startwriter()
-        self.log.info(f"Run #{num}={getpid()} launched")
+    def run(self) -> str:
+        LOGGER.reset_timer()
+        if MPI_STATUS.ismpi:
+            LOGGER.info(f"Launching MPI run from thread #{MPI_STATUS.rank}")
+        else:
+            LOGGER.info("Launching single run.")
+        # Setup working environment
         self.signcatch.listen()
-        # Process(getpid()).cpu_affinity([num % cpu_count()])
-        with self.gate.context() as gate:
-            while gate.cont.ok:
+        self.status.initialize(self.param)
+        self.initialize()
+        statistic = Statistic(self.crn, self.writer, self.param, self.status, self.comment)
+        statistic.startwriter()
+        # Ready, let's run
+        LOGGER.info(f"Run #{MPI_STATUS.rank}={getpid()} launched")
+        with MPI_GATE.launch():
+            # Do not stop except if asked to exit the gate
+            while MPI_GATE.cont:
                 try:
+                    # Log stat info
                     self.status.logstat()
+                    # perform a step
                     self._process()
-                    if self.param.gcperio:
-                        gc.collect()
+                    # Write data statistics
                     statistic.writestat()
                     statistic.calcmap()
                     statistic.calcsnapshot()
+                    # Check memory
+                    self.status.checkmem()
                     self.status.next_step()
                     self.status.checkend()
-                    gate.checkpoint()
+                    # Pass gate checkpoint
+                    MPI_GATE.checkpoint()
+                # exit the gate because the work is finished.
                 except Finished as the_end:
-                    end = f"{the_end} ({self.log.runtime()} s)"
+                    end = f"{the_end} ({LOGGER.runtime} s)"
                     statistic.end(the_end)
                     break
-        self.log.debug(f"Run #{num}={getpid()} finished")
+            # exit the gate because asked by collective decision.
+            else:
+                gate_end = OOMError("Stopped by kind request of OOM killer")
+                end = f"{gate_end} ({LOGGER.runtime} s)"
+                statistic.end(gate_end)
+        # Write and log final data
+        LOGGER.info(f"Run #{MPI_STATUS.rank}={getpid()} finished")
         statistic.calcsnapshot(final=True)
-        if num >= 0:
-            # Clean memory as much as possible to leave room to still alive threads
-            self.purge(num)
         statistic.writesnap()
         statistic.writemap()
+        # Then cleanly exit
         statistic.close()
-        if num >= 0:
-            self.log.disconnect(f"Disconnected from #{num}")
-        return end
-
-    def purge(self, num: int) -> None:
-        self.comp_collect.purge()
-        self.reac_collect.purge()
-        Probalistic.setprobalist(vol=self.param.vol)
-        trigger_changes()
-        gc.collect()
-        self.log.debug(f"Collection purged for #{num}")
-
-    def run(self) -> List[str]:
-        if self.mpi.ismpi:
-            self.log.info(f"Launching MPI run from thread #{self.mpi.rank}")
-            self.log.disconnect(reason="Launching MPI....")
-            res = [self._run(self.mpi.rank)]
-            self.signcatch.reset()
-            return res
-        self.log.info("Launching single run.")
-        res = [self._run()]
+        self.status.finalize()
         self.signcatch.reset()
-        return res
+        return end
 
     def set_param(self, **kwd) -> None:
         try:
             self.param.set_param(**kwd)
         except LockedError:
             raise InternalError("Parameter set after initialization")
-        self.log.info(f"Parameters changed: {self.param}")
+        LOGGER.info(f"Parameters changed: {self.param}")
