@@ -59,7 +59,7 @@ class Encoder(JSONEncoder):
 
 
 class RunStatus:
-    infonames = ["#", "thread", "ptime", "memuse", "step", "dstep", "time"]
+    infonames = ["thread", "ptime", "memuse", "step", "dstep", "time"]
 
     def __init__(self) -> None:
         self.tnext: float = 0.0
@@ -93,7 +93,6 @@ class RunStatus:
     @property
     def info(self) -> List[Union[float, int]]:
         return [
-            1,
             MPI_STATUS.rank,
             LOGGER.runtime,
             self.memuse,

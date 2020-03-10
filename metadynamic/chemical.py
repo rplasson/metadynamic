@@ -39,7 +39,7 @@ from metadynamic.collector import Collect, Collectable
 from metadynamic.proba import Probalist
 from metadynamic.ends import DecrZero, NoMore, NotFound
 from metadynamic.ruleset import Model, ReacDescr
-from metadynamic.inval import isvalid, Invalid, invalidint
+from metadynamic.inval import invalidint
 from metadynamic.logger import LOGGER
 from metadynamic.inputs import Param
 
@@ -59,12 +59,6 @@ class Memcalc:
 
 # only use the value of order! (but often), with order rarely above 3...
 fact = Memcalc(factorial)
-
-
-# For naming a reaction... to be moved in chemical (instead of reacdescr.name ?)
-#    @property
-#    def name(self) -> str:
-#        return f"{self.rule.name}:{'+'.join(self.reactantnames)}"
 
 
 K = TypeVar("K", bound=Hashable)
@@ -125,15 +119,13 @@ class CollectofReaction(Collect[ReacDescr, "Reaction"]):
         )
 
 
-class Chemical(Generic[K],  Collectable):
+class Chemical(Generic[K], Collectable):
     _descrtype = "Chemical"
-    # _updatelist: Dict["Chemical[K]", int]
 
     def __init__(self, description: K, crn: "CRN"):
         self.crn: CRN = crn
         self.description: K = description
         self.activated: bool = False
-        # LOGGER.debug(f"Creating {self}")
 
     def __repr__(self) -> str:
         return f"{self._descrtype}: {self}"
@@ -229,7 +221,8 @@ class Reaction(Chemical[ReacDescr]):
     def process(self) -> None:
         if self.tobeinitialized:
             self.products = [
-                (self.crn.comp_collect[name], order) for name, order in self._stoechproduct
+                (self.crn.comp_collect[name], order)
+                for name, order in self._stoechproduct
             ]
             self.tobeinitialized = False
         for prod, order in self.products:
@@ -354,14 +347,17 @@ class Compound(Chemical[str]):
 
 class CRN:
     def __init__(self, param: Param):
+        # update trackers
         self._reac_update: Set[Reaction] = set()
         self._comp_update: Dict[Compound, int] = {}
-        # Add all options for collections
+        # Create CRN objects
         self.model = Model(param.rulemodel, param.consts)
         self.probalist = Probalist(param.vol)
         self.comp_collect = CollectofCompound(self.model, dropmode="keep")
         self.comp_collect.set_crn(self)
-        self.reac_collect = CollectofReaction(self.model, categorize=False, dropmode=param.dropmode)  # set categorize to False?
+        self.reac_collect = CollectofReaction(
+            self.model, dropmode=param.dropmode
+        )  # set categorize to False/True?
         self.reac_collect.set_crn(self)
         for compound, pop in param.init.items():
             self.comp_collect[compound].change_pop(pop)
@@ -429,4 +425,3 @@ class CRN:
             if collection == "compounds"
             else self.reac_collect.map(prop, weight, sort, method, full)
         )
-
