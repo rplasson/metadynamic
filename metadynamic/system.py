@@ -19,15 +19,12 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 import gc
-from os import path
 from math import ceil
 from numpy import nan, seterr
 from itertools import repeat
 from os import getpid
 from typing import Dict, Any, List, Union
 from psutil import Process
-
-from json import load, dump, JSONEncoder
 
 from metadynamic.ends import (
     Finished,
@@ -44,19 +41,10 @@ from metadynamic.ends import (
 )
 from metadynamic.logger import LOGGER
 from metadynamic.mpi import MPI_GATE, MPI_STATUS
-from metadynamic.collector import Collectable
 from metadynamic.chemical import CRN
 from metadynamic.inputs import Param, LockedError
 from metadynamic.inval import invalidstr
-from metadynamic.json2dot import Json2dot
 from metadynamic.hdf5 import ResultWriter
-
-
-class Encoder(JSONEncoder):
-    def default(self, obj: Any) -> Any:
-        if isinstance(obj, Collectable):
-            return obj.serialize()
-        return super().default(obj)
 
 
 class RunStatus:
@@ -159,8 +147,9 @@ class Statistic:
         self.tsnapshot: float = (
             self.param.sstep if self.param.sstep >= 0 else 2 * self.param.tend
         )
-        self._snapfilenames: List[str] = []
         self._snaptimes: List[float] = []
+        self._snapcomp: List[Dict[str, Any]] = []
+        self._snapreac: List[Dict[str, Any]] = []
         self._nbcomp: int = 0
         self._nbreac: int = 0
         self._nbsnap: int = 0
@@ -236,37 +225,20 @@ class Statistic:
 
     def calcsnapshot(self, final: bool = False) -> None:
         if self.param.snapshot:
-            if final:
-                timestr = "end"
-            else:
+            if not final:
                 if self.status.tnext < self.tsnapshot:
                     return None
-                timestr = str(self.tsnapshot)
                 self.tsnapshot += self.param.sstep
-            basename, ext = path.splitext(self.param.snapshot)
-            basename = f"{basename}-{MPI_STATUS.rank}_{timestr}"
-            filename = basename + ext
-            with open(filename, "w") as outfile:
-                comp = self.crn.comp_collect.save()
-                nbcomp = len(comp)
-                reac = self.crn.reac_collect.save()
-                nbreac = len(reac)
-                dump(
-                    {"Compounds": comp, "Reactions": reac},
-                    outfile,
-                    cls=Encoder,
-                    indent=4,
-                )
-            self._snapfilenames.append(filename)
+            comp = self.crn.comp_collect.asdict()
+            nbcomp = len(comp)
+            reac = self.crn.reac_collect.asdict() if self.param.store_snapreac else {}
+            nbreac = len(reac)
+            self._snapcomp.append(comp)
+            self._snapreac.append(reac)
             self._snaptimes.append(self.param.tend if final else self.tsnapshot)
             self._nbsnap += 1
             self._nbcomp = max(self._nbcomp, nbcomp)
             self._nbreac = max(self._nbreac, nbreac)
-            if self.param.printsnap:
-                if not Json2dot(filename).write(f"{basename}.{self.param.printsnap}"):
-                    LOGGER.error(
-                        f"Couldn't create snapshot {basename}.{self.param.printsnap} from {filename}"
-                    )
 
     def writesnap(self) -> None:
         # Correct snapshot sizes
@@ -276,17 +248,10 @@ class Statistic:
         LOGGER.debug(f"resize snapshot with {nbsnap}-{nbcomp}-{nbreac}")
         self.writer.snapsize(nbcomp, nbreac, nbsnap)
         # Write snapshots
-        col = 0
-        for time, filename in zip(self._snaptimes, self._snapfilenames):
-            with open(filename, "r") as reader:
-                data = load(reader)
-            self.writer.add_snapshot(
-                data["Compounds"],
-                data["Reactions"] if self.param.store_snapreac else {},
-                col,
-                time,
-            )
-            col += 1
+        for col, (time, comp, reac) in enumerate(
+            zip(self._snaptimes, self._snapcomp, self._snapreac)
+        ):
+            self.writer.add_snapshot(comp, reac, col, time)
 
     def end(self, the_end: Finished) -> None:
         self.writer.add_end(the_end, LOGGER.runtime)
@@ -321,7 +286,7 @@ class System:
         loglevel: str = "INFO",
         comment: str = "",
     ):
-        LOGGER.info("Creating the system.")
+        LOGGER.debug("Creating the system.")
         seterr(divide="ignore", invalid="ignore")
         self.initialized = False
         self.param: Param = Param.readfile(filename)

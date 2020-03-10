@@ -72,7 +72,7 @@ class Collect(Generic[K, T]):
         self.categories: Dict[str, Set[K]] = defaultdict(set)
         self.active: WDict[K, T] = self.pool if self.dropmode == "drop" else {}
         self.categorize = categorize
-        LOGGER.info(
+        LOGGER.debug(
             f"Created {self} as drop={self.dropmode}, with pool of type {type(self.pool)}"
         )
 
