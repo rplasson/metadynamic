@@ -405,6 +405,7 @@ class CRN:
     def collstat(
         self, collection: str, prop: str, weight: str, method: str, full: bool
     ) -> float:
+        """ Get statistics"""
         return (
             self.comp_collect.stat(prop, weight, method, full)
             if collection == "compounds"
@@ -420,6 +421,7 @@ class CRN:
         method: str,
         full: bool,
     ) -> Dict[float, float]:
+        """ Get a statistic map"""
         return (
             self.comp_collect.map(prop, weight, sort, method, full)
             if collection == "compounds"
