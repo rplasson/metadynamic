@@ -44,6 +44,7 @@ class Castreader(Caster):
 @dataclass
 class Readerclass:
     _list_param: Dict[str, Any] = field(init=False, repr=False)
+    __dataclass_fields__: Dict[str, Any] = field(init=False, repr=False)  # for mypy...
 
     def __post_init__(self) -> None:
         pass
@@ -146,7 +147,7 @@ class Readerclass:
         return val
 
     def set_param(self, **kwd: Any) -> None:
-        if self.locked:=
+        if self.locked:
             raise LockedError
         for key, val in kwd.items():
             val = self.checked_items(key, val)

@@ -21,15 +21,16 @@
 from typing import Tuple, Deque, Iterable, Any
 from collections import deque
 from secrets import SystemRandom
-from numpy import append, log, zeros, full, dtype, float64
-from numba import jit
+from numba import jit, float64, int32
+
+import numpy as np
 
 from metadynamic.ends import RoundError, NoMore
 from metadynamic.logger import LOGGER
 from metadynamic.inval import isvalid
 
 
-@jit(nopython=True, cache=True)
+@jit(int32(float64[:], float64), nopython=True, cache=True)
 def choice(data: Iterable[float], proba: float) -> int:
     """Return the index i where proba < sum(data) from 0 to i"""
     res: float = 0.0
@@ -44,9 +45,9 @@ class Probalist:
     def __init__(self, vol: float = 1, maxlength: int = 100):
         self.vol = vol
         # List of objects ### Check replacement with list instead of numpy array !
-        self._mapobj = zeros(maxlength, dtype("O"))
+        self._mapobj = np.zeros(maxlength, dtype=np.dtype("O"))
         # List of probas
-        self._problist = zeros(maxlength, dtype=float64)
+        self._problist = np.zeros(maxlength, dtype=np.float64)
         # Next available position
         self._actlist = 0
         self._maxlength = maxlength
@@ -65,8 +66,8 @@ class Probalist:
             self._mapobj[self._actlist] = obj
         except IndexError:
             # arrays too small, extend them
-            self._mapobj = append(self._mapobj, full(self._maxlength, None))
-            self._problist = append(self._problist, zeros(self._maxlength))
+            self._mapobj = np.append(self._mapobj, np.full(self._maxlength, None))
+            self._problist = np.append(self._problist, np.zeros(self._maxlength))
             self._mapobj[self._actlist] = obj
         self._actlist += 1
         return self._actlist - 1
@@ -102,7 +103,7 @@ class Probalist:
                     f"probtot={self.probtot}=?={self._problist.sum()}; "
                     f"problist={self._problist})"
                 )
-            dt = log(1 / self.sysrand.random()) / self.probtot
+            dt = np.log(1 / self.sysrand.random()) / self.probtot
             if chosen is None:
                 LOGGER.error(
                     f"Badly destroyed reaction from {self._mapobj} with proba {self._problist}"
