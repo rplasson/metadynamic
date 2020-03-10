@@ -127,7 +127,7 @@ class CollectofReaction(Collect[ReacDescr, "Reaction"]):
 
 class Chemical(Generic[K],  Collectable):
     _descrtype = "Chemical"
-    _updatelist: Dict["Chemical[K]", int]
+    # _updatelist: Dict["Chemical[K]", int]
 
     def __init__(self, description: K, crn: "CRN"):
         self.crn: CRN = crn
@@ -157,23 +157,23 @@ class Chemical(Generic[K],  Collectable):
     def _unactivate(self) -> None:
         pass
 
-    @classmethod
-    def toupdate(cls, obj: "Chemical[K]", change: int = 0) -> None:
-        """Add object to update"""
-        try:
-            cls._updatelist[obj] += change
-        except KeyError:
-            cls._updatelist[obj] = change
-        # cls.log.debug(f"Should update {cls._updatelist} for {cls}")
+    # @classmethod
+    # def toupdate(cls, obj: "Chemical[K]", change: int = 0) -> None:
+    #     """Add object to update"""
+    #     try:
+    #         cls._updatelist[obj] += change
+    #     except KeyError:
+    #         cls._updatelist[obj] = change
+    #     # cls.log.debug(f"Should update {cls._updatelist} for {cls}")
 
-    @classmethod
-    def trigger_update(cls) -> None:
-        """Trigger update events"""
-        for obj, change in cls._updatelist.items():
-            obj.update(change)
-        cls._updatelist = {}
+    # @classmethod
+    # def trigger_update(cls) -> None:
+    #     """Trigger update events"""
+    #     for obj, change in cls._updatelist.items():
+    #         obj.update(change)
+    #     cls._updatelist = {}
 
-    def update(self, change: int = 0) -> None:
+    # def update(self, change: int = 0) -> None:
         """to be implemented in subclasses"""
         raise NotImplementedError
 
@@ -358,7 +358,7 @@ class Compound(Chemical[str]):
             #     Reaction.toupdate(reac)
 
     def change_pop(self, start: int) -> None:
-        Compound.toupdate(self, start)
+        self.crn.comp_toupdate(self, start)
 
     def delete(self) -> None:
         self._unactivate()
@@ -366,28 +366,6 @@ class Compound(Chemical[str]):
 
     def serialize(self) -> Any:
         return self.pop
-
-
-# def trigger_changes(fromreac: Reaction = invalidreaction) -> None:
-#     try:
-#         Compound.trigger_update()
-#     except DecrZero as end:
-#         if not isvalid(fromreac):
-#             detail = end.detail
-#         else:
-#             # Decremented from 0...
-#             # Thus exit with max of information
-#             detail = (
-#                 end.detail
-#                 + f" from {fromreac}, that is activated? ({fromreac.activated})"
-#                 + f" (p={fromreac.proba}, "
-#             )
-#             for comp, _ in fromreac.stoechio:
-#                 detail += f"[{comp.description}]={comp.pop} ,"
-#             else:
-#                 detail += ")"
-#         raise DecrZero(detail)
-#     Reaction.trigger_update()
 
 
 class CRN(Probalistic):
@@ -400,7 +378,7 @@ class CRN(Probalistic):
         # Collected.setcollections(self.model, dropmode_reac=param.dropmode)
         self.comp_collect = CollectofCompound(self.model, dropmode="keep")
         self.comp_collect.set_crn(self)
-        self.reac_collect = CollectofReaction(self.model, dropmode=param.dropmode)  # set categorize to False?
+        self.reac_collect = CollectofReaction(self.model, categorize=False, dropmode=param.dropmode)  # set categorize to False?
         self.reac_collect.set_crn(self)
         for compound, pop in param.init.items():
             self.comp_collect[compound].change_pop(pop)
