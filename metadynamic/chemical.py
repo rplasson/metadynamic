@@ -352,17 +352,26 @@ class CRN:
         self._comp_update: Dict[Compound, int] = {}
         # Create CRN objects
         self.model = Model(param.rulemodel, param.consts)
-        self.probalist = Probalist(param.vol)
-        self.comp_collect = CollectofCompound(self.model, dropmode="keep")
-        self.comp_collect.set_crn(self)
-        self.reac_collect = CollectofReaction(
-            self.model, dropmode=param.dropmode
-        )  # set categorize to False/True?
-        self.reac_collect.set_crn(self)
+        self.vol = param.vol
+        self.dropmode = param.dropmode
+        self.init_collect()
         for compound, pop in param.init.items():
             self.comp_collect[compound].change_pop(pop)
         self.update()
         LOGGER.info(f"Initialized with {param}")
+
+    def init_collect(self) -> None:
+        self.probalist = Probalist(self.vol)
+        self.comp_collect = CollectofCompound(self.model, dropmode="keep")
+        self.comp_collect.set_crn(self)
+        self.reac_collect = CollectofReaction(
+            self.model, dropmode=self.dropmode
+        )  # set categorize to False/True?
+        self.reac_collect.set_crn(self)
+
+    def close(self):
+        #  (to be tested): create new data for cleaning memory
+        self.init_collect()
 
     def clean(self) -> None:
         self.probalist.clean()

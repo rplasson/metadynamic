@@ -40,6 +40,7 @@ from metadynamic.ends import (
     FileNotFound,
     InternalError,
     OOMError,
+    InitError,
 )
 from metadynamic.logger import LOGGER
 from metadynamic.mpi import MPI_GATE, MPI_STATUS
@@ -127,6 +128,7 @@ class RunStatus:
             MPI_GATE.close("oom")
 
     def finalize(self) -> None:
+        gc.collect()
         if self.gcperio:
             gc.enable()
 
@@ -334,10 +336,31 @@ class System:
 
     def initialize(self) -> None:
         if not self.initialized:
+            self.signcatch.listen()
+            self.status.initialize(self.param)
             self.crn = CRN(self.param)
             self.param.lock()
-            LOGGER.info("System fully initialized")
+            self.statistic = Statistic(self.crn, self.writer, self.param, self.status, self.comment)
+            self.statistic.startwriter()
             self.initialized = True
+            LOGGER.info("System fully initialized")
+        else:
+            raise InitError("Attempt to initialize already initialized system!")
+
+    def release(self, end: Finished) -> str:
+        """Clean data"""
+        if self.initialized:
+            self.statistic.end(end)
+            self.statistic.calcsnapshot(final=True)
+            self.crn.close()
+            self.param.unlock()
+            self.status.finalize()
+            self.signcatch.reset()
+            self.initialized = False
+            LOGGER.info("System fully cleaned")
+            return f"{end} ({LOGGER.runtime} s)"
+        else:
+            raise InitError("Attempt to release non-initialized system!")
 
     def _process(self) -> None:
         # Check if a cleanup should be done
@@ -366,11 +389,7 @@ class System:
         else:
             LOGGER.info("Launching single run.")
         # Setup working environment
-        self.signcatch.listen()
-        self.status.initialize(self.param)
         self.initialize()
-        statistic = Statistic(self.crn, self.writer, self.param, self.status, self.comment)
-        statistic.startwriter()
         # Ready, let's run
         LOGGER.info(f"Run #{MPI_STATUS.rank}={getpid()} launched")
         with MPI_GATE.launch():
@@ -382,9 +401,9 @@ class System:
                     # perform a step
                     self._process()
                     # Write data statistics
-                    statistic.writestat()
-                    statistic.calcmap()
-                    statistic.calcsnapshot()
+                    self.statistic.writestat()
+                    self.statistic.calcmap()
+                    self.statistic.calcsnapshot()
                     # Check memory
                     self.status.checkmem()
                     self.status.next_step()
@@ -393,23 +412,17 @@ class System:
                     MPI_GATE.checkpoint()
                 # exit the gate because the work is finished.
                 except Finished as the_end:
-                    end = f"{the_end} ({LOGGER.runtime} s)"
-                    statistic.end(the_end)
+                    end = self.release(the_end)
                     break
             # exit the gate because asked by collective decision.
             else:
-                gate_end = OOMError("Stopped by kind request of OOM killer")
-                end = f"{gate_end} ({LOGGER.runtime} s)"
-                statistic.end(gate_end)
+                end = self.release(OOMError("Stopped by kind request of OOM killer"))
         # Write and log final data
         LOGGER.info(f"Run #{MPI_STATUS.rank}={getpid()} finished")
-        statistic.calcsnapshot(final=True)
-        statistic.writesnap()
-        statistic.writemap()
+        self.statistic.writesnap()
+        self.statistic.writemap()
         # Then cleanly exit
-        statistic.close()
-        self.status.finalize()
-        self.signcatch.reset()
+        self.statistic.close()
         return end
 
     def set_param(self, **kwd) -> None:
