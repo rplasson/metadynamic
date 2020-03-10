@@ -16,10 +16,23 @@
 	"weight" : "length",
 	"sort" : "length"
     },
+    "slendist":
+    {
+	"prop" : "pop",
+	"weight" : "single",
+	"sort" : "length"
+    },
     "asymdist":
     {
 	"prop" : "asym",
 	"weight" : "pop",
+	"method" : "+",
+	"sort" : "length"
+    },
+    "s_asymdist":
+    {
+	"prop" : "asym",
+	"weight" : "single",
 	"method" : "+",
 	"sort" : "length"
     }

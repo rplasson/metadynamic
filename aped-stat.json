@@ -45,6 +45,18 @@
 	"weight" : "pop",
 	"method" : "m"
     },
+    "slen_mean":
+    {
+	"prop" : "length",
+	"weight" : "single",
+	"method" : "m"
+    },
+    "slen_sum":
+    {
+	"prop" : "length",
+	"weight" : "single",
+	"method" : "+"
+    },
     "tot_m":
     {
 	"prop" : "length",

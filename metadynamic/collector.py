@@ -145,7 +145,7 @@ class Collect(Generic[K, T]):
 
     def stat(self, prop: str, weight: str, method: str, full: bool = False) -> float:
         values = self.proplist(prop, full)
-        weights = self.proplist(weight, full)
+        weights = 1/values if weight == "single" else self.proplist(weight, full)
         if method == "+":
             return float(sum(values * weights))
         if method == "m":
@@ -163,7 +163,7 @@ class Collect(Generic[K, T]):
         res: Dict[float, float] = {}
         tot: Dict[float, float] = {}
         values = self.proplist(prop, full)
-        weights = self.proplist(weight, full)
+        weights = 1/values if weight == "single" else self.proplist(weight, full)
         sorts = self.proplist(sort, full)
         for v, w, s in zip(values, weights, sorts):
             try:
