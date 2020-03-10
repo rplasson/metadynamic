@@ -44,6 +44,7 @@ class Castreader(Caster):
 @dataclass
 class Readerclass:
     _list_param: Dict[str, Any] = field(init=False, repr=False)
+    __dataclass_fields__: Dict[str, Any] = field(init=False, repr=False)  # for mypy...
 
     def __post_init__(self) -> None:
         pass
@@ -145,7 +146,7 @@ class Readerclass:
             raise BadFile(err)
         return val
 
-    def set_param(self, **kwd) -> None:
+    def set_param(self, **kwd: Any) -> None:
         if self.locked:
             raise LockedError
         for key, val in kwd.items():
@@ -287,8 +288,6 @@ class Param(Readerclass):
     statparam: Dict[str, StatParam] = field(init=False)
     maps: str = ""  # json filename describing stat maps
     mapsparam: Dict[str, MapParam] = field(init=False)
-    snapshot: str = ""  # filename for final snapshot
-    printsnap: str = "pdf"  # filetype of snapshots
     hdf5: str = ""  # filename for hdf5 file
     store_snapreac: bool = False  # Store reaction snapshots? (can take lots of time)
     maxstrlen: int = 256  # max string length to be stored in hdf5

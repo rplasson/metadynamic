@@ -12,7 +12,6 @@
     "tstep" : 1.0,
     "sstep" : 20.0,
     "save" : ["A", "B", "C", "{ABBA}", "ABBA", "AA", "AB", "AC", "BA", "BB", "BC", "CA", "CB", "CC"],
-    "snapshot" : "testlog/target-snapshot.json",
     "hdf5" : "results/target.hdf5",
     "consts" :
     {

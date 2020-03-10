@@ -9,7 +9,6 @@
     "tstep" : 10.0,
     "sstep" : 10.0,
     "save" : ["a", "aa", "aaa", "aaaa", "aaaaa"],
-    "snapshot" : "log/open-polym-snapshot.json",
     "hdf5" : "results/open-polym.hdf5",
     "endbarrier" : 0.1,
     "rtlim" : 600.0,

@@ -19,15 +19,12 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 import gc
-from os import path
 from math import ceil
 from numpy import nan, seterr
 from itertools import repeat
 from os import getpid
 from typing import Dict, Any, List, Union
 from psutil import Process
-
-from json import load, dump, JSONEncoder
 
 from metadynamic.ends import (
     Finished,
@@ -43,19 +40,10 @@ from metadynamic.ends import (
 )
 from metadynamic.logger import LOGGER
 from metadynamic.mpi import MPI_GATE, MPI_STATUS
-from metadynamic.collector import Collectable
 from metadynamic.chemical import CRN
 from metadynamic.inputs import Param, LockedError
 from metadynamic.inval import invalidstr
-from metadynamic.json2dot import Json2dot
 from metadynamic.hdf5 import ResultWriter
-
-
-class Encoder(JSONEncoder):
-    def default(self, obj: Any) -> Any:
-        if isinstance(obj, Collectable):
-            return obj.serialize()
-        return super().default(obj)
 
 
 class RunStatus:
@@ -126,7 +114,13 @@ class RunStatus:
             LOGGER.warning(f"{self.memuse}>{self.maxmem/MPI_GATE.mem_divide}, call oom")
             MPI_GATE.close("oom")
 
+    def checkstep(self) -> None:
+        self.checkmem()
+        self.next_step()
+        self.checkend()
+
     def finalize(self) -> None:
+        gc.collect()
         if self.gcperio:
             gc.enable()
 
@@ -137,7 +131,12 @@ class RunStatus:
 
 class Statistic:
     def __init__(
-            self, crn: CRN, writer: ResultWriter, param: Param, status: RunStatus, comment: str
+        self,
+        crn: CRN,
+        writer: ResultWriter,
+        param: Param,
+        status: RunStatus,
+        comment: str,
     ):
         self.crn: CRN = crn
         self.writer: ResultWriter = writer
@@ -152,8 +151,9 @@ class Statistic:
         self.tsnapshot: float = (
             self.param.sstep if self.param.sstep >= 0 else 2 * self.param.tend
         )
-        self._snapfilenames: List[str] = []
         self._snaptimes: List[float] = []
+        self._snapcomp: List[Dict[str, Any]] = []
+        self._snapreac: List[Dict[str, Any]] = []
         self._nbcomp: int = 0
         self._nbreac: int = 0
         self._nbsnap: int = 0
@@ -228,38 +228,20 @@ class Statistic:
             self.writer.add_map(name, self.mapdict[name])
 
     def calcsnapshot(self, final: bool = False) -> None:
-        if self.param.snapshot:
-            if final:
-                timestr = "end"
-            else:
-                if self.status.tnext < self.tsnapshot:
-                    return None
-                timestr = str(self.tsnapshot)
-                self.tsnapshot += self.param.sstep
-            basename, ext = path.splitext(self.param.snapshot)
-            basename = f"{basename}-{MPI_STATUS.rank}_{timestr}"
-            filename = basename + ext
-            with open(filename, "w") as outfile:
-                comp = self.crn.comp_collect.save()
-                nbcomp = len(comp)
-                reac = self.crn.reac_collect.save()
-                nbreac = len(reac)
-                dump(
-                    {"Compounds": comp, "Reactions": reac},
-                    outfile,
-                    cls=Encoder,
-                    indent=4,
-                )
-            self._snapfilenames.append(filename)
-            self._snaptimes.append(self.param.tend if final else self.tsnapshot)
-            self._nbsnap += 1
-            self._nbcomp = max(self._nbcomp, nbcomp)
-            self._nbreac = max(self._nbreac, nbreac)
-            if self.param.printsnap:
-                if not Json2dot(filename).write(f"{basename}.{self.param.printsnap}"):
-                    LOGGER.error(
-                        f"Couldn't create snapshot {basename}.{self.param.printsnap} from {filename}"
-                    )
+        if not final:
+            if self.status.tnext < self.tsnapshot:
+                return None
+            self.tsnapshot += self.param.sstep
+        comp = self.crn.comp_collect.asdict()
+        nbcomp = len(comp)
+        reac = self.crn.reac_collect.asdict() if self.param.store_snapreac else {}
+        nbreac = len(reac)
+        self._snapcomp.append(comp)
+        self._snapreac.append(reac)
+        self._snaptimes.append(self.param.tend if final else self.tsnapshot)
+        self._nbsnap += 1
+        self._nbcomp = max(self._nbcomp, nbcomp)
+        self._nbreac = max(self._nbreac, nbreac)
 
     def writesnap(self) -> None:
         # Correct snapshot sizes
@@ -269,17 +251,15 @@ class Statistic:
         LOGGER.debug(f"resize snapshot with {nbsnap}-{nbcomp}-{nbreac}")
         self.writer.snapsize(nbcomp, nbreac, nbsnap)
         # Write snapshots
-        col = 0
-        for time, filename in zip(self._snaptimes, self._snapfilenames):
-            with open(filename, "r") as reader:
-                data = load(reader)
-            self.writer.add_snapshot(
-                data["Compounds"],
-                data["Reactions"] if self.param.store_snapreac else {},
-                col,
-                time,
-            )
-            col += 1
+        for col, (time, comp, reac) in enumerate(
+            zip(self._snaptimes, self._snapcomp, self._snapreac)
+        ):
+            self.writer.add_snapshot(comp, reac, col, time)
+
+    def calc(self) -> None:
+        self.writestat()
+        self.calcmap()
+        self.calcsnapshot()
 
     def end(self, the_end: Finished) -> None:
         self.writer.add_end(the_end, LOGGER.runtime)
@@ -300,6 +280,8 @@ class Statistic:
 
     def close(self) -> None:
         LOGGER.info(f"File {self.writer.filename} to be written and closed...")
+        self.writesnap()
+        self.writemap()
         self.data_recut()
         self.close_log()
         self.writer.close()
@@ -314,7 +296,7 @@ class System:
         loglevel: str = "INFO",
         comment: str = "",
     ):
-        LOGGER.info("Creating the system.")
+        LOGGER.debug("Creating the system.")
         seterr(divide="ignore", invalid="ignore")
         self.initialized = False
         self.param: Param = Param.readfile(filename)
@@ -334,10 +316,34 @@ class System:
 
     def initialize(self) -> None:
         if not self.initialized:
+            self.signcatch.listen()
+            self.status.initialize(self.param)
             self.crn = CRN(self.param)
             self.param.lock()
-            LOGGER.info("System fully initialized")
+            self.statistic = Statistic(
+                self.crn, self.writer, self.param, self.status, self.comment
+            )
+            self.statistic.startwriter()
             self.initialized = True
+            LOGGER.info("System fully initialized")
+        else:
+            raise InternalError("Attempt to initialize already initialized system!")
+
+    def release(self, end: Finished, fullrelease: bool = True) -> str:
+        """Clean data"""
+        if self.initialized:
+            self.statistic.end(end)
+            self.statistic.calcsnapshot(final=True)
+            if fullrelease:
+                self.crn.close()
+                self.param.unlock()
+                self.initialized = False
+            self.status.finalize()
+            self.signcatch.reset()
+            LOGGER.info(f"System {'fully ' if fullrelease else ''}cleaned")
+            return f"{end} ({LOGGER.runtime} s)"
+        else:
+            raise InternalError("Attempt to release non-initialized system!")
 
     def _process(self) -> None:
         # Check if a cleanup should be done
@@ -359,18 +365,14 @@ class System:
             #  had to performed loop until maxsteps
             LOGGER.warning(f"maxsteps per process (={self.param.maxsteps}) too low")
 
-    def run(self) -> str:
+    def run(self, release: bool = True) -> str:
         LOGGER.reset_timer()
         if MPI_STATUS.ismpi:
             LOGGER.info(f"Launching MPI run from thread #{MPI_STATUS.rank}")
         else:
             LOGGER.info("Launching single run.")
         # Setup working environment
-        self.signcatch.listen()
-        self.status.initialize(self.param)
         self.initialize()
-        statistic = Statistic(self.crn, self.writer, self.param, self.status, self.comment)
-        statistic.startwriter()
         # Ready, let's run
         LOGGER.info(f"Run #{MPI_STATUS.rank}={getpid()} launched")
         with MPI_GATE.launch():
@@ -382,37 +384,26 @@ class System:
                     # perform a step
                     self._process()
                     # Write data statistics
-                    statistic.writestat()
-                    statistic.calcmap()
-                    statistic.calcsnapshot()
-                    # Check memory
-                    self.status.checkmem()
-                    self.status.next_step()
-                    self.status.checkend()
+                    self.statistic.calc()
+                    # Check status before next step
+                    self.status.checkstep()
                     # Pass gate checkpoint
                     MPI_GATE.checkpoint()
                 # exit the gate because the work is finished.
                 except Finished as the_end:
-                    end = f"{the_end} ({LOGGER.runtime} s)"
-                    statistic.end(the_end)
+                    end = self.release(the_end, release)
                     break
             # exit the gate because asked by collective decision.
             else:
-                gate_end = OOMError("Stopped by kind request of OOM killer")
-                end = f"{gate_end} ({LOGGER.runtime} s)"
-                statistic.end(gate_end)
-        # Write and log final data
+                end = self.release(
+                    OOMError("Stopped by kind request of OOM killer"), release
+                )
+        # Write and log final data, then exit.
         LOGGER.info(f"Run #{MPI_STATUS.rank}={getpid()} finished")
-        statistic.calcsnapshot(final=True)
-        statistic.writesnap()
-        statistic.writemap()
-        # Then cleanly exit
-        statistic.close()
-        self.status.finalize()
-        self.signcatch.reset()
+        self.statistic.close()
         return end
 
-    def set_param(self, **kwd) -> None:
+    def set_param(self, **kwd: Any) -> None:
         try:
             self.param.set_param(**kwd)
         except LockedError:
