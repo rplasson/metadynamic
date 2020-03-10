@@ -369,7 +369,7 @@ class CRN:
         )  # set categorize to False/True?
         self.reac_collect.set_crn(self)
 
-    def close(self):
+    def close(self) -> None:
         #  (to be tested): create new data for cleaning memory
         self.init_collect()
 

@@ -139,7 +139,12 @@ class RunStatus:
 
 class Statistic:
     def __init__(
-            self, crn: CRN, writer: ResultWriter, param: Param, status: RunStatus, comment: str
+        self,
+        crn: CRN,
+        writer: ResultWriter,
+        param: Param,
+        status: RunStatus,
+        comment: str,
     ):
         self.crn: CRN = crn
         self.writer: ResultWriter = writer
@@ -340,24 +345,27 @@ class System:
             self.status.initialize(self.param)
             self.crn = CRN(self.param)
             self.param.lock()
-            self.statistic = Statistic(self.crn, self.writer, self.param, self.status, self.comment)
+            self.statistic = Statistic(
+                self.crn, self.writer, self.param, self.status, self.comment
+            )
             self.statistic.startwriter()
             self.initialized = True
             LOGGER.info("System fully initialized")
         else:
             raise InitError("Attempt to initialize already initialized system!")
 
-    def release(self, end: Finished) -> str:
+    def release(self, end: Finished, fullrelease: bool = True) -> str:
         """Clean data"""
         if self.initialized:
             self.statistic.end(end)
             self.statistic.calcsnapshot(final=True)
-            self.crn.close()
-            self.param.unlock()
+            if fullrelease:
+                self.crn.close()
+                self.param.unlock()
+                self.initialized = False
             self.status.finalize()
             self.signcatch.reset()
-            self.initialized = False
-            LOGGER.info("System fully cleaned")
+            LOGGER.info(f"System {'fully ' if fullrelease else ''}cleaned")
             return f"{end} ({LOGGER.runtime} s)"
         else:
             raise InitError("Attempt to release non-initialized system!")
@@ -382,7 +390,7 @@ class System:
             #  had to performed loop until maxsteps
             LOGGER.warning(f"maxsteps per process (={self.param.maxsteps}) too low")
 
-    def run(self) -> str:
+    def run(self, release: bool = True) -> str:
         LOGGER.reset_timer()
         if MPI_STATUS.ismpi:
             LOGGER.info(f"Launching MPI run from thread #{MPI_STATUS.rank}")
@@ -412,11 +420,13 @@ class System:
                     MPI_GATE.checkpoint()
                 # exit the gate because the work is finished.
                 except Finished as the_end:
-                    end = self.release(the_end)
+                    end = self.release(the_end, release)
                     break
             # exit the gate because asked by collective decision.
             else:
-                end = self.release(OOMError("Stopped by kind request of OOM killer"))
+                end = self.release(
+                    OOMError("Stopped by kind request of OOM killer"), release
+                )
         # Write and log final data
         LOGGER.info(f"Run #{MPI_STATUS.rank}={getpid()} finished")
         self.statistic.writesnap()
