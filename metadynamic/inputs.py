@@ -145,8 +145,8 @@ class Readerclass:
             raise BadFile(err)
         return val
 
-    def set_param(self, **kwd) -> None:
-        if self.locked:
+    def set_param(self, **kwd: Any) -> None:
+        if self.locked:=
             raise LockedError
         for key, val in kwd.items():
             val = self.checked_items(key, val)

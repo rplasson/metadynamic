@@ -37,7 +37,6 @@ from metadynamic.ends import (
     FileNotFound,
     InternalError,
     OOMError,
-    InitError,
 )
 from metadynamic.logger import LOGGER
 from metadynamic.mpi import MPI_GATE, MPI_STATUS
@@ -114,6 +113,11 @@ class RunStatus:
         if self.memuse > self.maxmem / MPI_GATE.mem_divide:
             LOGGER.warning(f"{self.memuse}>{self.maxmem/MPI_GATE.mem_divide}, call oom")
             MPI_GATE.close("oom")
+
+    def checkstep(self) -> None:
+        self.checkmem()
+        self.next_step()
+        self.checkend()
 
     def finalize(self) -> None:
         gc.collect()
@@ -253,6 +257,11 @@ class Statistic:
         ):
             self.writer.add_snapshot(comp, reac, col, time)
 
+    def calc(self) -> None:
+        self.writestat()
+        self.calcmap()
+        self.calcsnapshot()
+
     def end(self, the_end: Finished) -> None:
         self.writer.add_end(the_end, LOGGER.runtime)
         if isinstance(the_end, HappyEnding):
@@ -272,6 +281,8 @@ class Statistic:
 
     def close(self) -> None:
         LOGGER.info(f"File {self.writer.filename} to be written and closed...")
+        self.writesnap()
+        self.writemap()
         self.data_recut()
         self.close_log()
         self.writer.close()
@@ -317,7 +328,7 @@ class System:
             self.initialized = True
             LOGGER.info("System fully initialized")
         else:
-            raise InitError("Attempt to initialize already initialized system!")
+            raise InternalError("Attempt to initialize already initialized system!")
 
     def release(self, end: Finished, fullrelease: bool = True) -> str:
         """Clean data"""
@@ -333,7 +344,7 @@ class System:
             LOGGER.info(f"System {'fully ' if fullrelease else ''}cleaned")
             return f"{end} ({LOGGER.runtime} s)"
         else:
-            raise InitError("Attempt to release non-initialized system!")
+            raise InternalError("Attempt to release non-initialized system!")
 
     def _process(self) -> None:
         # Check if a cleanup should be done
@@ -374,13 +385,9 @@ class System:
                     # perform a step
                     self._process()
                     # Write data statistics
-                    self.statistic.writestat()
-                    self.statistic.calcmap()
-                    self.statistic.calcsnapshot()
-                    # Check memory
-                    self.status.checkmem()
-                    self.status.next_step()
-                    self.status.checkend()
+                    self.statistic.calc()
+                    # Check status before next step
+                    self.status.checkstep()
                     # Pass gate checkpoint
                     MPI_GATE.checkpoint()
                 # exit the gate because the work is finished.
@@ -392,15 +399,12 @@ class System:
                 end = self.release(
                     OOMError("Stopped by kind request of OOM killer"), release
                 )
-        # Write and log final data
+        # Write and log final data, then exit.
         LOGGER.info(f"Run #{MPI_STATUS.rank}={getpid()} finished")
-        self.statistic.writesnap()
-        self.statistic.writemap()
-        # Then cleanly exit
         self.statistic.close()
         return end
 
-    def set_param(self, **kwd) -> None:
+    def set_param(self, **kwd: Any) -> None:
         try:
             self.param.set_param(**kwd)
         except LockedError:
