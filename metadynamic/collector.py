@@ -19,7 +19,6 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 from typing import Generic, TypeVar, Dict, Set, Union, Hashable, Any
-from weakref import WeakValueDictionary
 from collections import defaultdict
 from numpy import array, sum, average, ndarray, nan
 
@@ -51,26 +50,15 @@ K = TypeVar("K", bound=Hashable)
 T = TypeVar("T", bound=Collectable)
 
 
-class WeakDict(Generic[K, T], WeakValueDictionary):
-    pass
-
-
-WDict = Union[Dict[K, T], WeakDict[K, T]]
-
-
 class Collect(Generic[K, T]):
     _colltype = "Generic"
 
     def __init__(self, model: Model, categorize: bool = True, dropmode: str = "drop"):
         self.model = model
         self.dropmode = dropmode
-        self.pool: WDict[K, T]
-        if self.dropmode == "soft":
-            self.pool = WeakDict()
-        else:
-            self.pool = {}
+        self.pool: Dict[K, T] = {}
         self.categories: Dict[str, Set[K]] = defaultdict(set)
-        self.active: WDict[K, T] = self.pool if self.dropmode == "drop" else {}
+        self.active: Dict[K, T] = self.pool if self.dropmode == "drop" else {}
         self.categorize = categorize
         LOGGER.debug(
             f"Created {self} as drop={self.dropmode}, with pool of type {type(self.pool)}"
