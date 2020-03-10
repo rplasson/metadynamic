@@ -11,7 +11,6 @@
     "tstep" : 0.01,
     "sstep" : 1.0,
     "save" : ["a", "aa", "aaa", "ba", "baba", "aaaa", "A", "Aa", "aA", "AA"],
-    "snapshot" : "testlog/memstress-snapshot.json",
     "hdf5" : "results/memstress.hdf5",
     "consts" :
     {

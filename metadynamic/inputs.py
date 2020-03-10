@@ -288,8 +288,6 @@ class Param(Readerclass):
     statparam: Dict[str, StatParam] = field(init=False)
     maps: str = ""  # json filename describing stat maps
     mapsparam: Dict[str, MapParam] = field(init=False)
-    snapshot: str = ""  # filename for final snapshot
-    printsnap: str = "pdf"  # filetype of snapshots
     hdf5: str = ""  # filename for hdf5 file
     store_snapreac: bool = False  # Store reaction snapshots? (can take lots of time)
     maxstrlen: int = 256  # max string length to be stored in hdf5

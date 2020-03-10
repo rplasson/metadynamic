@@ -228,21 +228,20 @@ class Statistic:
             self.writer.add_map(name, self.mapdict[name])
 
     def calcsnapshot(self, final: bool = False) -> None:
-        if self.param.snapshot:
-            if not final:
-                if self.status.tnext < self.tsnapshot:
-                    return None
-                self.tsnapshot += self.param.sstep
-            comp = self.crn.comp_collect.asdict()
-            nbcomp = len(comp)
-            reac = self.crn.reac_collect.asdict() if self.param.store_snapreac else {}
-            nbreac = len(reac)
-            self._snapcomp.append(comp)
-            self._snapreac.append(reac)
-            self._snaptimes.append(self.param.tend if final else self.tsnapshot)
-            self._nbsnap += 1
-            self._nbcomp = max(self._nbcomp, nbcomp)
-            self._nbreac = max(self._nbreac, nbreac)
+        if not final:
+            if self.status.tnext < self.tsnapshot:
+                return None
+            self.tsnapshot += self.param.sstep
+        comp = self.crn.comp_collect.asdict()
+        nbcomp = len(comp)
+        reac = self.crn.reac_collect.asdict() if self.param.store_snapreac else {}
+        nbreac = len(reac)
+        self._snapcomp.append(comp)
+        self._snapreac.append(reac)
+        self._snaptimes.append(self.param.tend if final else self.tsnapshot)
+        self._nbsnap += 1
+        self._nbcomp = max(self._nbcomp, nbcomp)
+        self._nbreac = max(self._nbreac, nbreac)
 
     def writesnap(self) -> None:
         # Correct snapshot sizes
