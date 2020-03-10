@@ -94,10 +94,6 @@ class ResultWriter:
         self.logs.resize(cutline, axis=1)
         self._init_log = False
 
-    def close_log(self, cutline: int) -> None:
-        self.logs.resize(cutline, axis=1)
-        self._init_log = False
-
     def init_stat(
         self,
         datanames: List[str],

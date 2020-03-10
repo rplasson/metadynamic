@@ -298,14 +298,6 @@ class Statistic:
         maxcol = MPI_STATUS.max(self.writer.currentcol)
         self.writer.data_resize(maxcol)
 
-    def close_log(self) -> None:
-        cutline = self.mpi.max(self.writer.logcount[self.mpi.rank])
-        self.writer.close_log(cutline)
-
-    def data_recut(self) -> None:
-        maxcol = self.mpi.max(self.writer.currentcol)
-        self.writer.data_resize(maxcol)
-
     def close(self) -> None:
         LOGGER.info(f"File {self.writer.filename} to be written and closed...")
         self.data_recut()
