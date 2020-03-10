@@ -36,7 +36,7 @@ from numpy import log
 from itertools import repeat
 
 from metadynamic.collector import Collect, Collectable
-from metadynamic.proba import Probalistic
+from metadynamic.proba import Probalist
 from metadynamic.ends import DecrZero, NoMore, NotFound
 from metadynamic.ruleset import Model, ReacDescr
 from metadynamic.inval import isvalid, Invalid, invalidint
@@ -157,23 +157,7 @@ class Chemical(Generic[K],  Collectable):
     def _unactivate(self) -> None:
         pass
 
-    # @classmethod
-    # def toupdate(cls, obj: "Chemical[K]", change: int = 0) -> None:
-    #     """Add object to update"""
-    #     try:
-    #         cls._updatelist[obj] += change
-    #     except KeyError:
-    #         cls._updatelist[obj] = change
-    #     # cls.log.debug(f"Should update {cls._updatelist} for {cls}")
-
-    # @classmethod
-    # def trigger_update(cls) -> None:
-    #     """Trigger update events"""
-    #     for obj, change in cls._updatelist.items():
-    #         obj.update(change)
-    #     cls._updatelist = {}
-
-    # def update(self, change: int = 0) -> None:
+    def update(self, change: int = 0) -> None:
         """to be implemented in subclasses"""
         raise NotImplementedError
 
@@ -182,7 +166,7 @@ class Chemical(Generic[K],  Collectable):
         raise NotImplementedError
 
 
-class Reaction(Chemical[ReacDescr], Probalistic):
+class Reaction(Chemical[ReacDescr]):
     _descrtype = "Reaction"
     _updatelist: Dict[Chemical[ReacDescr], int] = {}
 
@@ -209,7 +193,7 @@ class Reaction(Chemical[ReacDescr], Probalistic):
                 # the n1 part is only computed here.
                 if stoechnum > 1:
                     self.const /= fact(stoechnum)
-            self.const /= self.probalist.vol ** (order - 1)
+            self.const /= self.crn.probalist.vol ** (order - 1)
             self.tobeinitialized = True
             self._unset_proba_pos()
 
@@ -235,9 +219,9 @@ class Reaction(Chemical[ReacDescr], Probalistic):
                 if not self.registered:
                     # was unactivated, thus activate
                     self.activate()
-                    self.proba_pos = self.probalist.register(self)
+                    self.proba_pos = self.crn.probalist.register(self)
                     self.registered = True
-                self.probalist.update(self.proba_pos, newproba)
+                self.crn.probalist.update(self.proba_pos, newproba)
             elif self.registered:
                 # was activated, thus deactivate
                 self.delete()
@@ -254,7 +238,7 @@ class Reaction(Chemical[ReacDescr], Probalistic):
         for reac, order in self.stoechio:
             reac.change_pop(-order)
         self.crn.update()
-        if self.probalist.probtot == 0:
+        if self.crn.probalist.probtot == 0:
             raise NoMore(f"after processing {self}")
 
     def _ordern(self, pop: int, order: int) -> int:
@@ -274,7 +258,7 @@ class Reaction(Chemical[ReacDescr], Probalistic):
 
     def delete(self) -> None:
         if self.registered:
-            self.probalist.unregister(self.proba_pos)
+            self.crn.probalist.unregister(self.proba_pos)
             self._unset_proba_pos()
         self.unactivate()
 
@@ -368,14 +352,13 @@ class Compound(Chemical[str]):
         return self.pop
 
 
-class CRN(Probalistic):
+class CRN:
     def __init__(self, param: Param):
         self._reac_update: Set[Reaction] = set()
         self._comp_update: Dict[Compound, int] = {}
         # Add all options for collections
         self.model = Model(param.rulemodel, param.consts)
-        Probalistic.setprobalist(vol=param.vol)
-        # Collected.setcollections(self.model, dropmode_reac=param.dropmode)
+        self.probalist = Probalist(param.vol)
         self.comp_collect = CollectofCompound(self.model, dropmode="keep")
         self.comp_collect.set_crn(self)
         self.reac_collect = CollectofReaction(self.model, categorize=False, dropmode=param.dropmode)  # set categorize to False?

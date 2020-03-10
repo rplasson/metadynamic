@@ -40,14 +40,6 @@ def choice(data: Iterable[float], proba: float) -> int:
     return -1
 
 
-class Probalistic:
-    probalist: "Probalist"
-
-    @classmethod
-    def setprobalist(cls, vol: float = 1) -> None:
-        cls.probalist = Probalist(vol)
-
-
 class Probalist:
     def __init__(self, vol: float = 1, maxlength: int = 100):
         self.vol = vol

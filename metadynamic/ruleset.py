@@ -230,23 +230,3 @@ class Model:
                 self.ruleset.add_rule(rulename, rule)
         # intialize the rules parameters
         self.ruleset.initialize(paramdict)
-
-
-# class Ruled:
-#     ruleset: Ruleset
-#     descriptor: Descriptor
-#     model: Model
-
-#     @classmethod
-#     def setrules(cls, modelparam: str, paramdict: Dict[str, Paramset]) -> None:
-#         cls.model = Model(modelparam)
-#         cls.descriptor = cls.model.descriptor
-#         cls.ruleset = Ruleset(cls.descriptor)
-#         for rulename in paramdict:
-#             try:
-#                 cls.ruleset.add_rule(rulename, cls.model.rules[rulename])
-#             except KeyError:
-#                 raise InitError(
-#                     f"The rule named '{rulename}' is not defined in '{modelparam}'"
-#                 )
-#         cls.ruleset.initialize(paramdict)
