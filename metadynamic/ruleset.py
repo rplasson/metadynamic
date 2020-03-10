@@ -207,7 +207,7 @@ class Model:
                 try:
                     # then create it from rule module
                     rule = Rule(
-                        rulename=rulename,
+                        name=rulename,
                         reactants=tuple(ruleparam.reactants),
                         builder=(
                             getattr(self.rulepath, ruleparam.builder_func),

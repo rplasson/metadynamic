@@ -18,12 +18,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-from typing import Generic, TypeVar, Dict, Set, Union, Hashable, List, Any
+from typing import Generic, TypeVar, Dict, Set, Union, Hashable, Any
 from weakref import WeakValueDictionary
 from collections import defaultdict
 from numpy import array, sum, average, ndarray, nan
 
-from metadynamic.ruleset import Ruled
+from metadynamic.ruleset import Model
 from metadynamic.ends import BadFile
 from metadynamic.logger import LOGGER
 
@@ -58,10 +58,11 @@ class WeakDict(Generic[K, T], WeakValueDictionary):
 WDict = Union[Dict[K, T], WeakDict[K, T]]
 
 
-class Collect(Generic[K, T], Ruled):
+class Collect(Generic[K, T]):
     _colltype = "Generic"
 
-    def __init__(self, categorize: bool = True, dropmode: str = "drop"):
+    def __init__(self, model: Model, categorize: bool = True, dropmode: str = "drop"):
+        self.model = model
         self.dropmode = dropmode
         self.pool: WDict[K, T]
         if self.dropmode == "soft":

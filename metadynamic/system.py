@@ -44,7 +44,7 @@ from metadynamic.ends import (
 from metadynamic.logger import LOGGER
 from metadynamic.mpi import MPI_GATE, MPI_STATUS
 from metadynamic.collector import Collectable
-from metadynamic.chemical import Collected, CRN
+from metadynamic.chemical import CRN
 from metadynamic.inputs import Param, LockedError
 from metadynamic.inval import invalidstr
 from metadynamic.json2dot import Json2dot
@@ -136,10 +136,11 @@ class RunStatus:
         return self.time >= self.tnext
 
 
-class Statistic(Collected):
+class Statistic:
     def __init__(
-        self, writer: ResultWriter, param: Param, status: RunStatus, comment: str
+            self, crn: CRN, writer: ResultWriter, param: Param, status: RunStatus, comment: str
     ):
+        self.crn: CRN = crn
         self.writer: ResultWriter = writer
         self.param: Param = param
         self.status: RunStatus = status
@@ -161,7 +162,7 @@ class Statistic(Collected):
 
     def conc_of(self, compound: str) -> float:
         try:
-            return self.comp_collect.active[compound].pop / self.param.vol
+            return self.crn.comp_collect.active[compound].pop / self.param.vol
         except KeyError:  # compounds doesn't exist => conc=0
             return 0.0
 
@@ -187,7 +188,7 @@ class Statistic(Collected):
             self.status.info
             + self.concentrations
             + [
-                self.collstat(
+                self.crn.collstat(
                     collection=stats.collection,
                     prop=stats.prop,
                     weight=stats.weight,
@@ -202,7 +203,7 @@ class Statistic(Collected):
 
     def calcmap(self) -> None:
         for name, maps in self.param.mapsparam.items():
-            collmap = self.collmap(
+            collmap = self.crn.collmap(
                 collection=maps.collection,
                 prop=maps.prop,
                 weight=maps.weight,
@@ -240,9 +241,9 @@ class Statistic(Collected):
             basename = f"{basename}-{MPI_STATUS.rank}_{timestr}"
             filename = basename + ext
             with open(filename, "w") as outfile:
-                comp = self.comp_collect.save()
+                comp = self.crn.comp_collect.save()
                 nbcomp = len(comp)
-                reac = self.reac_collect.save()
+                reac = self.crn.reac_collect.save()
                 nbreac = len(reac)
                 dump(
                     {"Compounds": comp, "Reactions": reac},
@@ -368,8 +369,8 @@ class System:
         # Setup working environment
         self.signcatch.listen()
         self.status.initialize(self.param)
-        statistic = Statistic(self.writer, self.param, self.status, self.comment)
         self.initialize()
+        statistic = Statistic(self.crn, self.writer, self.param, self.status, self.comment)
         statistic.startwriter()
         # Ready, let's run
         LOGGER.info(f"Run #{MPI_STATUS.rank}={getpid()} launched")
