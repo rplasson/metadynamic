@@ -12,7 +12,7 @@
     "save" : ["a", "b", "c", "A", "B", "C"],
     "seed" : 1234,
     "rtlim" : 600.0,
-    "rulemodel" : "polymers-ruleset.json",
+    "rulemodel" : "metadynamic/models/polymers-ruleset.json",
     "consts" :{
 	"P": [10.0 , 10.0],
 	"H": [1.0  , 1.0],

@@ -18,32 +18,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-from fuzzywuzzy.fuzz import ratio
-
 from metadynamic.ruleset import Categorizer, ProdBuilder, ConstBuilder
 
-from metadynamic.polymers import *
+from metadynamic.models.polymers import *
 
-#  target compounds as '{abcd}' patterns
-istarget: Categorizer = lambda name: name[0] == "{" and name[-1] == "}" and ispolym(
-    name[1:-1]
-)
+# Necessary/useful for avinding clash between polymers/catpolymers model?
 
+# Example of catalized polymer by a dimer
+# iff the dimer ends corresponds to polymers ends
+# e.g.|   aaa + bbb + ab --> aaabbb + ab
 
-def iscomplex(name: str) -> bool:  # Categorizer
-    """ complex compounds are the aggregation of a target and a polymer
-    {abcd}:efgh
-    """
-    if "." in name:
-        left, right = name.split(".")
-        return ispolym(right) and istarget(left)
-    return False
-
-
-complexation: ProdBuilder = joiner(sep=".")
-dissociation: ProdBuilder = splitter(sep=".")
-
-k_complex: ConstBuilder = kinvar
-k_disso: ConstBuilder = lambda names, k, variant: k[0] * k[1] ** (
-    -float(ratio(*names[0].split("."))) / 100
+isdimer: Categorizer = lambda name: ispolym(name) and len(name) == 2
+cat_polym: ProdBuilder = lambda names, variant: (names[0] + names[1], names[2])
+k_cat_dimer_pol: ConstBuilder = lambda names, k, variant: (
+    k[0] if names[0][-1] == names[2][0] and names[1][0] == names[2][-1] else 0.0
 )

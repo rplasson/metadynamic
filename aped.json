@@ -14,7 +14,7 @@
     "hdf5" : "results/aped-fulldata.hdf5",
     "endbarrier" : 0.1,
     "rtlim" : 600.0,
-    "rulemodel" : "polymers-ruleset.json",
+    "rulemodel" : "metadynamic/models/polymers-ruleset.json",
     "consts" :{
 	"A": [1.0, 0.1],
 	"H": [1.0, 0.0],

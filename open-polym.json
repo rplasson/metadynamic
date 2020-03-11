@@ -12,7 +12,7 @@
     "hdf5" : "results/open-polym.hdf5",
     "endbarrier" : 0.1,
     "rtlim" : 600.0,
-    "rulemodel" : "open-polym-ruleset.json",
+    "rulemodel" : "metadynamic/models/open-polym-ruleset.json",
     "consts" :{
 	"P": [10.0, 1.0],
 	"H": [1.0, 0.1],
