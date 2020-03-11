@@ -18,7 +18,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# from itertools import chain
+import numpy as np
+
 from typing import (
     Generic,
     List,
@@ -32,7 +33,6 @@ from typing import (
     Iterable,
 )
 from math import factorial
-from numpy import log
 from itertools import repeat
 
 from metadynamic.collector import Collect, Collectable
@@ -85,7 +85,7 @@ class CollectofCompound(Collect[str, "Compound"]):
             if prop == "count"
             else obj.pop
             if prop == "pop"
-            else obj.pop * log(obj.pop)
+            else obj.pop * np.log(obj.pop)
             if prop == "entropy"
             else self.model.descriptor.prop(prop, obj.description)
         )
@@ -111,7 +111,7 @@ class CollectofReaction(Collect[ReacDescr, "Reaction"]):
             if prop == "count"
             else obj.proba
             if prop == "rate"
-            else obj.proba * log(obj.proba)
+            else obj.proba * np.log(obj.proba)
             if prop == "entropy"
             else self.model.descriptor.prop(
                 prop, str(obj.description)

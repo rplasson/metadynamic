@@ -18,11 +18,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
+import numpy as np
+
 from datetime import datetime
 from socket import gethostname
 from typing import Dict, Any, List, Tuple, Mapping
 from h5py import File, Group, Dataset, string_dtype
-from numpy import nan
 
 from metadynamic.ends import Finished, FileCreationError, InternalError
 from metadynamic.inval import isvalid
@@ -127,7 +128,7 @@ class ResultWriter:
             "results",
             (size, len(datanames), self.nbcol),
             maxshape=(size, len(datanames), None),
-            fillvalue=nan,
+            fillvalue=np.nan,
         )
         self.end: Dataset = self.dataset.create_dataset(
             "end",
@@ -168,7 +169,7 @@ class ResultWriter:
                 name,
                 (size, 1, self.nbcol + 1),
                 maxshape=(size, None, None),
-                fillvalue=nan,
+                fillvalue=np.nan,
                 dtype="float32",
             )
         self.map_cat: Dict[str, List[float]] = {}

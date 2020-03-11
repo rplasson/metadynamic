@@ -18,9 +18,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
+import numpy as np
+
 from mpi4py import MPI
 from time import sleep
-from numpy import array, ndarray, empty, where
 from typing import List, Dict, Any, Callable, Iterable, Optional, Type
 from types import TracebackType
 
@@ -100,7 +101,7 @@ class MpiGate:
 
     def oomkill(self) -> None:
         self.mem_divide = self.nb_running
-        runningpos = where(self.comm.allgather(self.running))
+        runningpos = np.where(self.comm.allgather(self.running))
         for running in runningpos[0][::2]:
             if running == self.rank:
                 self.cont.stop()
@@ -203,10 +204,10 @@ class MpiStatus:
         if not self.ismpi:
             data.sort()
             return data
-        sendbuf = array(data)
-        sendcounts = array(self.comm.gather(len(sendbuf), self.rootnum))
+        sendbuf = np.array(data)
+        sendcounts = np.array(self.comm.gather(len(sendbuf), self.rootnum))
         if self.root:
-            recvbuf = empty(sum(sendcounts), dtype=float)
+            recvbuf = np.empty(sum(sendcounts), dtype=float)
         else:
             recvbuf = None
         self.comm.Gatherv(
@@ -214,7 +215,7 @@ class MpiStatus:
         )
         if self.root:
             start = 0
-            gathered: List[ndarray] = []
+            gathered: List[np.ndarray] = []
             for i in sendcounts:
                 gathered.append(recvbuf[start : start + i])
                 start = start + i

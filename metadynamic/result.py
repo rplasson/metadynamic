@@ -19,7 +19,8 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 
-from numpy import array, ndarray, nanmean, nanstd, convolve, ones, meshgrid, nan_to_num, nansum
+import numpy as np
+
 from pandas import DataFrame
 from h5py import File, Group, Dataset
 from graphviz import Digraph
@@ -58,7 +59,7 @@ class ResultReader:
         self.logs: Dataset = self.logging["logs"]
         self.size = self.run.attrs["threads"]
 
-    def __getitem__(self, field: str) -> ndarray:
+    def __getitem__(self, field: str) -> np.ndarray:
         if field in self.datanames:
             return self.get(field)
         if field in self.mapnames:
@@ -73,20 +74,20 @@ class ResultReader:
 
     def get(
         self, field: str = invalidstr, method: str = "m", meanlength: int = invalidint,
-    ) -> ndarray:
+    ) -> np.ndarray:
         loc = self._loc(field) if isvalid(field) else slice(None, None, None)
         if method == "*":
             return self.data[:, loc]
         if method[0] == "p":
             res = self.data[int(method[1:]), loc]
         elif method[0] == "sum":
-            res = nansum(self.data[:, loc, :], axis=0)
+            res = np.nansum(self.data[:, loc, :], axis=0)
         elif method[0] in ["m", "s", "+", "-"]:
-            mean = nanmean(self.data[:, loc, :], axis=0)
+            mean = np.nanmean(self.data[:, loc, :], axis=0)
             if method == "m":
                 res = mean
             else:
-                std = nanstd(self.data[:, loc, :], axis=0)
+                std = np.nanstd(self.data[:, loc, :], axis=0)
                 if method == "s":
                     res = std
                 else:
@@ -95,14 +96,14 @@ class ResultReader:
             raise ValueError(f"'method'={method} is invalid")
         return (
             # Running mean from https://stackoverflow.com/questions/13728392/moving-average-or-running-mean
-            convolve(res, ones((meanlength,)) / meanlength, mode="valid")
+            np.convolve(res, np.ones((meanlength,)) / meanlength, mode="valid")
             if isvalid(meanlength)
             else res
         )
 
     def getmap(
         self, field: str, method: str = "m", meanlength: int = invalidint
-    ) -> ndarray:
+    ) -> np.ndarray:
         try:
             data = self.maps[field][:, :, 1:]
         except KeyError:
@@ -112,11 +113,11 @@ class ResultReader:
         if method[0] == "p":
             res = data[int(method[1:])]
         elif method[0] in ["m", "s", "+", "-"]:
-            mean = nanmean(data, axis=0)
+            mean = np.nanmean(data, axis=0)
             if method == "m":
                 res = mean
             else:
-                std = nanstd(data, axis=0)
+                std = np.nanstd(data, axis=0)
                 if method == "s":
                     res = std
                 else:
@@ -125,7 +126,7 @@ class ResultReader:
             raise ValueError(f"'method'={method} is invalid")
         return (
             # Running mean from https://stackoverflow.com/questions/13728392/moving-average-or-running-mean
-            convolve(res, ones((meanlength,)) / meanlength, mode="valid")
+            np.convolve(res, np.ones((meanlength,)) / meanlength, mode="valid")
             if isvalid(meanlength)
             else res
         )
@@ -149,7 +150,7 @@ class ResultReader:
             reac.pop("")
         return Data2dot(comp, reac, parameterfile).crn.dot
 
-    def categories(self, field: str) -> ndarray:
+    def categories(self, field: str) -> np.ndarray:
         return self.maps[field][0, :, 0]
 
     def ending(self, num: int) -> Tuple[int, str, float]:
@@ -178,7 +179,7 @@ class ResultReader:
         method: str = "m",
         xmethod: str = "m",
         meanlength: int = invalidint,
-    ) -> Tuple[ndarray, ndarray]:
+    ) -> Tuple[np.ndarray, np.ndarray]:
         x = self.get(field=x, method=xmethod, meanlength=meanlength)
         y = self.get(field=y, method=method, meanlength=meanlength)
         return x, y
@@ -190,9 +191,9 @@ class ResultReader:
         method: str = "m",
         xmethod: str = "m",
         meanlength: int = invalidint,
-    ) -> Tuple[ndarray, ndarray]:
+    ) -> Tuple[np.ndarray, np.ndarray]:
         x = self.get(field=x, method=xmethod, meanlength=meanlength)
-        y = array(
+        y = np.array(
             [
                 self.get(field=y, method=f"p{proc}", meanlength=meanlength)
                 for proc in range(self.size)
@@ -206,7 +207,7 @@ class ResultReader:
         x: str = "time",
         delta: float = 1.0,
         meanlength: int = invalidint,
-    ) -> Tuple[ndarray, ndarray, ndarray]:
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         x = self.get(field=x, method="m", meanlength=meanlength)
         yp = self.get(field=y, method=f"+{delta}", meanlength=meanlength)
         ym = self.get(field=y, method=f"-{delta}", meanlength=meanlength)
@@ -218,7 +219,7 @@ class ResultReader:
         x: str = "time",
         delta: float = 1.0,
         meanlength: int = invalidint,
-    ) -> Tuple[ndarray, ndarray, ndarray]:
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         x = self.get(field=x, method="m", meanlength=meanlength)
         y = self.get(field=y, method=f"m", meanlength=meanlength)
         err = self.get(field=y, method=f"s", meanlength=meanlength) * delta
@@ -233,12 +234,12 @@ class ResultReader:
         nanval: float = 0.0,
         posinf: float = invalidfloat,
         neginf: float = invalidfloat,
-    ) -> Tuple[ndarray, ndarray, ndarray]:
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         time = self.get(field="time", method=tmethod, meanlength=meanlength)
         categories = self.categories(field)
-        x, y = meshgrid(time, categories)
+        x, y = np.meshgrid(time, categories)
         try:
-            z = nan_to_num(
+            z = np.nan_to_num(
                 self.getmap(field=field, method=method, meanlength=meanlength),
                 nan=nanval,
                 posinf=posinf if isvalid(posinf) else None,
@@ -246,7 +247,7 @@ class ResultReader:
             )
         except TypeError:
             # older numpy version cannot set replacement values for nan/posinf/neginf
-            z = nan_to_num(
+            z = np.nan_to_num(
                 self.getmap(field=field, method=method, meanlength=meanlength)
             )
         return x, y, z
@@ -320,7 +321,7 @@ class ResultReader:
         )
 
     @property
-    def fulllog(self) -> ndarray:
+    def fulllog(self) -> np.ndarray:
         # add simple system for log display/search (depending on level etc) ?
         maxcol = max(self.logcount)
         return self.logs[:, :maxcol]

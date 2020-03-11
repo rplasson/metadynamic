@@ -18,9 +18,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-from typing import Generic, TypeVar, Dict, Set, Union, Hashable, Any
+import numpy as np
+
+from typing import Generic, TypeVar, Dict, Set, Hashable, Any
 from collections import defaultdict
-from numpy import array, sum, average, ndarray, nan
 
 from metadynamic.ruleset import Model
 from metadynamic.ends import BadFile
@@ -139,20 +140,20 @@ class Collect(Generic[K, T]):
             raise BadFile(f"Unknown property {prop}")
         return 1.0
 
-    def proplist(self, prop: str, full: bool = False) -> ndarray:
+    def proplist(self, prop: str, full: bool = False) -> np.ndarray:
         search = self.pool if full else self.active
-        return array([self.getprop(prop, obj) for obj in search.values()], dtype=float)
+        return np.array([self.getprop(prop, obj) for obj in search.values()], dtype=float)
 
     def stat(self, prop: str, weight: str, method: str, full: bool = False) -> float:
         values = self.proplist(prop, full)
         weights = 1/values if weight == "single" else self.proplist(weight, full)
         if method == "+":
-            return float(sum(values * weights))
+            return float(np.nansum(values * weights))
         if method == "m":
             try:
-                return float(average(values, weights=weights))
+                return float(np.average(values, weights=weights))
             except ZeroDivisionError:
-                return float(nan)   # float conversion for mypy...
+                return float(np.nan)   # float conversion for mypy...
         if method == "max":
             return float(max(values * weights))
         if method == "min":

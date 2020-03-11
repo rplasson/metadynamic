@@ -18,9 +18,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
+import numpy as np
+
 from os import path
 from itertools import product
-from numpy import array
 from json import load
 from graphviz import Digraph
 from subprocess import CalledProcessError
@@ -54,7 +55,7 @@ class Scaler:
     def minmax(data: Any, cutoff: float = 0.0) -> Tuple[float, float]:
         try:
             maxval = max(data)
-            data = array(data)
+            data = np.array(data)
             data = data[data > maxval * cutoff]
             minval = min(data)
             return minval, maxval

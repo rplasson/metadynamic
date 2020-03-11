@@ -19,8 +19,9 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 import gc
+import numpy as np
+
 from math import ceil
-from numpy import nan, seterr
 from itertools import repeat
 from os import getpid
 from typing import Dict, Any, List, Union
@@ -215,9 +216,11 @@ class Statistic:
                     if cat in collmap:
                         self.mapdict[name][cat].append(collmap[cat])
                     else:
-                        self.mapdict[name][cat].append(nan)
+                        self.mapdict[name][cat].append(np.nan)
                 else:
-                    self.mapdict[name][cat] = [nan] * self.status.step + [collmap[cat]]
+                    self.mapdict[name][cat] = [np.nan] * self.status.step + [
+                        collmap[cat]
+                    ]
 
     def writemap(self) -> None:
         for name in self.mapnames:
@@ -297,7 +300,7 @@ class System:
         comment: str = "",
     ):
         LOGGER.debug("Creating the system.")
-        seterr(divide="ignore", invalid="ignore")
+        np.seterr(divide="ignore", invalid="ignore")
         self.initialized = False
         self.param: Param = Param.readfile(filename)
         self.writer = ResultWriter(
