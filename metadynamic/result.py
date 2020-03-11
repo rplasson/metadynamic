@@ -19,7 +19,7 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 
-from numpy import array, ndarray, nanmean, nanstd, convolve, ones, meshgrid, nan_to_num
+from numpy import array, ndarray, nanmean, nanstd, convolve, ones, meshgrid, nan_to_num, nansum
 from pandas import DataFrame
 from h5py import File, Group, Dataset
 from graphviz import Digraph
@@ -79,6 +79,8 @@ class ResultReader:
             return self.data[:, loc]
         if method[0] == "p":
             res = self.data[int(method[1:]), loc]
+        elif method[0] == "sum":
+            res = nansum(self.data[:, loc, :], axis=0)
         elif method[0] in ["m", "s", "+", "-"]:
             mean = nanmean(self.data[:, loc, :], axis=0)
             if method == "m":

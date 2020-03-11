@@ -63,6 +63,12 @@
 	"weight" : "pop",
 	"method" : "+"
     },
+    "tot_c":
+    {
+	"prop" : "pop",
+	"weight" : "count",
+	"method" : "+"
+    },
     "asym":
     {
 	"prop" : "asym",
