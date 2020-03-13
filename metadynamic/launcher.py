@@ -19,9 +19,15 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 from metadynamic import System, ResultReader
+from os import path
+from typing import Any
 
 
-def launch(parameters: str) -> ResultReader:
-    syst = System(parameters)
+def launch(parameters: str, **kwd: Any) -> ResultReader:
+    ext = path.splitext(parameters)[-1]
+    if ext == ".json":
+        syst = System.fromjson(parameters, **kwd)
+    elif ext == ".hdf5" or ext == ".h5":
+        syst = System.fromhdf5(parameters, **kwd)
     syst.run()
     return ResultReader(syst.output.h5file)

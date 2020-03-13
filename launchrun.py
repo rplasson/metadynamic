@@ -41,22 +41,16 @@ if MPI_STATUS.root:
     print(f"Launched run '{args.comment}' on {MPI_STATUS.size} processes...")
 
 param = Param.readfile(args.parameters)
-# param.set_param(dropmode="drop")
-# param.set_param(init={"a": 1500, "A": 3000}, maxsteps=100000)
 
+kwd = {}
 if args.comment:
-    param.set_param(comment=args.comment)
+    kwd["comment"] = args.comment
 if args.logdir:
-    param.set_param(logdir=args.logdir)
+    kwd["logdir"] = args.logdir
 if args.loglevel:
-    param.set_param(loglevel=args.loglevel)
+    kwd["loglevel"] = args.loglevel
 
-
-paramfile = NamedTemporaryFile()
-
-param.tojson(paramfile.name)
-
-res = launch(paramfile.name)
+res = launch(args.parameters, **kwd)
 
 if args.compress != "no" and MPI_STATUS.root:
     try:
@@ -66,8 +60,6 @@ if args.compress != "no" and MPI_STATUS.root:
         rename(new, old)
     except FileNotFoundError:
         print("Couldn't find 'h5repack' utility, outputfile is uncompressed")
-
-paramfile.close()
 
 if MPI_STATUS.root:
     print(res.printinfo)

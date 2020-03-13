@@ -136,10 +136,14 @@ class ResultReader:
         param.set_param(init=comp)
         return CRN(param)
 
-    def getsnap(self, num: int, step: int, parameterfile: str = "") -> Digraph:
+    def getsnap_comp(self, num: int, step: int) -> Dict[str, int]:
         comp = comp_cast(self.compsnap[num, step])
         if "" in comp:
             comp.pop("")
+        return comp
+
+    def getsnap(self, num: int, step: int, parameterfile: str = "") -> Digraph:
+        comp = self.getsnap_comp(num, step)
         if self.reacsnapsave[num, step]:
             reac = reac_cast(
                 {i: (j, k) for i, j, k in self.snapshots["reactions"][num, step]}

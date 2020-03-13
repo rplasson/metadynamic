@@ -24,7 +24,7 @@ import numpy as np
 from math import ceil
 from itertools import repeat
 from os import getpid
-from typing import Dict, Any, List, Union
+from typing import Dict, Any, List, Union, Tuple, Optional
 from psutil import Process
 
 from metadynamic.ends import (
@@ -35,7 +35,6 @@ from metadynamic.ends import (
     BadEnding,
     Interrupted,
     SignalCatcher,
-    FileNotFound,
     InternalError,
     OOMError,
 )
@@ -45,6 +44,7 @@ from metadynamic.outputs import Output
 from metadynamic.chemical import CRN
 from metadynamic.inputs import Param, LockedError
 from metadynamic.hdf5 import ResultWriter
+from metadynamic.result import ResultReader
 
 
 class RunStatus:
@@ -288,14 +288,30 @@ class Statistic:
 
 
 class System:
+    @classmethod
+    def fromjson(cls, filename: str, **kwd: Any):
+        param = Param.readfile(filename)
+        param.set_param(**kwd)
+        return cls(param)
+
+    @classmethod
+    def fromhdf5(cls, filename: str, snapnum: Optional[int] = None, snapstep: int = -1, **kwd: Any):
+        res = ResultReader(filename)
+        param = res.parameters
+        param.set_param(**kwd)
+        if snapnum is not None:
+            if snapnum < 0:
+                snapnum = MPI_STATUS.rank % res.size
+            param.set_param(init=res.getsnap_comp(snapnum, snapstep))
+        return cls(param)
+
     def __init__(
-        self,
-        filename: str,
+        self, param: Param,
     ):
         LOGGER.debug("Creating the system.")
         np.seterr(divide="ignore", invalid="ignore")
         self.initialized = False
-        self.param: Param = Param.readfile(filename)
+        self.param: Param = param
         self.output = Output(self.param)
         self.writer = ResultWriter(
             self.output.h5file, self.param.maxstrlen, self.param.lengrow
