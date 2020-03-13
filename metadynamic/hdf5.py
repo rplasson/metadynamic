@@ -38,12 +38,19 @@ reac_cast = Caster(Dict[str, List[float]])
 
 
 class ResultWriter:
-    def __init__(self, filename: str, maxstrlen: int = 256, lengrow: int = 10) -> None:
+    def __init__(
+        self,
+        filename: str,
+        maxstrlen: int = 256,
+        lengrow: int = 10,
+        timeformat: str = "%H:%M:%S, %d/%m/%y",
+    ) -> None:
         if not isvalid(filename) or filename == "":
             raise FileNotFoundError(f"Plese enter a valid output file name")
         self.filename = filename
         self.maxstrlen = maxstrlen
         self.lengrow = lengrow
+        self.timeformat = timeformat
         try:
             if MPI_STATUS.ismpi:
                 self.h5file = File(filename, "w", driver="mpio", comm=MPI_STATUS.comm)
@@ -109,7 +116,7 @@ class ResultWriter:
         self.run: Group = self.h5file.create_group("Run")
         self.run.attrs["version"] = __version__
         self.run.attrs["hostname"] = gethostname()
-        self.run.attrs["date"] = datetime.now().strftime("%H:%M:%S, %d/%m/%Y")
+        self.run.attrs["date"] = datetime.now().strftime(self.timeformat)
         self.run.attrs["threads"] = MPI_STATUS.size
         self.run.attrs["comment"] = comment
         self.params: Group = self.h5file.create_group("Parameters")
@@ -215,7 +222,7 @@ class ResultWriter:
         self._snapsized = True
 
     def close(self) -> None:
-        self.run.attrs["end"] = datetime.now().strftime("%H:%M:%S, %d/%m/%Y")
+        self.run.attrs["end"] = datetime.now().strftime(self.timeformat)
         self._init_log = False
         self._init_stat = False
         self.h5file.close()
