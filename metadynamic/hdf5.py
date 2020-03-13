@@ -90,7 +90,6 @@ class ResultWriter:
         try:
             self.logs.resize(self.maxlog, axis=1)
         except ValueError:
-            print("Couldn't grow !!!")
             self.maxlog = self.maxlog - self.dlog
             self._init_log = False
 
