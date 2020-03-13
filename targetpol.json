@@ -1,4 +1,7 @@
 {
+    "name" : "Target",
+    "savedir" : "results",
+    "logdir" : "testlog",
     "rulemodel" : "metadynamic/models/target-polymers-ruleset.json",
     "init" :
     {
@@ -12,7 +15,6 @@
     "tstep" : 1.0,
     "sstep" : 20.0,
     "save" : ["A", "B", "C", "{ABBA}", "ABBA", "AA", "AB", "AC", "BA", "BB", "BC", "CA", "CB", "CC"],
-    "hdf5" : "results/target.hdf5",
     "consts" :
     {
         "A" : [10.0, 10.0],

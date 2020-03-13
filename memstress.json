@@ -1,4 +1,7 @@
 {
+    "name" : "MemStress",
+    "savedir" : "results",
+    "logdir" : "testlog",
     "init" :
     {
 	"a" : 500,

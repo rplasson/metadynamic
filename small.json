@@ -1,4 +1,7 @@
 {
+    "name" : "Small",
+    "savedir" : "results",
+    "logdir" : "testlog",
     "init" :
     {
 	"a": 50,
@@ -10,13 +13,12 @@
     "tend" : 2.0,
     "tstep" : 0.1,
     "save" : ["a", "b", "c", "A", "B", "C"],
-    "seed" : 1234,
     "rtlim" : 600.0,
     "rulemodel" : "metadynamic/models/polymers-ruleset.json",
     "consts" :{
 	"P": [10.0, 10.0],
 	"H": [1.0, 1.0],
-	"E": [1.0. 1.0, 1.0]
+	"E": [1.0, 1.0, 1.0]
     },
     "dropmode" : "drop"
 }

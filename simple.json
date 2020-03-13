@@ -1,4 +1,8 @@
 {
+    "name" : "Simple",
+    "savedir" : "results",
+    "logdir" : "testlog",
+    "rulemodel" : "metadynamic/models/polymers-ruleset.json",
     "init" :
     {
 	"abc": 1000
@@ -11,6 +15,5 @@
    "consts" :{
 	"H": [1.0, 1.0]
     },
-    "hdf5" : "results/aped-fulldata.hdf5",
     "endbarrier" : 0.1
 }
