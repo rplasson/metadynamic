@@ -87,7 +87,12 @@ class ResultWriter:
 
     def add_log_line(self) -> None:
         self.maxlog = self.maxlog + self.dlog
-        self.logs.resize(self.maxlog, axis=1)
+        try:
+            self.logs.resize(self.maxlog, axis=1)
+        except ValueError:
+            print("Couldn't grow !!!")
+            self.maxlog = self.maxlog - self.dlog
+            self._init_log = False
 
     def write_log(self, level: int, time: str, runtime: float, msg: str) -> None:
         if self._init_log:

@@ -11,8 +11,8 @@
     "tend" : 10.0,
     "tstep" : 0.1,
     "save" : ["a", "b", "c", "abc", "ab", "bc"],
-    "stat" : "simple-stat.json",
-   "consts" :{
+    "stat" : "metadynamic/tests/simple-stat.json",
+    "consts" :{
 	"H": [1.0, 1.0]
     },
     "endbarrier" : 0.1
