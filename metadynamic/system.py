@@ -41,9 +41,9 @@ from metadynamic.ends import (
 )
 from metadynamic.logger import LOGGER
 from metadynamic.mpi import MPI_GATE, MPI_STATUS
+from metadynamic.outputs import Output
 from metadynamic.chemical import CRN
 from metadynamic.inputs import Param, LockedError
-from metadynamic.inval import invalidstr
 from metadynamic.hdf5 import ResultWriter
 
 
@@ -171,17 +171,13 @@ class Statistic:
         return [self.conc_of(comp) for comp in self.param.save]
 
     def startwriter(self) -> None:
-        if self.param.hdf5 == "":
-            LOGGER.error("No hdf5 filename given, can't save")
-            raise FileNotFound("No hdf5 filename given, can't save")
-        else:
-            self.writer.init_stat(
-                datanames=self.lines,
-                mapnames=self.mapnames,
-                params=self.param,
-                comment=self.comment,
-                nbcol=ceil(self.param.tend / self.param.tstep) + 1,
-            )
+        self.writer.init_stat(
+            datanames=self.lines,
+            mapnames=self.mapnames,
+            params=self.param,
+            comment=self.comment,
+            nbcol=ceil(self.param.tend / self.param.tstep) + 1,
+        )
 
     def writestat(self) -> None:
         res = (
@@ -295,25 +291,23 @@ class System:
     def __init__(
         self,
         filename: str,
-        logfile: str = invalidstr,
-        loglevel: str = "INFO",
-        comment: str = "",
     ):
         LOGGER.debug("Creating the system.")
         np.seterr(divide="ignore", invalid="ignore")
         self.initialized = False
         self.param: Param = Param.readfile(filename)
+        self.output = Output(self.param)
         self.writer = ResultWriter(
-            self.param.hdf5, self.param.maxstrlen, self.param.lengrow
+            self.output.h5file, self.param.maxstrlen, self.param.lengrow
         )
         self.writer.init_log(self.param.maxlog)
-        LOGGER.setlevel(loglevel)
-        LOGGER.settxt(logfile)
+        LOGGER.setlevel(self.param.loglevel)
+        LOGGER.settxt(self.output.logfile)
         LOGGER.setsaver(self.writer)
         LOGGER.timeformat = self.param.timeformat
         self.signcatch = SignalCatcher()
         self.status = RunStatus()
-        self.comment = comment
+        self.comment = self.param.comment
         MPI_GATE.init(taginit=100)
         LOGGER.info("System created")
 

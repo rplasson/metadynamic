@@ -261,6 +261,13 @@ class MapParam(Readerclass):
 
 @dataclass
 class Param(Readerclass):
+    # Description
+    name: str = "run"
+    comment: str = ""
+    # Save
+    savedir: str = ""  # Where the final .hdf5 file will be saved. Defaults to working dir
+    logdir: str = ""  # Where the logs will be saved. If empty, log to standard output
+    loglevel: str = "INFO"   # logging level (CRITICAL, ERROR, WARNING, INFO, or DEBUG)
     # chemical
     conc: float = 0.1  # Concentration
     ptot: int = field(init=False)
@@ -288,12 +295,11 @@ class Param(Readerclass):
     statparam: Dict[str, StatParam] = field(init=False)
     maps: str = ""  # json filename describing stat maps
     mapsparam: Dict[str, MapParam] = field(init=False)
-    hdf5: str = ""  # filename for hdf5 file
-    store_snapreac: bool = False  # Store reaction snapshots? (can take lots of time)
+    store_snapreac: bool = False  # Store reaction snapshots? (can take lots of time for large CRNs)
     maxstrlen: int = 256  # max string length to be stored in hdf5
     lengrow: int = 10  # number of length left before requesting a resize
     maxlog: int = 100  # max log lines per process to be saved
-    timeformat: str = "%H:%M:%S, %d/%m/%y"  # timeformat used in log files
+    timeformat: str = "[%d.%m.%Y-%H:%M:%S]"  # timeformat used in log files
 
     def __post_init__(self) -> None:
         self.ptot = sum([pop * len(comp) for comp, pop in self.init.items()])

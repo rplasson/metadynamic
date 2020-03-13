@@ -67,29 +67,17 @@ class Log:
         self.level = level
         self._logger.setLevel(self.level)
 
-    def settxt(self, filename: str = invalidstr) -> None:
-        if not filename:
-            filename = invalidstr
-        if isvalid(filename):
-            if filename.count(".") != 1:
-                raise ValueError("Please enter filename as 'filename.log'")
-            basename, suf = path.splitext(filename)
-            self.filenamethread: str = basename + "-{}" + suf
-        self.filename = filename
+    def settxt(self, filename: str = "") -> None:
+        self.filename = filename if filename else invalidstr
         dest = filename if isvalid(filename) else "stream"
         self.connect(f"Logger directed to {dest}")
 
     def connect(self, reason: str = "unknown") -> None:
         if self.connected:
             self.disconnect("Reconnecting old handler before reconnection.")
-        filename = (
-            self.filenamethread.format(MPI_STATUS.rank)
-            if isvalid(self.filename)
-            else self.filename
-        )
-        self._handler = FileHandler(filename) if isvalid(filename) else StreamHandler()
+        self._handler = FileHandler(self.filename) if isvalid(self.filename) else StreamHandler()
         self._logger.addHandler(self._handler)
-        self.debug(f"Connected to {filename}; reason: {reason}")
+        self.debug(f"Connected to {self.filename}; reason: {reason}")
         self.connected = True
 
     def disconnect(self, reason: str = "unknown") -> None:

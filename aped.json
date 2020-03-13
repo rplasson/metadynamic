@@ -1,4 +1,7 @@
 {
+    "name" : "APED",
+    "savedir" : "results",
+    "logdir" : "testlog",
     "init" :
     {
 	"a": 1900,
@@ -11,7 +14,6 @@
     "save" : ["a", "aa", "aaa", "aaaa", "A", "Aa", "aA", "AA", "a*", "A*"],
     "stat" : "aped-stat.json",
     "maps" : "aped-maps.json",
-    "hdf5" : "results/aped-fulldata.hdf5",
     "endbarrier" : 0.1,
     "rtlim" : 600.0,
     "rulemodel" : "metadynamic/models/polymers-ruleset.json",
@@ -23,6 +25,5 @@
     },
     "dropmode" : "keep",
     "maxsteps" : 1000,
-    "maxlog" : 100,
-    "timeformat" :  "at %H:%M:%S on %d/%m/%y"
+    "maxlog" : 100
 }

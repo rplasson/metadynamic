@@ -33,13 +33,13 @@ class Output:
     def __init__(self, param: Param):
         self.name = param.name
         self.timeformat = param.timeformat
-        self.folder_save = param.folder_save if param.folder_save else path.curdir
-        if not path.isdir(self.folder_save):
-            raise NotAFolder("Bad folder name {self.folder_save}")
-        self.folder_log = param.folder_log
-        self.loginfile = self.folder_log and path.isdir(self.folder_log)
-        if not path.isdir(self.folder_log):
-            LOGGER.debug("Logs will be sent to standard output because {self.folder_log} is not a folder.")
+        self.savedir = param.savedir if param.savedir else path.curdir
+        if not path.isdir(self.savedir):
+            raise NotAFolder("Bad folder name {self.savedir}")
+        self.logdir = param.logdir
+        self.loginfile = self.logdir and path.isdir(self.logdir)
+        if not path.isdir(self.logdir):
+            LOGGER.debug("Logs will be sent to standard output because {self.logdir} is not a folder.")
 
     @property
     def hostname(self) -> str:
@@ -47,7 +47,9 @@ class Output:
 
     @property
     def datetime(self) -> str:
-        return datetime.now().strftime(self.timeformat)
+        if not hasattr(self, "_datetime"):
+            self._datetime = datetime.now().strftime(self.timeformat)
+        return self._datetime
 
     @property
     def process(self) -> str:
@@ -61,10 +63,10 @@ class Output:
 
     @property
     def h5file(self) -> str:
-        return path.join(self.folder_save, f"{self.basename}.hdf5")
+        return path.join(self.savedir, f"{self.basename}.hdf5")
 
     @property
     def logfile(self) -> str:
         if self.loginfile:
-            return path.join(self.folder_log, f"{self.basename}{self.process}.log")
+            return path.join(self.logdir, f"{self.basename}{self.process}.log")
         return ""

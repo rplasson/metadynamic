@@ -168,6 +168,11 @@ class FileCreationError(InputError):
     num = 43
     error_message = "The file couldn't be created"
 
+    
+class NotAFolder(InputError):
+    num = 44
+    error_message = "The provided foldername is not a folder"
+
 
 # Signal handling
 
