@@ -24,7 +24,7 @@ import numpy as np
 from pandas import DataFrame
 from h5py import File, Group, Dataset
 from graphviz import Digraph
-from typing import List, Dict, Tuple, Any
+from typing import List, Dict, Tuple, Any, Callable
 
 from metadynamic.inval import invalidstr, invalidint, isvalid, invalidfloat
 from metadynamic.inputs import StatParam, MapParam, Param, RulesetParam
@@ -33,8 +33,8 @@ from metadynamic.json2dot import Data2dot
 from metadynamic.chemical import CRN
 
 
-comp_cast = Caster(Dict[str, int])
-reac_cast = Caster(Dict[str, List[float]])
+comp_cast: Callable[[Any], Dict[str, int]] = Caster(Dict[str, int])
+reac_cast: Callable[[Any], Dict[str, List[float]]] = Caster(Dict[str, List[float]])
 
 
 class ResultReader:

@@ -45,7 +45,7 @@ from metadynamic.chemical import CRN
 from metadynamic.inputs import Param, LockedError
 from metadynamic.hdf5 import ResultWriter
 from metadynamic.result import ResultReader
-
+from metadynamic.inval import isvalid, invalidint
 
 class RunStatus:
     infonames = ["thread", "ptime", "memuse", "step", "dstep", "time"]
@@ -289,17 +289,23 @@ class Statistic:
 
 class System:
     @classmethod
-    def fromjson(cls, filename: str, **kwd: Any):
+    def fromjson(cls, filename: str, **kwd: Any) -> "System":
         param = Param.readfile(filename)
         param.set_param(**kwd)
         return cls(param)
 
     @classmethod
-    def fromhdf5(cls, filename: str, snapnum: Optional[int] = None, snapstep: int = -1, **kwd: Any):
+    def fromhdf5(
+        cls,
+        filename: str,
+        snapnum: int = invalidint,
+        snapstep: int = -1,
+        **kwd: Any,
+    ) -> "System":
         res = ResultReader(filename)
         param = res.parameters
         param.set_param(**kwd)
-        if snapnum is not None:
+        if isvalid(snapnum):
             if snapnum < 0:
                 snapnum = MPI_STATUS.rank % res.size
             param.set_param(init=res.getsnap_comp(snapnum, snapstep))
