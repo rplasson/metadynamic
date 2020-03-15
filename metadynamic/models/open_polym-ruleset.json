@@ -1,5 +1,5 @@
 {
-    "rulemodel" : "metadynamic.models.open-polym",
+    "rulemodel" : "metadynamic.models.open_polym",
     "categories" : {
 	"polym" : {
 	    "func": "ispolym",
