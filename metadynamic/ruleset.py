@@ -23,13 +23,12 @@ from itertools import product
 from importlib import import_module
 from dataclasses import dataclass, field
 
-
 # from functools import partial, cached_property from 3.8 only
 # from functools import reduce
 
 
 from metadynamic.ends import InitError
-
+from metadynamic.inval import invalidint
 # from metadynamic.logger import LOGGER
 from metadynamic.inputs import RulesetParam
 
@@ -230,3 +229,18 @@ class Model:
                 self.ruleset.add_rule(rulename, rule)
         # intialize the rules parameters
         self.ruleset.initialize(paramdict)
+
+        
+# Generic elements
+
+# Invariant constant
+kinvar: ConstBuilder = lambda names, k, variant: k[0]
+
+
+# Reaction with no variants
+novariant: VariantBuilder = lambda reactants: (invalidint,)
+
+
+# Reactins with a single variant
+def singlevariant(num: int) -> VariantBuilder:
+    return lambda reactants: (num,)

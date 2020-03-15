@@ -25,6 +25,8 @@ from metadynamic.ruleset import (
     ProdBuilder,
     ConstBuilder,
     VariantBuilder,
+    kinvar,
+    novariant,
 )
 
 # Categorizer #
@@ -52,9 +54,6 @@ destroy: ProdBuilder = lambda names, variant: ()
 
 # ConstBuilder #
 
-# same constant for all reactions
-kinvar: ConstBuilder = lambda names, k, variant: k[0]
-
 # different constant if the first compound is a monomer
 kpol: ConstBuilder = lambda names, k, variant: (
     k[0] if length(names[0]) == 1 else k[1]
@@ -72,9 +71,6 @@ kout: ConstBuilder = lambda names, k, variant: (
 
 
 # VariantBuilder #
-
-# Only a single possible reaction from a givent reactant set
-novariant: VariantBuilder = lambda reactants: (invalidint,)
 
 # (length-1) possible reactions from a given reaction
 # (e.g. abc -[1]-> a+bc and abc -[2]->  ab+c)

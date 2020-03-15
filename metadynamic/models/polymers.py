@@ -18,7 +18,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-from metadynamic.inval import invalidint
 from metadynamic.ruleset import (
     Categorizer,
     Propertizer,
@@ -27,6 +26,9 @@ from metadynamic.ruleset import (
     VariantBuilder,
     Compset,
     Paramset,
+    kinvar,
+    novariant,
+    singlevariant,
 )
 
 # Categorizer
@@ -101,9 +103,6 @@ def samecase(one: str, two: str) -> bool:
     return (one.islower() and two.islower()) or (one.isupper() and two.isupper())
 
 
-# Invariant constant
-kinvar: ConstBuilder = lambda names, k, variant: k[0]
-
 kfastmono: ConstBuilder = lambda names, k, variant: (
     k[0] if length(names[0]) == 1 else k[1]
 )
@@ -136,13 +135,6 @@ def kmidselect(names: Compset, k: Paramset, variant: int) -> float:  # ConstBuil
 
 # VariantBuilder
 
-novariant: VariantBuilder = lambda reactants: (invalidint,)
 intervariant: VariantBuilder = lambda reactants: range(1, int(length(reactants[0])))
 lenvariant: VariantBuilder = lambda reactants: range(int(length(reactants[0])))
-
-
-def singlevariant(num: int) -> VariantBuilder:
-    return lambda reactants: (num,)
-
-
 firstonly: VariantBuilder = singlevariant(0)
