@@ -14,7 +14,6 @@
     "tstep" : 0.01,
     "sstep" : 1.0,
     "save" : ["a", "aa", "aaa", "ba", "baba", "aaaa", "A", "Aa", "aA", "AA"],
-    "hdf5" : "results/memstress.hdf5",
     "consts" :
     {
         "P" : [10.0, 10.0],
@@ -23,6 +22,7 @@
     },
     "gcperio" : false,
     "dropmode" : "keep",
-    "maxmem" : 1024
+    "maxmem" : 0,
+    "maxmem_percent" : 5
 }
 

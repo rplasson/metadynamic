@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
+from psutil import virtual_memory
 from json import load, dump, JSONDecodeError
 from typing import List, Dict, TypeVar, Type, Any
 from dataclasses import dataclass, field
@@ -273,7 +274,7 @@ class Param(Readerclass):
     ptot: int = field(init=False)
     vol: float = field(init=False)
     init: Dict[str, int] = field(default_factory=dict)  # initial concentrations
-    rulemodel: str = "polymers-ruleset.json"  # rule model to be used
+    rulemodel: str = "metadynamic/models/polymers-ruleset.json"  # rule model to be used
     consts: Dict[str, List[float]] = field(default_factory=dict)  # kinetic constants
     # simulation
     tend: float = 1.0  # final simulation time
@@ -286,7 +287,8 @@ class Param(Readerclass):
     dropmode: str = ""  # drop mode (can be 'keep', 'drop' or 'soft')
     gcperio: bool = True  # if True, only call garbage collector at each timestep.
     endbarrier: float = 0.01  # If non zero, final threads will wait in idle loops of corresponding values
-    maxmem: int = 2048  # Max memory (in Mb).
+    maxmem: int = 0  # Max memory (in Mb). If 0, set to maxmem_percent/100 * total physical memory
+    maxmem_percent: int = 95
     # IO
     save: List[str] = field(
         default_factory=list
@@ -306,6 +308,8 @@ class Param(Readerclass):
         self.vol = self.ptot / self.conc
         self.statparam = StatParam.readmultiple(self.stat)
         self.mapsparam = MapParam.readmultiple(self.maps)
+        if self.maxmem == 0:
+            self.maxmem = int(self.maxmem_percent * virtual_memory().total/1024/1024/100)
 
 
 @dataclass
