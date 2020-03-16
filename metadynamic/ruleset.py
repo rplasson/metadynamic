@@ -29,6 +29,7 @@ from dataclasses import dataclass, field
 
 from metadynamic.ends import InitError
 from metadynamic.inval import invalidint
+
 # from metadynamic.logger import LOGGER
 from metadynamic.inputs import RulesetParam
 
@@ -36,6 +37,8 @@ from metadynamic.inputs import RulesetParam
 # Type alias (~~ data struct)
 Compset = Tuple[str, ...]
 Paramset = List[float]
+Paramdict = Dict[str, float]
+Paramrel = Callable[[Paramdict], float]
 Stoechio = Iterable[Tuple[str, int]]
 Categorizer = Callable[[str], bool]
 Propertizer = Callable[[str], float]
@@ -51,6 +54,47 @@ ReacDescr = Tuple[str, Compset, int]
 # products, constant, stoechiometry
 ReacProp = Tuple[Stoechio, Stoechio, float]
 ChemDescr = str
+
+
+class Parameters:
+    def __init__(self):
+        self._paramdict: Paramdict = {}
+        self._relation: Dict[str, Paramrel] = {}
+        self._updating: List[str] = []
+
+    def add_param(self, key: str) -> None:
+        if key not in self._paramdict:
+            self._paramdict[key] = 0.0
+        else:
+            raise KeyError(f"Key {key} already registered")
+
+    def set_param(self, key: str, val: float, terminate=True) -> None:
+        if key in self._paramdict:
+            if key not in self._updating:
+                self._paramdict[key] = val
+                self._updating.append(key)
+                self.param_init()
+        else:
+            raise KeyError(f"Key {key} not registered")
+        if terminate:
+            self._updating.clear()
+
+    def __getitem__(self, key: str) -> float:
+        return self._paramdict[key]
+
+    def add_relation(self, key: str, relation: Paramrel) -> None:
+        self._relation[key] = relation
+        self.param_init()
+
+    def param_init(self):
+        for param, func in self._relation.items():
+            self.set_param(param, func(self._paramdict), terminate=False)
+
+    def __repr__(self) -> str:
+        return dict.__repr__(self._paramdict)
+
+    def __str__(self) -> str:
+        return str(self._paramdict)
 
 
 class Descriptor:
@@ -230,7 +274,7 @@ class Model:
         # intialize the rules parameters
         self.ruleset.initialize(paramdict)
 
-        
+
 # Generic elements
 
 # Invariant constant
