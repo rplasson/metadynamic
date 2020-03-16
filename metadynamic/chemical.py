@@ -351,7 +351,7 @@ class CRN:
         self._reac_update: Set[Reaction] = set()
         self._comp_update: Dict[Compound, int] = {}
         # Create CRN objects
-        self.model = Model(param.rulemodel, param.consts)
+        self.model = Model(param.rulemodel, param.reactions, param.parameters)
         self.vol = param.vol
         self.dropmode = param.dropmode
         self.init_collect()

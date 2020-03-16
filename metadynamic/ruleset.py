@@ -21,7 +21,7 @@
 from typing import Callable, Dict, KeysView, Tuple, Set, Iterable, List
 from itertools import product
 from importlib import import_module
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 # from functools import partial, cached_property from 3.8 only
 # from functools import reduce
@@ -29,14 +29,12 @@ from dataclasses import dataclass, field
 
 from metadynamic.ends import InitError
 from metadynamic.inval import invalidint
-
-# from metadynamic.logger import LOGGER
+from metadynamic.logger import LOGGER
 from metadynamic.inputs import RulesetParam
 
 
 # Type alias (~~ data struct)
 Compset = Tuple[str, ...]
-Paramset = List[float]
 Paramdict = Dict[str, float]
 Paramrel = Callable[[Paramdict], float]
 Stoechio = Iterable[Tuple[str, int]]
@@ -45,22 +43,16 @@ Propertizer = Callable[[str], float]
 # reactants, variant -> products
 ProdBuilder = Callable[[Compset, int], Compset]
 # reactants, parameters, variant -> constant
-ConstBuilder = Callable[[Compset, Paramset, int], float]
-# reactants -> variants
-VariantBuilder = Callable[[Compset], Iterable[int]]
-Builder = Tuple[ProdBuilder, ConstBuilder, VariantBuilder]
-# rule, reactants, variant
-ReacDescr = Tuple[str, Compset, int]
-# products, constant, stoechiometry
-ReacProp = Tuple[Stoechio, Stoechio, float]
-ChemDescr = str
 
 
 class Parameters:
-    def __init__(self):
+    def __init__(self, paramdict: Paramdict) -> None:
         self._paramdict: Paramdict = {}
         self._relation: Dict[str, Paramrel] = {}
         self._updating: List[str] = []
+        for key, val in paramdict.items():
+            self.add_param(key)
+            self.set_param(key, val)
 
     def add_param(self, key: str) -> None:
         if key not in self._paramdict:
@@ -68,7 +60,7 @@ class Parameters:
         else:
             raise KeyError(f"Key {key} already registered")
 
-    def set_param(self, key: str, val: float, terminate=True) -> None:
+    def set_param(self, key: str, val: float, terminate: bool = True) -> None:
         if key in self._paramdict:
             if key not in self._updating:
                 self._paramdict[key] = val
@@ -80,13 +72,17 @@ class Parameters:
             self._updating.clear()
 
     def __getitem__(self, key: str) -> float:
-        return self._paramdict[key]
+        try:
+            return self._paramdict[key]
+        except KeyError:  # better dealing of missing keys ???
+            self.add_param(key)
+            return 0.0
 
     def add_relation(self, key: str, relation: Paramrel) -> None:
         self._relation[key] = relation
         self.param_init()
 
-    def param_init(self):
+    def param_init(self) -> None:
         for param, func in self._relation.items():
             self.set_param(param, func(self._paramdict), terminate=False)
 
@@ -95,6 +91,17 @@ class Parameters:
 
     def __str__(self) -> str:
         return str(self._paramdict)
+
+
+ConstBuilder = Callable[[Compset, Parameters, int], float]
+# reactants -> variants
+VariantBuilder = Callable[[Compset], Iterable[int]]
+Builder = Tuple[ProdBuilder, ConstBuilder, VariantBuilder]
+# rule, reactants, variant
+ReacDescr = Tuple[str, Compset, int]
+# products, constant, stoechiometry
+ReacProp = Tuple[Stoechio, Stoechio, float]
+ChemDescr = str
 
 
 class Descriptor:
@@ -135,21 +142,21 @@ class Rule:
     reactants: Compset
     builder: Builder
     descr: str
-    constants: Paramset = field(default_factory=list)
-    initialized: bool = False
+    parameters: Parameters
+    #    initialized: bool = False
 
-    def set_constants(self, const_list: Paramset) -> None:
-        self.constants = const_list
-        self.initialized = True
+    #    def set_param(self, paramdict: Paramdict) -> None:
+    #        self.paramdict = paramdict
+    #        self.initialized = True      ### Still useful???
 
     def build(self, description: ReacDescr) -> ReacProp:
         _, reactants, variant = description
-        if not self.initialized:
-            raise InitError("Rule {self} used before constant initialization")
+        #        if not self.initialized:
+        #            raise InitError("Rule {self} used before constant initialization")
         products: Compset = self.builder[0](reactants, variant)
         if "" in products:
             raise InitError(f"Reaction {description} lead to null compund: {products}")
-        constant: float = self.builder[1](reactants, self.constants, variant)
+        constant: float = self.builder[1](reactants, self.parameters, variant)
         return self.getstoechio(reactants), self.getstoechio(products), constant
 
     @staticmethod
@@ -189,9 +196,9 @@ class Ruleset:
             except KeyError:
                 raise ValueError(f"Unrecognize category {reac}")
 
-    def initialize(self, paramdict: Dict[str, Paramset]) -> None:
-        for rulename, parameters in paramdict.items():
-            self.rules[rulename].set_constants(parameters)
+    #    def initialize(self, paramdict: Paramdict) -> None:
+    #        for rules in self.rules.values():
+    #            rules.set_param(paramdict)
 
     def get_related(
         self, comp_name: str, coll_cat: Dict[str, Set[str]]
@@ -231,20 +238,23 @@ class Ruleset:
 
 
 class Model:
-    def __init__(self, modelparam: str, paramdict: Dict[str, Paramset]) -> None:
+    def __init__(
+        self, modelparam: str, reactions: List[str], paramdict: Paramdict
+    ) -> None:
         # load parameters an rule module
         self.param = RulesetParam.readfile(modelparam)
         self.rulepath = import_module(self.param.rulemodel)
         # create descriptors
         self.descriptor: Descriptor = Descriptor()
+        self.parameters = Parameters(paramdict)
         for catname, catparam in self.param.categories.items():
             self.descriptor.add_cat(catname, getattr(self.rulepath, catparam.func))
         for propname, propparam in self.param.properties.items():
             self.descriptor.add_prop(propname, getattr(self.rulepath, propparam.func))
         # create rules
         self.ruleset: Ruleset = Ruleset(self.descriptor)
-        for rulename in paramdict:
-            # Gate rule from parameter file
+        for rulename in reactions:
+            # Get rule from parameter file
             if rulename in self.param.rules:
                 ruleparam = self.param.rules[rulename]
                 try:
@@ -258,11 +268,7 @@ class Model:
                             getattr(self.rulepath, ruleparam.builder_variant),
                         ),
                         descr=ruleparam.descr,
-                    )
-                except KeyError:
-                    # raise an error if the rule from paramdict is not in parameter file
-                    raise InitError(
-                        f"The rule '{rulename}' from '{paramdict}' is not defined in '{modelparam}'"
+                        parameters=self.parameters,
                     )
                 except AttributeError:
                     # raise an error if the rule from file is not in the module
@@ -271,14 +277,21 @@ class Model:
                     )
                 # Register the created rule
                 self.ruleset.add_rule(rulename, rule)
-        # intialize the rules parameters
-        self.ruleset.initialize(paramdict)
+            else:
+                LOGGER.warning(f"Reaction '{rulename}' not found in {self.rulepath}, ignored.")
 
 
 # Generic elements
 
 # Invariant constant
-kinvar: ConstBuilder = lambda names, k, variant: k[0]
+def kinvar(name: str) -> ConstBuilder:
+    return lambda names, k, variant: k[name]
+
+
+def kalternate(
+    name1: str, name2: str, condition: Callable[[Compset, int], bool]
+) -> ConstBuilder:
+    return lambda names, k, variant: k[name1] if condition(names, variant) else k[name1]
 
 
 # Reaction with no variants
@@ -288,3 +301,7 @@ novariant: VariantBuilder = lambda reactants: (invalidint,)
 # Reactins with a single variant
 def singlevariant(num: int) -> VariantBuilder:
     return lambda reactants: (num,)
+
+
+def rangevariant(first_offset: int, last_offset: int, reacnum: int) -> VariantBuilder:
+    return lambda reactants: range(first_offset, len(reactants[reacnum]) + last_offset)

@@ -17,13 +17,15 @@
     "endbarrier" : 0.1,
     "rtlim" : 600.0,
     "rulemodel" : "metadynamic/models/polymers-ruleset.json",
-    "consts" :{
-	"A": [1.0, 0.1],
-	"H": [1.0, 0.0],
-	"E": [1.0, 0.0, 0.0],
-	"a": [1.0, 0.0]
+    "reactions" : ["A", "H", "E", "a"],
+    "parameters" :{
+	"kpola_same": 1.0,
+	"kpola_diff": 0.1,
+	"khyd_same": 1.0,
+	"kepi_diff": 1.0,
+	"kact_mono": 1.0
     },
-    "dropmode" : "keep",
+    "dropmode" : "drop",
     "maxsteps" : 1000,
     "maxlog" : 100
 }
