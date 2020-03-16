@@ -299,7 +299,7 @@ class Param(Readerclass):
     mapsparam: Dict[str, MapParam] = field(init=False)
     store_snapreac: bool = False  # Store reaction snapshots? (can take lots of time for large CRNs)
     maxstrlen: int = 256  # max string length to be stored in hdf5
-    lengrow: int = 10  # number of length left before requesting a resize
+    lengrow: int = 20  # number of length left before requesting a resize
     maxlog: int = 100  # max log lines per process to be saved
     timeformat: str = "[%d.%m.%Y-%H:%M:%S]"  # timeformat used in log files
 
