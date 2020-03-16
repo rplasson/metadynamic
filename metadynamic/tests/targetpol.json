@@ -2,7 +2,7 @@
     "name" : "Target",
     "savedir" : "results",
     "logdir" : "testlog",
-    "rulemodel" : "metadynamic/models/target-polymers-ruleset.json",
+    "rulemodel" : "metadynamic/models/target_polymers-ruleset.json",
     "init" :
     {
         "A" : 1000,

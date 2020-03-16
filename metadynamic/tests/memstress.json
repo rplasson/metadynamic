@@ -23,6 +23,6 @@
     "gcperio" : false,
     "dropmode" : "keep",
     "maxmem" : 0,
-    "maxmem_percent" : 5
+    "maxmem_percent" : 2
 }
 

@@ -14,7 +14,7 @@
     "save" : ["a", "aa", "aaa", "aaaa", "aaaaa"],
     "endbarrier" : 0.1,
     "rtlim" : 600.0,
-    "rulemodel" : "metadynamic/models/open-polym-ruleset.json",
+    "rulemodel" : "metadynamic/models/open_polym-ruleset.json",
     "consts" :{
 	"P": [10.0, 1.0],
 	"H": [1.0, 0.1],
