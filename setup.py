@@ -1,4 +1,4 @@
-from setuptools import setup
+import setuptools
 import os
 import sys
 
@@ -15,7 +15,7 @@ version = {}
 with open(os.path.join(_here, 'metadynamic', 'version.py')) as f:
     exec(f.read(), version)
 
-setup(
+setuptools.setup(
     name='metadynamic',
     version=version['__version__'],
     description=('Metadynamic Gillespie simulations with polymerization ruleset.'),
@@ -24,13 +24,13 @@ setup(
     author_email='raphael.plasson@univ-avignon.fr',
     # url='https://github.com/bast/somepackage',
     license='GPL V3.0',
-    packages=['metadynamic'],
+    packages=setuptools.find_packages(),
     # no dependencies in this example
     # install_requires=[
     #       'dependency==1.2.3',
     # ],
     # no scripts in this example
-    # scripts=['bin/a-script'],
+    scripts=['bin/metarun.py'],
     include_package_data=True,
     # classifiers=[
     #    'Development Status :: 5 - Production/Stable',
