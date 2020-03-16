@@ -97,10 +97,18 @@ class ResultWriter:
         if self._init_log:
             rank = MPI_STATUS.rank
             col = self.logcount[rank]
-            self.logs[rank, col] = (level, time, runtime, msg[: self.maxstrlen])
+            try:
+                self.logs[rank, col] = (level, time, runtime, msg[: self.maxstrlen])
+            except ValueError:
+                # No more room in log, stop logging
+                self._init_log = False
             self.logcount[rank] = col + 1
             if (self.maxlog - col) < self.lengrow:
-                MPI_GATE.close("addlog")
+                try:
+                    MPI_GATE.close("addlog")
+                except ValueError:
+                    # run out of room for log outside the gate, cannot sync withn other threads
+                    self._init_log = False
 
     def close_log(self, cutline: int) -> None:
         self.logs.resize(cutline, axis=1)
