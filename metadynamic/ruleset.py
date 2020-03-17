@@ -278,7 +278,9 @@ class Model:
                 # Register the created rule
                 self.ruleset.add_rule(rulename, rule)
             else:
-                LOGGER.warning(f"Reaction '{rulename}' not found in {self.rulepath}, ignored.")
+                LOGGER.warning(
+                    f"Reaction '{rulename}' not found in {self.rulepath}, ignored."
+                )
 
 
 # Generic elements
@@ -305,3 +307,17 @@ def singlevariant(num: int) -> VariantBuilder:
 
 def rangevariant(first_offset: int, last_offset: int, reacnum: int) -> VariantBuilder:
     return lambda reactants: range(first_offset, len(reactants[reacnum]) + last_offset)
+
+
+def joiner(sep: str) -> ProdBuilder:
+    """Generate a "joiner" ProdBuilder using a "sep" as a separator string.
+       e.g. chainer=joiner("-") will give a ProdBuilder named chainer
+       that will provide "A-B-C" from chainer(["A","B","C"])"""
+    return lambda names, variant: (sep.join(names),)
+
+
+def splitter(sep: str) -> ProdBuilder:
+    """Generate a "splitter" ProdBuilder using a "sep" as a separator string.
+       e.g. cutter=splitter("-") will give a ProdBuilder named cutter
+       that will provide ["A","B","C"] from cutter("A-B-C")"""
+    return lambda names, variant: tuple(names[0].split(sep))

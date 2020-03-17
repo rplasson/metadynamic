@@ -30,6 +30,7 @@ from metadynamic.ruleset import (
     novariant,
     singlevariant,
     rangevariant,
+    joiner,
 )
 
 # Categorizer
@@ -71,21 +72,6 @@ isright: Categorizer = lambda name: asym(name) > 0
 isleft: Categorizer = lambda name: asym(name) < 0
 
 # ProdBuilder
-
-
-def joiner(sep: str) -> ProdBuilder:
-    """Generate a "joiner" ProdBuilder using a "sep" as a separator string.
-       e.g. chainer=joiner("-") will give a ProdBuilder named chainer
-       that will provide "A-B-C" from chainer(["A","B","C"])"""
-    return lambda names, variant: (sep.join(names),)
-
-
-def splitter(sep: str) -> ProdBuilder:
-    """Generate a "splitter" ProdBuilder using a "sep" as a separator string.
-       e.g. cutter=splitter("-") will give a ProdBuilder named cutter
-       that will provide ["A","B","C"] from cutter("A-B-C")"""
-    return lambda names, variant: tuple(names[0].split(sep))
-
 
 merge: ProdBuilder = joiner("")
 cut: ProdBuilder = lambda names, variant: (names[0][:variant], names[0][variant:])
@@ -162,3 +148,4 @@ krac = kmidselect("krac_diff", "krac_mixed", "krac_same")
 intervariant: VariantBuilder = rangevariant(1, 0, 0)
 lenvariant: VariantBuilder = rangevariant(0, 0, 0)
 firstonly: VariantBuilder = singlevariant(0)
+lastonly: VariantBuilder = singlevariant(-1)
