@@ -291,7 +291,7 @@ def kinvar(name: str) -> ConstBuilder:
 def kalternate(
     name1: str, name2: str, condition: Callable[[Compset, int], bool]
 ) -> ConstBuilder:
-    return lambda names, k, variant: k[name1] if condition(names, variant) else k[name1]
+    return lambda names, k, variant: k[name1] if condition(names, variant) else k[name2]
 
 
 # Reaction with no variants
