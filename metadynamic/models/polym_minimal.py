@@ -28,9 +28,7 @@ from metadynamic.ruleset import (
     VariantBuilder,
     Compset,
     kalternate,
-    kdualchoice,
     novariant,
-    singlevariant,
     rangevariant,
     joiner,
 )
