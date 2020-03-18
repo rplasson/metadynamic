@@ -172,8 +172,8 @@ class MpiGate:
         self.running = False
         self.close("final")
         while self.nb_running > 0:
-            self.checkpoint()
             sleep(sleeptime)
+            self.checkpoint()
         self.launched = False
 
     def launch(self) -> "MpiGate":
