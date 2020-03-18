@@ -27,6 +27,7 @@ from metadynamic.ruleset import (
     Compset,
     Parameters,
     kalternate,
+    kdualchoice,
     novariant,
     singlevariant,
     rangevariant,
@@ -64,10 +65,6 @@ def asym(name: str) -> int:  # Propertizer
     return res
 
 
-# asym: Propertizer = lambda name: (
-#    sum(map(str.isupper, name)) - sum(map(str.islower, name))
-# )  ### Slower.
-
 isright: Categorizer = lambda name: asym(name) > 0
 isleft: Categorizer = lambda name: asym(name) < 0
 
@@ -90,58 +87,67 @@ def samecase(one: str, two: str) -> bool:
     return (one.islower() and two.islower()) or (one.isupper() and two.isupper())
 
 
+def samebefore(names: Compset, variant: int) -> bool:
+    name = names[0]
+    return variant < (length(name) - 1) and samecase(name[variant], name[variant + 1])
+
+
+def sameafter(names: Compset, variant: int) -> bool:
+    name = names[0]
+    return (variant > 0) and samecase(name[variant], name[variant - 1])
+
+
 kpol: ConstBuilder = kalternate(
-    "kpol_mono", "kpol_long", lambda names, variant: length(names[0]) == 1
+    condition=lambda names, variant: length(names[0]) == 1,
+    name_t="kpol_mono",
+    name_f="kpol_long",
 )
 
 kpola: ConstBuilder = kalternate(
-    "kpola_same",
-    "kpola_diff",
-    lambda names, variant: samecase(names[0][-2], names[1][0]),
+    condition=lambda names, variant: samecase(names[0][-2], names[1][0]),
+    name_t="kpola_same",
+    name_f="kpola_diff",
 )
 
 kpola_mono: ConstBuilder = kalternate(
-    "kpola_mono_same",
-    "kpola_mono_diff",
-    lambda names, variant: samecase(names[0][-2], names[1][0]),
+    condition=lambda names, variant: samecase(names[0][-2], names[1][0]),
+    name_t="kpola_mono_same",
+    name_f="kpola_mono_diff",
 )
 
 kact: ConstBuilder = kalternate(
-    "kact_mono", "kact_pol", lambda names, variant: length(names[0]) == 1
+    condition=lambda names, variant: length(names[0]) == 1,
+    name_t="kact_mono",
+    name_f="kact_pol",
 )
 
 kdeact: ConstBuilder = kalternate(
-    "kdeact_mono", "kdeact_pol", lambda names, variant: length(names[0]) == 1
+    condition=lambda names, variant: length(names[0]) == 1,
+    name_t="kdeact_mono",
+    name_f="kdeact_pol",
 )
 
 khyd: ConstBuilder = kalternate(
-    "khyd_same",
-    "khyd_diff",
-    lambda names, variant: samecase(names[0][variant - 1], names[0][variant]),
+    condition=lambda names, variant: samecase(names[0][variant - 1], names[0][variant]),
+    name_t="khyd_same",
+    name_f="khyd_diff",
 )
 
+kepi: ConstBuilder = kdualchoice(
+    condition_1=samebefore,
+    condition_2=sameafter,
+    name_tt="kepi_same",
+    name_ff="kepi_diff",
+    name_tf="kepi_mixed",
+)
 
-def kmidselect(names1: str, names2: str, names3: str) -> ConstBuilder:
-    def kmid(names: Compset, k: Parameters, variant: int) -> float:  # ConstBuilder
-        name = names[0]
-        samebefore: bool = variant < (length(name) - 1) and samecase(
-            name[variant], name[variant + 1]
-        )
-        sameafter: bool = (variant > 0) and samecase(name[variant], name[variant - 1])
-        if samebefore:
-            if sameafter:
-                return k[names3]
-            else:
-                return k[names2]
-        if sameafter:
-            return k[names2]
-        return k[names1]
-
-    return kmid
-
-
-kepi = kmidselect("kepi_diff", "kepi_mixed", "kepi_same")
-krac = kmidselect("krac_diff", "krac_mixed", "krac_same")
+krac: ConstBuilder = kdualchoice(
+    condition_1=samebefore,
+    condition_2=sameafter,
+    name_tt="krac_same",
+    name_ff="krac_diff",
+    name_tf="krac_mixed",
+)
 
 # VariantBuilder
 

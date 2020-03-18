@@ -287,13 +287,54 @@ class Model:
 
 # Invariant constant
 def kinvar(name: str) -> ConstBuilder:
+    """Build an invariable kinetic constant named 'name'"""
     return lambda names, k, variant: k[name]
 
 
 def kalternate(
-    name1: str, name2: str, condition: Callable[[Compset, int], bool]
+    condition: Callable[[Compset, int], bool], name_t: str, name_f: str
 ) -> ConstBuilder:
-    return lambda names, k, variant: k[name1] if condition(names, variant) else k[name2]
+    """Build an kinetic constant 'name_t' when 'condition' is True,
+       and 'name_f' when 'condition' is False.
+       'condition' is a function that takes as arguments a set of compound names
+       (a tuple of strings) and a variant (integer)"""
+    return (
+        lambda names, k, variant: k[name_t] if condition(names, variant) else k[name_f]
+    )
+
+
+def kdualchoice(
+    condition_1: Callable[[Compset, int], bool],
+    condition_2: Callable[[Compset, int], bool],
+    name_tt: str,
+    name_ff: str,
+    name_tf: str,
+    name_ft: str = "",
+) -> ConstBuilder:
+    """Build an kinetic constant 'name_xy' where x and y are either
+       t or f (True or False), depending on the respective booleam results
+       of 'condition_1' and 'condition_2'.
+
+       if 'name_ft' is not set, it is equal to 'name_tf'
+
+       'condition_n' are functions that takes as arguments a set of compound names
+       (a tuple of strings) and a variant (integer)"""
+    if not name_ft:
+        name_ft = name_tf
+
+    def kdual(names: Compset, k: Parameters, variant: int) -> float:  # ConstBuilder
+        c1 = condition_1(names, variant)
+        c2 = condition_2(names, variant)
+        if c1:
+            if c2:
+                return k[name_tt]
+            else:
+                return k[name_tf]
+        if c2:
+            return k[name_ft]
+        return k[name_ff]
+
+    return kdual
 
 
 # Reaction with no variants
