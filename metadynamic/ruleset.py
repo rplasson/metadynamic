@@ -18,6 +18,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
+import numpy as np
+
 from typing import Callable, Dict, KeysView, Tuple, Set, Iterable, List
 from itertools import product
 from importlib import import_module
@@ -30,6 +32,7 @@ from dataclasses import dataclass
 from metadynamic.ends import InitError
 from metadynamic.inval import invalidint
 from metadynamic.logger import LOGGER
+from metadynamic.mpi import MPI_STATUS
 from metadynamic.inputs import RulesetParam
 
 
@@ -50,9 +53,16 @@ class Parameters:
         self._paramdict: Paramdict = {}
         self._relation: Dict[str, Paramrel] = {}
         self._updating: List[str] = []
+        self.add_set_param("T", 300.0)
+        self.add_set_param("pH", 7.0)
+        self.add_set_param("num", MPI_STATUS.rank)
+        self.add_set_param("ntot", MPI_STATUS.size)
         for key, val in paramdict.items():
-            self.add_param(key)
-            self.set_param(key, val)
+            self.add_set_param(key, val)
+
+    def add_set_param(self, key: str, val: float) -> None:
+        self.add_param(key)
+        self.set_param(key, val)
 
     def add_param(self, key: str) -> None:
         if key not in self._paramdict:
@@ -298,6 +308,18 @@ class Model:
 def kinvar(name: str) -> ConstBuilder:
     """Build an invariable kinetic constant named 'name'"""
     return lambda names, k, variant: k[name]
+
+
+def klinproc(start: str, end: str) -> ConstBuilder:
+    """Return a kinetic constant ranging from 'start' to 'end',
+    proportionally to process number"""
+    return lambda names, k, variant: np.linspace(k[start], k[end], k["ntot"])[k["num"]]
+
+
+def karrh(k0: str, eact: str) -> ConstBuilder:
+    """Return a kinetic constant at temperature 'T' from Arrhenius equation,
+       with 'k0' pre-exponential factor, and 'eact' the activation energy"""
+    return lambda names, k, variant: k[k0]*np.exp(-k[eact]/8.314/k["T"])
 
 
 def kalternate(
