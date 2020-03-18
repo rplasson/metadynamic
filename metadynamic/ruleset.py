@@ -253,7 +253,8 @@ class Model:
             self.descriptor.add_prop(propname, getattr(self.rulepath, propparam.func))
         # create rules
         self.ruleset: Ruleset = Ruleset(self.descriptor)
-        for rulename in reactions:
+        # read all rules from reactions if not empty, else read them from [aram.rules
+        for rulename in reactions if reactions else self.param.rules:
             # Get rule from parameter file
             if rulename in self.param.rules:
                 ruleparam = self.param.rules[rulename]

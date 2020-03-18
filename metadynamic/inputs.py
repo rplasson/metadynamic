@@ -235,7 +235,7 @@ class RuleParam(Readerclass):
 
 @dataclass
 class RulesetParam(Readerclass):
-    rulemodel: str = "metadynamic.polymers"  # rulemodel to be used
+    rulemodel: str = "metadynamic.models.polymers"  # rulemodel to be used
     categories: Dict[str, CategoryParam] = field(default_factory=dict)  # categories
     properties: Dict[str, PropertyParam] = field(default_factory=dict)  # properties
     rules: Dict[str, RuleParam] = field(default_factory=dict)  # rules
@@ -275,7 +275,7 @@ class Param(Readerclass):
     vol: float = field(init=False)
     init: Dict[str, int] = field(default_factory=dict)  # initial concentrations
     rulemodel: str = "metadynamic/models/polymers-ruleset.json"  # rule model to be used
-    reactions: List[str] = field(default_factory=list)  # list of reaction types to load from rulemodel
+    reactions: List[str] = field(default_factory=list)  # list of reaction types to load from rulemodel (if empty, load all)
     parameters: Dict[str, float] = field(default_factory=dict)  # kinetic constants
     # simulation
     tend: float = 1.0  # final simulation time
