@@ -1,0 +1,83 @@
+{
+    "nbcomp":
+    {
+	"method" : "+"
+    },
+    "poolsize":
+    {
+	"method" : "+",
+	"full" : true
+    },
+    "nbreac":
+    {
+	"method" : "+",
+	"collection" : "reactions"
+    },
+    "poolreac":
+    {
+	"method" : "+",
+	"collection" : "reactions",
+	"full" : true
+    },
+    "len_mean":
+    {
+	"prop" : "length"
+    },
+    "len_min":
+    {
+	"prop" : "length",
+	"method" : "min"
+    },
+    "len_max":
+    {
+	"prop" : "length",
+	"method" : "max"
+    },
+    "len_max_pool":
+    {
+	"prop" : "length",
+	"method" : "max",
+	"full" : true
+    },
+    "wlen_mean":
+    {
+	"prop" : "length",
+	"weight" : "pop",
+	"method" : "m"
+    },
+    "slen_mean":
+    {
+	"prop" : "length",
+	"weight" : "single",
+	"method" : "m"
+    },
+    "slen_sum":
+    {
+	"prop" : "length",
+	"weight" : "single",
+	"method" : "+"
+    },
+    "tot_m":
+    {
+	"prop" : "length",
+	"weight" : "pop",
+	"method" : "+"
+    },
+    "tot_c":
+    {
+	"prop" : "pop",
+	"weight" : "count",
+	"method" : "+"
+    },
+    "mix_entro":
+    {
+	"prop" : "entropy",
+	"method" : "m"
+    },
+    "reac_entro":
+    {
+	"prop" : "entropy",
+	"method" : "m",
+	"collection" : "reactions"
+    }
+}
