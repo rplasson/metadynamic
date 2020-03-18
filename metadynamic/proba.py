@@ -30,7 +30,7 @@ from metadynamic.logger import LOGGER
 from metadynamic.inval import isvalid
 
 
-@jit(int32(float64[:], float64), nopython=True, cache=True)
+@jit(int32(float64[:], float64), nopython=True, cache=True)  # type: ignore
 def choice(data: Iterable[float], proba: float) -> int:
     """Return the index i where proba < sum(data) from 0 to i"""
     res: float = 0.0

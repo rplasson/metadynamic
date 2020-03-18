@@ -18,7 +18,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-from metadynamic.inputs import RulesetParam
+from typing import Dict, Any
+
 from metadynamic.ruleset import (
     Categorizer,
     Propertizer,
@@ -159,76 +160,73 @@ lastonly: VariantBuilder = singlevariant(num=-1)
 
 # Default Ruleset
 
-default_ruleset = RulesetParam.readdict(
-    {
-        "rulemodel": "metadynamic.models.polymers",
-        "categories": {
-            "mono": {"func": "ismono", "descr": "check if the compound is a monomer"},
-            "polym": {"func": "ispolym"},
-            "longpol": {"func": "islongpol"},
-            "actpol": {"func": "isact"},
-            "actmono": {"func": "isactmono"},
-            "left": {"func": "isleft"},
-            "right": {"func": "isright"},
+default_ruleset: Dict[str, Any] = {
+    "categories": {
+        "mono": {"func": "ismono", "descr": "check if the compound is a monomer"},
+        "polym": {"func": "ispolym"},
+        "longpol": {"func": "islongpol"},
+        "actpol": {"func": "isact"},
+        "actmono": {"func": "isactmono"},
+        "left": {"func": "isleft"},
+        "right": {"func": "isright"},
+    },
+    "properties": {"length": {"func": "length"}, "asym": {"func": "asym"}},
+    "rules": {
+        "P": {
+            "reactants": ["polym", "polym"],
+            "builder_func": "merge",
+            "builder_const": "kpol",
+            "builder_variant": "novariant",
+            "descr": "Polymerization",
         },
-        "properties": {"length": {"func": "length"}, "asym": {"func": "asym"}},
-        "rules": {
-            "P": {
-                "reactants": ["polym", "polym"],
-                "builder_func": "merge",
-                "builder_const": "kpol",
-                "builder_variant": "novariant",
-                "descr": "Polymerization",
-            },
-            "A": {
-                "reactants": ["actpol", "polym"],
-                "builder_func": "act_polym",
-                "builder_const": "kpola",
-                "builder_variant": "novariant",
-                "descr": "Activated Polymerization",
-            },
-            "M": {
-                "reactants": ["actmono", "polym"],
-                "builder_func": "act_polym",
-                "builder_const": "kpola_mono",
-                "builder_variant": "novariant",
-                "descr": "Activated Monomer Polymerization",
-            },
-            "a": {
-                "reactants": ["polym"],
-                "builder_func": "activ",
-                "builder_const": "kact",
-                "builder_variant": "novariant",
-                "descr": "Activation",
-            },
-            "d": {
-                "reactants": ["actpol"],
-                "builder_func": "deactiv",
-                "builder_const": "kdeact",
-                "builder_variant": "novariant",
-                "descr": "Deactivation",
-            },
-            "H": {
-                "reactants": ["polym"],
-                "builder_func": "cut",
-                "builder_const": "khyd",
-                "builder_variant": "intervariant",
-                "descr": "Hydrolysis",
-            },
-            "R": {
-                "reactants": ["longpol"],
-                "builder_func": "epimer",
-                "builder_const": "krac",
-                "builder_variant": "lenvariant",
-                "descr": "Epimerization",
-            },
-            "E": {
-                "reactants": ["longpol"],
-                "builder_func": "epimer",
-                "builder_const": "kepi",
-                "builder_variant": "firstonly",
-                "descr": "Epimerization at first end",
-            },
+        "A": {
+            "reactants": ["actpol", "polym"],
+            "builder_func": "act_polym",
+            "builder_const": "kpola",
+            "builder_variant": "novariant",
+            "descr": "Activated Polymerization",
         },
-    }
-)
+        "M": {
+            "reactants": ["actmono", "polym"],
+            "builder_func": "act_polym",
+            "builder_const": "kpola_mono",
+            "builder_variant": "novariant",
+            "descr": "Activated Monomer Polymerization",
+        },
+        "a": {
+            "reactants": ["polym"],
+            "builder_func": "activ",
+            "builder_const": "kact",
+            "builder_variant": "novariant",
+            "descr": "Activation",
+        },
+        "d": {
+            "reactants": ["actpol"],
+            "builder_func": "deactiv",
+            "builder_const": "kdeact",
+            "builder_variant": "novariant",
+            "descr": "Deactivation",
+        },
+        "H": {
+            "reactants": ["polym"],
+            "builder_func": "cut",
+            "builder_const": "khyd",
+            "builder_variant": "intervariant",
+            "descr": "Hydrolysis",
+        },
+        "R": {
+            "reactants": ["longpol"],
+            "builder_func": "epimer",
+            "builder_const": "krac",
+            "builder_variant": "lenvariant",
+            "descr": "Epimerization",
+        },
+        "E": {
+            "reactants": ["longpol"],
+            "builder_func": "epimer",
+            "builder_const": "kepi",
+            "builder_variant": "firstonly",
+            "descr": "Epimerization at first end",
+        },
+    },
+}

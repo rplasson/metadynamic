@@ -242,8 +242,16 @@ class Model:
         self, modelparam: str, reactions: List[str], paramdict: Paramdict
     ) -> None:
         # load parameters an rule module
-        self.param = RulesetParam.readfile(modelparam)
-        self.rulepath = import_module(self.param.rulemodel)
+        try:
+            # model given as a module, e.g. metadynamic.models.polymers
+            self.rulepath = import_module(modelparam)
+            self.param = RulesetParam.readdict(self.rulepath.default_ruleset)  # type: ignore
+        except AttributeError:
+            raise InitError(f"Model {modelparam} does not provides a 'default_ruleset' dict")
+        except ModuleNotFoundError:
+            # model given as a json file
+            self.param = RulesetParam.readfile(modelparam)
+            self.rulepath = import_module(self.param.rulemodel)
         # create descriptors
         self.descriptor: Descriptor = Descriptor()
         self.parameters = Parameters(paramdict)

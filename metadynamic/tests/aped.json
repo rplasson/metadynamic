@@ -16,7 +16,7 @@
     "maps" : "metadynamic/tests/aped-maps.json",
     "endbarrier" : 0.1,
     "rtlim" : 600.0,
-    "rulemodel" : "metadynamic/models/polymers-ruleset.json",
+    "rulemodel" : "metadynamic.models.polymers",
     "reactions" : ["A", "H", "E", "a"],
     "parameters" :{
 	"kpola_same": 1.0,

@@ -175,6 +175,7 @@ class Statistic:
             datanames=self.lines,
             mapnames=self.mapnames,
             params=self.param,
+            ruleparam=self.crn.model.param.asdict(),
             comment=self.comment,
             nbcol=ceil(self.param.tend / self.param.tstep) + 1,
         )

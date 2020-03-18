@@ -119,6 +119,7 @@ class ResultWriter:
         datanames: List[str],
         mapnames: List[str],
         params: Param,
+        ruleparam: Dict[str, Any],
         comment: str,
         nbcol: int,
     ) -> None:
@@ -138,9 +139,7 @@ class ResultWriter:
         self.mapparam: Group = self.params.create_group("Maps")
         self.multiread_as_attr(self.mapparam, params.mapsparam)
         self.ruleparam: Group = self.params.create_group("Rules")
-        self.dict_as_attr(
-            self.ruleparam, RulesetParam.readfile(params.rulemodel).asdict()
-        )
+        self.dict_as_attr(self.ruleparam, ruleparam)
         self.dataset: Group = self.h5file.create_group("Dataset")
         self.dataset.attrs["datanames"] = datanames
         self.data: Dataset = self.dataset.create_dataset(
