@@ -199,6 +199,14 @@ class MpiStatus:
             return self.comm.allreduce(val, op=MPI.MAX)
         return val
 
+    def bcast(self, val: Any) -> Any:
+        if self.root:
+            res = val
+        else:
+            res = None
+        res = self.comm.bcast(res, root=self.rootnum)
+        return res
+
     def sortlist(self, data: List[float]) -> List[float]:
         if not self.ismpi:
             data.sort()

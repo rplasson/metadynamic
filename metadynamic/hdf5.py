@@ -27,7 +27,7 @@ from h5py import File, Group, Dataset, string_dtype
 
 from metadynamic.ends import Finished, FileCreationError, InternalError
 from metadynamic.inval import isvalid
-from metadynamic.inputs import Readerclass, Param, RulesetParam
+from metadynamic.inputs import Readerclass, Param
 from metadynamic.caster import Caster
 from metadynamic.mpi import MPI_GATE, MPI_STATUS
 from metadynamic import __version__
@@ -47,7 +47,7 @@ class ResultWriter:
     ) -> None:
         if not isvalid(filename) or filename == "":
             raise FileNotFoundError(f"Plese enter a valid output file name")
-        self.filename = filename
+        self.filename = MPI_STATUS.bcast(filename)
         self.maxstrlen = maxstrlen
         self.lengrow = lengrow
         self.timeformat = timeformat
@@ -94,21 +94,25 @@ class ResultWriter:
             self._init_log = False
 
     def write_log(self, level: int, time: str, runtime: float, msg: str) -> None:
-        if self._init_log:
-            rank = MPI_STATUS.rank
-            col = self.logcount[rank]
-            try:
-                self.logs[rank, col] = (level, time, runtime, msg[: self.maxstrlen])
-            except ValueError:
-                # No more room in log, stop logging
-                self._init_log = False
-            self.logcount[rank] = col + 1
-            if (self.maxlog - col) < self.lengrow:
+        try:
+            if self._init_log:
+                rank = MPI_STATUS.rank
+                col = self.logcount[rank]
                 try:
-                    MPI_GATE.close("addlog")
+                    self.logs[rank, col] = (level, time, runtime, msg[: self.maxstrlen])
                 except ValueError:
-                    # run out of room for log outside the gate, cannot sync withn other threads
+                    # No more room in log, stop logging
                     self._init_log = False
+                self.logcount[rank] = col + 1
+                if (self.maxlog - col) < self.lengrow:
+                    try:
+                        MPI_GATE.close("addlog")
+                    except ValueError:
+                        # run out of room for log outside the gate, cannot sync withn other threads
+                        self._init_log = False
+        except OSError:
+            # Big problem.... stop logging
+            self._init_log = False
 
     def close_log(self, cutline: int) -> None:
         self.logs.resize(cutline, axis=1)

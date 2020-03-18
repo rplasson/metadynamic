@@ -62,7 +62,6 @@ destroy: ProdBuilder = lambda names, variant: ()
 # input flux proportionale to process number
 # (for parameter scan)
 kin: ConstBuilder = klinproc("kin_min", "kin_max")
-#kin: ConstBuilder = kinvar("kin_min")
 
 # CPnstants following arrhenius law
 kpol: ConstBuilder = karrh("kpol0", "Ea_pol")
