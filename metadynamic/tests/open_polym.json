@@ -14,12 +14,15 @@
     "save" : ["a", "aa", "aaa", "aaaa", "aaaaa"],
     "endbarrier" : 0.1,
     "rtlim" : 600.0,
-    "rulemodel" : "metadynamic/models/open_polym-ruleset.json",
-    "consts" :{
-	"P": [10.0, 1.0],
-	"H": [1.0, 0.1],
-	"in": [10.0],
-	"out": [0.01]
+    "rulemodel" : "metadynamic.models.open_polym",
+    "parameters" :{
+	"kin_min" : 0.0,
+	"kin_max" : 10,
+	"kpol0" : 10.0,
+	"Ea_pol" : 3000.0,
+	"khyd0" : 1.0,
+	"Ea_hyd" : 2000.0,
+	"kout0" : 0.01
     },
     "dropmode" : "keep",
     "maxsteps" : 10000,

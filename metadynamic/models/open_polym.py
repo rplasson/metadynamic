@@ -18,14 +18,20 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
+from typing import Dict, Any
+
 from metadynamic.ruleset import (
     Categorizer,
     Propertizer,
     ProdBuilder,
     ConstBuilder,
     VariantBuilder,
+    klinproc,
     kinvar,
+    karrh,
     novariant,
+    rangevariant,
+    joiner,
 )
 
 # Categorizer #
@@ -42,7 +48,7 @@ length: Propertizer = lambda name: len(name)
 # ProdBuilder #
 
 # e.g. abc + def -> abcdef
-merge: ProdBuilder = lambda names, variant: (names[0]+names[1],)
+merge: ProdBuilder = joiner("")
 # e.g. abcdef -[3]-> abc + def
 cut: ProdBuilder = lambda names, variant: (names[0][:variant], names[0][variant:])
 # e.g. abc# -> abc# + abc
@@ -53,24 +59,67 @@ destroy: ProdBuilder = lambda names, variant: ()
 
 # ConstBuilder #
 
-# different constant if the first compound is a monomer
-kpol: ConstBuilder = lambda names, k, variant: (
-    k[0] if length(names[0]) == 1 else k[1]
-)
+# input flux proportionale to process number
+# (for parameter scan)
+kin: ConstBuilder = klinproc("kin_min", "kin_max")
+#kin: ConstBuilder = kinvar("kin_min")
 
-# different constant for hydrolysis at first position
-khyd: ConstBuilder = lambda names, k, variant: (
-    k[0] if variant == 1 else k[1]
-)
+# CPnstants following arrhenius law
+kpol: ConstBuilder = karrh("kpol0", "Ea_pol")
+
+khyd: ConstBuilder = karrh("khyd0", "Ea_hyd")
 
 # constants proportional to reactant length
-kout: ConstBuilder = lambda names, k, variant: (
-    k[0]*length(names[0])
-)
+kout: ConstBuilder = lambda names, k, variant: (k["kout0"] * length(names[0]))
 
 
 # VariantBuilder #
 
 # (length-1) possible reactions from a given reaction
 # (e.g. abc -[1]-> a+bc and abc -[2]->  ab+c)
-intervariant: VariantBuilder = lambda reactants: range(1, int(length(reactants[0])))
+intervariant: VariantBuilder = rangevariant(first_offset=1, last_offset=0, reacnum=0)
+
+
+default_ruleset: Dict[str, Any] = {
+    "categories": {
+        "polym": {
+            "func": "ispolym",
+            "descr": "A polymer is a chain of characters, e.g. abc",
+        },
+        "source": {
+            "func": "issource",
+            "descr": "A source is a polymer postfixed by a '#', e.g. abc#",
+        },
+    },
+    "properties": {"length": {"func": "length", "descr": "Polymer length"}},
+    "rules": {
+        "P": {
+            "reactants": ["polym", "polym"],
+            "builder_func": "merge",
+            "builder_const": "kpol",
+            "builder_variant": "novariant",
+            "descr": "Polymerization",
+        },
+        "H": {
+            "reactants": ["polym"],
+            "builder_func": "cut",
+            "builder_const": "khyd",
+            "builder_variant": "intervariant",
+            "descr": "Hydrolysis",
+        },
+        "in": {
+            "reactants": ["source"],
+            "builder_func": "fromsource",
+            "builder_const": "kin",
+            "builder_variant": "novariant",
+            "descr": "Constant input from source",
+        },
+        "out": {
+            "reactants": ["polym"],
+            "builder_func": "destroy",
+            "builder_const": "kout",
+            "builder_variant": "novariant",
+            "descr": "Compound destruction (or output to sink)",
+        },
+    },
+}
