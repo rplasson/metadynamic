@@ -71,7 +71,11 @@ class Parameters:
             raise KeyError(f"Key {key} already registered")
 
     def set_param(self, key: str, val: float, terminate: bool = True) -> None:
-        if key in self._paramdict:
+        if terminate and key in self._relation:
+            LOGGER.warning(
+                f"'{key}' was set by a relation, direct setting request to '{val}' ignored"
+            )
+        elif key in self._paramdict:
             if key not in self._updating:
                 self._paramdict[key] = val
                 self._updating.append(key)
@@ -91,12 +95,12 @@ class Parameters:
     def add_relation(self, key: str, relation: Paramrel) -> None:
         try:
             self.add_param(key)
-            self._relation[key] = relation
-            self.param_init()
         except KeyError:
-            LOGGER.error(
-                f"Couldn't set '{key}' relation as value ({self[key]}) was already set"
+            LOGGER.warning(
+                f"Setting '{key}' relation will override already set value ({self[key]})"
             )
+        self._relation[key] = relation
+        self.param_init()
 
     def param_init(self) -> None:
         for param, func in self._relation.items():
@@ -275,14 +279,19 @@ class Model:
         self.parameters = Parameters(paramdict)
         for rel in self.param.relations:
             try:
-                rel_func = getattr(self.rulepath, rel)
-                self.parameters.add_relation(rel, rel_func)
+                self.parameters.add_relation(rel, getattr(self.rulepath, rel))
             except AttributeError:
-                LOGGER.error(f"'{rel}' not found in {modelparam}")
-        for catname, catparam in self.param.categories.items():
-            self.descriptor.add_cat(catname, getattr(self.rulepath, catparam.func))
-        for propname, propparam in self.param.properties.items():
-            self.descriptor.add_prop(propname, getattr(self.rulepath, propparam.func))
+                LOGGER.error(f"relation '{rel}' not found in {modelparam}")
+        for catname in self.param.categories:
+            try:
+                self.descriptor.add_cat(catname, getattr(self.rulepath, catname))
+            except AttributeError:
+                LOGGER.error(f"category '{catname}' not found in {modelparam}")
+        for propname in self.param.properties:
+            try:
+                self.descriptor.add_prop(propname, getattr(self.rulepath, propname))
+            except AttributeError:
+                LOGGER.error(f"'[property '{propname}' not found in {modelparam}")
         # create rules
         self.ruleset: Ruleset = Ruleset(self.descriptor)
         # read all rules from reactions if not empty, else read them from [aram.rules

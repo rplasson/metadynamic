@@ -213,18 +213,6 @@ class Readerclass:
 
 
 @dataclass
-class CategoryParam(Readerclass):
-    func: str = ""
-    descr: str = ""
-
-
-@dataclass
-class PropertyParam(Readerclass):
-    func: str = ""
-    descr: str = ""
-
-
-@dataclass
 class RuleParam(Readerclass):
     reactants: List[str] = field(default_factory=list)
     builder_func: str = ""
@@ -236,9 +224,9 @@ class RuleParam(Readerclass):
 @dataclass
 class RulesetParam(Readerclass):
     rulemodel: str = "metadynamic.models.polymers"  # rulemodel to be used
-    categories: Dict[str, CategoryParam] = field(default_factory=dict)  # categories
+    categories: List[str] = field(default_factory=list)  # categories
     relations: List[str] = field(default_factory=list)  # relations
-    properties: Dict[str, PropertyParam] = field(default_factory=dict)  # properties
+    properties: List[str] = field(default_factory=list)  # properties
     rules: Dict[str, RuleParam] = field(default_factory=dict)  # rules
 
 

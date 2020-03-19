@@ -38,9 +38,9 @@ from metadynamic.ruleset import (
 # Categorizer #
 
 # A polymer is a chain of characters, e.g. abc
-ispolym: Categorizer = lambda name: name.isalpha()
+polym: Categorizer = lambda name: name.isalpha()
 # a source is a polymer postfixed by a '#', e.g. abc#
-issource: Categorizer = lambda name: name[-1] == "#" and name[:-1].isalpha()
+source: Categorizer = lambda name: name[-1] == "#" and name[:-1].isalpha()
 
 # Propertizer #
 
@@ -87,17 +87,8 @@ intervariant: VariantBuilder = rangevariant(first_offset=1, last_offset=0, reacn
 
 
 default_ruleset: Dict[str, Any] = {
-    "categories": {
-        "polym": {
-            "func": "ispolym",
-            "descr": "A polymer is a chain of characters, e.g. abc",
-        },
-        "source": {
-            "func": "issource",
-            "descr": "A source is a polymer postfixed by a '#', e.g. abc#",
-        },
-    },
-    "properties": {"length": {"func": "length", "descr": "Polymer length"}},
+    "categories": ["polym", "source"],
+    "properties": ["length"],
     "relations": ["p_in"],
     "rules": {
         "P": {
