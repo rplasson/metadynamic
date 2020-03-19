@@ -28,7 +28,9 @@ from metadynamic.ruleset import (
     VariantBuilder,
     Paramrel,
     linproc,
+    arrhenius,
     kinvar,
+    kalternate,
     karrh,
     novariant,
     rangevariant,
@@ -64,6 +66,13 @@ destroy: ProdBuilder = lambda names, variant: ()
 # (for parameter scan)
 p_in: Paramrel = linproc("kin_min", "kin_max")
 
+kpol0_2: Paramrel = lambda k: k["kpol0"] * k["alpha"]
+khyd0_2: Paramrel = lambda k: k["khyd0"] * k["alpha"]
+kpol_mono: Paramrel = karrh("kpol0", "Ea_pol")
+khyd_head: Paramrel = karrh("khyd0", "Ea_hyd")
+kpol_long: Paramrel = karrh("kpol0_2", "Ea_pol")
+khyd_queue: Paramrel = karrh("khyd0_2", "Ea_hyd")
+
 
 # ConstBuilder #
 
@@ -71,9 +80,17 @@ p_in: Paramrel = linproc("kin_min", "kin_max")
 
 kin: ConstBuilder = kinvar("p_in")
 
-kpol: ConstBuilder = karrh("kpol0", "Ea_pol")
+kpol: ConstBuilder = kalternate(
+    condition=lambda names, variant: length(names[0]) == 1,
+    name_t="kpol_mono",
+    name_f="kpol_long",
+)
 
-khyd: ConstBuilder = karrh("khyd0", "Ea_hyd")
+khyd: ConstBuilder = kalternate(
+    condition=lambda names, variant: variant == 1,
+    name_t="khyd_head",
+    name_f="khyd_queue",
+)
 
 # constants proportional to reactant length
 kout: ConstBuilder = lambda names, k, variant: (k["kout0"] * length(names[0]))

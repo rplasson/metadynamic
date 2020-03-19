@@ -21,7 +21,6 @@
 import numpy as np
 
 from datetime import datetime
-from socket import gethostname
 from typing import Dict, Any, List, Tuple, Mapping
 from h5py import File, Group, Dataset, string_dtype
 
@@ -132,8 +131,8 @@ class ResultWriter:
         self.dcol = nbcol
         self.run: Group = self.h5file.create_group("Run")
         self.run.attrs["version"] = __version__
-        self.run.attrs["hostname"] = gethostname()
-        self.run.attrs["date"] = datetime.now().strftime(self.timeformat)
+        self.run.attrs["hostname"] = MPI_STATUS.hostname
+        self.run.attrs["date"] = MPI_STATUS.starttime
         self.run.attrs["threads"] = MPI_STATUS.size
         self.run.attrs["comment"] = comment
         self.params: Group = self.h5file.create_group("Parameters")

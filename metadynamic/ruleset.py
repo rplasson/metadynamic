@@ -355,13 +355,13 @@ def kinvar(name: str) -> ConstBuilder:
 def klinproc(start: str, end: str) -> ConstBuilder:
     """Return a kinetic constant ranging from 'start' to 'end',
     proportionally to process number"""
-    return lambda names, k, variant: np.linspace(k[start], k[end], k["ntot"])[k["num"]]
+    return lambda names, k, variant: float(np.linspace(k[start], k[end], k["ntot"])[k["num"]])
 
 
 def karrh(k0: str, eact: str) -> ConstBuilder:
     """Return a kinetic constant at temperature 'T' from Arrhenius equation,
        with 'k0' pre-exponential factor, and 'eact' the activation energy"""
-    return lambda names, k, variant: k[k0] * np.exp(-k[eact] / 8.314 / k["T"])
+    return lambda names, k, variant: k[k0] * float(np.exp(-k[eact] / 8.314 / k["T"]))
 
 
 def kalternate(

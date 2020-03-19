@@ -8,7 +8,7 @@
 	"a#" : 1
     },
     "conc" : 1.0,
-    "tend" : 100.0,
+    "tend" : 500.0,
     "tstep" : 10.0,
     "sstep" : 10.0,
     "save" : ["a", "aa", "aaa", "aaaa", "aaaaa"],
@@ -17,12 +17,13 @@
     "rulemodel" : "metadynamic.models.open_polym",
     "parameters" :{
 	"kin_min" : 0.0,
-	"kin_max" : 10,
+	"kin_max" : 20.0,
 	"kpol0" : 10.0,
 	"Ea_pol" : 3000.0,
 	"khyd0" : 1.0,
 	"Ea_hyd" : 2000.0,
-	"kout0" : 0.01
+	"kout0" : 0.01,
+	"alpha" : 0.1
     },
     "dropmode" : "keep",
     "maxsteps" : 10000,

@@ -21,6 +21,8 @@
 import numpy as np
 
 from mpi4py import MPI
+from datetime import datetime
+from socket import gethostname
 from time import sleep
 from typing import List, Dict, Any, Callable, Iterable, Optional, Type
 from types import TracebackType
@@ -185,10 +187,19 @@ class MpiGate:
 class MpiStatus:
     def __init__(self, rootnum: int = 0) -> None:
         self.comm = MPI.COMM_WORLD
+        self.hostname = gethostname()
         self.size: int = int(self.comm.size)
         self.rank: int = int(self.comm.rank)
         self.ismpi: bool = self.size > 1
         self.rootnum: int = rootnum
+        self._starttime: str = "[not-started]"
+
+    def init(self, timeformat: str) -> None:
+        self._starttime = self.bcast(datetime.now().strftime(timeformat))
+
+    @property
+    def starttime(self) -> str:
+        return self._starttime
 
     @property
     def root(self) -> bool:

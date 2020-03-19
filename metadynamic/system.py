@@ -47,6 +47,7 @@ from metadynamic.hdf5 import ResultWriter
 from metadynamic.result import ResultReader
 from metadynamic.inval import isvalid, invalidint
 
+
 class RunStatus:
     infonames = ["thread", "ptime", "memuse", "step", "dstep", "time"]
 
@@ -319,6 +320,7 @@ class System:
         np.seterr(divide="ignore", invalid="ignore")
         self.initialized = False
         self.param: Param = param
+        MPI_STATUS.init(self.param.timeformat)
         self.output = Output(self.param)
         self.writer = ResultWriter(
             self.output.h5file, self.param.maxstrlen, self.param.lengrow

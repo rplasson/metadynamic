@@ -20,8 +20,6 @@
 
 
 from os import path
-from datetime import datetime
-from socket import gethostname
 
 from metadynamic.inputs import Param
 from metadynamic.mpi import MPI_STATUS
@@ -42,16 +40,6 @@ class Output:
             LOGGER.debug("Logs will be sent to standard output because {self.logdir} is not a folder.")
 
     @property
-    def hostname(self) -> str:
-        return gethostname()
-
-    @property
-    def datetime(self) -> str:
-        if not hasattr(self, "_datetime"):
-            self._datetime = datetime.now().strftime(self.timeformat)
-        return self._datetime
-
-    @property
     def process(self) -> str:
         if MPI_STATUS.ismpi:
             return f"-p{MPI_STATUS.rank}"
@@ -59,7 +47,7 @@ class Output:
 
     @property
     def basename(self) -> str:
-        return f"{self.name}-{self.hostname}-{self.datetime}"
+        return f"{self.name}-{MPI_STATUS.hostname}-{MPI_STATUS.starttime}"
 
     @property
     def h5file(self) -> str:
