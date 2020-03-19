@@ -265,7 +265,11 @@ class Model:
         try:
             # model given as a module, e.g. metadynamic.models.polymers
             self.rulepath = import_module(modelparam)
-            self.param = RulesetParam.readdict(self.rulepath.default_ruleset)  # type: ignore
+            try:
+                ruleset = getattr(self.rulepath, "default_ruleset")
+            except AttributeError:
+                InitError(f"'{modelparam}' module didn't define a 'default_ruleset'")
+            self.param = RulesetParam.readdict(ruleset)
         except AttributeError:
             raise InitError(
                 f"Model {modelparam} does not provides a 'default_ruleset' dict"
