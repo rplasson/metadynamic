@@ -26,7 +26,8 @@ from metadynamic.ruleset import (
     ProdBuilder,
     ConstBuilder,
     VariantBuilder,
-    klinproc,
+    Paramrel,
+    linproc,
     kinvar,
     karrh,
     novariant,
@@ -57,13 +58,19 @@ fromsource: ProdBuilder = lambda names, variant: (names[0], names[0][:-1])
 destroy: ProdBuilder = lambda names, variant: ()
 
 
-# ConstBuilder #
+# Paramrel builder #
 
 # input flux proportionale to process number
 # (for parameter scan)
-kin: ConstBuilder = klinproc("kin_min", "kin_max")
+p_in: Paramrel = linproc("kin_min", "kin_max")
+
+
+# ConstBuilder #
 
 # CPnstants following arrhenius law
+
+kin: ConstBuilder = kinvar("p_in")
+
 kpol: ConstBuilder = karrh("kpol0", "Ea_pol")
 
 khyd: ConstBuilder = karrh("khyd0", "Ea_hyd")
@@ -91,6 +98,7 @@ default_ruleset: Dict[str, Any] = {
         },
     },
     "properties": {"length": {"func": "length", "descr": "Polymer length"}},
+    "relations": ["p_in"],
     "rules": {
         "P": {
             "reactants": ["polym", "polym"],

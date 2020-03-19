@@ -89,8 +89,14 @@ class Parameters:
             return 0.0
 
     def add_relation(self, key: str, relation: Paramrel) -> None:
-        self._relation[key] = relation
-        self.param_init()
+        try:
+            self.add_param(key)
+            self._relation[key] = relation
+            self.param_init()
+        except KeyError:
+            LOGGER.error(
+                f"Couldn't set '{key}' relation as value ({self[key]}) was already set"
+            )
 
     def param_init(self) -> None:
         for param, func in self._relation.items():
@@ -257,7 +263,9 @@ class Model:
             self.rulepath = import_module(modelparam)
             self.param = RulesetParam.readdict(self.rulepath.default_ruleset)  # type: ignore
         except AttributeError:
-            raise InitError(f"Model {modelparam} does not provides a 'default_ruleset' dict")
+            raise InitError(
+                f"Model {modelparam} does not provides a 'default_ruleset' dict"
+            )
         except ModuleNotFoundError:
             # model given as a json file
             self.param = RulesetParam.readfile(modelparam)
@@ -265,6 +273,12 @@ class Model:
         # create descriptors
         self.descriptor: Descriptor = Descriptor()
         self.parameters = Parameters(paramdict)
+        for rel in self.param.relations:
+            try:
+                rel_func = getattr(self.rulepath, rel)
+                self.parameters.add_relation(rel, rel_func)
+            except AttributeError:
+                LOGGER.error(f"'{rel}' not found in {modelparam}")
         for catname, catparam in self.param.categories.items():
             self.descriptor.add_cat(catname, getattr(self.rulepath, catparam.func))
         for propname, propparam in self.param.properties.items():
@@ -302,9 +316,24 @@ class Model:
                 )
 
 
-# Generic elements
+# - Generic elements - #
 
-# Invariant constant
+# Paramrel Generators #
+
+
+def arrhenius(k0: str, eact: str) -> Paramrel:
+    return lambda k: k[k0] * float(np.exp(-k[eact] / 8.314 / k["T"]))
+
+
+def linproc(start: str, end: str) -> Paramrel:
+    """Return a kinetic constant ranging from 'start' to 'end',
+    proportionally to process number"""
+    return lambda k: float(np.linspace(k[start], k[end], k["ntot"])[k["num"]])
+
+
+# ConstBuilder Generators #
+
+
 def kinvar(name: str) -> ConstBuilder:
     """Build an invariable kinetic constant named 'name'"""
     return lambda names, k, variant: k[name]
@@ -319,7 +348,7 @@ def klinproc(start: str, end: str) -> ConstBuilder:
 def karrh(k0: str, eact: str) -> ConstBuilder:
     """Return a kinetic constant at temperature 'T' from Arrhenius equation,
        with 'k0' pre-exponential factor, and 'eact' the activation energy"""
-    return lambda names, k, variant: k[k0]*np.exp(-k[eact]/8.314/k["T"])
+    return lambda names, k, variant: k[k0] * np.exp(-k[eact] / 8.314 / k["T"])
 
 
 def kalternate(
@@ -367,6 +396,8 @@ def kdualchoice(
 
     return kdual
 
+
+# VariantBuilder generatore #
 
 # Reaction with no variants
 novariant: VariantBuilder = lambda reactants: (invalidint,)

@@ -237,6 +237,7 @@ class RuleParam(Readerclass):
 class RulesetParam(Readerclass):
     rulemodel: str = "metadynamic.models.polymers"  # rulemodel to be used
     categories: Dict[str, CategoryParam] = field(default_factory=dict)  # categories
+    relations: List[str] = field(default_factory=list)  # relations
     properties: Dict[str, PropertyParam] = field(default_factory=dict)  # properties
     rules: Dict[str, RuleParam] = field(default_factory=dict)  # rules
 
