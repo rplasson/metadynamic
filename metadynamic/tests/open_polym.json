@@ -27,5 +27,6 @@
     },
     "dropmode" : "keep",
     "maxsteps" : 10000,
-    "maxlog" : 100
+    "maxlog" : 100,
+    "store_snapreac" : true
 }
