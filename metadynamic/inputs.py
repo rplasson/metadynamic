@@ -263,7 +263,7 @@ class Param(Readerclass):
     ptot: int = field(init=False)
     vol: float = field(init=False)
     init: Dict[str, int] = field(default_factory=dict)  # initial concentrations
-    rulemodel: str = "metadynamic/models/polymers-ruleset.json"  # rule model to be used
+    rulemodel: str = "metadynamic.models.polymers"  # rule model to be used
     reactions: List[str] = field(default_factory=list)  # list of reaction types to load from rulemodel (if empty, load all)
     parameters: Dict[str, float] = field(default_factory=dict)  # kinetic constants
     # simulation

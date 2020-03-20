@@ -35,7 +35,7 @@ from metadynamic.ruleset import (
 # Categorizer
 
 # A polymer is a chain of characters, e.g. abc
-ispolym: Categorizer = lambda name: name.isalpha()
+polym: Categorizer = lambda name: name.isalpha()
 
 # Propertizer
 
@@ -71,8 +71,8 @@ intervariant: VariantBuilder = rangevariant(first_offset=1, last_offset=0, reacn
 # Default Ruleset
 
 default_ruleset: Dict[str, Any] = {
-    "categories": {"polym": {"func": "ispolym", "descr": "Polymer"}},
-    "properties": {"length": {"func": "length", "descr": "Polymer length"}},
+    "categories": ["polym"],
+    "properties": ["length"],
     "rules": {
         "P": {
             "reactants": ["polym", "polym"],

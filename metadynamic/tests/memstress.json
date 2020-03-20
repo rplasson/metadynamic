@@ -14,11 +14,16 @@
     "tstep" : 0.01,
     "sstep" : 1.0,
     "save" : ["a", "aa", "aaa", "ba", "baba", "aaaa", "A", "Aa", "aA", "AA"],
-    "consts" :
-    {
-        "P" : [10.0, 10.0],
-	"H" : [1.0, 1.0],
-        "E" : [0.1, 0.1, 0.1]
+    "rulemodel" : "metadynamic.models.polymers",
+    "reactions" : ["P", "H", "E"],
+    "parameters" :{
+	"kpol_mono": 10.0,
+	"kpol_long": 10.0,
+	"khyd_same": 1.0,
+	"khyd_diff": 1.0,
+	"kepi_same": 1.0,
+	"kepi_diff": 1.0,
+	"kepi_mixed": 1.0
     },
     "gcperio" : false,
     "dropmode" : "keep",

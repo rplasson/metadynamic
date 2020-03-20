@@ -2,7 +2,7 @@
     "name" : "Target",
     "savedir" : "results",
     "logdir" : "testlog",
-    "rulemodel" : "metadynamic/models/target_polymers-ruleset.json",
+    "rulemodel" : "metadynamic.models.target_polymer",
     "init" :
     {
         "A" : 1000,
@@ -15,14 +15,18 @@
     "tstep" : 1.0,
     "sstep" : 5.0,
     "save" : ["A", "B", "C", "{ABBA}", "ABBA", "AA", "AB", "AC", "BA", "BB", "BC", "CA", "CB", "CC"],
-    "consts" :
-    {
-        "A" : [10.0, 10.0],
-	"H" : [1.0, 1.0],
-        "a" : [1.0, 0.1],
-        "d" : [0.1, 0.01],
-	"ct" : [100.0],
-	"dt" : [1.0, 1000.0]
+    "parameters" :{
+	"kpola_same": 10.0,
+	"kpola_diff": 10.0,
+	"khyd_same": 1.0,
+	"khyd_diff": 1.0,
+	"kact_mono": 1.0,
+	"kact_pol": 0.1,
+	"kdeact_mono": 0.1,
+	"kdeact_pol": 0.01,
+	"k_c": 100.0,
+	"k_d": 1.0,
+	"k_aff": 1000.0
     },
     "gcperio" : false    
 }

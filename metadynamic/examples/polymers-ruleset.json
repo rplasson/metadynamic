@@ -1,22 +1,7 @@
 {
     "rulemodel" : "metadynamic.models.polymers",
-    "categories" : {
-	"mono" :
-	{
-	    "func": "ismono",
-	    "descr": "check if the compound is a monomer"
-	},
-	"polym" : {"func": "ispolym"},
-	"longpol" : {"func" : "islongpol"},
-	"actpol" : {"func" : "isact"},
-	"actmono" : {"func" : "isactmono"},
-	"left" : {"func" : "isleft"},
-	"right" : {"func" : "isright"}
-    },
-    "properties" : {
-	"length" : {"func" : "length"},
-	"asym" : {"func": "asym"}
-    },
+    "categories": ["mono", "polym", "longpol", "actpol", "actmono", "left", "right"],
+    "properties": ["length", "asym"],
     "rules" : {
 	"P":
 	{

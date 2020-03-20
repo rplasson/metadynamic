@@ -37,22 +37,16 @@ from metadynamic.ruleset import (
 
 # Categorizer
 
-ispolym: Categorizer = lambda name: name.isalpha()
-ismono: Categorizer = lambda name: ispolym(name) and len(name) == 1
-isact: Categorizer = lambda name: name[-1] == "*" and name[:-1].isalpha()
-isactmono: Categorizer = lambda name: isact(name) and len(name) == 2
-islongpol: Categorizer = lambda name: ispolym(name) and len(name) > 1
+polym: Categorizer = lambda name: name.isalpha()
+mono: Categorizer = lambda name: polym(name) and len(name) == 1
+actpol: Categorizer = lambda name: name[-1] == "*" and name[:-1].isalpha()
+actmono: Categorizer = lambda name: actpol(name) and len(name) == 2
+longpol: Categorizer = lambda name: polym(name) and len(name) > 1
 
 # Propertizer
 
 length: Propertizer = lambda name: (
-    1
-    if ismono(name)
-    else len(name)
-    if ispolym(name)
-    else len(name) - 1
-    if isact(name)
-    else 0
+    1 if mono(name) else len(name) if polym(name) else len(name) - 1 if actpol(name) else 0
 )
 
 
@@ -66,8 +60,8 @@ def asym(name: str) -> int:  # Propertizer
     return res
 
 
-isright: Categorizer = lambda name: asym(name) > 0
-isleft: Categorizer = lambda name: asym(name) < 0
+right: Categorizer = lambda name: asym(name) > 0
+left: Categorizer = lambda name: asym(name) < 0
 
 # ProdBuilder
 
@@ -161,16 +155,8 @@ lastonly: VariantBuilder = singlevariant(num=-1)
 # Default Ruleset
 
 default_ruleset: Dict[str, Any] = {
-    "categories": {
-        "mono": {"func": "ismono", "descr": "check if the compound is a monomer"},
-        "polym": {"func": "ispolym"},
-        "longpol": {"func": "islongpol"},
-        "actpol": {"func": "isact"},
-        "actmono": {"func": "isactmono"},
-        "left": {"func": "isleft"},
-        "right": {"func": "isright"},
-    },
-    "properties": {"length": {"func": "length"}, "asym": {"func": "asym"}},
+    "categories": ["mono", "polym", "longpol", "actpol", "actmono", "left", "right"],
+    "properties": ["length", "asym"],
     "rules": {
         "P": {
             "reactants": ["polym", "polym"],
