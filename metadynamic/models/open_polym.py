@@ -27,6 +27,7 @@ from metadynamic.ruleset import (
     ConstBuilder,
     VariantBuilder,
     Paramrel,
+    parmul,
     linproc,
     arrhenius,
     kinvar,
@@ -65,8 +66,8 @@ destroy: ProdBuilder = lambda names, variant: ()
 # (for parameter scan)
 p_in: Paramrel = linproc("kin_min", "kin_max")
 
-kpol0_2: Paramrel = lambda k: k["kpol0"] * k["alpha"]
-khyd0_2: Paramrel = lambda k: k["khyd0"] * k["alpha"]
+kpol0_2: Paramrel = parmul("kpol0", "alpha")
+khyd0_2: Paramrel = parmul("khyd0", "alpha")
 kpol_mono: Paramrel = arrhenius("kpol0", "Ea_pol")
 khyd_head: Paramrel = arrhenius("khyd0", "Ea_hyd")
 kpol_long: Paramrel = arrhenius("kpol0_2", "Ea_pol")
@@ -105,7 +106,7 @@ intervariant: VariantBuilder = rangevariant(first_offset=1, last_offset=0, reacn
 default_ruleset: Dict[str, Any] = {
     "categories": ["polym", "source"],
     "properties": ["length"],
-    "relations": ["p_in", "kpol0_2", "khyd0_2", "kpol_mono", "kyd_head", "kpol_long", "khyd_queue"],
+    "relations": ["p_in", "kpol0_2", "khyd0_2", "kpol_mono", "khyd_head", "kpol_long", "khyd_queue"],
     "rules": {
         "P": {
             "reactants": ["polym", "polym"],

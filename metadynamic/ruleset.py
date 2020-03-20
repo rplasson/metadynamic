@@ -334,6 +334,10 @@ class Model:
 # Paramrel Generators #
 
 
+def parmul(name: str, factor: str) -> Paramrel:
+    return lambda k: k[name] * k[factor]
+
+
 def arrhenius(k0: str, eact: str) -> Paramrel:
     return lambda k: k[k0] * float(np.exp(-k[eact] / 8.314 / k["T"]))
 
@@ -355,7 +359,9 @@ def kinvar(name: str) -> ConstBuilder:
 def klinproc(start: str, end: str) -> ConstBuilder:
     """Return a kinetic constant ranging from 'start' to 'end',
     proportionally to process number"""
-    return lambda names, k, variant: float(np.linspace(k[start], k[end], k["ntot"])[k["num"]])
+    return lambda names, k, variant: float(
+        np.linspace(k[start], k[end], k["ntot"])[k["num"]]
+    )
 
 
 def karrh(k0: str, eact: str) -> ConstBuilder:
