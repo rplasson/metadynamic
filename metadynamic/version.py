@@ -18,4 +18,4 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-__version__ = '1.0.rc3-devel'
+__version__ = '1.0.rc4-devel'
