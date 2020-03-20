@@ -22,14 +22,29 @@ from metadynamic.ruleset import Categorizer, ProdBuilder, ConstBuilder
 
 from metadynamic.models.polymers import *
 
+default_ruleset = default_ruleset.copy()
+
+
 # Necessary/useful for avinding clash between polymers/catpolymers model?
 
 # Example of catalized polymer by a dimer
 # iff the dimer ends corresponds to polymers ends
 # e.g.|   aaa + bbb + ab --> aaabbb + ab
 
-isdimer: Categorizer = lambda name: ispolym(name) and len(name) == 2
+dimer: Categorizer = lambda name: polym(name) and len(name) == 2
+
 cat_polym: ProdBuilder = lambda names, variant: (names[0] + names[1], names[2])
+
 k_cat_dimer_pol: ConstBuilder = lambda names, k, variant: (
-    k[0] if names[0][-1] == names[2][0] and names[1][0] == names[2][-1] else 0.0
+    k["k_cat"] if names[0][-1] == names[2][0] and names[1][0] == names[2][-1] else 0.0
 )
+
+default_ruleset["categories"].append("dimer")
+
+default_ruleset["rules"]["dP"] = {
+    "reactants": ["polym", "polym", "dimer"],
+    "builder_func": "cat_polym",
+    "builder_const": "k_cat_dimer_pol",
+    "builder_variant": "novariant",
+    "descr": "Catalized polym by dimer if ends fits",
+}

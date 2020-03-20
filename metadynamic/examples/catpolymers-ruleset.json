@@ -1,29 +1,14 @@
 {
     "rulemodel" : "metadynamic.models.catpolymers",
-    "categories" : {
-	"mono" :
-	{
-	    "func": "ismono",
-	    "descr": "check if the compound is a monomer"
-	},
-	"polym" : {"func": "ispolym"},
-	"longpol" : {"func" : "islongpol"},
-	"actpol" : {"func" : "isact"},
-	"actmono" : {"func" : "isactmono"},
-	"left" : {"func" : "isleft"},
-	"right" : {"func" : "isright"},
-	"dimer" : {"func" : "isdimer"}
-    },
-    "properties" : {
-	"length" : {"func" : "length"},
-	"asym" : {"func": "asym"}
+    "categories": ["mono", "polym", "longpol", "actpol", "actmono", "left", "right", "dimer"],
+    "properties": ["length", "asym"],
     },
     "rules" : {
 	"P":
 	{
 	    "reactants" : ["polym", "polym"],
 	    "builder_func" : "merge",
-	    "builder_const" : "kslowmono",
+	    "builder_const" : "kpol",
 	    "builder_variant" : "novariant",
 	    "descr" : "Polymerization"
 	},
@@ -31,7 +16,7 @@
 	{
 	    "reactants" : ["actpol", "polym"],
 	    "builder_func" : "act_polym",
-	    "builder_const" : "kactselect",
+	    "builder_const" : "kpola",
 	    "builder_variant" : "novariant",
 	    "descr" : "Activated Polymerization"
 	},
@@ -39,7 +24,7 @@
 	{
 	    "reactants" : ["actmono", "polym"],
 	    "builder_func" : "act_polym",
-	    "builder_const" : "kactselect",
+	    "builder_const" : "kpola_mono",
 	    "builder_variant" : "novariant",
 	    "descr" : "Activated Monomer Polymerization"
 	},
@@ -47,7 +32,7 @@
 	{
 	    "reactants" : ["polym"],
 	    "builder_func" : "activ",
-	    "builder_const" : "kfastmono",
+	    "builder_const" : "kact",
 	    "builder_variant" : "novariant",
 	    "descr" : "Activation"
 	},
@@ -55,7 +40,7 @@
 	{
 	    "reactants" : ["actpol"],
 	    "builder_func" : "deactiv",
-	    "builder_const" : "kfastmono",
+	    "builder_const" : "kdeact",
 	    "builder_variant" : "novariant",
 	    "descr" : "Deactivation"
 	},

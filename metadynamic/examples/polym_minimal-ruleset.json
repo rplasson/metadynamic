@@ -1,0 +1,20 @@
+{
+    "categories": ["polym"],
+    "properties": ["length"],
+    "rules": {
+        "P": {
+            "reactants": ["polym", "polym"],
+            "builder_func": "merge",
+            "builder_const": "kpol",
+            "builder_variant": "novariant",
+            "descr": "Polymerization"
+        },
+        "H": {
+            "reactants": ["polym"],
+            "builder_func": "cut",
+            "builder_const": "khyd",
+            "builder_variant": "intervariant",
+            "descr": "Hydrolysis"
+        }
+    }
+}
