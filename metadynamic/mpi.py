@@ -78,9 +78,13 @@ class MpiGate:
                 self.register_function(name, op)
 
     def init(self, taginit: int = 1) -> None:
+        self.nb_running = self.size
+        self.mem_divide = self.size
         self.gatenum = taginit
 
     def __enter__(self) -> "MpiGate":
+        self.nb_running = self.size
+        self.mem_divide = self.size
         self.cont.reset()
         return self
 
@@ -107,6 +111,8 @@ class MpiGate:
             if running == self.rank:
                 self.cont.stop()
             self.mem_divide -= 1
+        if self.mem_divide == 0:
+            self.mem_divide = 1
 
     def check_all_out(self) -> None:
         self.nb_running = self.comm.allreduce(self.running, op=MPI.SUM)
