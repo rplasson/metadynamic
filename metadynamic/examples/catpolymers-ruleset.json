@@ -56,7 +56,7 @@
 	{
 	    "reactants" : ["longpol"],
 	    "builder_func" : "epimer",
-	    "builder_const" : "kmidselect",
+	    "builder_const" : "krac",
 	    "builder_variant" : "lenvariant",
 	    "descr" : "Epimerization"
 	},
@@ -64,7 +64,7 @@
 	{
 	    "reactants" : ["longpol"],
 	    "builder_func" : "epimer",
-	    "builder_const" : "kmidselect",
+	    "builder_const" : "kepi",
 	    "builder_variant" : "firstonly",
 	    "descr" : "Epimerization at first end"
 	},

@@ -7,7 +7,7 @@
 	{
 	    "reactants" : ["polym", "polym"],
 	    "builder_func" : "merge",
-	    "builder_const" : "kslowmono",
+	    "builder_const" : "kpol",
 	    "builder_variant" : "novariant",
 	    "descr" : "Polymerization"
 	},
@@ -15,7 +15,7 @@
 	{
 	    "reactants" : ["actpol", "polym"],
 	    "builder_func" : "act_polym",
-	    "builder_const" : "kactselect",
+	    "builder_const" : "kpola",
 	    "builder_variant" : "novariant",
 	    "descr" : "Activated Polymerization"
 	},
@@ -23,7 +23,7 @@
 	{
 	    "reactants" : ["actmono", "polym"],
 	    "builder_func" : "act_polym",
-	    "builder_const" : "kactselect",
+	    "builder_const" : "kpola_mono",
 	    "builder_variant" : "novariant",
 	    "descr" : "Activated Monomer Polymerization"
 	},
@@ -31,7 +31,7 @@
 	{
 	    "reactants" : ["polym"],
 	    "builder_func" : "activ",
-	    "builder_const" : "kfastmono",
+	    "builder_const" : "kact",
 	    "builder_variant" : "novariant",
 	    "descr" : "Activation"
 	},
@@ -39,7 +39,7 @@
 	{
 	    "reactants" : ["actpol"],
 	    "builder_func" : "deactiv",
-	    "builder_const" : "kfastmono",
+	    "builder_const" : "kdeact",
 	    "builder_variant" : "novariant",
 	    "descr" : "Deactivation"
 	},
@@ -55,7 +55,7 @@
 	{
 	    "reactants" : ["longpol"],
 	    "builder_func" : "epimer",
-	    "builder_const" : "kmidselect",
+	    "builder_const" : "krac",
 	    "builder_variant" : "lenvariant",
 	    "descr" : "Epimerization"
 	},
@@ -63,7 +63,7 @@
 	{
 	    "reactants" : ["longpol"],
 	    "builder_func" : "epimer",
-	    "builder_const" : "kmidselect",
+	    "builder_const" : "kepi",
 	    "builder_variant" : "firstonly",
 	    "descr" : "Epimerization at first end"
 	},
