@@ -1,0 +1,33 @@
+{
+    "name" : "LVEvol",
+    "savedir" : "results",
+    "logdir" : "testlog",
+    "init" :
+    {
+	"F012301230123-012301230123": 20,
+	"F678967896789-678967896789": 20,
+	"R012301230123-012301230123": 50,
+	"R678967896789-678967896789": 50
+    },
+    "conc" : 1.0,
+    "tend" : 100.0,
+    "tstep" : 5.0,
+    "sstep" : 5.0,
+    "save" : [],
+    "stat" : "metadynamic/tests/lvevol-stat.json",
+    "rtlim" : 20.0,
+    "rulemodel" : "metadynamic.models.lotka_volterra_evol",
+    "parameters" :{
+	"k_repro_r": 20.0,
+	"k_repro_f": 2.0,
+	"rot_ratio": 0.1,
+	"mute_ratio": 0.01,
+	"k_eat_0": 10.0,
+	"k_death_r0": 0.5,
+	"k_death_f0": 0.05,
+	"hunger_factor": 2.0
+    },
+    "dropmode" : "drop",
+    "maxsteps" : 1000,
+    "maxlog" : 100
+}
