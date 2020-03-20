@@ -301,6 +301,14 @@ class Param(Readerclass):
         if self.maxmem == 0:
             self.maxmem = int(self.maxmem_percent * virtual_memory().total/1024/1024/100)
 
+    def set_param(self, **kwd: Any) -> None:
+        if "parameters" in kwd:
+            oldparams = self.parameters.copy()
+            for key, val in kwd["parameters"].items():
+                oldparams[key] = val
+            kwd["parameters"] = oldparams
+        super().set_param(**kwd)
+
 
 @dataclass
 class DotParam(Readerclass):
