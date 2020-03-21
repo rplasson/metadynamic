@@ -21,9 +21,9 @@
     "parameters" :{
 	"k_repro_r": 50.0,
 	"repro_f_factor": 0.1,
-	"rot_ratio": 0.1,
-	"mute_ratio": 0.01,
-	"k_death_r0": 0.01,
+	"rot_ratio": 0.2,
+	"mute_ratio": 0.1,
+	"k_death_r0": 0.1,
 	"death_f_factor": 0.1,
 	"k_eat_r0": 10.0,
 	"eat_f_factor": 0.1,

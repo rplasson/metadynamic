@@ -81,6 +81,14 @@ def mutate_gene(gene: str) -> str:
     return gene[:mutateat] + str(randint(0, 9)) + gene[mutateat + 1 :]
 
 
+def starve(name: str) -> str:
+    return name[0].lower() + name[1:]
+
+
+def feed(name: str) -> str:
+    return name[0].upper() + name[1:]
+
+
 # 2 satiated animals -> 3 hungry animals
 def reproduce(names: Compset, variant: int) -> Compset:
     parent1 = names[0]
@@ -92,16 +100,13 @@ def reproduce(names: Compset, variant: int) -> Compset:
         genes3 = [rotate_gene(gene) for gene in genes3]
     if variant == 2:
         genes3 = [mutate_gene(gene) for gene in genes3]
-    kind = parent1[0].lower()
-    parent1 = kind + parent1[1:]
-    parent2 = kind + parent2[1:]
-    child = kind + "-".join(genes3)
-    return parent1, parent2, child
+    child = parent1[0].lower() + "-".join(genes3)
+    return starve(parent1), starve(parent2), child
 
 
 # hungry animal + food -> satiated animal
 def eat(names: Compset, variant: int) -> Compset:
-    return (names[0][0].upper() + names[0][1:],)
+    return (feed(names[0]),)
 
 
 # animal -> grass
