@@ -49,9 +49,19 @@ hungry_rabbit: Categorizer = lambda name: name[0] == "r"
 satiated_fox: Categorizer = lambda name: name[0] == "F"
 satiated_rabbit: Categorizer = lambda name: name[0] == "R"
 
-energy: Propertizer = lambda name: 1 if grass(name) else 2 if rabbit(
-    name
-) else 4 if fox(name) else 0
+energy: Propertizer = lambda name: (
+    1
+    if grass(name)
+    else 2
+    if hungry_rabbit(name)
+    else 3
+    if satiated_rabbit(name)
+    else 6
+    if hungry_fox(name)
+    else 9
+    if satiated_fox(name)
+    else 0
+)
 
 # ProdBuilder #
 
@@ -103,7 +113,9 @@ def die_gen(size: int) -> ProdBuilder:
 
 
 r_die: Compset = die_gen(2)
-f_die: Compset = die_gen(4)
+R_die: Compset = die_gen(3)
+f_die: Compset = die_gen(6)
+F_die: Compset = die_gen(9)
 
 
 # Paramrel builder #
@@ -158,18 +170,24 @@ def k_eat_f(names: Compset, k: Parameters, variant: int) -> float:  # ConstBuild
 k_eat_r: ConstBuilder = kinvar("k_eat_r0")
 
 
-def k_death_rabbit(
-    names: Compset, k: Parameters, variant: int
-) -> float:  # ConstBuilder
+def k_death_hr(names: Compset, k: Parameters, variant: int) -> float:  # ConstBuilder
     powers = translate_gene(names[0])
-    const = k["k_death_r0"] if names[0][0].isupper() else k["k_death_hr0"]
-    return const * powers[0] * (1 - powers[1])
+    return k["k_death_hr0"] * powers[0] * (1 - powers[1])
 
 
-def k_death_fox(names: Compset, k: Parameters, variant: int) -> float:  # ConstBuilder
+def k_death_hf(names: Compset, k: Parameters, variant: int) -> float:  # ConstBuilder
     powers = translate_gene(names[0])
-    const = k["k_death_f0"] if names[0][0].isupper() else k["k_death_hf0"]
-    return const * powers[0] * powers[1]
+    return k["k_death_hf0"] * powers[0] * powers[1]
+
+
+def k_death_r(names: Compset, k: Parameters, variant: int) -> float:  # ConstBuilder
+    powers = translate_gene(names[0])
+    return k["k_death_r0"] * powers[0] * (1 - powers[1])
+
+
+def k_death_f(names: Compset, k: Parameters, variant: int) -> float:  # ConstBuilder
+    powers = translate_gene(names[0])
+    return k["k_death_f0"] * powers[0] * powers[1]
 
 
 threevariant: VariantBuilder = lambda reactants: range(3)
@@ -213,7 +231,7 @@ default_ruleset: Dict[str, Any] = {
             "builder_variant": "threevariant",
         },
         "Feat": {
-            "reactants": ["hungry_fox", "rabbit"],
+            "reactants": ["hungry_fox", "satiated_rabbit"],
             "builder_func": "eat",
             "builder_const": "k_eat_f",
             "builder_variant": "novariant",
@@ -224,17 +242,41 @@ default_ruleset: Dict[str, Any] = {
             "builder_const": "k_eat_r",
             "builder_variant": "novariant",
         },
-        "Rdeath": {
+        "rdeath": {
             "reactants": ["rabbit"],
             "builder_func": "r_die",
-            "builder_const": "k_death_rabbit",
+            "builder_const": "k_death_hr",
+            "builder_variant": "novariant",
+        },
+        "fdeath": {
+            "reactants": ["fox"],
+            "builder_func": "f_die",
+            "builder_const": "k_death_hf",
+            "builder_variant": "novariant",
+        },
+        "Rdeath": {
+            "reactants": ["rabbit"],
+            "builder_func": "R_die",
+            "builder_const": "k_death_r",
             "builder_variant": "novariant",
         },
         "Fdeath": {
             "reactants": ["fox"],
-            "builder_func": "f_die",
-            "builder_const": "k_death_fox",
+            "builder_func": "F_die",
+            "builder_const": "k_death_f",
             "builder_variant": "novariant",
         },
     },
 }
+#########################################
+#
+#   R + R -> r + r + r        (1): 3r = 2R
+#   F + F -> f + f + f        (2): 3f = 2F  => (3) => 3f = 2f + 6 => f=6, F=9
+#   f + R -> F                (3): f+R = F => (4) => f+3 = F
+#   r + G -> R                (4): r+1 = R  => (1) => 3r = 2r + 2 => r = 2 ; R = 3
+#   r -> G + G
+#   R -> G + G + G
+#   f -> G + G + G + G + G + G
+#   F -> G + G + G + G + G + G + G + G + G
+#
+##########################################
