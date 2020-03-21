@@ -5,10 +5,10 @@
     "init" :
     {
 	"G": 200,
-	"F012301230123-012301230123": 20,
-	"F678967896789-678967896789": 20,
-	"R012301230123-012301230123": 50,
-	"R678967896789-678967896789": 50
+	"F274365256839-277457493081": 20,
+	"F027712858941-769398111890": 20,
+	"R099308222053-966863700945": 50,
+	"R226141118922-831267766148": 50
     },
     "conc" : 0.1,
     "tend" : 10000.0,
@@ -19,17 +19,18 @@
     "rtlim" : 200.0,
     "rulemodel" : "metadynamic.models.lotka_volterra_evol",
     "parameters" :{
-	"k_repro_r": 50.0,
+	"k_repro_r": 100.0,
 	"repro_f_factor": 0.1,
-	"rot_ratio": 0.2,
+	"rot_ratio": 0.9,
 	"mute_ratio": 0.1,
 	"k_death_r0": 0.1,
 	"death_f_factor": 0.1,
 	"k_eat_r0": 10.0,
-	"eat_f_factor": 0.1,
+	"eat_f_factor": 0.2,
 	"hunger_factor": 2.0
     },
     "dropmode" : "drop",
+    "store_snapreac": true,
     "maxsteps" : 1000,
     "maxlog" : 100
 }
