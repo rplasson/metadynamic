@@ -29,7 +29,7 @@
 	"eat_f_factor": 0.1,
 	"hunger_factor": 2.0
     },
-    "dropmode" : "keep",
+    "dropmode" : "drop",
     "maxsteps" : 1000,
     "maxlog" : 100
 }
