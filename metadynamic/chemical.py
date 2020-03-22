@@ -168,10 +168,12 @@ class Reaction(Chemical[ReacDescr]):
         # If name is empty => invalid reaction, no process to be done
         if description[0] != "":
             self.proba: float = 0.0
-            ## ***** check to possibility of calling buildreac at each process...*****#
-            stoechreac, self._stoechproduct, const, = self.crn.model.ruleset.buildreac(
-                self.description
-            )
+            (
+                stoechreac,
+                self._stoechproduct,
+                const,
+                self.robust,
+            ) = self.crn.model.ruleset.buildreac(self.description)
             self.stoechio: List[Tuple[Compound, int]] = []
             order: int = 0
             # stochastic rate between n reactions must be divided by V^(n-1)
@@ -184,6 +186,9 @@ class Reaction(Chemical[ReacDescr]):
                 # as it is not proportional to X.X, nor X.(X-1), but X.(X-1)/2,
                 # for order N, it is X.(X-1)...(X-n+1)/n!
                 # the n1 part is only computed here.
+                #
+                # /!\  Check if this cannot be computed earlier using ruleset.Parameters facilities
+                #
                 if stoechnum > 1:
                     self.const /= fact(stoechnum)
             self.const /= self.crn.probalist.vol ** (order - 1)
@@ -225,7 +230,10 @@ class Reaction(Chemical[ReacDescr]):
                 (self.crn.comp_collect[name], order)
                 for name, order in self._stoechproduct
             ]
-            self.tobeinitialized = False
+            if self.robust:
+                self.tobeinitialized = False
+            else:
+                self._stoechproduct = self.crn.model.ruleset.rebuild_prod(self.description)
         for prod, order in self.products:
             prod.change_pop(order)
         # Decrement reactants
