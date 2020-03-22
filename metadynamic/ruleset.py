@@ -173,7 +173,9 @@ class Rule:
     def _build_products(self, reactants: Compset, variant: int) -> Compset:
         products: Compset = self.builder[0](reactants, variant)
         if "" in products:
-            raise InitError(f"Reaction from {reactants} lead to null compound: {products}")
+            raise InitError(
+                f"Reaction from {reactants} lead to null compound: {products}"
+            )
         return products
 
     def _build_constant(self, reactants: Compset, variant: int) -> float:
@@ -183,7 +185,12 @@ class Rule:
         _, reactants, variant = description
         products: Compset = self._build_products(reactants, variant)
         constant: float = self._build_constant(reactants, variant)
-        return self.getstoechio(reactants), self.getstoechio(products), constant, self.robust
+        return (
+            self.getstoechio(reactants),
+            self.getstoechio(products),
+            constant,
+            self.robust,
+        )
 
     def rebuild_prod(self, description: ReacDescr) -> Stoechio:
         _, reactants, variant = description
@@ -328,7 +335,7 @@ class Model:
                         ),
                         descr=ruleparam.descr,
                         parameters=self.parameters,
-                        robust=True,
+                        robust=ruleparam.robust,
                     )
                 except AttributeError:
                     # raise an error if the rule from file is not in the module

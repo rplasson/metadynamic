@@ -228,12 +228,14 @@ default_ruleset: Dict[str, Any] = {
             "builder_func": "reproduce",
             "builder_const": "k_repro_rabbit",
             "builder_variant": "threevariant",
+            "robust": False,
         },
         "Frepro": {
             "reactants": ["satiated_fox", "satiated_fox"],
             "builder_func": "reproduce",
             "builder_const": "k_repro_fox",
             "builder_variant": "threevariant",
+            "robust": False,
         },
         "Feat": {
             "reactants": ["hungry_fox", "satiated_rabbit"],

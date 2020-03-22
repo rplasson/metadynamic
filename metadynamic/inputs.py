@@ -219,6 +219,7 @@ class RuleParam(Readerclass):
     builder_const: str = "kinvar"
     builder_variant: str = "novariant"
     descr: str = ""
+    robust: bool = True
 
 
 @dataclass
