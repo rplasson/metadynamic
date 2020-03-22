@@ -169,15 +169,25 @@ class Rule:
     #        self.paramdict = paramdict
     #        self.initialized = True      ### Still useful???
 
-    def build(self, description: ReacDescr) -> ReacProp:
-        _, reactants, variant = description
-        #        if not self.initialized:
-        #            raise InitError("Rule {self} used before constant initialization")
+
+    def _build_products(self, reactants: Compset, variant: int) -> Compset:
         products: Compset = self.builder[0](reactants, variant)
         if "" in products:
-            raise InitError(f"Reaction {description} lead to null compund: {products}")
-        constant: float = self.builder[1](reactants, self.parameters, variant)
+            raise InitError(f"Reaction {description} lead to null compound: {products}")
+        return products
+
+    def _build_constant(self, reactants: Compset, variant: int) -> float:
+        return self.builder[1](reactants, self.parameters, variant)
+
+    def build(self, description: ReacDescr) -> ReacProp:
+        _, reactants, variant = description
+        products: Compset = self._build_products(reactants, variant)
+        constant: float = self._build_constant(reactants, variant)
         return self.getstoechio(reactants), self.getstoechio(products), constant
+
+    def rebuild_prod(self, description: ReacDescr) -> Stoechio:
+        _, reactants, variant = description
+        return self.getstoechio(self._build_products(reactants, variant))
 
     @staticmethod
     def getstoechio(compounds: Compset) -> Stoechio:

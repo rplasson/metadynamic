@@ -168,6 +168,7 @@ class Reaction(Chemical[ReacDescr]):
         # If name is empty => invalid reaction, no process to be done
         if description[0] != "":
             self.proba: float = 0.0
+            ## ***** check to possibility of calling buildreac at each process...*****#
             stoechreac, self._stoechproduct, const, = self.crn.model.ruleset.buildreac(
                 self.description
             )
