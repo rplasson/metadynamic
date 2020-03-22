@@ -163,12 +163,12 @@ class Rule:
     builder: Builder
     descr: str
     parameters: Parameters
+    robust: bool
     #    initialized: bool = False
 
     #    def set_param(self, paramdict: Paramdict) -> None:
     #        self.paramdict = paramdict
     #        self.initialized = True      ### Still useful???
-
 
     def _build_products(self, reactants: Compset, variant: int) -> Compset:
         products: Compset = self.builder[0](reactants, variant)
@@ -325,6 +325,7 @@ class Model:
                         ),
                         descr=ruleparam.descr,
                         parameters=self.parameters,
+                        robust=True,
                     )
                 except AttributeError:
                     # raise an error if the rule from file is not in the module
