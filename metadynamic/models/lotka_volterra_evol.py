@@ -117,10 +117,10 @@ def die_gen(size: int) -> ProdBuilder:
     return die
 
 
-r_die: Compset = die_gen(2)
-R_die: Compset = die_gen(3)
-f_die: Compset = die_gen(6)
-F_die: Compset = die_gen(9)
+r_die: ProdBuilder = die_gen(2)
+R_die: ProdBuilder = die_gen(3)
+f_die: ProdBuilder = die_gen(6)
+F_die: ProdBuilder = die_gen(9)
 
 
 # Paramrel builder #
@@ -145,7 +145,7 @@ def translate_gene(name: str) -> List[float]:
     return genes
 
 
-def k_repro_gen(name: str, name_rot: str, name_mute: str) -> Compset:
+def k_repro_gen(name: str, name_rot: str, name_mute: str) -> ConstBuilder:
     def k_repro(names: Compset, k: Parameters, variant: int) -> float:  # ConstBuilder
         repro_power_a = translate_gene(names[0])[0]
         repro_power_b = translate_gene(names[1])[0]
