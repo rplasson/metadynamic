@@ -321,8 +321,8 @@ class System:
         self.initialized = False
         self.param: Param = param
         MPI_STATUS.init(self.param.timeformat)
-        self.output = Output(self.param)
-        self.writer = ResultWriter(
+        self.output: Output = Output(self.param)
+        self.writer: ResultWriter = ResultWriter(
             self.output.h5file, self.param.maxstrlen, self.param.lengrow
         )
         self.writer.init_log(self.param.maxlog)
@@ -330,8 +330,8 @@ class System:
         LOGGER.settxt(self.output.logfile)
         LOGGER.setsaver(self.writer)
         LOGGER.timeformat = self.param.timeformat
-        self.signcatch = SignalCatcher()
-        self.status = RunStatus()
+        self.signcatch: SignalCatcher = SignalCatcher()
+        self.status: RunStatus = RunStatus()
         self.comment = self.param.comment
         MPI_GATE.init(taginit=100)
         LOGGER.info("System created")
