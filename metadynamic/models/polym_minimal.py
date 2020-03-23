@@ -27,34 +27,31 @@ from metadynamic.ruleset import (
     ConstBuilder,
     VariantBuilder,
     kalternate,
-    novariant_gen,
-    rangevariant,
-    joiner,
+    novariant_gen
 )
+
+from metadynamic.models import polymers
+
 
 # Categorizer
 
 # A polymer is a chain of characters, e.g. abc
-polym: Categorizer = lambda name: name.isalpha()
+polym: Categorizer = polymers.polym
 
 # Propertizer
 
-length: Propertizer = lambda name: len(name)
+length: Propertizer = polymers.length
 
 # ProdBuilder
 
 # e.g. abc + def -> abcdef
-merge: ProdBuilder = joiner("")
+merge: ProdBuilder = polymers.merge
 # e.g. abcdef -[3]-> abc + def
-cut: ProdBuilder = lambda names, variant: (names[0][:variant], names[0][variant:])
+cut: ProdBuilder = polymers.cut
 
 # ConstBuilder
 
-kpol: ConstBuilder = kalternate(
-    condition=lambda names, variant: length(names[0]) == 1,
-    name_t="kpol_mono",
-    name_f="kpol_long",
-)
+kpol: ConstBuilder = polymers.kpol
 
 khyd: ConstBuilder = kalternate(
     condition=lambda names, variant: variant == 1,
@@ -68,7 +65,7 @@ novariant: VariantBuilder = novariant_gen()
 
 # (length-1) possible reactions from a given reaction
 # (e.g. abc -[1]-> a+bc and abc -[2]->  ab+c)
-intervariant: VariantBuilder = rangevariant(first_offset=1, last_offset=0, reacnum=0)
+intervariant: VariantBuilder = polymers.intervariant
 
 # Default Ruleset
 
