@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-from metadynamic.json2dot import Json2dot
+from metadynamic.network import Json2dot
 from argparse import ArgumentParser
 
 parser = ArgumentParser(description="Test multithread.")
