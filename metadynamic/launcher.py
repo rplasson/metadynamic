@@ -24,6 +24,16 @@ from typing import Any
 
 
 def launch(parameters: str, **kwd: Any) -> ResultReader:
+    """launch a metadynamic run, saves the result in a .hdf5 file,
+       and returns a ResulReader object
+
+    :param parameters: name of the parameter file (.json or .hdf5)
+    :param **kwd: additional parameters (override the one defined in parameters file)
+    :type parameters: str
+    :return: Interface object to the generated .hdf5 file.
+    :rtype: ResultReader
+
+    """
     ext = path.splitext(parameters)[-1]
     if ext == ".json":
         syst = System.fromjson(parameters, **kwd)
