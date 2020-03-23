@@ -30,7 +30,7 @@ from metadynamic.inval import invalidstr, invalidint, isvalid, invalidfloat
 from metadynamic.inputs import StatParam, MapParam, Param, RulesetParam
 from metadynamic.caster import Caster
 from metadynamic.json2dot import Data2dot
-from metadynamic.chemical import CRN
+from metadynamic.chemical import Crn
 
 
 comp_cast: Callable[[Any], Dict[str, int]] = Caster(Dict[str, int])
@@ -39,6 +39,7 @@ reac_cast: Callable[[Any], Dict[str, List[float]]] = Caster(Dict[str, List[float
 
 class ResultReader:
     def __init__(self, filename: str) -> None:
+        """Interface for the hdf5 """
         self.filename = filename
         self.h5file: File = File(filename, "r")
         self.run: Group = self.h5file["Run"]
@@ -131,10 +132,10 @@ class ResultReader:
             else res
         )
 
-    def getcrn(self, comp: Dict[str, int]) -> CRN:
+    def getcrn(self, comp: Dict[str, int]) -> Crn:
         param = self.parameters
         param.set_param(init=comp)
-        return CRN(param)
+        return Crn(param)
 
     def getsnap_comp(self, num: int, step: int) -> Dict[str, int]:
         comp = comp_cast(self.compsnap[num, step])

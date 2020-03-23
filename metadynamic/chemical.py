@@ -75,9 +75,9 @@ class CollectofCompound(Collect[str, "Compound"]):
     def _categorize(self, obj: "Compound") -> Set[str]:
         return self.model.descriptor.categories(obj.description)
 
-    def set_crn(self, crn: "CRN") -> None:
-        """ set the parent CRN """
-        self.crn: CRN = crn
+    def set_crn(self, crn: "Crn") -> None:
+        """ set the parent Crn """
+        self.crn: Crn = crn
 
     def getprop(self, prop: str, obj: "Compound") -> float:
         return float(
@@ -101,9 +101,9 @@ class CollectofReaction(Collect[ReacDescr, "Reaction"]):
     def _categorize(self, obj: "Reaction") -> Set[str]:
         return {obj.description[0]}
 
-    def set_crn(self, crn: "CRN") -> None:
-        """ set the parent CRN """
-        self.crn: CRN = crn
+    def set_crn(self, crn: "Crn") -> None:
+        """ set the parent Crn """
+        self.crn: Crn = crn
 
     def getprop(self, prop: str, obj: "Reaction") -> float:
         return float(
@@ -122,8 +122,8 @@ class CollectofReaction(Collect[ReacDescr, "Reaction"]):
 class Chemical(Generic[K], Collectable):
     _descrtype = "Chemical"
 
-    def __init__(self, description: K, crn: "CRN"):
-        self.crn: CRN = crn
+    def __init__(self, description: K, crn: "Crn"):
+        self.crn: Crn = crn
         self.description: K = description
         self.activated: bool = False
 
@@ -162,7 +162,7 @@ class Reaction(Chemical[ReacDescr]):
     _descrtype = "Reaction"
     _updatelist: Dict[Chemical[ReacDescr], int] = {}
 
-    def __init__(self, description: ReacDescr, crn: "CRN"):
+    def __init__(self, description: ReacDescr, crn: "Crn"):
         super().__init__(description, crn)
         self.name: str = ""
         # If name is empty => invalid reaction, no process to be done
@@ -292,7 +292,7 @@ class Compound(Chemical[str]):
         #  Already a string, conversion useless, thus overload
         return self.description
 
-    def __init__(self, description: str, crn: "CRN"):
+    def __init__(self, description: str, crn: "Crn"):
         super().__init__(description, crn)
         if self.description == "":
             LOGGER.error("Created empty compound!!!")
@@ -354,12 +354,12 @@ class Compound(Chemical[str]):
         return self.pop
 
 
-class CRN:
+class Crn:
     def __init__(self, param: Param):
         # update trackers
         self._reac_update: Set[Reaction] = set()
         self._comp_update: Dict[Compound, int] = {}
-        # Create CRN objects
+        # Create Crn objects
         self.model = Model(param.rulemodel, param.reactions, param.parameters)
         self.vol = param.vol
         self.dropmode = param.dropmode
@@ -408,7 +408,7 @@ class CRN:
             self._comp_update[comp] = change
 
     def update(self) -> None:
-        """Perform full CRN update"""
+        """Perform full Crn update"""
         for comp, change in self._comp_update.items():
             # Update compounds
             comp.update(change)

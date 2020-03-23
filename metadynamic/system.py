@@ -41,7 +41,7 @@ from metadynamic.ends import (
 from metadynamic.logger import LOGGER
 from metadynamic.mpi import MPI_GATE, MPI_STATUS
 from metadynamic.outputs import Output
-from metadynamic.chemical import CRN
+from metadynamic.chemical import Crn
 from metadynamic.inputs import Param, LockedError
 from metadynamic.hdf5 import ResultWriter
 from metadynamic.result import ResultReader
@@ -134,13 +134,13 @@ class RunStatus:
 class Statistic:
     def __init__(
         self,
-        crn: CRN,
+        crn: Crn,
         writer: ResultWriter,
         param: Param,
         status: RunStatus,
         comment: str,
     ):
-        self.crn: CRN = crn
+        self.crn: Crn = crn
         self.writer: ResultWriter = writer
         self.param: Param = param
         self.status: RunStatus = status
@@ -340,7 +340,7 @@ class System:
         if not self.initialized:
             self.signcatch.listen()
             self.status.initialize(self.param)
-            self.crn = CRN(self.param)
+            self.crn = Crn(self.param)
             self.param.lock()
             self.statistic = Statistic(
                 self.crn, self.writer, self.param, self.status, self.comment
