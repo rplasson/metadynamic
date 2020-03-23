@@ -18,14 +18,54 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-from metadynamic.ruleset import Categorizer, ProdBuilder, ConstBuilder
+from metadynamic.ruleset import Categorizer, Propertizer, ProdBuilder, ConstBuilder, VariantBuilder
 
-from metadynamic.models.polymers import *
+from metadynamic.models import polymers
 
-default_ruleset = default_ruleset.copy()
+default_ruleset = polymers.default_ruleset.copy()
 
+# Categorizer
 
-# Necessary/useful for avinding clash between polymers/catpolymers model?
+polym: Categorizer = polymers.polym
+mono: Categorizer = polymers.mono
+actpol: Categorizer = polymers.actpol
+actmono: Categorizer = polymers.actmono
+longpol: Categorizer = polymers.longpol
+
+# Propertizer
+
+length: Propertizer = polymers.length
+asym: Propertizer = polymers.asym
+right: Propertizer = polymers.right
+left: Propertizer = polymers.left
+
+# ProdBuilder
+
+merge: ProdBuilder = polymers.merge
+cut: ProdBuilder = polymers.cut
+act_polym: ProdBuilder = polymers.act_polym
+activ: ProdBuilder = polymers.activ
+deactiv: ProdBuilder = polymers.deactiv
+epimer: ProdBuilder = polymers.epimer
+
+# ConstBuilder
+
+kpol: ConstBuilder = polymers.kpol
+kpola: ConstBuilder = polymers.kpola
+kpola_mono: ConstBuilder = polymers.kpola_mono
+kact: ConstBuilder = polymers.kact
+kdeact: ConstBuilder = polymers.kdeact
+khyd: ConstBuilder = polymers.khyd
+kepi: ConstBuilder = polymers.kepi
+krac: ConstBuilder = polymers.krac
+
+# VariantBuilder
+
+intervariant: VariantBuilder = polymers.intervariant
+lenvariant: VariantBuilder = polymers.lenvariant
+firstonly: VariantBuilder = polymers.firstonly
+lastonly: VariantBuilder = polymers.lastonly
+
 
 # Example of catalized polymer by a dimer
 # iff the dimer ends corresponds to polymers ends
