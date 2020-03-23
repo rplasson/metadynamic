@@ -33,7 +33,7 @@ from metadynamic.ruleset import (
     parmul,
     kalternate,
     kinvar,
-    novariant,
+    novariant_gen,
     rangevariant,
     joiner,
 )
@@ -195,6 +195,9 @@ def k_death_f(names: Compset, k: Parameters, variant: int) -> float:  # ConstBui
     return k["k_death_f0"] * powers[0] * powers[1]
 
 
+# VariantBuilder #
+
+novariant: VariantBuilder = novariant_gen()
 threevariant: VariantBuilder = lambda reactants: range(3)
 
 # Default Ruleset #

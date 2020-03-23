@@ -440,7 +440,10 @@ def kdualchoice(
 # VariantBuilder generatore #
 
 # Reaction with no variants
-novariant: VariantBuilder = lambda reactants: (invalidint,)
+
+
+def novariant_gen() -> VariantBuilder:
+    return lambda reactants: (invalidint,)
 
 
 # Reactins with a single variant

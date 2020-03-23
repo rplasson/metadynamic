@@ -61,6 +61,7 @@ krac: ConstBuilder = polymers.krac
 
 # VariantBuilder
 
+novariant: VariantBuilder = polymers.novariant
 intervariant: VariantBuilder = polymers.intervariant
 lenvariant: VariantBuilder = polymers.lenvariant
 firstonly: VariantBuilder = polymers.firstonly

@@ -27,7 +27,7 @@ from metadynamic.ruleset import (
     ConstBuilder,
     VariantBuilder,
     kalternate,
-    novariant,
+    novariant_gen,
     rangevariant,
     joiner,
 )
@@ -63,6 +63,8 @@ khyd: ConstBuilder = kalternate(
 )
 
 # VariantBuilder
+
+novariant: VariantBuilder = novariant_gen()
 
 # (length-1) possible reactions from a given reaction
 # (e.g. abc -[1]-> a+bc and abc -[2]->  ab+c)
