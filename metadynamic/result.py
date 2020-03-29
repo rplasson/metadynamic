@@ -38,8 +38,13 @@ reac_cast: Callable[[Any], Dict[str, List[float]]] = Caster(Dict[str, List[float
 
 
 class ResultReader:
+    """Interface for a hdf5 result file"""
+
     def __init__(self, filename: str) -> None:
-        """Interface for the hdf5 """
+        """Connect the reader to a .hdf5 result file
+
+        @param filename:str name of the .hdf5 file
+        """
         self.filename = filename
         self.h5file: File = File(filename, "r")
         self.run: Group = self.h5file["Run"]
@@ -68,6 +73,15 @@ class ResultReader:
         raise KeyError
 
     def _loc(self, field: str) -> int:
+        """Returns the index number of the given field name.
+
+        @param field: Name of the field
+        @type field: str
+        @param field: str: 
+        @return: field index number
+        @rtype: int
+
+        """
         try:
             return self.datanames.index(field)
         except ValueError:
@@ -76,6 +90,27 @@ class ResultReader:
     def get(
         self, field: str = invalidstr, method: str = "m", meanlength: int = invalidint,
     ) -> np.ndarray:
+        """Returns the saved result data 'field'. If no field is provided, the full
+        dataset will be returned.
+        
+        If 'method' is set to:
+            - 'm', the average values over all processes is returned (default).
+            - 's', the standard deviation  of the values ove all processes is returned.
+            - '+X', where X is a numerical value, the returned value is 'mean + X·std'
+            - '-X', where X is a numerical value, the returned value is 'mean - X·std'
+            - '*', all individual values from each process is returned
+            - 'pX', where X is an integer, the values from process number X is returned.
+            - 'sum', the values of each process are summed together.
+        
+        If meanlength is set, a running mean of the corresponding length is returned.
+
+        @param field: data field  (Default value = invalidstr)
+        @param method: method for processing data over processes  (Default value = 'm')
+        @param meanlength: running mean length  (Default value = invalidint)
+        @return: the processed set of data
+        @rtype: ndarray
+
+        """
         loc = self._loc(field) if isvalid(field) else slice(None, None, None)
         if method == "*":
             return self.data[:, loc]
@@ -105,6 +140,29 @@ class ResultReader:
     def getmap(
         self, field: str, method: str = "m", meanlength: int = invalidint
     ) -> np.ndarray:
+        """Returns the saved property map data 'field'. If no field is provided, the full
+        dataset will be returned.
+        
+        If 'method' is set to:
+            - 'm', the average values over all processes is returned (default).
+            - 's', the standard deviation  of the values ove all processes is returned.
+            - '+X', where X is a numerical value, the returned value is 'mean + X·std'
+            - '-X', where X is a numerical value, the returned value is 'mean - X·std'
+            - '*', all individual values from each process is returned
+            - 'pX', where X is an integer, the values from process number X is returned.
+        
+        If meanlength is set, a running mean of the corresponding length is returned.
+
+        @param field: data field  (Default value = invalidstr)
+        @param method: method for processing data over processes  (Default value = 'm')
+        @param meanlength: running mean length  (Default value = invalidint)
+        @param field: str: 
+        @param method: str:  (Default value = "m")
+        @param meanlength: int:  (Default value = invalidint)
+        @return: the processed set of data
+        @rtype: ndarray
+
+        """
         try:
             data = self.maps[field][:, :, 1:]
         except KeyError:
@@ -133,17 +191,39 @@ class ResultReader:
         )
 
     def getcrn(self, comp: Dict[str, int]) -> Crn:
+        """Generate a Chemical Reaction Network from a dictionnary
+        as {compound_name : population}
+
+        @param comp: compounds and population
+        @type comp: Dict[str: int]
+        @param comp: Dict[str: 
+        @param int]: 
+
+        """
         param = self.parameters
         param.set_param(init=comp)
         return Crn(param)
 
     def getsnap_comp(self, num: int, step: int) -> Dict[str, int]:
+        """
+
+        @param num: int:
+        @param step: int:
+
+        """
         comp = comp_cast(self.compsnap[num, step])
         if "" in comp:
             comp.pop("")
         return comp
 
     def getsnap(self, num: int, step: int, parameterfile: str = "") -> Digraph:
+        """
+
+        @param num: int:
+        @param step: int:
+        @param parameterfile: str:  (Default value = "")
+
+        """
         comp = self.getsnap_comp(num, step)
         if self.reacsnapsave[num, step]:
             reac = reac_cast(
@@ -156,19 +236,41 @@ class ResultReader:
         return Data2dot(comp, reac, parameterfile).crn.dot
 
     def categories(self, field: str) -> np.ndarray:
+        """
+
+        @param field: str:
+
+        """
         return self.maps[field][0, :, 0]
 
     def ending(self, num: int) -> Tuple[int, str, float]:
+        """
+
+        @param num: int:
+
+        """
         endnum, message, time = self.end[num]
         return endnum, message.decode(), time
 
     def endmsg(self, num: int) -> str:
+        """
+
+        @param num: int:
+
+        """
         endnum, message, time = self.ending(num)
         return f"#{num}: ending n°{endnum} at runtime t={time}s; {message}"
 
     def table(
         self, maps: str = invalidstr, method: str = "m", meanlength: int = invalidint
     ) -> DataFrame:
+        """
+
+        @param maps: str:  (Default value = invalidstr)
+        @param method: str:  (Default value = "m")
+        @param meanlength: int:  (Default value = invalidint)
+
+        """
         if isvalid(maps):
             data = self.getmap(field=maps, method=method, meanlength=meanlength)
             index = self.categories(maps)
@@ -185,6 +287,15 @@ class ResultReader:
         xmethod: str = "m",
         meanlength: int = invalidint,
     ) -> Tuple[np.ndarray, np.ndarray]:
+        """
+
+        @param y: str:  (Default value = "ptime")
+        @param x: str:  (Default value = "time")
+        @param method: str:  (Default value = "m")
+        @param xmethod: str:  (Default value = "m")
+        @param meanlength: int:  (Default value = invalidint)
+
+        """
         x = self.get(field=x, method=xmethod, meanlength=meanlength)
         y = self.get(field=y, method=method, meanlength=meanlength)
         return x, y
@@ -197,6 +308,15 @@ class ResultReader:
         xmethod: str = "m",
         meanlength: int = invalidint,
     ) -> Tuple[np.ndarray, np.ndarray]:
+        """
+
+        @param y: str:  (Default value = "ptime")
+        @param x: str:  (Default value = "time")
+        @param method: str:  (Default value = "m")
+        @param xmethod: str:  (Default value = "m")
+        @param meanlength: int:  (Default value = invalidint)
+
+        """
         x = self.get(field=x, method=xmethod, meanlength=meanlength)
         y = np.array(
             [
@@ -213,6 +333,14 @@ class ResultReader:
         delta: float = 1.0,
         meanlength: int = invalidint,
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """
+
+        @param y: str:  (Default value = "ptime")
+        @param x: str:  (Default value = "time")
+        @param delta: float:  (Default value = 1.0)
+        @param meanlength: int:  (Default value = invalidint)
+
+        """
         x = self.get(field=x, method="m", meanlength=meanlength)
         yp = self.get(field=y, method=f"+{delta}", meanlength=meanlength)
         ym = self.get(field=y, method=f"-{delta}", meanlength=meanlength)
@@ -225,6 +353,14 @@ class ResultReader:
         delta: float = 1.0,
         meanlength: int = invalidint,
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """
+
+        @param y: str:  (Default value = "ptime")
+        @param x: str:  (Default value = "time")
+        @param delta: float:  (Default value = 1.0)
+        @param meanlength: int:  (Default value = invalidint)
+
+        """
         x = self.get(field=x, method="m", meanlength=meanlength)
         y = self.get(field=y, method=f"m", meanlength=meanlength)
         err = self.get(field=y, method=f"s", meanlength=meanlength) * delta
@@ -240,6 +376,17 @@ class ResultReader:
         posinf: float = invalidfloat,
         neginf: float = invalidfloat,
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """
+
+        @param field: str:
+        @param method: str:  (Default value = "m")
+        @param tmethod: str:  (Default value = "m")
+        @param meanlength: int:  (Default value = invalidint)
+        @param nanval: float:  (Default value = 0.0)
+        @param posinf: float:  (Default value = invalidfloat)
+        @param neginf: float:  (Default value = invalidfloat)
+
+        """
         time = self.get(field="time", method=tmethod, meanlength=meanlength)
         categories = self.categories(field)
         x, y = np.meshgrid(time, categories)
@@ -259,6 +406,7 @@ class ResultReader:
 
     @property
     def printinfo(self) -> str:
+        """ """
         version = self.run.attrs["version"]
         hostname = self.run.attrs["hostname"]
         start = self.run.attrs["date"]
@@ -281,10 +429,12 @@ class ResultReader:
 
     @property
     def runinfo(self) -> Dict[str, Any]:
+        """ """
         return dict(self.run.attrs)
 
     @property
     def parameters(self) -> Param:
+        """ """
         params = dict(self.params.attrs)
         res = params.copy()
         for key, val in params.items():
@@ -299,6 +449,7 @@ class ResultReader:
 
     @property
     def ruleset(self) -> RulesetParam:
+        """ """
         ruleset = dict(self.params["Rules"].attrs)
         res = ruleset.copy()
         for key, val in ruleset.items():
@@ -315,18 +466,21 @@ class ResultReader:
 
     @property
     def statparam(self) -> Dict[str, StatParam]:
+        """ """
         return StatParam.multipledict(
             {key: dict(val.attrs) for key, val in self.params["Stats"].items()}
         )
 
     @property
     def mapparam(self) -> Dict[str, MapParam]:
+        """ """
         return MapParam.multipledict(
             {key: dict(val.attrs) for key, val in self.params["Maps"].items()}
         )
 
     @property
     def fulllog(self) -> np.ndarray:
+        """ """
         # add simple system for log display/search (depending on level etc) ?
         maxcol = max(self.logcount)
         return self.logs[:, :maxcol]

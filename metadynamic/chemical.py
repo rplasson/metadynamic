@@ -45,6 +45,7 @@ from metadynamic.inputs import Param
 
 
 class Memcalc:
+    """ """
     def __init__(self, func: Callable[[int], int]):
         self.results: Dict[int, int] = {}
         self.func = func
@@ -66,20 +67,55 @@ C = TypeVar("C", "CollectofCompound", "CollectofReaction")
 
 
 class CollectofCompound(Collect[str, "Compound"]):
+    """ """
     _colltype = "Compound"
 
     def _create(self, name: str) -> "Compound":
+        """
+
+        @param name: 
+        @type name: str :
+        @param name: str: 
+
+        
+        """
         newcomp = Compound(name, self.crn)
         return newcomp
 
     def _categorize(self, obj: "Compound") -> Set[str]:
+        """
+
+        @param obj: 
+        @type obj: "Compound" :
+        @param obj: "Compound": 
+
+        
+        """
         return self.model.descriptor.categories(obj.description)
 
     def set_crn(self, crn: "Crn") -> None:
-        """ set the parent Crn """
+        """set the parent Crn
+
+        @param crn: 
+        @type crn: "Crn" :
+        @param crn: "Crn": 
+
+        
+        """
         self.crn: Crn = crn
 
     def getprop(self, prop: str, obj: "Compound") -> float:
+        """
+
+        @param prop: 
+        @type prop: str :
+        @param obj: 
+        @type obj: "Compound" :
+        @param prop: str: 
+        @param obj: "Compound": 
+
+        
+        """
         return float(
             1.0
             if prop == "count"
@@ -92,20 +128,55 @@ class CollectofCompound(Collect[str, "Compound"]):
 
 
 class CollectofReaction(Collect[ReacDescr, "Reaction"]):
+    """ """
     _colltype = "Reaction"
 
     def _create(self, description: ReacDescr) -> "Reaction":
+        """
+
+        @param description: 
+        @type description: ReacDescr :
+        @param description: ReacDescr: 
+
+        
+        """
         newreac = Reaction(description, self.crn)
         return newreac
 
     def _categorize(self, obj: "Reaction") -> Set[str]:
+        """
+
+        @param obj: 
+        @type obj: "Reaction" :
+        @param obj: "Reaction": 
+
+        
+        """
         return {obj.description[0]}
 
     def set_crn(self, crn: "Crn") -> None:
-        """ set the parent Crn """
+        """set the parent Crn
+
+        @param crn: 
+        @type crn: "Crn" :
+        @param crn: "Crn": 
+
+        
+        """
         self.crn: Crn = crn
 
     def getprop(self, prop: str, obj: "Reaction") -> float:
+        """
+
+        @param prop: 
+        @type prop: str :
+        @param obj: 
+        @type obj: "Reaction" :
+        @param prop: str: 
+        @param obj: "Reaction": 
+
+        
+        """
         return float(
             1.0
             if prop == "count"
@@ -120,6 +191,7 @@ class CollectofReaction(Collect[ReacDescr, "Reaction"]):
 
 
 class Chemical(Generic[K], Collectable):
+    """ """
     _descrtype = "Chemical"
 
     def __init__(self, description: K, crn: "Crn"):
@@ -134,23 +206,34 @@ class Chemical(Generic[K], Collectable):
         return str(self.description)
 
     def activate(self) -> None:
+        """ """
         if not self.activated:
             self._activate()
             self.activated = True
 
     def _activate(self) -> None:
+        """ """
         pass
 
     def unactivate(self) -> None:
+        """ """
         if self.activated:
             self._unactivate()
             self.activated = False
 
     def _unactivate(self) -> None:
+        """ """
         pass
 
     def update(self, change: int = 0) -> None:
-        """to be implemented in subclasses"""
+        """to be implemented in subclasses
+
+        @param change: (Default value = 0)
+        @type change: int :
+        @param change: int:  (Default value = 0)
+
+        
+        """
         raise NotImplementedError
 
     def delete(self) -> None:
@@ -159,6 +242,7 @@ class Chemical(Generic[K], Collectable):
 
 
 class Reaction(Chemical[ReacDescr]):
+    """ """
     _descrtype = "Reaction"
     _updatelist: Dict[Chemical[ReacDescr], int] = {}
 
@@ -196,20 +280,31 @@ class Reaction(Chemical[ReacDescr]):
             self._unset_proba_pos()
 
     def _unset_proba_pos(self) -> None:
+        """ """
         self.proba_pos: int = invalidint
         self.registered: bool = False
 
     def _activate(self) -> None:
+        """ """
         self.crn.reac_collect.activate(self.description)
         for comp, _ in self.stoechio:
             comp.register_reaction(self)
 
     def _unactivate(self) -> None:
+        """ """
         self.crn.reac_collect.unactivate(self.description)
         for comp, _ in self.stoechio:
             comp.unregister_reaction(self)
 
     def update(self, change: int = 0) -> None:
+        """
+
+        @param change: (Default value = 0)
+        @type change: int :
+        @param change: int:  (Default value = 0)
+
+        
+        """
         newproba, changed = self.updateproba()
         if changed:
             # only perform update if something changed
@@ -225,6 +320,7 @@ class Reaction(Chemical[ReacDescr]):
                 self.delete()
 
     def process(self) -> None:
+        """ """
         if self.tobeinitialized:
             self.products = [
                 (self.crn.comp_collect[name], order)
@@ -244,9 +340,21 @@ class Reaction(Chemical[ReacDescr]):
             raise NoMore(f"after processing {self}")
 
     def _ordern(self, pop: int, order: int) -> int:
+        """
+
+        @param pop: 
+        @type pop: int :
+        @param order: 
+        @type order: int :
+        @param pop: int: 
+        @param order: int: 
+
+        
+        """
         return pop if order == 1 else pop * self._ordern(pop - 1, order - 1)
 
     def updateproba(self) -> Tuple[float, bool]:
+        """ """
         oldproba = self.proba
         self.proba = self.const
         for reactant, stoechnum in self.stoechio:
@@ -259,16 +367,27 @@ class Reaction(Chemical[ReacDescr]):
         return self.proba, self.proba != oldproba
 
     def delete(self) -> None:
+        """ """
         if self.registered:
             self.crn.probalist.unregister(self.proba_pos)
             self._unset_proba_pos()
         self.unactivate()
 
     def serialize(self) -> Any:
+        """ """
         return self.const, self.proba
 
     @staticmethod
     def _join_compounds(stoechio: Iterable[Tuple[Any, int]]) -> str:
+        """
+
+        @param stoechio: 
+        @type stoechio: Iterable[Tuple[Any :
+        @param int]]: 
+        @param stoechio: Iterable[Tuple[Any: 
+
+        
+        """
         return "+".join(
             [f"{num}{name}" if num > 1 else str(name) for name, num in stoechio]
         )
@@ -285,6 +404,7 @@ class Reaction(Chemical[ReacDescr]):
 
 
 class Compound(Chemical[str]):
+    """ """
     _descrtype = "Compound"
     _updatelist: Dict[Chemical[str], int] = {}
 
@@ -301,16 +421,34 @@ class Compound(Chemical[str]):
         # self.length = self.descriptor("length", description)
 
     def _activate(self) -> None:
+        """ """
         self.crn.comp_collect.activate(self.description)
         self.scan_reaction()
 
     def _unactivate(self) -> None:
+        """ """
         self.crn.comp_collect.unactivate(self.description)
 
     def register_reaction(self, reaction: Reaction) -> None:
+        """
+
+        @param reaction: 
+        @type reaction: Reaction :
+        @param reaction: Reaction: 
+
+        
+        """
         self.reactions.add(reaction)
 
     def unregister_reaction(self, reaction: Reaction) -> None:
+        """
+
+        @param reaction: 
+        @type reaction: Reaction :
+        @param reaction: Reaction: 
+
+        
+        """
         try:
             self.reactions.remove(reaction)
         except KeyError:
@@ -319,6 +457,7 @@ class Compound(Chemical[str]):
             )
 
     def scan_reaction(self) -> None:
+        """ """
         self.reactions = {
             self.crn.reac_collect[descr]
             for descr in self.crn.model.ruleset.get_related(
@@ -327,6 +466,14 @@ class Compound(Chemical[str]):
         }
 
     def update(self, change: int = 0) -> None:
+        """
+
+        @param change: (Default value = 0)
+        @type change: int :
+        @param change: int:  (Default value = 0)
+
+        
+        """
         if change != 0:
             # LOGGER.debug(f"Really updating {self}")
             pop0 = self.pop
@@ -344,17 +491,28 @@ class Compound(Chemical[str]):
             #     Reaction.toupdate(reac)
 
     def change_pop(self, start: int) -> None:
+        """
+
+        @param start: 
+        @type start: int :
+        @param start: int: 
+
+        
+        """
         self.crn.comp_toupdate(self, start)
 
     def delete(self) -> None:
+        """ """
         self._unactivate()
         self.change_pop(-self.pop)
 
     def serialize(self) -> Any:
+        """ """
         return self.pop
 
 
 class Crn:
+    """ """
     def __init__(self, param: Param):
         # update trackers
         self._reac_update: Set[Reaction] = set()
@@ -370,6 +528,7 @@ class Crn:
         LOGGER.debug(f"Initialized with {param}")
 
     def init_collect(self) -> None:
+        """ """
         self.probalist = Probalist(self.vol)
         self.comp_collect = CollectofCompound(self.model, dropmode="keep")
         self.comp_collect.set_crn(self)
@@ -379,13 +538,16 @@ class Crn:
         self.reac_collect.set_crn(self)
 
     def close(self) -> None:
+        """ """
         #  (to be tested): create new data for cleaning memory
         self.init_collect()
 
     def clean(self) -> None:
+        """ """
         self.probalist.clean()
 
     def stepping(self) -> float:
+        """ """
         # choose a random event
         chosen, dt = self.probalist.choose()
         # check if there even was an event to choose
@@ -396,12 +558,29 @@ class Crn:
         return dt
 
     def reac_toupdate(self, reac: Reaction) -> None:
-        """ Add Reaction 'reac' to the updatelist"""
+        """Add Reaction 'reac' to the updatelist
+
+        @param reac: 
+        @type reac: Reaction :
+        @param reac: Reaction: 
+
+        
+        """
         self._reac_update.add(reac)
 
     def comp_toupdate(self, comp: Compound, change: int) -> None:
-        """ Add Compound 'comp' to the updatelist,
-            por a population variation of 'change'"""
+        """Add Compound 'comp' to the updatelist,
+            por a population variation of 'change'
+
+        @param comp: 
+        @type comp: Compound :
+        @param change: 
+        @type change: int :
+        @param comp: Compound: 
+        @param change: int: 
+
+        
+        """
         try:
             self._comp_update[comp] += change
         except KeyError:
@@ -423,7 +602,26 @@ class Crn:
     def collstat(
         self, collection: str, prop: str, weight: str, method: str, full: bool
     ) -> float:
-        """ Get statistics"""
+        """Get statistics
+
+        @param collection: 
+        @type collection: str :
+        @param prop: 
+        @type prop: str :
+        @param weight: 
+        @type weight: str :
+        @param method: 
+        @type method: str :
+        @param full: 
+        @type full: bool :
+        @param collection: str: 
+        @param prop: str: 
+        @param weight: str: 
+        @param method: str: 
+        @param full: bool: 
+
+        
+        """
         return (
             self.comp_collect.stat(prop, weight, method, full)
             if collection == "compounds"
@@ -439,7 +637,29 @@ class Crn:
         method: str,
         full: bool,
     ) -> Dict[float, float]:
-        """ Get a statistic map"""
+        """Get a statistic map
+
+        @param collection: 
+        @type collection: str :
+        @param prop: 
+        @type prop: str :
+        @param weight: 
+        @type weight: str :
+        @param sort: 
+        @type sort: str :
+        @param method: 
+        @type method: str :
+        @param full: 
+        @type full: bool :
+        @param collection: str: 
+        @param prop: str: 
+        @param weight: str: 
+        @param sort: str: 
+        @param method: str: 
+        @param full: bool: 
+
+        
+        """
         return (
             self.comp_collect.map(prop, weight, sort, method, full)
             if collection == "compounds"
