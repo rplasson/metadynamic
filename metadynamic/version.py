@@ -18,8 +18,5 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# __version__ = '1.0.rc5-devel'
+__version__ = '1.0.rc5-dev'
 
-from get_version import get_version
-__version__ = get_version(__file__)
-del get_version
