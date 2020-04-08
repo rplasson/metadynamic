@@ -18,6 +18,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
+"""
+metadynamic.result
+==================
+
+Give access to data resulting from previous runs
+
+Provides
+--------
+
+ResultReader: class for reading and extracting data from a .hdf5 result file.
+
+"""
 
 import numpy as np
 
