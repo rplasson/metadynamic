@@ -24,15 +24,18 @@ from typing import Any
 
 
 def launch(parameters: str, **kwd: Any) -> ResultReader:
-    """launch a metadynamic run, saves the result in a .hdf5 file,
-       and returns a ResulReader object
+    """
+    Launch a metadynamic run, saves the result in a .hdf5 file,
+    and returns a ResulReader object
+
+    It can be launched either form a .json Param file
+    or from a previous .hdf5 result file.
 
     :param parameters: name of the parameter file (.json or .hdf5)
-    :param **kwd: additional parameters (override the one defined in parameters file)
     :type parameters: str
+    :param **kwd: additional parameters (override the one defined in parameters file)
     :return: Interface object to the generated .hdf5 file.
     :rtype: ResultReader
-
     """
     ext = path.splitext(parameters)[-1]
     if ext == ".json":
