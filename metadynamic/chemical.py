@@ -91,9 +91,9 @@ class Memcalc:
 fact = Memcalc(factorial)
 
 
-def entro(x: Union(float, int)) -> float:
+def entro(x: Union[float, int]) -> float:
     """Return x×ln(x), 0 if x=0"""
-    return 0.0 if x == 0 else x * np.log(x)
+    return 0.0 if x == 0 else float(x * np.log(x))
 
 
 K = TypeVar("K", bound=Hashable)
@@ -273,9 +273,6 @@ class Chemical(Generic[K], Collectable):
 
         :param change: (Default value = 0)
         :type change: int :
-        :param change: int:  (Default value = 0)
-
-        
         """
         raise NotImplementedError
 
