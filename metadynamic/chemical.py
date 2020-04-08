@@ -28,9 +28,9 @@ Objects specific to chemical data.
 Provides
 --------
 
-CollectofCompound: Storage class for a pool of Compound
+CollectofCompound: Collect class for storing a pool of Compound
 
-CollectofReaction: Storage class for a pool of Reaction
+CollectofReaction: Collect class for storing a pool of Reaction
 
 Chemical: Collectable class, for objects with chemical properties
 
@@ -58,6 +58,7 @@ from typing import (
     Hashable,
     Tuple,
     Iterable,
+    Union,
 )
 from math import factorial
 from itertools import repeat
@@ -72,7 +73,7 @@ from metadynamic.inputs import Param
 
 
 class Memcalc:
-    """ """
+    """Function memoizer"""
 
     def __init__(self, func: Callable[[int], int]):
         self.results: Dict[int, int] = {}
@@ -90,129 +91,140 @@ class Memcalc:
 fact = Memcalc(factorial)
 
 
+def entro(x: Union(float, int)) -> float:
+    """Return x×ln(x), 0 if x=0"""
+    return 0.0 if x == 0 else x * np.log(x)
+
+
 K = TypeVar("K", bound=Hashable)
 C = TypeVar("C", "CollectofCompound", "CollectofReaction")
 
 
 class CollectofCompound(Collect[str, "Compound"]):
-    """ """
+    """Collect class for storing a pool of Compound"""
 
     _colltype = "Compound"
 
     def _create(self, name: str) -> "Compound":
         """
+        Create a Compound from its key
 
-        :param name: 
-        :type name: str :
-        :param name: str: 
-
-        
+        :param name: name of the compound to be created
+        :type name: str
+        :return: newly created Compound object
+        :rtype: Compound
         """
         newcomp = Compound(name, self.crn)
         return newcomp
 
     def _categorize(self, obj: "Compound") -> Set[str]:
         """
+        List the categories of the Compound
 
-        :param obj: 
-        :type obj: "Compound" :
-        :param obj: "Compound": 
-
-        
+        :param obj: object to catagorize
+        :type obj: Compound
+        :return: set of categories
+        :rtype: Set[str]
         """
         return self.model.descriptor.categories(obj.description)
 
     def set_crn(self, crn: "Crn") -> None:
-        """set the parent Crn
+        """
+        set the parent Crn
 
-        :param crn: 
-        :type crn: "Crn" :
-        :param crn: "Crn": 
-
-        
+        :param crn: parent Crn
+        :type crn: Crn
         """
         self.crn: Crn = crn
 
-    def getprop(self, prop: str, obj: "Compound") -> float:
+    def _getprop(self, prop: str, obj: "Compound") -> float:
         """
+        Return a given property of a Compound object.
+        Shouldn't be directly used (used by proplist method only)
 
-        :param prop: 
-        :type prop: str :
-        :param obj: 
-        :type obj: "Compound" :
-        :param prop: str: 
-        :param obj: "Compound": 
+        The property may be:
+          - "count": returns 1.0
+          - "pop": returns the compound population
+          - "entropy": returns pop×log(pop)
+          - other values: a property defined in model.descriptor
 
-        
+        :param prop: property name
+        :type prop: str
+        :param obj: object to be probed
+        :type obj: "Compound"
         """
         return float(
             1.0
             if prop == "count"
             else obj.pop
             if prop == "pop"
-            else obj.pop * np.log(obj.pop)
+            else entro(obj.pop)
             if prop == "entropy"
             else self.model.descriptor.prop(prop, obj.description)
         )
 
 
 class CollectofReaction(Collect[ReacDescr, "Reaction"]):
-    """ """
+    """Collect class for storing a pool of Reaction"""
 
     _colltype = "Reaction"
 
     def _create(self, description: ReacDescr) -> "Reaction":
         """
+        Create a Reaction from its key
 
-        :param description: 
-        :type description: ReacDescr :
-        :param description: ReacDescr: 
-
-        
+        :param description: description of the compound to be created
+        :type name: ReacDescr
+        :return: newly created Reaction object
+        :rtype: Reaction
         """
         newreac = Reaction(description, self.crn)
         return newreac
 
     def _categorize(self, obj: "Reaction") -> Set[str]:
         """
+        List the categories of the Reaction.
+        A reaction belongs to a sole category, its reaction type
+        (i.e. the name of the rule that created it)
 
-        :param obj: 
-        :type obj: "Reaction" :
-        :param obj: "Reaction": 
-
-        
+        :param obj: object to categorize
+        :type obj: Reaction
+        :return: set of categories
+        :rtype: Set[str]
         """
         return {obj.description[0]}
 
     def set_crn(self, crn: "Crn") -> None:
-        """set the parent Crn
+        """
+        set the parent Crn
 
-        :param crn: 
-        :type crn: "Crn" :
-        :param crn: "Crn": 
-
-        
+        :param crn: parent Crn
+        :type crn: Crn
         """
         self.crn: Crn = crn
 
-    def getprop(self, prop: str, obj: "Reaction") -> float:
+    def _getprop(self, prop: str, obj: "Reaction") -> float:
         """
+        Return a given property of a Reaction object.
+        Shouldn't be directly used (used by proplist method only)
 
-        :param prop: 
-        :type prop: str :
-        :param obj: 
-        :type obj: "Reaction" :
-        :param prop: str: 
-        :param obj: "Reaction": 
+        The property may be:
+          - "count": returns 1.0
+          - "pop": returns the compound probability
+          - "entropy": returns proba×log(proba)
+          - other values: a property defined in model.descriptor
 
-        
+        :param prop: property name
+        :type prop: str
+        :param obj: object to be probed
+        :type obj: "Compound"
         """
         return float(
             1.0
             if prop == "count"
             else obj.proba
             if prop == "rate"
-            else obj.proba * np.log(obj.proba)
+            else entro(obj.proba)
             if prop == "entropy"
             else self.model.descriptor.prop(
                 prop, str(obj.description)

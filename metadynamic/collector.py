@@ -135,14 +135,26 @@ class Collect(Generic[K, T]):
         dataset = self.pool if full else self.active
         return {str(val): val.serialize() for val in dataset.values()}
 
-    def getprop(self, prop: str, obj: T) -> float:
+    def _getprop(self, prop: str, obj: T) -> float:
+        """
+        Return a given property of a <T> object.
+        Shouldn't be directly used (used by proplist method only)
+
+        If not implemented in derived classes, only returns
+        1.0 to "count" property
+
+        :param prop: property name
+        :type prop: str
+        :param obj: object to be probed
+        :type obj: <T>
+        """
         if prop != "count":
             raise BadFile(f"Unknown property {prop}")
         return 1.0
 
     def proplist(self, prop: str, full: bool = False) -> np.ndarray:
         search = self.pool if full else self.active
-        return np.array([self.getprop(prop, obj) for obj in search.values()], dtype=float)
+        return np.array([self._getprop(prop, obj) for obj in search.values()], dtype=float)
 
     def stat(self, prop: str, weight: str, method: str, full: bool = False) -> float:
         values = self.proplist(prop, full)
