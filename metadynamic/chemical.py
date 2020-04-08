@@ -18,6 +18,33 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
+"""
+metadynamic.chemical
+==================
+
+Objects specific to chemical data.
+
+
+Provides
+--------
+
+CollectofCompound: Storage class for a pool of Compound
+
+CollectofReaction: Storage class for a pool of Reaction
+
+Chemical: Collectable class, for objects with chemical properties
+
+Reaction: Chemical class, for the description of specific reactions
+
+Compound: Chemical class, for the description of specific compounds
+
+Crn: Chemical Reaction Network class: high level interface containing
+     a CollectofCompound, a CollectofReaction, and a Model related to a
+     given run.
+
+"""
+
+
 import numpy as np
 
 from typing import (
@@ -46,6 +73,7 @@ from metadynamic.inputs import Param
 
 class Memcalc:
     """ """
+
     def __init__(self, func: Callable[[int], int]):
         self.results: Dict[int, int] = {}
         self.func = func
@@ -68,14 +96,15 @@ C = TypeVar("C", "CollectofCompound", "CollectofReaction")
 
 class CollectofCompound(Collect[str, "Compound"]):
     """ """
+
     _colltype = "Compound"
 
     def _create(self, name: str) -> "Compound":
         """
 
-        @param name: 
-        @type name: str :
-        @param name: str: 
+        :param name: 
+        :type name: str :
+        :param name: str: 
 
         
         """
@@ -85,9 +114,9 @@ class CollectofCompound(Collect[str, "Compound"]):
     def _categorize(self, obj: "Compound") -> Set[str]:
         """
 
-        @param obj: 
-        @type obj: "Compound" :
-        @param obj: "Compound": 
+        :param obj: 
+        :type obj: "Compound" :
+        :param obj: "Compound": 
 
         
         """
@@ -96,9 +125,9 @@ class CollectofCompound(Collect[str, "Compound"]):
     def set_crn(self, crn: "Crn") -> None:
         """set the parent Crn
 
-        @param crn: 
-        @type crn: "Crn" :
-        @param crn: "Crn": 
+        :param crn: 
+        :type crn: "Crn" :
+        :param crn: "Crn": 
 
         
         """
@@ -107,12 +136,12 @@ class CollectofCompound(Collect[str, "Compound"]):
     def getprop(self, prop: str, obj: "Compound") -> float:
         """
 
-        @param prop: 
-        @type prop: str :
-        @param obj: 
-        @type obj: "Compound" :
-        @param prop: str: 
-        @param obj: "Compound": 
+        :param prop: 
+        :type prop: str :
+        :param obj: 
+        :type obj: "Compound" :
+        :param prop: str: 
+        :param obj: "Compound": 
 
         
         """
@@ -129,14 +158,15 @@ class CollectofCompound(Collect[str, "Compound"]):
 
 class CollectofReaction(Collect[ReacDescr, "Reaction"]):
     """ """
+
     _colltype = "Reaction"
 
     def _create(self, description: ReacDescr) -> "Reaction":
         """
 
-        @param description: 
-        @type description: ReacDescr :
-        @param description: ReacDescr: 
+        :param description: 
+        :type description: ReacDescr :
+        :param description: ReacDescr: 
 
         
         """
@@ -146,9 +176,9 @@ class CollectofReaction(Collect[ReacDescr, "Reaction"]):
     def _categorize(self, obj: "Reaction") -> Set[str]:
         """
 
-        @param obj: 
-        @type obj: "Reaction" :
-        @param obj: "Reaction": 
+        :param obj: 
+        :type obj: "Reaction" :
+        :param obj: "Reaction": 
 
         
         """
@@ -157,9 +187,9 @@ class CollectofReaction(Collect[ReacDescr, "Reaction"]):
     def set_crn(self, crn: "Crn") -> None:
         """set the parent Crn
 
-        @param crn: 
-        @type crn: "Crn" :
-        @param crn: "Crn": 
+        :param crn: 
+        :type crn: "Crn" :
+        :param crn: "Crn": 
 
         
         """
@@ -168,12 +198,12 @@ class CollectofReaction(Collect[ReacDescr, "Reaction"]):
     def getprop(self, prop: str, obj: "Reaction") -> float:
         """
 
-        @param prop: 
-        @type prop: str :
-        @param obj: 
-        @type obj: "Reaction" :
-        @param prop: str: 
-        @param obj: "Reaction": 
+        :param prop: 
+        :type prop: str :
+        :param obj: 
+        :type obj: "Reaction" :
+        :param prop: str: 
+        :param obj: "Reaction": 
 
         
         """
@@ -192,6 +222,7 @@ class CollectofReaction(Collect[ReacDescr, "Reaction"]):
 
 class Chemical(Generic[K], Collectable):
     """ """
+
     _descrtype = "Chemical"
 
     def __init__(self, description: K, crn: "Crn"):
@@ -228,9 +259,9 @@ class Chemical(Generic[K], Collectable):
     def update(self, change: int = 0) -> None:
         """to be implemented in subclasses
 
-        @param change: (Default value = 0)
-        @type change: int :
-        @param change: int:  (Default value = 0)
+        :param change: (Default value = 0)
+        :type change: int :
+        :param change: int:  (Default value = 0)
 
         
         """
@@ -243,6 +274,7 @@ class Chemical(Generic[K], Collectable):
 
 class Reaction(Chemical[ReacDescr]):
     """ """
+
     _descrtype = "Reaction"
     _updatelist: Dict[Chemical[ReacDescr], int] = {}
 
@@ -299,9 +331,9 @@ class Reaction(Chemical[ReacDescr]):
     def update(self, change: int = 0) -> None:
         """
 
-        @param change: (Default value = 0)
-        @type change: int :
-        @param change: int:  (Default value = 0)
+        :param change: (Default value = 0)
+        :type change: int :
+        :param change: int:  (Default value = 0)
 
         
         """
@@ -329,7 +361,9 @@ class Reaction(Chemical[ReacDescr]):
             if self.robust:
                 self.tobeinitialized = False
             else:
-                self._stoechproduct = self.crn.model.ruleset.rebuild_prod(self.description)
+                self._stoechproduct = self.crn.model.ruleset.rebuild_prod(
+                    self.description
+                )
         for prod, order in self.products:
             prod.change_pop(order)
         # Decrement reactants
@@ -342,12 +376,12 @@ class Reaction(Chemical[ReacDescr]):
     def _ordern(self, pop: int, order: int) -> int:
         """
 
-        @param pop: 
-        @type pop: int :
-        @param order: 
-        @type order: int :
-        @param pop: int: 
-        @param order: int: 
+        :param pop: 
+        :type pop: int :
+        :param order: 
+        :type order: int :
+        :param pop: int: 
+        :param order: int: 
 
         
         """
@@ -381,10 +415,10 @@ class Reaction(Chemical[ReacDescr]):
     def _join_compounds(stoechio: Iterable[Tuple[Any, int]]) -> str:
         """
 
-        @param stoechio: 
-        @type stoechio: Iterable[Tuple[Any :
-        @param int]]: 
-        @param stoechio: Iterable[Tuple[Any: 
+        :param stoechio: 
+        :type stoechio: Iterable[Tuple[Any :
+        :param int]]: 
+        :param stoechio: Iterable[Tuple[Any: 
 
         
         """
@@ -405,6 +439,7 @@ class Reaction(Chemical[ReacDescr]):
 
 class Compound(Chemical[str]):
     """ """
+
     _descrtype = "Compound"
     _updatelist: Dict[Chemical[str], int] = {}
 
@@ -432,9 +467,9 @@ class Compound(Chemical[str]):
     def register_reaction(self, reaction: Reaction) -> None:
         """
 
-        @param reaction: 
-        @type reaction: Reaction :
-        @param reaction: Reaction: 
+        :param reaction: 
+        :type reaction: Reaction :
+        :param reaction: Reaction: 
 
         
         """
@@ -443,9 +478,9 @@ class Compound(Chemical[str]):
     def unregister_reaction(self, reaction: Reaction) -> None:
         """
 
-        @param reaction: 
-        @type reaction: Reaction :
-        @param reaction: Reaction: 
+        :param reaction: 
+        :type reaction: Reaction :
+        :param reaction: Reaction: 
 
         
         """
@@ -468,9 +503,9 @@ class Compound(Chemical[str]):
     def update(self, change: int = 0) -> None:
         """
 
-        @param change: (Default value = 0)
-        @type change: int :
-        @param change: int:  (Default value = 0)
+        :param change: (Default value = 0)
+        :type change: int :
+        :param change: int:  (Default value = 0)
 
         
         """
@@ -493,9 +528,9 @@ class Compound(Chemical[str]):
     def change_pop(self, start: int) -> None:
         """
 
-        @param start: 
-        @type start: int :
-        @param start: int: 
+        :param start: 
+        :type start: int :
+        :param start: int: 
 
         
         """
@@ -513,6 +548,7 @@ class Compound(Chemical[str]):
 
 class Crn:
     """ """
+
     def __init__(self, param: Param):
         # update trackers
         self._reac_update: Set[Reaction] = set()
@@ -560,9 +596,9 @@ class Crn:
     def reac_toupdate(self, reac: Reaction) -> None:
         """Add Reaction 'reac' to the updatelist
 
-        @param reac: 
-        @type reac: Reaction :
-        @param reac: Reaction: 
+        :param reac: 
+        :type reac: Reaction :
+        :param reac: Reaction: 
 
         
         """
@@ -572,12 +608,12 @@ class Crn:
         """Add Compound 'comp' to the updatelist,
             por a population variation of 'change'
 
-        @param comp: 
-        @type comp: Compound :
-        @param change: 
-        @type change: int :
-        @param comp: Compound: 
-        @param change: int: 
+        :param comp: 
+        :type comp: Compound :
+        :param change: 
+        :type change: int :
+        :param comp: Compound: 
+        :param change: int: 
 
         
         """
@@ -604,22 +640,16 @@ class Crn:
     ) -> float:
         """Get statistics
 
-        @param collection: 
-        @type collection: str :
-        @param prop: 
-        @type prop: str :
-        @param weight: 
-        @type weight: str :
-        @param method: 
-        @type method: str :
-        @param full: 
-        @type full: bool :
-        @param collection: str: 
-        @param prop: str: 
-        @param weight: str: 
-        @param method: str: 
-        @param full: bool: 
-
+        :param collection: 
+        :type collection: str :
+        :param prop: 
+        :type prop: str :
+        :param weight: 
+        :type weight: str :
+        :param method: 
+        :type method: str :
+        :param full: 
+        :type full: bool :
         
         """
         return (
@@ -639,26 +669,17 @@ class Crn:
     ) -> Dict[float, float]:
         """Get a statistic map
 
-        @param collection: 
-        @type collection: str :
-        @param prop: 
-        @type prop: str :
-        @param weight: 
-        @type weight: str :
-        @param sort: 
-        @type sort: str :
-        @param method: 
-        @type method: str :
-        @param full: 
-        @type full: bool :
-        @param collection: str: 
-        @param prop: str: 
-        @param weight: str: 
-        @param sort: str: 
-        @param method: str: 
-        @param full: bool: 
-
-        
+        :param collection: 
+        :type collection: str :
+        :param prop: 
+        :type prop: str :
+        :param weight: 
+        :type weight: str :
+        :param sort: 
+        :type sort: str :
+        :param method: 
+        :type method: str :
+        :param full: 
         """
         return (
             self.comp_collect.map(prop, weight, sort, method, full)
