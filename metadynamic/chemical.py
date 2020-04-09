@@ -510,7 +510,7 @@ class Reaction(Chemical[ReacDescr]):
 
 
 class Compound(Chemical[str]):
-    """ """
+    """Chemical describing a specific compound"""
 
     _descrtype = "Compound"
     _updatelist: Dict[Chemical[str], int] = {}
@@ -520,6 +520,17 @@ class Compound(Chemical[str]):
         return self.description
 
     def __init__(self, description: str, crn: "Crn"):
+        """
+        Create the reaction from its 'description', to be linked to the
+        parent 'crn'
+
+        The description is simply the compound name
+
+        :param description: object description
+        :type description: str
+        :param crn: parent chemical reaction network
+        :type crn: Crn
+        """
         super().__init__(description, crn)
         if self.description == "":
             LOGGER.error("Created empty compound!!!")
@@ -528,33 +539,39 @@ class Compound(Chemical[str]):
         # self.length = self.descriptor("length", description)
 
     def _activate(self) -> None:
-        """ """
+        """Activate the compound"""
         self.crn.comp_collect.activate(self.description)
+        # once activated, scans (and creates if needed) all related reactions.
         self.scan_reaction()
 
     def _unactivate(self) -> None:
-        """ """
+        """Unactivate the compound"""
         self.crn.comp_collect.unactivate(self.description)
 
     def register_reaction(self, reaction: Reaction) -> None:
         """
+        Register a reaction in the compound list of the
+        reactions it is involved in as a reactant
+        (self.reactions)
 
-        :param reaction: 
-        :type reaction: Reaction :
-        :param reaction: Reaction: 
+        This enable to trigger the update of necessary reactions
+        when the compound population changes.
 
-        
+        :param reaction: reaction object to be rgistered
+        :type reaction: Reaction
         """
         self.reactions.add(reaction)
 
     def unregister_reaction(self, reaction: Reaction) -> None:
         """
+        Unregister a reaction from the compound list of the
+        reactions it is involved in as a reactant
+        (self.reactions)
 
-        :param reaction: 
-        :type reaction: Reaction :
-        :param reaction: Reaction: 
+        Called at reaction deactivation.
 
-        
+        :param reaction: reaction object to be unregistered
+        :type reaction: Reaction
         """
         try:
             self.reactions.remove(reaction)
@@ -564,7 +581,7 @@ class Compound(Chemical[str]):
             )
 
     def scan_reaction(self) -> None:
-        """ """
+        """Scan (and create if needed) all related reactions."""
         self.reactions = {
             self.crn.reac_collect[descr]
             for descr in self.crn.model.ruleset.get_related(
@@ -574,15 +591,15 @@ class Compound(Chemical[str]):
 
     def update(self, change: int = 0) -> None:
         """
+        Update the compound: update its population by 'change' increment
 
-        :param change: (Default value = 0)
-        :type change: int :
-        :param change: int:  (Default value = 0)
+        Simulation may be stopped here if a negative population is reached
+        (this shouldn't happen) by raising DescrZero
 
-        
+        :param change: population variation (Default value = 0)
+        :type change: int
         """
         if change != 0:
-            # LOGGER.debug(f"Really updating {self}")
             pop0 = self.pop
             self.pop = pop0 + change
             if self.pop < 0:
@@ -594,32 +611,43 @@ class Compound(Chemical[str]):
             elif pop0 == 0:
                 #  activate compounds whose population switched from 0 to nonzero
                 self.activate()
-            # for reac in self.reactions:  # impactedreac:
-            #     Reaction.toupdate(reac)
 
-    def change_pop(self, start: int) -> None:
+    def change_pop(self, change: int) -> None:
         """
+        Request for a population change of value 'change'
 
-        :param start: 
-        :type start: int :
-        :param start: int: 
+        The change is not performed at this point,
+        but registered for a batch update process
+        from Crn.update
 
-        
+        :param change: population change value
+        :type change: int
         """
-        self.crn.comp_toupdate(self, start)
+        self.crn.comp_toupdate(self, change)
 
     def delete(self) -> None:
-        """ """
+        """Delete the object"""
         self._unactivate()
         self.change_pop(-self.pop)
 
     def serialize(self) -> Any:
-        """ """
+        """
+        Returns the population of the compound.
+
+        Used for saving the reaction during snapshots.
+
+        **** define in Chemical ? ***
+        """
         return self.pop
 
 
 class Crn:
-    """ """
+    """
+    Chemical Reaction Network class
+
+    high level interface containing a CollectofCompound, a CollectofReaction,
+    and a Model related to a given run.
+    """
 
     def __init__(self, param: Param):
         # update trackers
