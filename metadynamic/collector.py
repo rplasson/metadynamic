@@ -158,6 +158,7 @@ class Collect(Generic[K, T]):
 
     def stat(self, prop: str, weight: str, method: str, full: bool = False) -> float:
         values = self.proplist(prop, full)
+        # check use of "single"... still dubious...
         weights = 1/values if weight == "single" else self.proplist(weight, full)
         if method == "+":
             return float(np.nansum(values * weights))

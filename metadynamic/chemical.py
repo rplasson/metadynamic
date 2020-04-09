@@ -650,6 +650,12 @@ class Crn:
     """
 
     def __init__(self, param: Param):
+        """
+        create a Crn object from a Param parameter object
+
+        :param param: parameter object
+        :type param: Param
+        """
         # update trackers
         self._reac_update: Set[Reaction] = set()
         self._comp_update: Dict[Compound, int] = {}
@@ -664,7 +670,15 @@ class Crn:
         LOGGER.debug(f"Initialized with {param}")
 
     def init_collect(self) -> None:
-        """ """
+        """
+        Init the object collections of the Crn
+
+        Automatically called by __init__
+
+        Calling this initialization procedure on an existing object
+        Will erase all previous information (this is namely used when
+        the Crn is closed in order to free some memory)
+        """
         self.probalist = Probalist(self.vol)
         self.comp_collect = CollectofCompound(self.model, dropmode="keep")
         self.comp_collect.set_crn(self)
@@ -674,16 +688,33 @@ class Crn:
         self.reac_collect.set_crn(self)
 
     def close(self) -> None:
-        """ """
-        #  (to be tested): create new data for cleaning memory
+        """
+        Close the crn for freeing some memory
+
+        The only operation performed is to reinit the data collection.
+        """
+        # Really needed? Just call init_collect for cleaning the memory?
         self.init_collect()
 
     def clean(self) -> None:
-        """ """
+        """
+        Cleaning process
+
+        The only operation performed (now) is to recompute the sum of probabilities
+        in order to clean previous rounding errors.
+        """
         self.probalist.clean()
 
     def stepping(self) -> float:
-        """ """
+        """
+        Perform a stochastic step.
+
+        A reaction is chosen following Gillespies algorithm, then processed.
+        The resulting timestep is returned
+
+        :return: timestep
+        :rtype: float
+        """
         # choose a random event
         chosen, dt = self.probalist.choose()
         # check if there even was an event to choose
@@ -694,28 +725,23 @@ class Crn:
         return dt
 
     def reac_toupdate(self, reac: Reaction) -> None:
-        """Add Reaction 'reac' to the updatelist
+        """
+        Add Reaction 'reac' to the update list
 
-        :param reac: 
-        :type reac: Reaction :
-        :param reac: Reaction: 
-
-        
+        :param reac: reaction to be updated
+        :type reac: Reaction
         """
         self._reac_update.add(reac)
 
     def comp_toupdate(self, comp: Compound, change: int) -> None:
-        """Add Compound 'comp' to the updatelist,
-            por a population variation of 'change'
+        """
+        Add Compound 'comp' to the update list,
+        for a population variation of 'change'
 
-        :param comp: 
-        :type comp: Compound :
-        :param change: 
-        :type change: int :
-        :param comp: Compound: 
-        :param change: int: 
-
-        
+        :param comp: compound to be updated
+        :type comp: Compound
+        :param change: population change value
+        :type change: int
         """
         try:
             self._comp_update[comp] += change
@@ -723,7 +749,13 @@ class Crn:
             self._comp_update[comp] = change
 
     def update(self) -> None:
-        """Perform full Crn update"""
+        """Perform a full Crn update
+
+        It perform the update of all compounds from the update list.
+        These updates place reactions to the next update list
+        These reactions are updated
+        All update lists are then placed to zero
+        """
         for comp, change in self._comp_update.items():
             # Update compounds
             comp.update(change)
@@ -738,19 +770,34 @@ class Crn:
     def collstat(
         self, collection: str, prop: str, weight: str, method: str, full: bool
     ) -> float:
-        """Get statistics
+        """
+        Get statistics on compounds if 'collection' is set to 'compounds',
+        else on reactions.
 
-        :param collection: 
-        :type collection: str :
-        :param prop: 
-        :type prop: str :
-        :param weight: 
-        :type weight: str :
-        :param method: 
-        :type method: str :
-        :param full: 
-        :type full: bool :
-        
+        'prop' is the name of the property to be collected as defined in
+        the corresponding  Collect._getprop
+
+        'weight' is the name of another property that will be used as a
+        weight.
+
+        'method': '+' returns the weighted sum, 'm' the weighted average,
+                  'max' the weighted max value, 'min' the weighted min value
+
+        'full': if True, the stat is performed on the full pool
+                if False, only perform on active objects
+
+        :param collection: 'compounds' or 'reactions'
+        :type collection: str
+        :param prop: property name
+        :type prop: str
+        :param weight: statistic weight
+        :type weight: str
+        :param method: statistic method
+        :type method: str
+        :param full: perform on pool or only active?
+        :type full: bool
+        :return: statistic value
+        :rtype: float
         """
         return (
             self.comp_collect.stat(prop, weight, method, full)
@@ -767,19 +814,40 @@ class Crn:
         method: str,
         full: bool,
     ) -> Dict[float, float]:
-        """Get a statistic map
+        """
+        Get statistic map on compounds if 'collection' is set to 'compounds',
+        else on reactions.
 
-        :param collection: 
-        :type collection: str :
-        :param prop: 
-        :type prop: str :
-        :param weight: 
-        :type weight: str :
-        :param sort: 
-        :type sort: str :
-        :param method: 
-        :type method: str :
-        :param full: 
+        'prop' is the name of the property to be collected as defined in
+        the corresponding  Collect._getprop
+
+        'weight' is the name of another property that will be used as a
+        weight.
+
+        'sort' is the name of the property used for sorting the statistics
+        in categories.
+
+        'method': '+' returns the weighted sum, 'm' the weighted average
+
+        'full': if True, the stat is performed on the full pool
+                if False, only perform on active objects
+
+        :param collection: 'compounds' or 'reactions'
+        :type collection: str
+        :param prop: property name
+        :type prop: str
+        :param weight: name of weight property
+        :type weight: str
+        :param sort: name of sort property
+        :type sort: str
+        :param method: statistic method
+        :type weight: str
+        :param method: statistic method
+        :type method: str
+        :param full: perform on full or on pool?
+        :type full: bool
+        :return: statistic value
+        :rtype: float
         """
         return (
             self.comp_collect.map(prop, weight, sort, method, full)
