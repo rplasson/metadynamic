@@ -233,11 +233,20 @@ class CollectofReaction(Collect[ReacDescr, "Reaction"]):
 
 
 class Chemical(Generic[K], Collectable):
-    """ """
+    """Collectable objects with chemical properties (Generic class)"""
 
     _descrtype = "Chemical"
 
     def __init__(self, description: K, crn: "Crn"):
+        """
+        Create the object from its 'description', to be linked to the
+        parent 'crn'
+
+        :param description: object description
+        :type description: K (generic Hashable)
+        :param crn: parent chemical reaction network
+        :type crn: Crn
+        """
         self.crn: Crn = crn
         self.description: K = description
         self.activated: bool = False
@@ -249,45 +258,77 @@ class Chemical(Generic[K], Collectable):
         return str(self.description)
 
     def activate(self) -> None:
-        """ """
+        """Activate the chemical object"""
         if not self.activated:
             self._activate()
             self.activated = True
 
     def _activate(self) -> None:
-        """ """
+        """
+        Specific actions to be performed for the object activation.
+
+        Does nothing, to be implemented in subclasses when needed.
+        """
         pass
 
     def unactivate(self) -> None:
-        """ """
+        """Unactivate the chemical object"""
         if self.activated:
             self._unactivate()
             self.activated = False
 
     def _unactivate(self) -> None:
-        """ """
+        """
+        Specific actions to be performed for the object unactivation.
+
+        Does nothing, to be implemented in subclasses when needed.
+        """
         pass
 
     def update(self, change: int = 0) -> None:
-        """to be implemented in subclasses
+        """
+        Perform the object update process.
 
-        :param change: (Default value = 0)
-        :type change: int :
+        Must be implemented in subclasses
+
+        :param change: change value to be passed for the update (Default value = 0)
+        :type change: int
         """
         raise NotImplementedError
 
     def delete(self) -> None:
-        """to be implemented in subclasses"""
+        """
+        Delete the object.
+
+        Must be implemented in subclasses"""
         raise NotImplementedError
 
 
 class Reaction(Chemical[ReacDescr]):
-    """ """
+    """Chemical describing a specific reaction"""
 
     _descrtype = "Reaction"
     _updatelist: Dict[Chemical[ReacDescr], int] = {}
 
     def __init__(self, description: ReacDescr, crn: "Crn"):
+        """
+        Create the reaction from its 'description', to be linked to the
+        parent 'crn'
+
+        The description is of complex type. This object is intended to be built
+        from the description created by Ruleset.get_related, not manually.
+
+        The description can be decomposed as a tuple of:
+         - str: the reaction type (rule name)
+         - Tuple[str, ...]: the list of reactant names
+         - int: the reaction variant number (when several reactions can be built
+           from the same set of reactants, e.g. a+b-> ab and a+b-> ba)
+
+        :param description: object description
+        :type description: Tuple[str, Tuple[str,...], int]
+        :param crn: parent chemical reaction network
+        :type crn: Crn
+        """
         super().__init__(description, crn)
         self.name: str = ""
         # If name is empty => invalid reaction, no process to be done
@@ -321,30 +362,38 @@ class Reaction(Chemical[ReacDescr]):
             self._unset_proba_pos()
 
     def _unset_proba_pos(self) -> None:
-        """ """
+        """Set the reaction as unregistered to the list of probabilities"""
         self.proba_pos: int = invalidint
         self.registered: bool = False
 
     def _activate(self) -> None:
-        """ """
+        """Activate the reaction"""
+        # Get activated in the CRN
         self.crn.reac_collect.activate(self.description)
+        # Register to each reactant
         for comp, _ in self.stoechio:
             comp.register_reaction(self)
 
     def _unactivate(self) -> None:
-        """ """
+        """Unactivate the reaction"""
+        # Get unactivated in the CRN
         self.crn.reac_collect.unactivate(self.description)
+        # Unregister to the products
         for comp, _ in self.stoechio:
             comp.unregister_reaction(self)
 
     def update(self, change: int = 0) -> None:
         """
+        Update the reaction: update its probability, and depending on the result,
+        activate or delete it if needed.
 
-        :param change: (Default value = 0)
-        :type change: int :
-        :param change: int:  (Default value = 0)
+        The parameter change is unused and kept for compatibility
+        with other Chemical objects
 
-        
+        The change is computed from probability updating via self.updateproba()
+
+        :param change: unused (Default value = 0)
+        :type change: int
         """
         newproba, changed = self.updateproba()
         if changed:
@@ -361,7 +410,16 @@ class Reaction(Chemical[ReacDescr]):
                 self.delete()
 
     def process(self) -> None:
-        """ """
+        """
+        Process the reaction, i.e decrement the reactants, increment the products
+
+        The products are created here (if not created yet by other reactions)
+        at the first processing of the reaction if robust,
+        or at each processing if not robust.
+
+        Computation can end here if the process results in reaching a 0 total probability
+        (i.e. led to destroy the last reactant of the CRN), raising 'NoMore'
+        """
         if self.tobeinitialized:
             self.products = [
                 (self.crn.comp_collect[name], order)
@@ -384,20 +442,18 @@ class Reaction(Chemical[ReacDescr]):
 
     def _ordern(self, pop: int, order: int) -> int:
         """
+        Compute stochastic product or order 'n',
+        i.e. pop×(pop-1)×...×(pop-n+1)
 
-        :param pop: 
-        :type pop: int :
-        :param order: 
-        :type order: int :
-        :param pop: int: 
-        :param order: int: 
-
-        
+        :param pop: population
+        :type pop: int
+        :param order: stochastic order
+        :type order: int
         """
         return pop if order == 1 else pop * self._ordern(pop - 1, order - 1)
 
     def updateproba(self) -> Tuple[float, bool]:
-        """ """
+        """Update the reaction probability"""
         oldproba = self.proba
         self.proba = self.const
         for reactant, stoechnum in self.stoechio:
@@ -410,26 +466,33 @@ class Reaction(Chemical[ReacDescr]):
         return self.proba, self.proba != oldproba
 
     def delete(self) -> None:
-        """ """
+        """Delete the objecte"""
         if self.registered:
             self.crn.probalist.unregister(self.proba_pos)
             self._unset_proba_pos()
         self.unactivate()
 
     def serialize(self) -> Any:
-        """ """
+        """
+        Returns the constant and probability of the reaction.
+
+        Used for saving the reaction during snapshots.
+
+        **** define in Chemical ? ***
+        """
         return self.const, self.proba
 
     @staticmethod
     def _join_compounds(stoechio: Iterable[Tuple[Any, int]]) -> str:
         """
+        Transform an iterable of the form, e.g.:
+        [('a',1), ('b',2)]
+        as "a+2b"
 
-        :param stoechio: 
-        :type stoechio: Iterable[Tuple[Any :
-        :param int]]: 
-        :param stoechio: Iterable[Tuple[Any: 
+        Used for converting the reaction to a string
 
-        
+        :param stoechio: List of compound names or description with their stoechiometry number
+        :type stoechio: Iterable[Tuple[Any, int]]
         """
         return "+".join(
             [f"{num}{name}" if num > 1 else str(name) for name, num in stoechio]
