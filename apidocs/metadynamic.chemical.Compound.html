@@ -42,11 +42,11 @@
       </div>
 
       <div class="moduleDocstring">
-        <div><p>Chemical describing a specific compound</p></div>
+        <div><p><a href="metadynamic.chemical.Chemical.html"><code>Chemical</code></a> describing a specific compound</p></div>
       </div>
 
       <div id="splitTables">
-        <table class="children sortable" id="id14">
+        <table class="children sortable" id="id16">
   
   <tr class="method">
     
@@ -62,12 +62,12 @@
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.chemical.Compound.html#reactions" class="code" data-type="Instance Variable">reactions</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Set of reactions in which the compound is a reactant</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.chemical.Compound.html#pop" class="code" data-type="Instance Variable">pop</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>compound population</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
@@ -196,7 +196,7 @@
   <div class="docstring functionBody">
     
     
-    <div><p>Create the reaction from its 'description', to be linked to the parent 'crn'</p><p>The description is simply the compound name</p><p>:param description: object description :type description: str :param crn: parent chemical reaction network :type crn: Crn</p></div>
+    <div><p>Create the reaction from its 'description', to be linked to the parent 'crn'</p><p>The description is simply the compound name</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">description</td><td>object description (type: str)</td></tr><tr><td></td><td class="fieldArg">crn</td><td>parent chemical reaction network (type: Crn)</td></tr></table></div>
   </div>
 </div><div class="baseinstancevariable">
   
@@ -210,7 +210,7 @@
     reactions =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>Set of reactions in which the compound is a reactant</p></div>
   </div>
 </div><div class="baseinstancevariable">
   
@@ -224,7 +224,7 @@
     pop =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>compound population</p></div>
   </div>
 </div><div class="basemethod private">
   
@@ -281,7 +281,7 @@
   <div class="docstring functionBody">
     
     
-    <div><p>Register a reaction in the compound list of the reactions it is involved in as a reactant (self.reactions)</p><p>This enable to trigger the update of necessary reactions when the compound population changes.</p><p>:param reaction: reaction object to be rgistered :type reaction: Reaction</p></div>
+    <div><p>Register a reaction in the compound list of the reactions it is involved in as a reactant (self.reactions)</p><p>This enable to trigger the update of necessary reactions when the compound population changes.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">reaction</td><td>reaction object to be rgistered (type: Reaction)</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -300,7 +300,7 @@
   <div class="docstring functionBody">
     
     
-    <div><p>Unregister a reaction from the compound list of the reactions it is involved in as a reactant (self.reactions)</p><p>Called at reaction deactivation.</p><p>:param reaction: reaction object to be unregistered :type reaction: Reaction</p></div>
+    <div><p>Unregister a reaction from the compound list of the reactions it is involved in as a reactant (self.reactions)</p><p>Called at reaction deactivation.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">reaction</td><td>reaction object to be unregistered (type: Reaction)</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -338,7 +338,7 @@
   <div class="docstring functionBody">
     
     
-    <div><p>Update the compound: update its population by 'change' increment</p><p>Simulation may be stopped here if a negative population is reached (this shouldn't happen) by raising DescrZero</p><p>:param change: population variation (Default value = 0) :type change: int</p></div>
+    <div><p>Update the compound: update its population by 'change' increment</p><p>Simulation may be stopped here if a negative population is reached (this shouldn't happen) by raising DescrZero</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">change</td><td>population variation (Default value = 0) (type: int)</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -357,7 +357,7 @@
   <div class="docstring functionBody">
     
     
-    <div><p>Request for a population change of value 'change'</p><p>The change is not performed at this point, but registered for a batch update process from Crn.update</p><p>:param change: population change value :type change: int</p></div>
+    <div><p>Request for a population change of value 'change'</p><p>The change is not performed at this point, but registered for a batch update process from Crn.update</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">change</td><td>population change value (type: int)</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -395,13 +395,13 @@
   <div class="docstring functionBody">
     
     
-    <div><p>Returns the population of the compound.</p><p>Used for saving the reaction during snapshots.</p><p>**** define in Chemical ? ***</p></div>
+    <div><p>Returns the population of the compound.</p><p>Used for saving the reaction during snapshots.</p></div>
   </div>
 </div>
 
       </div>
       <address>
-        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-10 12:02:37.
+        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-10 15:55:11.
       </address>
 
     </div>

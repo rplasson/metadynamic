@@ -46,7 +46,7 @@
       </div>
 
       <div id="splitTables">
-        <table class="children sortable" id="id108">
+        <table class="children sortable" id="id109">
   
   <tr class="method">
     
@@ -57,52 +57,47 @@
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.system.Statistic.html#crn" class="code" data-type="Instance Variable">crn</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Chemical Reaction Network</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.system.Statistic.html#writer" class="code" data-type="Instance Variable">writer</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Writer to HDF5 file</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.system.Statistic.html#param" class="code" data-type="Instance Variable">param</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Run  parameters</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.system.Statistic.html#status" class="code" data-type="Instance Variable">status</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Run status</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.system.Statistic.html#statnames" class="code" data-type="Instance Variable">statnames</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>list of statistics names</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.system.Statistic.html#lines" class="code" data-type="Instance Variable">lines</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>list of fields to be saved in HDF5 file</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.system.Statistic.html#mapnames" class="code" data-type="Instance Variable">mapnames</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
-  </tr><tr class="instancevariable">
-    
-    <td>Instance Variable</td>
-    <td><a href="metadynamic.system.Statistic.html#mapdict" class="code" data-type="Instance Variable">mapdict</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>list of statistics map names</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.system.Statistic.html#tsnapshot" class="code" data-type="Instance Variable">tsnapshot</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>time of next snapshot</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.system.Statistic.html#comment" class="code" data-type="Instance Variable">comment</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Run comment</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
@@ -127,7 +122,7 @@
     
     <td>Method</td>
     <td><a href="metadynamic.system.Statistic.html#calcmap" class="code" data-type="Method">calcmap</a></td>
-    <td><span>Calculate map statistics at present time, saved in self.mapdict</span></td>
+    <td><span>Calculate map statistics at present time, saved for later writing in hdf5</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
@@ -168,6 +163,11 @@
     <td>Method</td>
     <td><a href="metadynamic.system.Statistic.html#close" class="code" data-type="Method">close</a></td>
     <td><span>Write all remaining data  in hdf5 file, clean it, then close it</span></td>
+  </tr><tr class="instancevariable private">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.system.Statistic.html#_mapdict" class="code" data-type="Instance Variable">_mapdict</a></td>
+    <td><span class="undocumented">Undocumented</span></td>
   </tr><tr class="instancevariable private">
     
     <td>Instance Variable</td>
@@ -224,7 +224,7 @@
   <div class="docstring functionBody">
     
     
-    <div><p>Create the statistic object from:</p><p>:param crn: chemical reaction network of the simulation :type crn: Crn :param writer: writer to the .hdf5 result file :type writer: ResultWriter :param param: run parameters :type param: Param :param status: run status :type status: RunStatus :param comment: Comment string describing the run :type comment: str</p></div>
+    <div><p>Create the statistic object from:</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">crn</td><td>chemical reaction network of the simulation (type: Crn)</td></tr><tr><td></td><td class="fieldArg">writer</td><td>writer to the .hdf5 result file (type: ResultWriter)</td></tr><tr><td></td><td class="fieldArg">param</td><td>run parameters (type: Param)</td></tr><tr><td></td><td class="fieldArg">status</td><td>run status (type: RunStatus)</td></tr><tr><td></td><td class="fieldArg">comment</td><td>Comment string describing the run (type: str)</td></tr></table></div>
   </div>
 </div><div class="baseinstancevariable">
   
@@ -238,7 +238,7 @@
     crn =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>Crn</code>)
+    <div><p>Chemical Reaction Network</p></div> (type: <code>Crn</code>)
   </div>
 </div><div class="baseinstancevariable">
   
@@ -252,7 +252,7 @@
     writer =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>ResultWriter</code>)
+    <div><p>Writer to HDF5 file</p></div> (type: <code>ResultWriter</code>)
   </div>
 </div><div class="baseinstancevariable">
   
@@ -266,7 +266,7 @@
     param =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>Param</code>)
+    <div><p>Run  parameters</p></div> (type: <code>Param</code>)
   </div>
 </div><div class="baseinstancevariable">
   
@@ -280,7 +280,7 @@
     status =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>RunStatus</code>)
+    <div><p>Run status</p></div> (type: <code>RunStatus</code>)
   </div>
 </div><div class="baseinstancevariable">
   
@@ -294,7 +294,7 @@
     statnames =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>List[str]</code>)
+    <div><p>list of statistics names</p></div> (type: <code>List[str]</code>)
   </div>
 </div><div class="baseinstancevariable">
   
@@ -308,7 +308,7 @@
     lines =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>List[str]</code>)
+    <div><p>list of fields to be saved in HDF5 file</p></div> (type: <code>List[str]</code>)
   </div>
 </div><div class="baseinstancevariable">
   
@@ -322,18 +322,18 @@
     mapnames =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>List[str]</code>)
+    <div><p>list of statistics map names</p></div> (type: <code>List[str]</code>)
   </div>
-</div><div class="baseinstancevariable">
+</div><div class="baseinstancevariable private">
   
-  <a name="metadynamic.system.Statistic.mapdict">
+  <a name="metadynamic.system.Statistic._mapdict">
     
   </a>
-  <a name="mapdict">
+  <a name="_mapdict">
     
   </a>
   <div class="functionHeader">
-    mapdict =
+    _mapdict =
   </div>
   <div class="functionBody">
     <div class="undocumented">Undocumented</div> (type: <code>Dict[str, Dict[float, List[float]]]</code>)
@@ -350,7 +350,7 @@
     tsnapshot =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>float</code>)
+    <div><p>time of next snapshot</p></div> (type: <code>float</code>)
   </div>
 </div><div class="baseinstancevariable private">
   
@@ -448,7 +448,7 @@
     comment =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>Run comment</p></div>
   </div>
 </div><div class="basemethod">
   
@@ -467,7 +467,7 @@
   <div class="docstring functionBody">
     
     
-    <div><p>Get the concentration of a given compound</p><p>:param compound: compound name :type compound: str :return: concentration value :rtype: float</p></div>
+    <div><p>Get the concentration of a given compound</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">compound</td><td>compound name (type: str)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">concentration value (type: float)</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -543,7 +543,7 @@
   <div class="docstring functionBody">
     
     
-    <div><p>Calculate map statistics at present time, saved in self.mapdict</p></div>
+    <div><p>Calculate map statistics at present time, saved for later writing in hdf5</p></div>
   </div>
 </div><div class="basemethod">
   
@@ -581,7 +581,7 @@
   <div class="docstring functionBody">
     
     
-    <div><p>Snapshot the CRN at present time, if time reached tsnapshot or if it is the final snapshot. Saved for later writing in hdf5.</p><p>:param final: True if this is the last snapshot :type final: bool</p></div>
+    <div><p>Snapshot the CRN at present time, if time reached tsnapshot or if it is the final snapshot. Saved for later writing in hdf5.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">final</td><td>True if this is the last snapshot (type: bool)</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -638,7 +638,7 @@
   <div class="docstring functionBody">
     
     
-    <div><p>Write ending message to hdf5</p><p>:param the_end: ending message :type the_end: Finished</p></div>
+    <div><p>Write ending message to hdf5</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">the_end</td><td>ending message (type: Finished)</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -701,7 +701,7 @@
 
       </div>
       <address>
-        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-10 12:02:37.
+        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-10 15:55:11.
       </address>
 
     </div>

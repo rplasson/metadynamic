@@ -42,11 +42,11 @@
       </div>
 
       <div class="moduleDocstring">
-        <div><p>Collectable objects with chemical properties (Generic class)</p></div>
+        <div><p><a href="metadynamic.collector.Collectable.html"><code>Collectable</code></a> objects with chemical properties (Generic class)</p></div>
       </div>
 
       <div id="splitTables">
-        <table class="children sortable" id="id11">
+        <table class="children sortable" id="id13">
   
   <tr class="method">
     
@@ -57,17 +57,17 @@
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.chemical.Chemical.html#crn" class="code" data-type="Instance Variable">crn</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Parent CRN</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.chemical.Chemical.html#description" class="code" data-type="Instance Variable">description</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Description of the object</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.chemical.Chemical.html#activated" class="code" data-type="Instance Variable">activated</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Activated state</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
@@ -93,11 +93,6 @@
     <td>Method</td>
     <td><a href="metadynamic.chemical.Chemical.html#update" class="code" data-type="Method">update</a></td>
     <td><span>Perform the object update process.</span></td>
-  </tr><tr class="method">
-    
-    <td>Method</td>
-    <td><a href="metadynamic.chemical.Chemical.html#delete" class="code" data-type="Method">delete</a></td>
-    <td><span>Delete the object.</span></td>
   </tr><tr class="classvariable private">
     
     <td>Class Variable</td>
@@ -119,9 +114,14 @@
           <p class="inheritedFrom">
             Inherited from <a href="metadynamic.collector.Collectable.html" class="code" data-type="Class">Collectable</a>:
           </p>
-          <table class="children sortable" id="id12">
+          <table class="children sortable" id="id14">
   
   <tr class="basemethod">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.collector.Collectable.html#delete" class="code" data-type="Method">delete</a></td>
+    <td><span>Clean memory of the object. It is only intended for a final purge when the thread exits. Manual call may break many things!</span></td>
+  </tr><tr class="basemethod">
     
     <td>Method</td>
     <td><a href="metadynamic.collector.Collectable.html#serialize" class="code" data-type="Method">serialize</a></td>
@@ -166,7 +166,7 @@
   <div class="docstring functionBody">
     
     
-    <div><p>Create the object from its 'description', to be linked to the parent 'crn'</p><p>:param description: object description :type description: K (generic Hashable) :param crn: parent chemical reaction network :type crn: Crn</p></div>
+    <div><p>Create the object from its 'description', to be linked to the parent 'crn'</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">description</td><td>object description (type: K (generic Hashable))</td></tr><tr><td></td><td class="fieldArg">crn</td><td>parent chemical reaction network (type: Crn)</td></tr></table></div>
   </div>
 </div><div class="baseinstancevariable">
   
@@ -180,7 +180,7 @@
     crn =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>Crn</code>)
+    <div><p>Parent CRN</p></div> (type: <code>Crn</code>)
   </div>
 </div><div class="baseinstancevariable">
   
@@ -194,7 +194,7 @@
     description =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>K</code>)
+    <div><p>Description of the object</p></div> (type: <code>K</code>)
   </div>
 </div><div class="baseinstancevariable">
   
@@ -208,7 +208,7 @@
     activated =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>bool</code>)
+    <div><p>Activated state</p></div> (type: <code>bool</code>)
   </div>
 </div><div class="basemethod">
   
@@ -341,32 +341,13 @@
   <div class="docstring functionBody">
     
     
-    <div><p>Perform the object update process.</p><p>Must be implemented in subclasses</p><p>:param change: change value to be passed for the update (Default value = 0) :type change: int</p></div>
-  </div>
-</div><div class="basemethod">
-  
-  <a name="metadynamic.chemical.Chemical.delete">
-    
-  </a>
-  <a name="delete">
-    
-  </a>
-  <div class="functionHeader">
-    
-    def
-    delete(self):
-    
-  </div>
-  <div class="docstring functionBody">
-    <div class="interfaceinfo">overrides <a href="metadynamic.collector.Collectable.html#delete" class="code" data-type="Method">metadynamic.collector.Collectable.delete</a></div>
-    
-    <div><p>Delete the object.</p><p>Must be implemented in subclasses</p></div>
+    <div><p>Perform the object update process.</p><p>Must be implemented in subclasses</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">change</td><td>change value to be passed for the update (Default value = 0) (type: int)</td></tr></table></div>
   </div>
 </div>
 
       </div>
       <address>
-        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-10 12:02:37.
+        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-10 15:55:11.
       </address>
 
     </div>

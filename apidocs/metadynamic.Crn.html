@@ -42,7 +42,7 @@
       </div>
 
       <div class="moduleDocstring">
-        <div><p>Chemical Reaction Network class</p><p>high level interface containing a CollectofCompound, a CollectofReaction, and a Model related to a given run.</p></div>
+        <div><p>Chemical Reaction Network class</p><p>high level interface containing a <a href="metadynamic.chemical.CollectofCompound.html"><code>CollectofCompound</code></a>, a <a href="metadynamic.chemical.CollectofReaction.html"><code>CollectofReaction</code></a>, and a <a href="metadynamic.ruleset.Model.html"><code>Model</code></a> related to a given run.</p></div>
       </div>
 
       <div id="splitTables">
@@ -52,42 +52,42 @@
     
     <td>Method</td>
     <td><a href="metadynamic.Crn.html#__init__" class="code" data-type="Method">__init__</a></td>
-    <td><span>create a Crn object from a Param parameter object</span></td>
+    <td><span>create a Crn object from a <a href="metadynamic.inputs.Param.html"><code>Param</code></a> parameter object</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.Crn.html#probalist" class="code" data-type="Instance Variable">probalist</a></td>
+    <td><span>list of probalities</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.Crn.html#comp_collect" class="code" data-type="Instance Variable">comp_collect</a></td>
+    <td><span>compounds collection</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.Crn.html#reac_collect" class="code" data-type="Instance Variable">reac_collect</a></td>
+    <td><span>reactions collection</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.Crn.html#model" class="code" data-type="Instance Variable">model</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Model describing the set of rules</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.Crn.html#vol" class="code" data-type="Instance Variable">vol</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>System volume</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.Crn.html#dropmode" class="code" data-type="Instance Variable">dropmode</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>dropmode flag (do we 'drop' or 'keep' inactive reactions?)</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.Crn.html#init_collect" class="code" data-type="Method">init_collect</a></td>
     <td><span>Init the object collections of the Crn</span></td>
-  </tr><tr class="instancevariable">
-    
-    <td>Instance Variable</td>
-    <td><a href="metadynamic.Crn.html#probalist" class="code" data-type="Instance Variable">probalist</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
-  </tr><tr class="instancevariable">
-    
-    <td>Instance Variable</td>
-    <td><a href="metadynamic.Crn.html#comp_collect" class="code" data-type="Instance Variable">comp_collect</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
-  </tr><tr class="instancevariable">
-    
-    <td>Instance Variable</td>
-    <td><a href="metadynamic.Crn.html#reac_collect" class="code" data-type="Instance Variable">reac_collect</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
@@ -164,7 +164,49 @@
   <div class="docstring functionBody">
     
     
-    <div><p>create a Crn object from a Param parameter object</p><p>:param param: parameter object :type param: Param</p></div>
+    <div><p>create a Crn object from a <a href="metadynamic.inputs.Param.html"><code>Param</code></a> parameter object</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">param</td><td>parameter object (type: Param)</td></tr></table></div>
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.Crn.probalist">
+    
+  </a>
+  <a name="probalist">
+    
+  </a>
+  <div class="functionHeader">
+    probalist =
+  </div>
+  <div class="functionBody">
+    <div><p>list of probalities</p></div>
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.Crn.comp_collect">
+    
+  </a>
+  <a name="comp_collect">
+    
+  </a>
+  <div class="functionHeader">
+    comp_collect =
+  </div>
+  <div class="functionBody">
+    <div><p>compounds collection</p></div>
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.Crn.reac_collect">
+    
+  </a>
+  <a name="reac_collect">
+    
+  </a>
+  <div class="functionHeader">
+    reac_collect =
+  </div>
+  <div class="functionBody">
+    <div><p>reactions collection</p></div>
   </div>
 </div><div class="baseinstancevariable private">
   
@@ -206,7 +248,7 @@
     model =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>Model describing the set of rules</p></div> (type: <code>Model</code>)
   </div>
 </div><div class="baseinstancevariable">
   
@@ -220,7 +262,7 @@
     vol =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>System volume</p></div> (type: <code>float</code>)
   </div>
 </div><div class="baseinstancevariable">
   
@@ -234,7 +276,7 @@
     dropmode =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>dropmode flag (do we 'drop' or 'keep' inactive reactions?)</p></div> (type: <code>str</code>)
   </div>
 </div><div class="basemethod">
   
@@ -254,48 +296,6 @@
     
     
     <div><p>Init the object collections of the Crn</p><p>Automatically called by __init__</p><p>Calling this initialization procedure on an existing object Will erase all previous information (this is namely used when the Crn is closed in order to free some memory)</p></div>
-  </div>
-</div><div class="baseinstancevariable">
-  
-  <a name="metadynamic.Crn.probalist">
-    
-  </a>
-  <a name="probalist">
-    
-  </a>
-  <div class="functionHeader">
-    probalist =
-  </div>
-  <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
-  </div>
-</div><div class="baseinstancevariable">
-  
-  <a name="metadynamic.Crn.comp_collect">
-    
-  </a>
-  <a name="comp_collect">
-    
-  </a>
-  <div class="functionHeader">
-    comp_collect =
-  </div>
-  <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
-  </div>
-</div><div class="baseinstancevariable">
-  
-  <a name="metadynamic.Crn.reac_collect">
-    
-  </a>
-  <a name="reac_collect">
-    
-  </a>
-  <div class="functionHeader">
-    reac_collect =
-  </div>
-  <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
   </div>
 </div><div class="basemethod">
   
@@ -352,7 +352,7 @@
   <div class="docstring functionBody">
     
     
-    <div><p>Perform a stochastic step.</p><p>A reaction is chosen following Gillespies algorithm, then processed. The resulting timestep is returned</p><p>:return: timestep :rtype: float</p></div>
+    <div><p>Perform a stochastic step.</p><p>A reaction is chosen following Gillespies algorithm, then processed. The resulting timestep is returned</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">timestep (type: float)</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -371,7 +371,7 @@
   <div class="docstring functionBody">
     
     
-    <div><p>Add Reaction 'reac' to the update list</p><p>:param reac: reaction to be updated :type reac: Reaction</p></div>
+    <div><p>Add Reaction 'reac' to the update list</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">reac</td><td>reaction to be updated (type: Reaction)</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -390,7 +390,7 @@
   <div class="docstring functionBody">
     
     
-    <div><p>Add Compound 'comp' to the update list, for a population variation of 'change'</p><p>:param comp: compound to be updated :type comp: Compound :param change: population change value :type change: int</p></div>
+    <div><p>Add Compound 'comp' to the update list, for a population variation of 'change'</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">comp</td><td>compound to be updated (type: Compound)</td></tr><tr><td></td><td class="fieldArg">change</td><td>population change value (type: int)</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -428,7 +428,7 @@
   <div class="docstring functionBody">
     
     
-    <div></div>
+    <div><p>Get statistics on compounds if 'collection' is set to 'compounds', else on reactions.</p><p>'prop' is the name of the property to be collected as defined in the corresponding  Collect._getprop</p><p>'weight' is the name of another property that will be used as a weight.</p><p>'method': '+' returns the weighted sum, 'm' the weighted average, 'max' the weighted max value, 'min' the weighted min value</p><p>'full': if True, the stat is performed on the full pool if False, only perform on active objects</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">collection</td><td>'compounds' or 'reactions' (type: str)</td></tr><tr><td></td><td class="fieldArg">prop</td><td>property name (type: str)</td></tr><tr><td></td><td class="fieldArg">weight</td><td>statistic weight (type: str)</td></tr><tr><td></td><td class="fieldArg">method</td><td>statistic method (type: str)</td></tr><tr><td></td><td class="fieldArg">full</td><td>perform on pool or only active? (type: bool)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">statistic value (type: float)</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -447,13 +447,13 @@
   <div class="docstring functionBody">
     
     
-    <div></div>
+    <div><p>Get statistic map on compounds if 'collection' is set to 'compounds', else on reactions.</p><p>'prop' is the name of the property to be collected as defined in the corresponding  Collect._getprop</p><p>'weight' is the name of another property that will be used as a weight.</p><p>'sort' is the name of the property used for sorting the statistics in categories.</p><p>'method': '+' returns the weighted sum, 'm' the weighted average</p><p>'full': if True, the stat is performed on the full pool if False, only perform on active objects</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">collection</td><td>'compounds' or 'reactions' (type: str)</td></tr><tr><td></td><td class="fieldArg">prop</td><td>property name (type: str)</td></tr><tr><td></td><td class="fieldArg">weight</td><td>name of weight property (type: str)</td></tr><tr><td></td><td class="fieldArg">sort</td><td>name of sort property (type: str)</td></tr><tr><td></td><td class="fieldArg">method</td><td>statistic method (type: str)</td></tr><tr><td></td><td class="fieldArg">method</td><td>statistic method (type: str)</td></tr><tr><td></td><td class="fieldArg">full</td><td>perform on full or on pool? (type: bool)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">statistic value (type: float)</td></tr></table></div>
   </div>
 </div>
 
       </div>
       <address>
-        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-10 12:01:40.
+        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-10 15:55:11.
       </address>
 
     </div>

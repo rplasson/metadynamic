@@ -42,7 +42,9 @@
       </div>
 
       <div class="moduleDocstring">
-        <div><h1>Metadynamic stochastic simulator</h1><p>Simulation of chemical systems based on Gillespie's Stochastic algorithm, with on-the-fly creation/destruction of compounds and reactions.</p><h2>Provides</h2><p>launch: function for launching a simulation from a .json parameter file, a .hdf5 result file from a previous run, with eventual additional parameters, and storing the results in a new .hdf5 file.</p><p>ResultReader: class for reading and extracting data from a .hdf5 result file.</p><p>System: class for creating, running, and directly controlling a simmulation.</p><p>Crn: class describing a Chemical Reaction Network.</p><p>LOGGER: global object for logging messages</p><p>MPI_STATUS: global object for getting information about the MPI status</p><h2>CLI interaction</h2><p>A script named 'metarun' is provided for launching a simulation from the command line.</p><p>usage: metarun [-h] [--logdir [logdir]] [--comment [comment]] [--loglevel [loglevel]] [--compress [compress]] parameters</p></div>
+        <div><h1>Metadynamic stochastic simulator</h1><p>Simulation of chemical systems based on Gillespie's Stochastic algorithm, with on-the-fly creation/destruction of compounds and reactions.</p><h2>Provides</h2><ul><li><a href="metadynamic.launcher.html#launch"><code>launch</code></a>: function for launching a simulation from a .json parameter file, a .hdf5 result file from a previous run, with eventual additional parameters, and storing the results in a new .hdf5 file.</li><li><a href="metadynamic.ResultReader.html"><code>ResultReader</code></a>: class for reading and extracting data from a .hdf5 result file.</li><li><a href="metadynamic.System.html"><code>System</code></a>: class for creating, running, and directly controlling a simmulation.</li><li><a href="metadynamic.Crn.html"><code>Crn</code></a>: class describing a Chemical Reaction Network.</li><li><a href="metadynamic.html#LOGGER"><code>LOGGER</code></a>: global object for logging messages</li><li><a href="metadynamic.html#MPI_STATUS"><code>MPI_STATUS</code></a>: global object for getting information about the MPI status</li></ul><h2>CLI interaction</h2><p>A script named 'metarun' is provided for launching a simulation from the command line.</p><p>Usage:</p><pre class="literalblock">
+    metarun [-h] [--logdir [logdir]] [--comment [comment]] [--loglevel [loglevel]] [--compress [compress]] parameters
+</pre></div>
       </div>
 
       <div id="splitTables">
@@ -52,17 +54,27 @@
     
     <td>Variable</td>
     <td><a href="metadynamic.html#__version__" class="code" data-type="Variable">__version__</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>metadynamic version number</span></td>
   </tr><tr class="class">
     
     <td>Class</td>
     <td><a href="metadynamic.System.html" class="code" data-type="Class">System</a></td>
     <td><span>Create, run and control a simulation</span></td>
-  </tr><tr class="function">
+  </tr><tr class="class">
     
-    <td>Function</td>
-    <td><a href="metadynamic.html#launch" class="code" data-type="Function">launch</a></td>
-    <td><span>Launch a metadynamic run, saves the result in a .hdf5 file, and returns a ResulReader object</span></td>
+    <td>Class</td>
+    <td><a href="metadynamic.Crn.html" class="code" data-type="Class">Crn</a></td>
+    <td><span>Chemical Reaction Network class</span></td>
+  </tr><tr class="class">
+    
+    <td>Class</td>
+    <td><a href="metadynamic.ResultReader.html" class="code" data-type="Class">ResultReader</a></td>
+    <td><span>Interface for a hdf5 result file</span></td>
+  </tr><tr class="variable">
+    
+    <td>Variable</td>
+    <td><a href="metadynamic.html#LOGGER" class="code" data-type="Variable">LOGGER</a></td>
+    <td><span>global object for logging messages</span></td>
   </tr><tr class="variable">
     
     <td>Variable</td>
@@ -72,7 +84,7 @@
     
     <td>Variable</td>
     <td><a href="metadynamic.html#__all__" class="code" data-type="Variable">__all__</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>To be imported by 'from metadynamic import *'</span></td>
   </tr>
 </table>
         
@@ -94,26 +106,21 @@
     __version__ =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>str</code>)
+    <div><p>metadynamic version number</p></div> (type: <code>str</code>)
   </div>
-</div><div class="basefunction">
+</div><div class="basevariable">
   
-  <a name="metadynamic.launch">
+  <a name="metadynamic.LOGGER">
     
   </a>
-  <a name="launch">
+  <a name="LOGGER">
     
   </a>
   <div class="functionHeader">
-    
-    def
-    launch(parameters, **kwd):
-    
+    LOGGER =
   </div>
-  <div class="docstring functionBody">
-    
-    
-    <div><p>Launch a metadynamic run, saves the result in a .hdf5 file, and returns a ResulReader object</p><p>It can be launched either form a .json Param file or from a previous .hdf5 result file.</p><p>:param parameters: name of the parameter file (.json or .hdf5) :type parameters: str :param **kwd: additional parameters (override the one defined in parameters file) :return: Interface object to the generated .hdf5 file. :rtype: ResultReader</p></div>
+  <div class="functionBody">
+    <div><p>global object for logging messages</p></div>
   </div>
 </div><div class="basevariable">
   
@@ -141,13 +148,13 @@
     __all__ =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>List[str]</code>)
+    <div><p>To be imported by 'from metadynamic import *'</p></div> (type: <code>List[str]</code>)
   </div>
 </div>
 
       </div>
       <address>
-        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-10 12:02:37.
+        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-10 15:55:11.
       </address>
 
     </div>

@@ -67,47 +67,47 @@
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.System.html#initialized" class="code" data-type="Instance Variable">initialized</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Initialized flag</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.System.html#param" class="code" data-type="Instance Variable">param</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>run parameters</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.System.html#output" class="code" data-type="Instance Variable">output</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Access to output files and folders</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.System.html#writer" class="code" data-type="Instance Variable">writer</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Writer to HDF5 file.</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.System.html#signcatch" class="code" data-type="Instance Variable">signcatch</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Signal catcher for dealing with system interruptions</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.System.html#status" class="code" data-type="Instance Variable">status</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Interface to run status</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.System.html#comment" class="code" data-type="Instance Variable">comment</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>run comment</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.System.html#crn" class="code" data-type="Instance Variable">crn</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Chemical Reaction Network</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.System.html#statistic" class="code" data-type="Instance Variable">statistic</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>interface to run statistics</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
@@ -159,7 +159,7 @@
   <div class="docstring functionBody">
     
     
-    <div><p>Create a System object from a Param json file</p><p>Additional parameters can be passed, they will override the one defined in the json file.</p><p>:param filename: Name of the Param json file :type filename: str :param **kwd: Additional parameters :return: newly created System object :rtype: System</p></div>
+    <div><p>Create a System object from a Param json file</p><p>Additional parameters can be passed, they will override the one defined in the json file.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">filename</td><td>Name of the Param json file (type: str)</td></tr><tr><td></td><td class="fieldArg">**kwd</td><td>Additional parameters</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">newly created System object (type: System)</td></tr></table></div>
   </div>
 </div><div class="baseclassmethod">
   
@@ -178,7 +178,7 @@
   <div class="docstring functionBody">
     
     
-    <div><p>Create a System object from a result hdf5 file</p><p>Additional parameters can be passed, they will override the one defined in the hdf5 file.</p><p>if a 'snapnum' is provided, initial conditions will be set from the recorded snapshot as saved by the corresponding thread number at the corresponding 'snapstep' (defaulting to the final snapshot)</p><p>:param filename: Name of the Param json file :type filename: str :param snapnum: snapshot number to start from (Default value = invalindint) :type snapnum: int :param snapstep: snapshot step to start from (Default value = -1) :type snapstep: int :param **kwd: Additional parameters :return: newly created System object :rtype: System</p></div>
+    <div><p>Create a System object from a result hdf5 file</p><p>Additional parameters can be passed, they will override the one defined in the hdf5 file.</p><p>if a 'snapnum' is provided, initial conditions will be set from the recorded snapshot as saved by the corresponding thread number at the corresponding 'snapstep' (defaulting to the final snapshot)</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">filename</td><td>Name of the Param json file (type: str)</td></tr><tr><td></td><td class="fieldArg">snapnum</td><td>snapshot number to start from (Default value = invalindint) (type: int)</td></tr><tr><td></td><td class="fieldArg">snapstep</td><td>snapshot step to start from (Default value = -1) (type: int)</td></tr><tr><td></td><td class="fieldArg">**kwd</td><td>Additional parameters</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">newly created System object (type: System)</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -197,7 +197,7 @@
   <div class="docstring functionBody">
     
     
-    <div><p>Create a System from parameters 'param'</p><p>:param param: parameters :type param: Param</p></div>
+    <div><p>Create a System from parameters 'param'</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">param</td><td>parameters (type: Param)</td></tr></table></div>
   </div>
 </div><div class="baseinstancevariable">
   
@@ -211,7 +211,7 @@
     initialized =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>bool</code>)
+    <div><p>Initialized flag</p></div> (type: <code>bool</code>)
   </div>
 </div><div class="baseinstancevariable">
   
@@ -225,7 +225,7 @@
     param =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>Param</code>)
+    <div><p>run parameters</p></div> (type: <code>Param</code>)
   </div>
 </div><div class="baseinstancevariable">
   
@@ -239,7 +239,7 @@
     output =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>Output</code>)
+    <div><p>Access to output files and folders</p></div> (type: <code>Output</code>)
   </div>
 </div><div class="baseinstancevariable">
   
@@ -253,7 +253,7 @@
     writer =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>ResultWriter</code>)
+    <div><p>Writer to HDF5 file.</p></div> (type: <code>ResultWriter</code>)
   </div>
 </div><div class="baseinstancevariable">
   
@@ -267,7 +267,7 @@
     signcatch =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>SignalCatcher</code>)
+    <div><p>Signal catcher for dealing with system interruptions</p></div> (type: <code>SignalCatcher</code>)
   </div>
 </div><div class="baseinstancevariable">
   
@@ -281,7 +281,7 @@
     status =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>RunStatus</code>)
+    <div><p>Interface to run status</p></div> (type: <code>RunStatus</code>)
   </div>
 </div><div class="baseinstancevariable">
   
@@ -295,7 +295,35 @@
     comment =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>run comment</p></div>
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.System.crn">
+    
+  </a>
+  <a name="crn">
+    
+  </a>
+  <div class="functionHeader">
+    crn =
+  </div>
+  <div class="functionBody">
+    <div><p>Chemical Reaction Network</p></div>
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.System.statistic">
+    
+  </a>
+  <a name="statistic">
+    
+  </a>
+  <div class="functionHeader">
+    statistic =
+  </div>
+  <div class="functionBody">
+    <div><p>interface to run statistics</p></div>
   </div>
 </div><div class="basemethod private">
   
@@ -316,34 +344,6 @@
     
     <div><p>Initialize the system before starting the run</p><p>A double initialization will raise an InternalError. Intended to be launched from self.run, not manually</p></div>
   </div>
-</div><div class="baseinstancevariable">
-  
-  <a name="metadynamic.System.crn">
-    
-  </a>
-  <a name="crn">
-    
-  </a>
-  <div class="functionHeader">
-    crn =
-  </div>
-  <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
-  </div>
-</div><div class="baseinstancevariable">
-  
-  <a name="metadynamic.System.statistic">
-    
-  </a>
-  <a name="statistic">
-    
-  </a>
-  <div class="functionHeader">
-    statistic =
-  </div>
-  <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
-  </div>
 </div><div class="basemethod private">
   
   <a name="metadynamic.System._release">
@@ -361,7 +361,7 @@
   <div class="docstring functionBody">
     
     
-    <div><p>Clean data before run ending</p><p>A double release will raise an InternalError. Intended to be launched from self.run, not manually</p><p>:param end: ending message :type end: Finished :param fullrelease: if true, also clean memory (Default value = True) :type fullrelease: bool :return: end message :rtype: str</p></div>
+    <div><p>Clean data before run ending</p><p>A double release will raise an InternalError. Intended to be launched from self.run, not manually</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">end</td><td>ending message (type: Finished)</td></tr><tr><td></td><td class="fieldArg">fullrelease</td><td>if true, also clean memory (Default value = True) (type: bool)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">end message (type: str)</td></tr></table></div>
   </div>
 </div><div class="basemethod private">
   
@@ -399,7 +399,7 @@
   <div class="docstring functionBody">
     
     
-    <div><p>Launch a run.</p><p>The final state can be kept by setting 'release' to false (useful for run directly launched from the command line for further direct data manipulation). It is by default released in order to release memory as soon as a run is finished during batch runs.</p><p>:param release: Shall the final state be released at run end :type release: bool :return: end message :rtype: str</p></div>
+    <div><p>Launch a run.</p><p>The final state can be kept by setting 'release' to false (useful for run directly launched from the command line for further direct data manipulation). It is by default released in order to release memory as soon as a run is finished during batch runs.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">release</td><td>Shall the final state be released at run end (type: bool)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">end message (type: str)</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -424,7 +424,7 @@
 
       </div>
       <address>
-        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-10 12:02:37.
+        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-10 15:55:11.
       </address>
 
     </div>

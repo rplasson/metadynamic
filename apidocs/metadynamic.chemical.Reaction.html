@@ -42,11 +42,11 @@
       </div>
 
       <div class="moduleDocstring">
-        <div><p>Chemical describing a specific reaction</p></div>
+        <div><p><a href="metadynamic.chemical.Chemical.html"><code>Chemical</code></a> describing a specific reaction</p></div>
       </div>
 
       <div id="splitTables">
-        <table class="children sortable" id="id13">
+        <table class="children sortable" id="id15">
   
   <tr class="method">
     
@@ -57,37 +57,42 @@
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.chemical.Reaction.html#name" class="code" data-type="Instance Variable">name</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Reaction name</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.chemical.Reaction.html#proba" class="code" data-type="Instance Variable">proba</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Reaction probability</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.chemical.Reaction.html#stoechio" class="code" data-type="Instance Variable">stoechio</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Reactants stoechiometry</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.chemical.Reaction.html#products" class="code" data-type="Instance Variable">products</a></td>
+    <td><span>Products stoechiometry</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.chemical.Reaction.html#const" class="code" data-type="Instance Variable">const</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Kinetic constant</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.chemical.Reaction.html#tobeinitialized" class="code" data-type="Instance Variable">tobeinitialized</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Initialization flag</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.chemical.Reaction.html#proba_pos" class="code" data-type="Instance Variable">proba_pos</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Probability position in probalist</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.chemical.Reaction.html#registered" class="code" data-type="Instance Variable">registered</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>registered flag</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
@@ -98,11 +103,6 @@
     <td>Method</td>
     <td><a href="metadynamic.chemical.Reaction.html#process" class="code" data-type="Method">process</a></td>
     <td><span>Process the reaction, i.e decrement the reactants, increment the products</span></td>
-  </tr><tr class="instancevariable">
-    
-    <td>Instance Variable</td>
-    <td><a href="metadynamic.chemical.Reaction.html#products" class="code" data-type="Instance Variable">products</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
@@ -217,7 +217,7 @@
   <div class="docstring functionBody">
     
     
-    <div><p>Create the reaction from its 'description', to be linked to the parent 'crn'</p><p>The description is of complex type. This object is intended to be built from the description created by Ruleset.get_related, not manually.</p><p>The description can be decomposed as a tuple of:</p><ul><li>str: the reaction type (rule name)</li><li>Tuple[str, ...]: the list of reactant names</li><li>int: the reaction variant number (when several reactions can be built from the same set of reactants, e.g. a+b-&gt; ab and a+b-&gt; ba)</li></ul><p>:param description: object description :type description: Tuple[str, Tuple[str,...], int] :param crn: parent chemical reaction network :type crn: Crn</p></div>
+    <div><p>Create the reaction from its 'description', to be linked to the parent 'crn'</p><p>The description is of complex type. This object is intended to be built from the description created by Ruleset.get_related, not manually.</p><p>The description can be decomposed as a tuple of:</p><ul><li>str: the reaction type (rule name)</li><li>Tuple[str, ...]: the list of reactant names</li><li>int: the reaction variant number (when several reactions can be built from the same set of reactants, e.g. a+b-&gt; ab and a+b-&gt; ba)</li></ul><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">description</td><td>object description (type: Tuple[str, Tuple[str,...], int])</td></tr><tr><td></td><td class="fieldArg">crn</td><td>parent chemical reaction network (type: Crn)</td></tr></table></div>
   </div>
 </div><div class="baseinstancevariable">
   
@@ -231,7 +231,7 @@
     name =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>Reaction name</p></div>
   </div>
 </div><div class="baseinstancevariable">
   
@@ -245,7 +245,7 @@
     proba =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>Reaction probability</p></div>
   </div>
 </div><div class="baseinstancevariable">
   
@@ -259,7 +259,21 @@
     stoechio =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>List[Tuple[Compound, int]]</code>)
+    <div><p>Reactants stoechiometry</p></div> (type: <code>List</code>)
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.chemical.Reaction.products">
+    
+  </a>
+  <a name="products">
+    
+  </a>
+  <div class="functionHeader">
+    products =
+  </div>
+  <div class="functionBody">
+    <div><p>Products stoechiometry</p></div>
   </div>
 </div><div class="baseinstancevariable">
   
@@ -273,7 +287,7 @@
     const =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>Kinetic constant</p></div>
   </div>
 </div><div class="baseinstancevariable">
   
@@ -287,7 +301,35 @@
     tobeinitialized =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>bool</code>)
+    <div><p>Initialization flag</p></div> (type: <code>bool</code>)
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.chemical.Reaction.proba_pos">
+    
+  </a>
+  <a name="proba_pos">
+    
+  </a>
+  <div class="functionHeader">
+    proba_pos =
+  </div>
+  <div class="functionBody">
+    <div><p>Probability position in probalist</p></div>
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.chemical.Reaction.registered">
+    
+  </a>
+  <a name="registered">
+    
+  </a>
+  <div class="functionHeader">
+    registered =
+  </div>
+  <div class="functionBody">
+    <div><p>registered flag</p></div> (type: <code>bool</code>)
   </div>
 </div><div class="basemethod private">
   
@@ -307,34 +349,6 @@
     
     
     <div><p>Set the reaction as unregistered to the list of probabilities</p></div>
-  </div>
-</div><div class="baseinstancevariable">
-  
-  <a name="metadynamic.chemical.Reaction.proba_pos">
-    
-  </a>
-  <a name="proba_pos">
-    
-  </a>
-  <div class="functionHeader">
-    proba_pos =
-  </div>
-  <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
-  </div>
-</div><div class="baseinstancevariable">
-  
-  <a name="metadynamic.chemical.Reaction.registered">
-    
-  </a>
-  <a name="registered">
-    
-  </a>
-  <div class="functionHeader">
-    registered =
-  </div>
-  <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>bool</code>)
   </div>
 </div><div class="basemethod private">
   
@@ -391,7 +405,7 @@
   <div class="docstring functionBody">
     
     
-    <div><p>Update the reaction: update its probability, and depending on the result, activate or delete it if needed.</p><p>The parameter change is unused and kept for compatibility with other Chemical objects</p><p>The change is computed from probability updating via self.updateproba()</p><p>:param change: unused (Default value = 0) :type change: int</p></div>
+    <div><p>Update the reaction: update its probability, and depending on the result, activate or delete it if needed.</p><p>The parameter change is unused and kept for compatibility with other Chemical objects</p><p>The change is computed from probability updating via self.updateproba()</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">change</td><td>unused (Default value = 0) (type: int)</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -411,20 +425,6 @@
     
     
     <div><p>Process the reaction, i.e decrement the reactants, increment the products</p><p>The products are created here (if not created yet by other reactions) at the first processing of the reaction if robust, or at each processing if not robust.</p><p>Computation can end here if the process results in reaching a 0 total probability (i.e. led to destroy the last reactant of the CRN), raising 'NoMore'</p></div>
-  </div>
-</div><div class="baseinstancevariable">
-  
-  <a name="metadynamic.chemical.Reaction.products">
-    
-  </a>
-  <a name="products">
-    
-  </a>
-  <div class="functionHeader">
-    products =
-  </div>
-  <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
   </div>
 </div><div class="baseinstancevariable private">
   
@@ -457,7 +457,7 @@
   <div class="docstring functionBody">
     
     
-    <div><p>Compute stochastic product or order 'n', i.e. pop×(pop-1)×...×(pop-n+1)</p><p>:param pop: population :type pop: int :param order: stochastic order :type order: int</p></div>
+    <div><p>Compute stochastic product or order 'n', i.e. pop×(pop-1)×...×(pop-n+1)</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">pop</td><td>population (type: int)</td></tr><tr><td></td><td class="fieldArg">order</td><td>stochastic order (type: int)</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -514,7 +514,7 @@
   <div class="docstring functionBody">
     
     
-    <div><p>Returns the constant and probability of the reaction.</p><p>Used for saving the reaction during snapshots.</p><p>**** define in Chemical ? ***</p></div>
+    <div><p>Returns the constant and probability of the reaction.</p><p>Used for saving the reaction during snapshots.</p></div>
   </div>
 </div><div class="basestaticmethod private">
   
@@ -533,7 +533,7 @@
   <div class="docstring functionBody">
     
     
-    <div><p>Transform an iterable of the form, e.g.: [('a',1), ('b',2)] as "a+2b"</p><p>Used for converting the reaction to a string</p><p>:param stoechio: List of compound names or description with their stoechiometry number :type stoechio: Iterable[Tuple[Any, int]]</p></div>
+    <div><p>Transform an iterable of the form, e.g.: [('a',1), ('b',2)] as "a+2b"</p><p>Used for converting the reaction to a string</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">stoechio</td><td>List of compound names or description with their stoechiometry number (type: Iterable[Tuple[Any, int]])</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -558,7 +558,7 @@
 
       </div>
       <address>
-        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-10 12:02:37.
+        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-10 15:55:11.
       </address>
 
     </div>
