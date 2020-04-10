@@ -502,7 +502,7 @@ class System:
         """Writer to HDF5 file."""
         self.writer.init_log(self.param.maxlog)
         LOGGER.setlevel(self.param.loglevel)
-        LOGGER.settxt(self.output.logfile)
+        LOGGER.connect(self.output.logfile)
         LOGGER.setsaver(self.writer)
         LOGGER.timeformat = self.param.timeformat
         self.signcatch: SignalCatcher = SignalCatcher()
