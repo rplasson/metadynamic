@@ -28,11 +28,11 @@ Simulation interface
 Provides
 --------
 
-RunStatus: class for controlling the status of a simulation
+RunStatus: class for controlling the status of a simulation (time, step, memory)
 
 Statistic: class for computing, getting and saving statistics on a simulation
 
-System: class for creating, running, and directly controlling a simmulation.
+System: class for creating, running, and directly controlling a simulation.
 
 """
 
@@ -68,7 +68,7 @@ from metadynamic.inval import isvalid, invalidint
 
 
 class RunStatus:
-    """Control the status of a simulation"""
+    """Control the status of a simulation (time, step, memory)"""
 
     infonames = ["thread", "ptime", "memuse", "step", "dstep", "time"]
 
@@ -125,7 +125,9 @@ class RunStatus:
 
     def logstat(self) -> None:
         """Log (at INFO level) run information"""
-        LOGGER.info(f"#{self.step}'{self.dstep}'': {self.time} -> {self.tnext}  <{int(self.memuse)}Mb>")
+        LOGGER.info(
+            f"#{self.step}'{self.dstep}'': {self.time} -> {self.tnext}  <{int(self.memuse)}Mb>"
+        )
 
     def inc(self, dt: float) -> None:
         """
@@ -192,6 +194,8 @@ class RunStatus:
 
 
 class Statistic:
+    """Compute, get and save statustics on a simulation run"""
+
     def __init__(
         self,
         crn: Crn,
@@ -200,6 +204,20 @@ class Statistic:
         status: RunStatus,
         comment: str,
     ):
+        """
+        Create the statistic object from:
+
+        :param crn: chemical reaction network of the simulation
+        :type crn: Crn
+        :param writer: writer to the .hdf5 result file
+        :type writer: ResultWriter
+        :param param: run parameters
+        :type param: Param
+        :param status: run status
+        :type status: RunStatus
+        :param comment: Comment string describing the run
+        :type comment: str
+        """
         self.crn: Crn = crn
         self.writer: ResultWriter = writer
         self.param: Param = param
@@ -222,6 +240,13 @@ class Statistic:
         self.comment = comment
 
     def conc_of(self, compound: str) -> float:
+        """Get the concentration of a given compound
+
+        :param compound: compound name
+        :type compound: str
+        :return: concentration value
+        :rtype: float
+        """
         try:
             return self.crn.comp_collect.active[compound].pop / self.param.vol
         except KeyError:  # compounds doesn't exist => conc=0
@@ -229,9 +254,11 @@ class Statistic:
 
     @property
     def concentrations(self) -> List[float]:
+        "List of concentrations of compounds to be saved"
         return [self.conc_of(comp) for comp in self.param.save]
 
     def startwriter(self) -> None:
+        "Initialize the hdf5 writer"
         self.writer.init_stat(
             datanames=self.lines,
             mapnames=self.mapnames,
@@ -242,6 +269,7 @@ class Statistic:
         )
 
     def writestat(self) -> None:
+        "Write general statistics at present time to hdf5"
         res = (
             self.status.info
             + self.concentrations
@@ -260,6 +288,7 @@ class Statistic:
         LOGGER.debug(str(res))
 
     def calcmap(self) -> None:
+        """Calculate map statistics at present time, saved in self.mapdict"""
         for name, maps in self.param.mapsparam.items():
             collmap = self.crn.collmap(
                 collection=maps.collection,
@@ -281,6 +310,7 @@ class Statistic:
                     ]
 
     def writemap(self) -> None:
+        """Write all previously calculated map statistics to hdf5"""
         for name in self.mapnames:
             # correct sizes
             categories = MPI_STATUS.sortlist(list(self.mapdict[name].keys()))
@@ -289,6 +319,13 @@ class Statistic:
             self.writer.add_map(name, self.mapdict[name])
 
     def calcsnapshot(self, final: bool = False) -> None:
+        """Snapshot the CRN at present time, if time reached tsnapshot
+        or if it is the final snapshot.
+        Saved for later writing in hdf5.
+
+        :param final: True if this is the last snapshot
+        :type final: bool
+        """
         if not final:
             if self.status.tnext < self.tsnapshot:
                 return None
@@ -305,6 +342,7 @@ class Statistic:
         self._nbreac = max(self._nbreac, nbreac)
 
     def writesnap(self) -> None:
+        """Write all previous snapshots to hdf5"""
         # Correct snapshot sizes
         nbsnap = MPI_STATUS.max(self._nbsnap)
         nbcomp = MPI_STATUS.max(self._nbcomp)
@@ -318,11 +356,17 @@ class Statistic:
             self.writer.add_snapshot(comp, reac, col, time)
 
     def calc(self) -> None:
+        """Calculate all statistics: stat, map and snapshots"""
         self.writestat()
         self.calcmap()
         self.calcsnapshot()
 
     def end(self, the_end: Finished) -> None:
+        """Write ending message to hdf5
+
+        :param the_end: ending message
+        :type the_end: Finished
+        """
         self.writer.add_end(the_end, LOGGER.runtime)
         if isinstance(the_end, HappyEnding):
             LOGGER.info(str(the_end))
@@ -332,14 +376,17 @@ class Statistic:
             LOGGER.warning(str(the_end))
 
     def close_log(self) -> None:
+        """Stop logging to hdf5"""
         cutline = MPI_STATUS.max(self.writer.logcount[MPI_STATUS.rank])
         self.writer.close_log(cutline)
 
     def data_recut(self) -> None:
+        """Remove unneccessary blank lines from hdf5 datasets"""
         maxcol = MPI_STATUS.max(self.writer.currentcol)
         self.writer.data_resize(maxcol)
 
     def close(self) -> None:
+        """Write all remaining data  in hdf5 file, clean it, then close it"""
         LOGGER.info(f"File {self.writer.filename} to be written and closed...")
         self.writesnap()
         self.writemap()
@@ -358,11 +405,7 @@ class System:
 
     @classmethod
     def fromhdf5(
-        cls,
-        filename: str,
-        snapnum: int = invalidint,
-        snapstep: int = -1,
-        **kwd: Any,
+        cls, filename: str, snapnum: int = invalidint, snapstep: int = -1, **kwd: Any,
     ) -> "System":
         res = ResultReader(filename)
         param = res.parameters
