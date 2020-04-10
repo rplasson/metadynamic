@@ -46,7 +46,9 @@ from metadynamic.chemical import Crn
 
 
 comp_cast: Callable[[Any], Dict[str, int]] = Caster(Dict[str, int])
+"""Caster to a compound field"""
 reac_cast: Callable[[Any], Dict[str, List[float]]] = Caster(Dict[str, List[float]])
+"""Caster to a reaction field"""
 
 
 class ResultReader:
@@ -56,28 +58,47 @@ class ResultReader:
         """
         Create a reader connected to a .hdf5 result file
 
-        :param filename: name of the .hdf5 file
-        :type filename: str
+        @param filename: name of the .hdf5 file
+        @type filename: str
         """
-        self.filename = filename
+        self.filename: str = filename
+        """name of HDF5 file"""
         self.h5file: File = File(filename, "r")
+        """HDF5 file"""
         self.run: Group = self.h5file["Run"]
+        """'Run' group"""
         self.params: Group = self.h5file["Parameters"]
+        """'Parameters' group"""
         self.dataset: Group = self.h5file["Dataset"]
+        """'Dataset' group"""
         self.datanames: List[str] = list(self.dataset.attrs["datanames"])
+        """list of data names"""
         self.data: Dataset = self.dataset["results"]
+        """'Dataset/results' dataset"""
         self.end: Dataset = self.dataset["end"]
+        """'Dataset/end' dataset"""
         self.snapshots: Group = self.h5file["Snapshots"]
+        """'Snapshots' group"""
         self.timesnap: Dataset = self.snapshots["time"]
+        """'Dataset/time' dataset"""
         self.compsnap: Dataset = self.snapshots["compounds"]
+        """'Dataset/compounds' dataset"""
         self.reacsnap: Dataset = self.snapshots["reactions"]
+        """'Dataset/reactions' dataset"""
         self.reacsnapsave: Dataset = self.snapshots["reactions_saved"]
+        """'Dataset/reactions_saved' dataset"""
         self.maps: Group = self.h5file["Maps"]
-        self.mapnames = list(self.maps.keys())
+        """'Maps' group"""
+        self.mapnames: List[str] = list(self.maps.keys())
+        """list of map names"""
         self.logging: Group = self.h5file["Logging"]
+        """'Logging' group"""
         self.logcount: Dataset = self.logging["count"]
+        """'Logging/count' dataset"""
         self.logs: Dataset = self.logging["logs"]
-        self.size = self.run.attrs["threads"]
+        """'Logging/logs' dataset"""
+        self.size: int = self.run.attrs["threads"]
+        """number of threads"""
 
     def __getitem__(self, field: str) -> np.ndarray:
         """
@@ -96,10 +117,10 @@ class ResultReader:
         Return the index number of the given field name.
         Valid fields are listed in self.datanames
 
-        :param field: Name of the field
-        :type field: str
-        :return: field index number
-        :rtype: int
+        @param field: Name of the field
+        @type field: str
+        @return: field index number
+        @rtype: int
         """
         try:
             return self.datanames.index(field)
@@ -125,14 +146,14 @@ class ResultReader:
 
         If meanlength is set, a running mean of the corresponding length is returned.
 
-        :param field: data field  (Default value = invalidstr)
-        :type field: str
-        :param method: method for processing data over processes  (Default value = 'm')
-        :type method: str
-        :param meanlength: running mean length  (Default value = invalidint)
-        :type method: int
-        :return: the processed set of data
-        :rtype: ndarray
+        @param field: data field  (Default value = invalidstr)
+        @type field: str
+        @param method: method for processing data over processes  (Default value = 'm')
+        @type method: str
+        @param meanlength: running mean length  (Default value = invalidint)
+        @type method: int
+        @return: the processed set of data
+        @rtype: ndarray
         """
         loc = self._loc(field) if isvalid(field) else slice(None, None, None)
         if method == "*":
@@ -177,14 +198,14 @@ class ResultReader:
 
         If meanlength is set, a running mean of the corresponding length is returned.
 
-        :param field: data field  (Default value = invalidstr)
-        :type field: str
-        :param method: method for processing data over processes  (Default value = 'm')
-        :type method: str
-        :param meanlength: running mean length  (Default value = invalidint)
-        :type meanlength: int
-        :return: the processed set of data
-        :rtype: ndarray
+        @param field: data field  (Default value = invalidstr)
+        @type field: str
+        @param method: method for processing data over processes  (Default value = 'm')
+        @type method: str
+        @param meanlength: running mean length  (Default value = invalidint)
+        @type meanlength: int
+        @return: the processed set of data
+        @rtype: ndarray
         """
         try:
             data = self.maps[field][:, :, 1:]
@@ -218,10 +239,10 @@ class ResultReader:
         Generate a Chemical Reaction Network from a dictionnary
         as {compound_name : population}
 
-        :param comp: compounds and population
-        :type comp: Dict[str: int]
-        :return: the corresponding CRN
-        :rtype: Crn
+        @param comp: compounds and population
+        @type comp: Dict[str: int]
+        @return: the corresponding CRN
+        @rtype: Crn
         """
         param = self.parameters
         param.set_param(init=comp)
@@ -232,12 +253,12 @@ class ResultReader:
         Return the compounds snapshots saved by thread 'num'
         at step 'step'
 
-        :param num: thread number
-        :type num: int
-        :param step: step number
-        :type step: int
-        :return: the snapshot as a dictionnary {compound name: population}
-        :rtype: Dict[str, int]
+        @param num: thread number
+        @type num: int
+        @param step: step number
+        @type step: int
+        @return: the snapshot as a dictionnary {compound name: population}
+        @rtype: Dict[str, int]
         """
         comp = comp_cast(self.compsnap[num, step])
         if "" in comp:
@@ -250,13 +271,13 @@ class ResultReader:
         following the format as described in 'parameterfile'
         that should point to a file readable as a DotParam json file.
 
-        :param num: thread number
-        :type num: int
-        :param step: step number
-        :type step: int
-        :param parameterfile: filename of a Dotparam json file  (Default value = "")
-        :return: the full snapshot as a graphviz object
-        :rtype: Digraph
+        @param num: thread number
+        @type num: int
+        @param step: step number
+        @type step: int
+        @param parameterfile: filename of a Dotparam json file  (Default value = "")
+        @return: the full snapshot as a graphviz object
+        @rtype: Digraph
         """
         comp = self.getsnap_comp(num, step)
         if self.reacsnapsave[num, step]:
@@ -274,10 +295,10 @@ class ResultReader:
         Get the list of available categories for th given 'field'
         Valid fields are listed in self.mapnames
 
-        :param field: Name of the map field.
-        :type field: str
-        :return: array of field categories
-        :rtype: ndarray
+        @param field: Name of the map field.
+        @type field: str
+        @return: array of field categories
+        @rtype: ndarray
         """
         return self.maps[field][0, :, 0]
 
@@ -285,10 +306,10 @@ class ResultReader:
         """
         Return the details of ending information sent by thread 'num
 
-        :param num: thread number
-        :type num: int
-        :return: ending number, ending message, ending time
-        :rtype: int, str, float
+        @param num: thread number
+        @type num: int
+        @return: ending number, ending message, ending time
+        @rtype: int, str, float
         """
         endnum, message, time = self.end[num]
         return endnum, message.decode(), time
@@ -297,10 +318,10 @@ class ResultReader:
         """
         Return formatted ending information sent by thread 'num
 
-        :param num: thread number
-        :type num: int
-        :return: formatted ending information
-        :rtype: str
+        @param num: thread number
+        @type num: int
+        @return: formatted ending information
+        @rtype: str
         """
         endnum, message, time = self.ending(num)
         return f"#{num}: ending n°{endnum} at runtime t={time}s; {message}"
@@ -317,14 +338,14 @@ class ResultReader:
 
         'method' and 'meanlength' parameters are as defined in getmap and get methods.
 
-        :param maps: map field name  (Default value = invalidstr)
-        :type maps:
-        :param method: method for processing data over processes  (Default value = 'm')
-        :type method: str
-        :param meanlength: running mean length  (Default value = invalidint)
-        :type meanlength: int
-        :return: the processed set of data
-        :rtype: DataFrame
+        @param maps: map field name  (Default value = invalidstr)
+        @type maps:
+        @param method: method for processing data over processes  (Default value = 'm')
+        @type method: str
+        @param meanlength: running mean length  (Default value = invalidint)
+        @type meanlength: int
+        @return: the processed set of data
+        @rtype: DataFrame
         """
         if isvalid(maps):
             data = self.getmap(field=maps, method=method, meanlength=meanlength)
@@ -351,18 +372,18 @@ class ResultReader:
         'method', 'methodx' and 'meanlength' parameters
         are as defined in get method.
 
-        :param y: field name for y  (Default value = "ptime")
-        :type y: str
-        :param x: field name for x  (Default value = "time")
-        :type x: str
-        :param method: method for processing y  (Default value = 'm')
-        :type method: str
-        :param xmethod: method for processing x  (Default value = 'm')
-        :type xmethod: str
-        :param meanlength: running mean length  (Default value = invalidint)
-        :type meanlength: int
-        :return: two 1D data arrays for x and y
-        :rtype: ndarray, ndarray
+        @param y: field name for y  (Default value = "ptime")
+        @type y: str
+        @param x: field name for x  (Default value = "time")
+        @type x: str
+        @param method: method for processing y  (Default value = 'm')
+        @type method: str
+        @param xmethod: method for processing x  (Default value = 'm')
+        @type xmethod: str
+        @param meanlength: running mean length  (Default value = invalidint)
+        @type meanlength: int
+        @return: two 1D data arrays for x and y
+        @rtype: ndarray, ndarray
         """
         x = self.get(field=x, method=xmethod, meanlength=meanlength)
         y = self.get(field=y, method=method, meanlength=meanlength)
@@ -384,16 +405,16 @@ class ResultReader:
 
         'methodx' and 'meanlength' parameters are as defined in get method.
 
-        :param y: field name for y  (Default value = "ptime")
-        :type y: str
-        :param x: field name for x  (Default value = "time")
-        :type x: str
-        :param xmethod: method for processing x  (Default value = 'm')
-        :type xmethod: str
-        :param meanlength: running mean length  (Default value = invalidint)
-        :type meanlength: int
-        :return: 1D data arrays for x and 2D data arrays for y
-        :rtype: ndarray, ndarray
+        @param y: field name for y  (Default value = "ptime")
+        @type y: str
+        @param x: field name for x  (Default value = "time")
+        @type x: str
+        @param xmethod: method for processing x  (Default value = 'm')
+        @type xmethod: str
+        @param meanlength: running mean length  (Default value = invalidint)
+        @type meanlength: int
+        @return: 1D data arrays for x and 2D data arrays for y
+        @rtype: ndarray, ndarray
         """
         x = self.get(field=x, method=xmethod, meanlength=meanlength)
         y = np.array(
@@ -421,16 +442,16 @@ class ResultReader:
 
         'meanlength' parameter is as defined in get method.
 
-        :param y: field name for y  (Default value = "ptime")
-        :type y: str
-        :param x: field name for x  (Default value = "time")
-        :type x: str
-        :param delta: error factor  (Default value = 1.0)
-        :type delta: float
-        :param meanlength: running mean length  (Default value = invalidint)
-        :type meanlength: int
-        :return: three 1D data arrays for x, y+err, y-err
-        :rtype: ndarray, ndarray, ndarray
+        @param y: field name for y  (Default value = "ptime")
+        @type y: str
+        @param x: field name for x  (Default value = "time")
+        @type x: str
+        @param delta: error factor  (Default value = 1.0)
+        @type delta: float
+        @param meanlength: running mean length  (Default value = invalidint)
+        @type meanlength: int
+        @return: three 1D data arrays for x, y+err, y-err
+        @rtype: ndarray, ndarray, ndarray
         """
         x = self.get(field=x, method="m", meanlength=meanlength)
         yp = self.get(field=y, method=f"+{delta}", meanlength=meanlength)
@@ -454,16 +475,16 @@ class ResultReader:
 
         'meanlength' parameter is as defined in get method.
 
-        :param y: field name for y  (Default value = "ptime")
-        :type y: str
-        :param x: field name for x  (Default value = "time")
-        :type x: str
-        :param delta: error factor  (Default value = 1.0)
-        :type delta: float
-        :param meanlength: running mean length  (Default value = invalidint)
-        :type meanlength: int
-        :return: three 1D data arrays for x, y, yerr
-        :rtype: ndarray, ndarray, ndarray
+        @param y: field name for y  (Default value = "ptime")
+        @type y: str
+        @param x: field name for x  (Default value = "time")
+        @type x: str
+        @param delta: error factor  (Default value = 1.0)
+        @type delta: float
+        @param meanlength: running mean length  (Default value = invalidint)
+        @type meanlength: int
+        @return: three 1D data arrays for x, y, yerr
+        @rtype: ndarray, ndarray, ndarray
         """
         x = self.get(field=x, method="m", meanlength=meanlength)
         y = self.get(field=y, method=f"m", meanlength=meanlength)
@@ -493,22 +514,22 @@ class ResultReader:
         NaN or infinites by custom values (e.g. 0.0 or None)
         (only works with recent versions of numpy)
 
-        :param field: map field name
-        :type param: str
-        :param method: method for processing field  (Default value = 'm')
-        :type method: str
-        :param tmethod: method for processing time  (Default value = 'm')
-        :type tmethod: str
-        :param meanlength: running mean length  (Default value = invalidint)
-        :type meanlength: int
-        :param nanval: replacement value for NaN  (Default value = 0.0)
-        :type nanval: float or None
-        :param posinf: replacement value for +inf  (Default value = None)
-        :type posinf: float or None
-        :param neginf: replacement value for -inf  (Default value = None)
-        :type neginf: float or None
-        :return: three 2D mesh data arrays for X, Y, Z
-        :rtype: ndarray, ndarray, ndarray
+        @param field: map field name
+        @type param: str
+        @param method: method for processing field  (Default value = 'm')
+        @type method: str
+        @param tmethod: method for processing time  (Default value = 'm')
+        @type tmethod: str
+        @param meanlength: running mean length  (Default value = invalidint)
+        @type meanlength: int
+        @param nanval: replacement value for NaN  (Default value = 0.0)
+        @type nanval: float or None
+        @param posinf: replacement value for +inf  (Default value = None)
+        @type posinf: float or None
+        @param neginf: replacement value for -inf  (Default value = None)
+        @type neginf: float or None
+        @return: three 2D mesh data arrays for X, Y, Z
+        @rtype: ndarray, ndarray, ndarray
         """
         time = self.get(field="time", method=tmethod, meanlength=meanlength)
         categories = self.categories(field)
@@ -532,7 +553,7 @@ class ResultReader:
         """
         Formated information of the full run
 
-        :rtype: str
+        @rtype: str
         """
         version = self.run.attrs["version"]
         hostname = self.run.attrs["hostname"]
@@ -559,7 +580,7 @@ class ResultReader:
         """
         Structured information of the full run
 
-        :rtype: dict
+        @rtype: dict
         """
         return dict(self.run.attrs)
 
@@ -568,7 +589,7 @@ class ResultReader:
         """
         Parameters used for the run
 
-        :rtype: Param
+        @rtype: Param
         """
         params = dict(self.params.attrs)
         res = params.copy()
@@ -587,7 +608,7 @@ class ResultReader:
         """
         Parameters used for setting the ruleset
 
-        :rtype: RulesetParam
+        @rtype: RulesetParam
         """
         ruleset = dict(self.params["Rules"].attrs)
         res = ruleset.copy()
@@ -608,7 +629,7 @@ class ResultReader:
         """
         Parameters used for setting the statistics
 
-        :rtype: Dict[str, StatParam]
+        @rtype: Dict[str, StatParam]
         """
         return StatParam.multipledict(
             {key: dict(val.attrs) for key, val in self.params["Stats"].items()}
@@ -619,7 +640,7 @@ class ResultReader:
         """
         Parameters used for setting the maps
 
-        :rtype: Dict[str, MapParam]
+        @rtype: Dict[str, MapParam]
         """
         return MapParam.multipledict(
             {key: dict(val.attrs) for key, val in self.params["Maps"].items()}
@@ -632,7 +653,7 @@ class ResultReader:
         fulllog[nb_thread, nb_log_message] gives a given message
         as message_level, time, runtime, message
 
-        :rtype: ndarray
+        @rtype: ndarray
         """
         # add simple system for log display/search (depending on level etc) ?
         maxcol = max(self.logcount)

@@ -18,7 +18,25 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-from os import path
+"""
+metadynamic.logger
+==================
+
+Logging facility, taking into account logging from a MPI run, and the
+possibility to save logs in a hdf5 file simultaneously to normal logging.
+
+
+Provides
+--------
+
+Timer: Simple class for tracking passed processing time from a checkpoint
+
+Log: High level class for MPI-aware logging, with log save in hdf5.
+
+LOGGER: Global Log object
+
+"""
+
 from time import process_time
 from logging import getLogger, FileHandler, StreamHandler, Handler, Logger
 from datetime import datetime
@@ -30,14 +48,20 @@ from metadynamic.mpi import MPI_STATUS
 
 
 class Timer:
+    """Simple class for tracking passed processing time from a checkpoint"""
+
     def __init__(self) -> None:
+        self._ptime0: float
+        """Checkpoint time"""
         self.reset()
 
     def reset(self) -> None:
+        """Set the checkpoint at the present time"""
         self._ptime0 = process_time()
 
     @property
     def time(self) -> float:
+        """Passed processing time from the checkpoint"""
         return process_time() - self._ptime0
 
 
@@ -125,3 +149,4 @@ class Log:
 
 
 LOGGER = Log()
+"""global object for logging messages"""
