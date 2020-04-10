@@ -27,7 +27,7 @@ Give access to data resulting from previous runs
 Provides
 --------
 
-ResultReader: class for reading and extracting data from a .hdf5 result file.
+    - L{ResultReader}: class for reading and extracting data from a .hdf5 result file.
 
 """
 
@@ -43,7 +43,6 @@ from metadynamic.inputs import StatParam, MapParam, Param, RulesetParam
 from metadynamic.caster import Caster
 from metadynamic.network import Data2dot
 from metadynamic.chemical import Crn
-
 
 comp_cast: Callable[[Any], Dict[str, int]] = Caster(Dict[str, int])
 """Caster to a compound field"""

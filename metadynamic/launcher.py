@@ -18,6 +18,22 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
+"""
+metadynamic.launcher
+====================
+
+High level interface to direct run launch
+
+
+Provides
+--------
+
+    - L{launch}: function for launching a simulation from a .json parameter file, a .hdf5 result file
+      from a previous run, with eventual additional parameters, and storing the results in a new
+      .hdf5 file.
+
+"""
+
 from metadynamic import System, ResultReader
 from os import path
 from typing import Any
@@ -31,11 +47,11 @@ def launch(parameters: str, **kwd: Any) -> ResultReader:
     It can be launched either form a .json Param file
     or from a previous .hdf5 result file.
 
-    :param parameters: name of the parameter file (.json or .hdf5)
-    :type parameters: str
-    :param **kwd: additional parameters (override the one defined in parameters file)
-    :return: Interface object to the generated .hdf5 file.
-    :rtype: ResultReader
+    @param parameters: name of the parameter file (.json or .hdf5)
+    @type parameters: str
+    @param **kwd: additional parameters (override the one defined in parameters file)
+    @return: Interface object to the generated .hdf5 file.
+    @rtype: ResultReader
     """
     ext = path.splitext(parameters)[-1]
     if ext == ".json":

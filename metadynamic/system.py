@@ -28,11 +28,11 @@ Simulation interface
 Provides
 --------
 
-RunStatus: class for controlling the status of a simulation (time, step, memory)
+ - L{RunStatus}: class for controlling the status of a simulation (time, step, memory)
 
-Statistic: class for computing, getting and saving statistics on a simulation
+ - L{Statistic}: class for computing, getting and saving statistics on a simulation
 
-System: class for creating, running, and directly controlling a simulation.
+ - L{System}: class for creating, running, and directly controlling a simulation.
 
 """
 
@@ -71,25 +71,45 @@ class RunStatus:
     """Control the status of a simulation (time, step, memory)"""
 
     infonames = ["thread", "ptime", "memuse", "step", "dstep", "time"]
+    """List of tracked information"""
 
     def __init__(self) -> None:
         self.tnext: float = 0.0
+        """next time to be reached"""
+
         self.dstep: int = 0
+        """stochatic step number"""
+
         self.step: int = 0
+        """timestep number"""
+
         self.time: float = 0.0
+        """simulated time"""
+
         self.tstep: float = 1.0
+        """timestep"""
+
         self.tend: float = 0.0
+        """final simulated time"""
+
         self.rtlim: float = 0.0
+        """maximum run time"""
+
         self.maxmem: float = 0.0
+        """maximum memory use"""
+
         self.gcperio: bool = False
+        """periodic garbage collection flag
+        (True: only GC after each time step,
+        False: regular GC process) """
 
     def initialize(self, param: Param) -> None:
         """
         First initialization of the run from the set of
         parameters 'param'
 
-        :param param: parameters
-        :type param: Param
+        @param param: parameters
+        @type param: Param
         """
         self.tnext = 0.0
         self.dstep = 0
@@ -133,8 +153,8 @@ class RunStatus:
         """
         Increment time by 'dt' and dstep by 1
 
-        :param dt: time increment
-        :type dt: float
+        @param dt: time increment
+        @type dt: float
         """
         self.time += dt
         self.dstep += 1
@@ -173,9 +193,10 @@ class RunStatus:
     def checkstep(self) -> None:
         """
         Follow a checklist before starting next step, that is:
-        - check the memory,
-        - update tnext and step,
-        - check if run ends.
+
+         - check the memory,
+         - update tnext and step,
+         - check if run ends.
         """
         self.checkmem()
         self.next_step()
@@ -207,30 +228,36 @@ class Statistic:
         """
         Create the statistic object from:
 
-        :param crn: chemical reaction network of the simulation
-        :type crn: Crn
-        :param writer: writer to the .hdf5 result file
-        :type writer: ResultWriter
-        :param param: run parameters
-        :type param: Param
-        :param status: run status
-        :type status: RunStatus
-        :param comment: Comment string describing the run
-        :type comment: str
+        @param crn: chemical reaction network of the simulation
+        @type crn: Crn
+        @param writer: writer to the .hdf5 result file
+        @type writer: ResultWriter
+        @param param: run parameters
+        @type param: Param
+        @param status: run status
+        @type status: RunStatus
+        @param comment: Comment string describing the run
+        @type comment: str
         """
         self.crn: Crn = crn
+        """Chemical Reaction Network"""
         self.writer: ResultWriter = writer
+        """Writer to HDF5 file"""
         self.param: Param = param
+        """Run  parameters"""
         self.status: RunStatus = status
+        """Run status"""
         self.statnames: List[str] = list(self.param.statparam.keys())
+        """list of statistics names"""
         self.lines: List[str] = RunStatus.infonames + self.param.save + self.statnames
+        """list of fields to be saved in HDF5 file"""
         self.mapnames: List[str] = list(self.param.mapsparam.keys())
-        self.mapdict: Dict[str, Dict[float, List[float]]] = {
+        """list of statistics map names"""
+        self._mapdict: Dict[str, Dict[float, List[float]]] = {
             name: {} for name in self.mapnames
         }
-        self.tsnapshot: float = (
-            self.param.sstep if self.param.sstep >= 0 else 2 * self.param.tend
-        )
+        self.tsnapshot: float = self.param.sstep if self.param.sstep >= 0 else 2 * self.param.tend
+        """time of next snapshot"""
         self._snaptimes: List[float] = []
         self._snapcomp: List[Dict[str, Any]] = []
         self._snapreac: List[Dict[str, Any]] = []
@@ -238,14 +265,15 @@ class Statistic:
         self._nbreac: int = 0
         self._nbsnap: int = 0
         self.comment = comment
+        """Run comment"""
 
     def conc_of(self, compound: str) -> float:
         """Get the concentration of a given compound
 
-        :param compound: compound name
-        :type compound: str
-        :return: concentration value
-        :rtype: float
+        @param compound: compound name
+        @type compound: str
+        @return: concentration value
+        @rtype: float
         """
         try:
             return self.crn.comp_collect.active[compound].pop / self.param.vol
@@ -288,7 +316,8 @@ class Statistic:
         LOGGER.debug(str(res))
 
     def calcmap(self) -> None:
-        """Calculate map statistics at present time, saved in self.mapdict"""
+        """Calculate map statistics at present time,
+        saved for later writing in hdf5"""
         for name, maps in self.param.mapsparam.items():
             collmap = self.crn.collmap(
                 collection=maps.collection,
@@ -298,14 +327,14 @@ class Statistic:
                 method=maps.method,
                 full=maps.full,
             )
-            for cat in collmap.keys() | self.mapdict[name].keys():
-                if cat in self.mapdict[name]:
+            for cat in collmap.keys() | self._mapdict[name].keys():
+                if cat in self._mapdict[name]:
                     if cat in collmap:
-                        self.mapdict[name][cat].append(collmap[cat])
+                        self._mapdict[name][cat].append(collmap[cat])
                     else:
-                        self.mapdict[name][cat].append(np.nan)
+                        self._mapdict[name][cat].append(np.nan)
                 else:
-                    self.mapdict[name][cat] = [np.nan] * self.status.step + [
+                    self._mapdict[name][cat] = [np.nan] * self.status.step + [
                         collmap[cat]
                     ]
 
@@ -313,18 +342,18 @@ class Statistic:
         """Write all previously calculated map statistics to hdf5"""
         for name in self.mapnames:
             # correct sizes
-            categories = MPI_STATUS.sortlist(list(self.mapdict[name].keys()))
+            categories = MPI_STATUS.sortlist(list(self._mapdict[name].keys()))
             self.writer.mapsize(name, categories)
             # write maps
-            self.writer.add_map(name, self.mapdict[name])
+            self.writer.add_map(name, self._mapdict[name])
 
     def calcsnapshot(self, final: bool = False) -> None:
         """Snapshot the CRN at present time, if time reached tsnapshot
         or if it is the final snapshot.
         Saved for later writing in hdf5.
 
-        :param final: True if this is the last snapshot
-        :type final: bool
+        @param final: True if this is the last snapshot
+        @type final: bool
         """
         if not final:
             if self.status.tnext < self.tsnapshot:
@@ -364,8 +393,8 @@ class Statistic:
     def end(self, the_end: Finished) -> None:
         """Write ending message to hdf5
 
-        :param the_end: ending message
-        :type the_end: Finished
+        @param the_end: ending message
+        @type the_end: Finished
         """
         self.writer.add_end(the_end, LOGGER.runtime)
         if isinstance(the_end, HappyEnding):
@@ -407,11 +436,11 @@ class System:
         Additional parameters can be passed,
         they will override the one defined in the json file.
 
-        :param filename: Name of the Param json file
-        :type filename: str
-        :param **kwd: Additional parameters
-        :return: newly created System object
-        :rtype: System
+        @param filename: Name of the Param json file
+        @type filename: str
+        @param **kwd: Additional parameters
+        @return: newly created System object
+        @rtype: System
         """
         param = Param.readfile(filename)
         param.set_param(**kwd)
@@ -431,15 +460,15 @@ class System:
         saved by the corresponding thread number at the corresponding 'snapstep' (defaulting to the
         final snapshot)
 
-        :param filename: Name of the Param json file
-        :type filename: str
-        :param snapnum: snapshot number to start from (Default value = invalindint)
-        :type snapnum: int
-        :param snapstep: snapshot step to start from (Default value = -1)
-        :type snapstep: int
-        :param **kwd: Additional parameters
-        :return: newly created System object
-        :rtype: System
+        @param filename: Name of the Param json file
+        @type filename: str
+        @param snapnum: snapshot number to start from (Default value = invalindint)
+        @type snapnum: int
+        @param snapstep: snapshot step to start from (Default value = -1)
+        @type snapstep: int
+        @param **kwd: Additional parameters
+        @return: newly created System object
+        @rtype: System
         """
         res = ResultReader(filename)
         param = res.parameters
@@ -455,28 +484,39 @@ class System:
     ):
         """Create a System from parameters 'param'
 
-        :param param: parameters
-        :type param: Param
+        @param param: parameters
+        @type param: Param
         """
         LOGGER.debug("Creating the system.")
         np.seterr(divide="ignore", invalid="ignore")
         self.initialized = False
+        """Initialized flag"""
         self.param: Param = param
+        """run parameters"""
         MPI_STATUS.init(self.param.timeformat)
         self.output: Output = Output(self.param)
+        """Access to output files and folders"""
         self.writer: ResultWriter = ResultWriter(
             self.output.h5file, self.param.maxstrlen, self.param.lengrow
         )
+        """Writer to HDF5 file."""
         self.writer.init_log(self.param.maxlog)
         LOGGER.setlevel(self.param.loglevel)
         LOGGER.settxt(self.output.logfile)
         LOGGER.setsaver(self.writer)
         LOGGER.timeformat = self.param.timeformat
         self.signcatch: SignalCatcher = SignalCatcher()
+        """Signal catcher for dealing with system interruptions"""
         self.status: RunStatus = RunStatus()
+        """Interface to run status"""
         self.comment = self.param.comment
+        """run comment"""
         MPI_GATE.init(taginit=100)
         LOGGER.info("System created")
+        self.crn: Crn
+        """Chemical Reaction Network"""
+        self.statistic: Statistic
+        """interface to run statistics"""
 
     def _initialize(self) -> None:
         """
@@ -505,12 +545,12 @@ class System:
         A double release will raise an InternalError.
         Intended to be launched from self.run, not manually
 
-        :param end: ending message
-        :type end: Finished
-        :param fullrelease: if true, also clean memory (Default value = True)
-        :type fullrelease: bool
-        :return: end message
-        :rtype: str
+        @param end: ending message
+        @type end: Finished
+        @param fullrelease: if true, also clean memory (Default value = True)
+        @type fullrelease: bool
+        @return: end message
+        @rtype: str
         """
         if self.initialized:
             self.statistic.end(end)
@@ -555,10 +595,10 @@ class System:
         from the command line for further direct data manipulation). It is by default released in
         order to release memory as soon as a run is finished during batch runs.
 
-        :param release: Shall the final state be released at run end
-        :type release: bool
-        :return: end message
-        :rtype: str
+        @param release: Shall the final state be released at run end
+        @type release: bool
+        @return: end message
+        @rtype: str
         """
         LOGGER.reset_timer()
         if MPI_STATUS.ismpi:

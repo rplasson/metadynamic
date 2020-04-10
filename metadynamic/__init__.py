@@ -18,7 +18,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-
 """
 Metadynamic stochastic simulator
 ================================
@@ -30,18 +29,19 @@ creation/destruction of compounds and reactions.
 Provides
 --------
 
-launch: function for launching a simulation from a .json parameter file, a .hdf5 result file from a
-previous run, with eventual additional parameters, and storing the results in a new .hdf5 file.
+    - L{launch}: function for launching a simulation from a .json parameter file, a .hdf5 result
+      file from a previous run, with eventual additional parameters, and storing the results in a
+      new .hdf5 file.
 
-ResultReader: class for reading and extracting data from a .hdf5 result file.
+    - L{ResultReader}: class for reading and extracting data from a .hdf5 result file.
 
-System: class for creating, running, and directly controlling a simmulation.
+    - L{System}: class for creating, running, and directly controlling a simmulation.
 
-Crn: class describing a Chemical Reaction Network.
+    - L{Crn}: class describing a Chemical Reaction Network.
 
-LOGGER: global object for logging messages
+    - L{LOGGER}: global object for logging messages
 
-MPI_STATUS: global object for getting information about the MPI status
+    - L{MPI_STATUS}: global object for getting information about the MPI status
 
 
 CLI interaction
@@ -49,7 +49,9 @@ CLI interaction
 
 A script named 'metarun' is provided for launching a simulation from the command line.
 
-usage: metarun [-h] [--logdir [logdir]] [--comment [comment]] [--loglevel [loglevel]] [--compress [compress]] parameters
+Usage::
+
+    metarun [-h] [--logdir [logdir]] [--comment [comment]] [--loglevel [loglevel]] [--compress [compress]] parameters
 
 """
 
@@ -62,8 +64,7 @@ from metadynamic.launcher import launch
 from metadynamic.logger import LOGGER
 from metadynamic.mpi import MPI_STATUS
 
-# if somebody does "from somepackage import *", this is what they will
-# be able to access:
+
 __all__ = [
     "System",
     "Crn",
@@ -73,3 +74,4 @@ __all__ = [
     "MPI_STATUS",
     "__version__",
 ]
+"""To be imported by 'from metadynamic import *'"""

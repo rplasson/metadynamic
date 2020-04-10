@@ -19,4 +19,4 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 __version__ = '1.0.rc5-dev'
-
+"""metadynamic version number"""
