@@ -397,8 +397,22 @@ class Statistic:
 
 
 class System:
+    """Create, run and control a simulation"""
+
     @classmethod
     def fromjson(cls, filename: str, **kwd: Any) -> "System":
+        """
+        Create a System object from a Param json file
+
+        Additional parameters can be passed,
+        they will override the one defined in the json file.
+
+        :param filename: Name of the Param json file
+        :type filename: str
+        :param **kwd: Additional parameters
+        :return: newly created System object
+        :rtype: System
+        """
         param = Param.readfile(filename)
         param.set_param(**kwd)
         return cls(param)
@@ -407,6 +421,26 @@ class System:
     def fromhdf5(
         cls, filename: str, snapnum: int = invalidint, snapstep: int = -1, **kwd: Any,
     ) -> "System":
+        """
+        Create a System object from a result hdf5 file
+
+        Additional parameters can be passed,
+        they will override the one defined in the hdf5 file.
+
+        if a 'snapnum' is provided, initial conditions will be set from the recorded snapshot as
+        saved by the corresponding thread number at the corresponding 'snapstep' (defaulting to the
+        final snapshot)
+
+        :param filename: Name of the Param json file
+        :type filename: str
+        :param snapnum: snapshot number to start from (Default value = invalindint)
+        :type snapnum: int
+        :param snapstep: snapshot step to start from (Default value = -1)
+        :type snapstep: int
+        :param **kwd: Additional parameters
+        :return: newly created System object
+        :rtype: System
+        """
         res = ResultReader(filename)
         param = res.parameters
         param.set_param(**kwd)
@@ -419,6 +453,11 @@ class System:
     def __init__(
         self, param: Param,
     ):
+        """Create a System from parameters 'param'
+
+        :param param: parameters
+        :type param: Param
+        """
         LOGGER.debug("Creating the system.")
         np.seterr(divide="ignore", invalid="ignore")
         self.initialized = False
@@ -439,7 +478,12 @@ class System:
         MPI_GATE.init(taginit=100)
         LOGGER.info("System created")
 
-    def initialize(self) -> None:
+    def _initialize(self) -> None:
+        """
+        Initialize the system before starting the run
+
+        A double initialization will raise an InternalError.
+        Intended to be launched from self.run, not manually"""
         if not self.initialized:
             self.signcatch.listen()
             self.status.initialize(self.param)
@@ -454,8 +498,20 @@ class System:
         else:
             raise InternalError("Attempt to initialize already initialized system!")
 
-    def release(self, end: Finished, fullrelease: bool = True) -> str:
-        """Clean data"""
+    def _release(self, end: Finished, fullrelease: bool = True) -> str:
+        """
+        Clean data before run ending
+
+        A double release will raise an InternalError.
+        Intended to be launched from self.run, not manually
+
+        :param end: ending message
+        :type end: Finished
+        :param fullrelease: if true, also clean memory (Default value = True)
+        :type fullrelease: bool
+        :return: end message
+        :rtype: str
+        """
         if self.initialized:
             self.statistic.end(end)
             self.statistic.calcsnapshot(final=True)
@@ -471,6 +527,7 @@ class System:
             raise InternalError("Attempt to release non-initialized system!")
 
     def _process(self) -> None:
+        """Perform a run step"""
         # Check if a cleanup should be done
         if self.param.autoclean:
             self.crn.clean()
@@ -491,13 +548,25 @@ class System:
             LOGGER.warning(f"maxsteps per process (={self.param.maxsteps}) too low")
 
     def run(self, release: bool = True) -> str:
+        """
+        Launch a run.
+
+        The final state can be kept by setting 'release' to false (useful for run directly launched
+        from the command line for further direct data manipulation). It is by default released in
+        order to release memory as soon as a run is finished during batch runs.
+
+        :param release: Shall the final state be released at run end
+        :type release: bool
+        :return: end message
+        :rtype: str
+        """
         LOGGER.reset_timer()
         if MPI_STATUS.ismpi:
             LOGGER.info(f"Launching MPI run from thread #{MPI_STATUS.rank}")
         else:
             LOGGER.info("Launching single run.")
         # Setup working environment
-        self.initialize()
+        self._initialize()
         # Ready, let's run
         LOGGER.info(f"Run #{MPI_STATUS.rank}={getpid()} launched")
         with MPI_GATE.launch():
@@ -516,11 +585,11 @@ class System:
                     MPI_GATE.checkpoint()
                 # exit the gate because the work is finished.
                 except Finished as the_end:
-                    end = self.release(the_end, release)
+                    end = self._release(the_end, release)
                     break
             # exit the gate because asked by collective decision.
             else:
-                end = self.release(
+                end = self._release(
                     OOMError("Stopped by kind request of OOM killer"), release
                 )
         # Write and log final data, then exit.
@@ -529,6 +598,7 @@ class System:
         return end
 
     def set_param(self, **kwd: Any) -> None:
+        """Set run parameters, overriding the previous ones"""
         try:
             self.param.set_param(**kwd)
         except LockedError:
