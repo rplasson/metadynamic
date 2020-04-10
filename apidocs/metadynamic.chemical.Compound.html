@@ -1,0 +1,412 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+          "DTD/xhtml1-strict.dtd">
+<html>
+  <head>
+    <title>metadynamic.chemical.Compound : API documentation</title>
+
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="apidocs.css" />
+  </head>
+  <body>
+
+    <nav class="navbar navbar-default">
+      <div class="container">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="index.html">
+            metadynamic API Documentation
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <div id="showPrivate">
+      <button class="btn btn-link" onclick="togglePrivate()">Toggle Private API</button>
+    </div>
+
+    <div class="container">
+
+      <div class="page-header">
+        <h1 class="class"><code>metadynamic.chemical.Compound(<span title="Chemical[str]">Chemical[str]</span>)</code> <small>class documentation</small></h1>
+
+        <span id="partOf">
+          Part of <code><a href="metadynamic.html" class="code" data-type="Package">metadynamic</a>.<a href="metadynamic.chemical.html" class="code" data-type="Module">chemical</a></code>
+          
+          <a href="classIndex.html#metadynamic.chemical.Compound">(View In Hierarchy)</a>
+        </span>
+      </div>
+
+      <div class="extrasDocstring">
+        
+      </div>
+
+      <div class="moduleDocstring">
+        <div><p>Chemical describing a specific compound</p></div>
+      </div>
+
+      <div id="splitTables">
+        <table class="children sortable" id="id14">
+  
+  <tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.chemical.Compound.html#__str__" class="code" data-type="Method">__str__</a></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.chemical.Compound.html#__init__" class="code" data-type="Method">__init__</a></td>
+    <td><span>Create the reaction from its 'description', to be linked to the parent 'crn'</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.chemical.Compound.html#reactions" class="code" data-type="Instance Variable">reactions</a></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.chemical.Compound.html#pop" class="code" data-type="Instance Variable">pop</a></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.chemical.Compound.html#register_reaction" class="code" data-type="Method">register_reaction</a></td>
+    <td><span>Register a reaction in the compound list of the reactions it is involved in as a reactant (self.reactions)</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.chemical.Compound.html#unregister_reaction" class="code" data-type="Method">unregister_reaction</a></td>
+    <td><span>Unregister a reaction from the compound list of the reactions it is involved in as a reactant (self.reactions)</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.chemical.Compound.html#scan_reaction" class="code" data-type="Method">scan_reaction</a></td>
+    <td><span>Scan (and create if needed) all related reactions.</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.chemical.Compound.html#update" class="code" data-type="Method">update</a></td>
+    <td><span>Update the compound: update its population by 'change' increment</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.chemical.Compound.html#change_pop" class="code" data-type="Method">change_pop</a></td>
+    <td><span>Request for a population change of value 'change'</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.chemical.Compound.html#delete" class="code" data-type="Method">delete</a></td>
+    <td><span>Delete the object</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.chemical.Compound.html#serialize" class="code" data-type="Method">serialize</a></td>
+    <td><span>Returns the population of the compound.</span></td>
+  </tr><tr class="classvariable private">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.chemical.Compound.html#_descrtype" class="code" data-type="Class Variable">_descrtype</a></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="classvariable private">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.chemical.Compound.html#_updatelist" class="code" data-type="Class Variable">_updatelist</a></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="method private">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.chemical.Compound.html#_activate" class="code" data-type="Method">_activate</a></td>
+    <td><span>Activate the compound</span></td>
+  </tr><tr class="method private">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.chemical.Compound.html#_unactivate" class="code" data-type="Method">_unactivate</a></td>
+    <td><span>Unactivate the compound</span></td>
+  </tr>
+</table>
+        
+
+          
+      </div>
+
+      <div id="childList">
+
+        <div class="baseclassvariable private">
+  
+  <a name="metadynamic.chemical.Compound._descrtype">
+    
+  </a>
+  <a name="_descrtype">
+    
+  </a>
+  <div class="functionHeader">
+    _descrtype =
+  </div>
+  <div class="functionBody">
+    <div class="undocumented">Undocumented</div> (type: <code>str</code>)
+  </div>
+</div><div class="baseclassvariable private">
+  
+  <a name="metadynamic.chemical.Compound._updatelist">
+    
+  </a>
+  <a name="_updatelist">
+    
+  </a>
+  <div class="functionHeader">
+    _updatelist =
+  </div>
+  <div class="functionBody">
+    <div class="undocumented">Undocumented</div> (type: <code>Dict[Chemical[str], int]</code>)
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.chemical.Compound.__str__">
+    
+  </a>
+  <a name="__str__">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    __str__(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div class="undocumented">Undocumented</div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.chemical.Compound.__init__">
+    
+  </a>
+  <a name="__init__">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    __init__(self, description, crn):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Create the reaction from its 'description', to be linked to the parent 'crn'</p><p>The description is simply the compound name</p><p>:param description: object description :type description: str :param crn: parent chemical reaction network :type crn: Crn</p></div>
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.chemical.Compound.reactions">
+    
+  </a>
+  <a name="reactions">
+    
+  </a>
+  <div class="functionHeader">
+    reactions =
+  </div>
+  <div class="functionBody">
+    <div class="undocumented">Undocumented</div>
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.chemical.Compound.pop">
+    
+  </a>
+  <a name="pop">
+    
+  </a>
+  <div class="functionHeader">
+    pop =
+  </div>
+  <div class="functionBody">
+    <div class="undocumented">Undocumented</div>
+  </div>
+</div><div class="basemethod private">
+  
+  <a name="metadynamic.chemical.Compound._activate">
+    
+  </a>
+  <a name="_activate">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    _activate(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Activate the compound</p></div>
+  </div>
+</div><div class="basemethod private">
+  
+  <a name="metadynamic.chemical.Compound._unactivate">
+    
+  </a>
+  <a name="_unactivate">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    _unactivate(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Unactivate the compound</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.chemical.Compound.register_reaction">
+    
+  </a>
+  <a name="register_reaction">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    register_reaction(self, reaction):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Register a reaction in the compound list of the reactions it is involved in as a reactant (self.reactions)</p><p>This enable to trigger the update of necessary reactions when the compound population changes.</p><p>:param reaction: reaction object to be rgistered :type reaction: Reaction</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.chemical.Compound.unregister_reaction">
+    
+  </a>
+  <a name="unregister_reaction">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    unregister_reaction(self, reaction):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Unregister a reaction from the compound list of the reactions it is involved in as a reactant (self.reactions)</p><p>Called at reaction deactivation.</p><p>:param reaction: reaction object to be unregistered :type reaction: Reaction</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.chemical.Compound.scan_reaction">
+    
+  </a>
+  <a name="scan_reaction">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    scan_reaction(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Scan (and create if needed) all related reactions.</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.chemical.Compound.update">
+    
+  </a>
+  <a name="update">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    update(self, change=0):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Update the compound: update its population by 'change' increment</p><p>Simulation may be stopped here if a negative population is reached (this shouldn't happen) by raising DescrZero</p><p>:param change: population variation (Default value = 0) :type change: int</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.chemical.Compound.change_pop">
+    
+  </a>
+  <a name="change_pop">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    change_pop(self, change):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Request for a population change of value 'change'</p><p>The change is not performed at this point, but registered for a batch update process from Crn.update</p><p>:param change: population change value :type change: int</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.chemical.Compound.delete">
+    
+  </a>
+  <a name="delete">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    delete(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Delete the object</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.chemical.Compound.serialize">
+    
+  </a>
+  <a name="serialize">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    serialize(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Returns the population of the compound.</p><p>Used for saving the reaction during snapshots.</p><p>**** define in Chemical ? ***</p></div>
+  </div>
+</div>
+
+      </div>
+      <address>
+        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-10 12:02:37.
+      </address>
+
+    </div>
+
+    <script src="pydoctor.js" type="text/javascript"></script>
+
+  </body>
+</html>

@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+          "DTD/xhtml1-strict.dtd">
+<html>
+  <head>
+    <title>metadynamic.chemical.CollectofReaction : API documentation</title>
+
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="apidocs.css" />
+  </head>
+  <body>
+
+    <nav class="navbar navbar-default">
+      <div class="container">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="index.html">
+            metadynamic API Documentation
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <div id="showPrivate">
+      <button class="btn btn-link" onclick="togglePrivate()">Toggle Private API</button>
+    </div>
+
+    <div class="container">
+
+      <div class="page-header">
+        <h1 class="class"><code>metadynamic.chemical.CollectofReaction(<span title="Collect[ReacDescr, 'Reaction']">Collect[ReacDescr, 'Reaction']</span>)</code> <small>class documentation</small></h1>
+
+        <span id="partOf">
+          Part of <code><a href="metadynamic.html" class="code" data-type="Package">metadynamic</a>.<a href="metadynamic.chemical.html" class="code" data-type="Module">chemical</a></code>
+          
+          <a href="classIndex.html#metadynamic.chemical.CollectofReaction">(View In Hierarchy)</a>
+        </span>
+      </div>
+
+      <div class="extrasDocstring">
+        
+      </div>
+
+      <div class="moduleDocstring">
+        <div><p>Collect class for storing a pool of Reaction</p></div>
+      </div>
+
+      <div id="splitTables">
+        <table class="children sortable" id="id10">
+  
+  <tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.chemical.CollectofReaction.html#set_crn" class="code" data-type="Method">set_crn</a></td>
+    <td><span>set the parent Crn</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.chemical.CollectofReaction.html#crn" class="code" data-type="Instance Variable">crn</a></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="classvariable private">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.chemical.CollectofReaction.html#_colltype" class="code" data-type="Class Variable">_colltype</a></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="method private">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.chemical.CollectofReaction.html#_create" class="code" data-type="Method">_create</a></td>
+    <td><span>Create a Reaction from its key</span></td>
+  </tr><tr class="method private">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.chemical.CollectofReaction.html#_categorize" class="code" data-type="Method">_categorize</a></td>
+    <td><span>List the categories of the Reaction. A reaction belongs to a sole category, its reaction type (i.e. the name of the rule that created it)</span></td>
+  </tr><tr class="method private">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.chemical.CollectofReaction.html#_getprop" class="code" data-type="Method">_getprop</a></td>
+    <td><span>Return a given property of a Reaction object. Shouldn't be directly used (used by proplist method only)</span></td>
+  </tr>
+</table>
+        
+
+          
+      </div>
+
+      <div id="childList">
+
+        <div class="baseclassvariable private">
+  
+  <a name="metadynamic.chemical.CollectofReaction._colltype">
+    
+  </a>
+  <a name="_colltype">
+    
+  </a>
+  <div class="functionHeader">
+    _colltype =
+  </div>
+  <div class="functionBody">
+    <div class="undocumented">Undocumented</div> (type: <code>str</code>)
+  </div>
+</div><div class="basemethod private">
+  
+  <a name="metadynamic.chemical.CollectofReaction._create">
+    
+  </a>
+  <a name="_create">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    _create(self, description):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Create a Reaction from its key</p><p>:param description: description of the compound to be created :type name: ReacDescr :return: newly created Reaction object :rtype: Reaction</p></div>
+  </div>
+</div><div class="basemethod private">
+  
+  <a name="metadynamic.chemical.CollectofReaction._categorize">
+    
+  </a>
+  <a name="_categorize">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    _categorize(self, obj):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>List the categories of the Reaction. A reaction belongs to a sole category, its reaction type (i.e. the name of the rule that created it)</p><p>:param obj: object to categorize :type obj: Reaction :return: set of categories :rtype: Set[str]</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.chemical.CollectofReaction.set_crn">
+    
+  </a>
+  <a name="set_crn">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    set_crn(self, crn):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>set the parent Crn</p><p>:param crn: parent Crn :type crn: Crn</p></div>
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.chemical.CollectofReaction.crn">
+    
+  </a>
+  <a name="crn">
+    
+  </a>
+  <div class="functionHeader">
+    crn =
+  </div>
+  <div class="functionBody">
+    <div class="undocumented">Undocumented</div> (type: <code>Crn</code>)
+  </div>
+</div><div class="basemethod private">
+  
+  <a name="metadynamic.chemical.CollectofReaction._getprop">
+    
+  </a>
+  <a name="_getprop">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    _getprop(self, prop, obj):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Return a given property of a Reaction object. Shouldn't be directly used (used by proplist method only)</p><p>The property may be:</p><ul><li>"count": returns 1.0</li><li>"pop": returns the compound probability</li><li>"entropy": returns proba×log(proba)</li><li>other values: a property defined in model.descriptor</li></ul><p>:param prop: property name :type prop: str :param obj: object to be probed :type obj: "Compound"</p></div>
+  </div>
+</div>
+
+      </div>
+      <address>
+        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-10 12:02:37.
+      </address>
+
+    </div>
+
+    <script src="pydoctor.js" type="text/javascript"></script>
+
+  </body>
+</html>
