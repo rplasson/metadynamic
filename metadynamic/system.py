@@ -18,13 +18,32 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
+
+"""
+metadynamic.system
+==================
+
+Simulation interface
+
+Provides
+--------
+
+RunStatus: class for controlling the status of a simulation
+
+Statistic: class for computing, getting and saving statistics on a simulation
+
+System: class for creating, running, and directly controlling a simmulation.
+
+"""
+
+
 import gc
 import numpy as np
 
 from math import ceil
 from itertools import repeat
 from os import getpid
-from typing import Dict, Any, List, Union, Tuple, Optional
+from typing import Dict, Any, List, Union
 from psutil import Process
 
 from metadynamic.ends import (
@@ -49,6 +68,8 @@ from metadynamic.inval import isvalid, invalidint
 
 
 class RunStatus:
+    """Control the status of a simulation"""
+
     infonames = ["thread", "ptime", "memuse", "step", "dstep", "time"]
 
     def __init__(self) -> None:
@@ -63,6 +84,13 @@ class RunStatus:
         self.gcperio: bool = False
 
     def initialize(self, param: Param) -> None:
+        """
+        First initialization of the run from the set of
+        parameters 'param'
+
+        :param param: parameters
+        :type param: Param
+        """
         self.tnext = 0.0
         self.dstep = 0
         self.step = 0
@@ -77,11 +105,15 @@ class RunStatus:
 
     @property
     def memuse(self) -> float:
-        """Return the memory used by the process in Mb"""
+        """Memory used by the process in Mb"""
         return float(Process(getpid()).memory_info().rss) / 1024 / 1024
 
     @property
     def info(self) -> List[Union[float, int]]:
+        """
+        Information summary:
+        thread number, runtime, memory use, simulation step, stochastic step, time
+        """
         return [
             MPI_STATUS.rank,
             LOGGER.runtime,
@@ -92,24 +124,44 @@ class RunStatus:
         ]
 
     def logstat(self) -> None:
-        LOGGER.info(f"#{self.step}'{self.dstep}'': {self.time} -> {self.tnext}")
+        """Log (at INFO level) run information"""
+        LOGGER.info(f"#{self.step}'{self.dstep}'': {self.time} -> {self.tnext}  <{int(self.memuse)}Mb>")
 
     def inc(self, dt: float) -> None:
+        """
+        Increment time by 'dt' and dstep by 1
+
+        :param dt: time increment
+        :type dt: float
+        """
         self.time += dt
         self.dstep += 1
 
     def next_step(self) -> None:
+        """Increment tnext by tstep if tnext was reached, and step by 1"""
         if self.finished:
             self.tnext += self.tstep
         self.step += 1
 
     def checkend(self) -> None:
+        """
+        Check if the run reached its final limit:
+        - raise TimesUp if time reached tend
+        - raise RuntimeLim if runtime reached rtlim
+        """
         if self.time >= self.tend:
             raise TimesUp(f"t={self.time}")
         if LOGGER.runtime >= self.rtlim:
             raise RuntimeLim(f"t={self.time}")
 
     def checkmem(self) -> None:
+        """
+        Check if the process reached its memory limit.
+
+        If reached, close the MPI gate for 'oom' reason
+        for selectively stopping some threads at the next
+        gathering at the MPI gate.
+        """
         if self.gcperio:
             gc.collect()
         if self.memuse > self.maxmem / MPI_GATE.mem_divide:
@@ -117,17 +169,25 @@ class RunStatus:
             MPI_GATE.close("oom")
 
     def checkstep(self) -> None:
+        """
+        Follow a checklist before starting next step, that is:
+        - check the memory,
+        - update tnext and step,
+        - check if run ends.
+        """
         self.checkmem()
         self.next_step()
         self.checkend()
 
-    def finalize(self) -> None:
+    def gcclean(self) -> None:
+        """Call garbage collector for memory cleaning"""
         gc.collect()
         if self.gcperio:
             gc.enable()
 
     @property
     def finished(self) -> bool:
+        """True if present time reached the tnext limit"""
         return self.time >= self.tnext
 
 
@@ -360,7 +420,7 @@ class System:
                 self.crn.close()
                 self.param.unlock()
                 self.initialized = False
-            self.status.finalize()
+            self.status.gcclean()
             self.signcatch.reset()
             LOGGER.info(f"System {'fully ' if fullrelease else ''}cleaned")
             return f"{end} ({LOGGER.runtime} s)"
