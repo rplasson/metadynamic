@@ -18,6 +18,28 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
+"""
+metadynamic.mpi
+===============
+
+Control the coordination between thread in MPI runs
+
+Provides
+--------
+
+ - L{Cont}: switchable "continue" flag
+
+ - L{MpiGate}: MPI barrier that can be opened/closed by any thread, for on-demand requests of
+   synchronization
+
+ - L{MpiStatus}: Interface to general MPI operations.
+
+ - L{MPI_STATUS}: global MpiStatus object
+
+ - L{MPI_GATE}: global MpiGate object
+
+"""
+
 import numpy as np
 
 from mpi4py import MPI
@@ -29,24 +51,40 @@ from types import TracebackType
 
 
 def nop() -> None:
+    """'no operation function' (surprisingly useful)"""
     pass
 
 
 class Cont:
+    """switchable "continue" flag"""
+
     def __init__(self) -> None:
+        """Create an object in initial 'continue' state"""
         self._cont = True
 
     def stop(self) -> None:
+        """set object to 'stop' state"""
         self._cont = False
 
     def reset(self) -> None:
+        """reset object to initial 'continue' state"""
         self._cont = True
 
+    def __str__(self) -> str:
+        """convert to a string representing the object state"""
+        return "continue" if self._cont else "stop"
+
     def __bool__(self) -> bool:
+        """True in 'continue' state, False in 'stop' state"""
         return self._cont
 
 
 class MpiGate:
+    """
+    MPI barrier that can be opened/closed by any thread, for on-demand requests of synchronization
+
+    """
+
     def __init__(
         self,
         taginit: int = 1,
@@ -252,4 +290,7 @@ class MpiStatus:
 
 
 MPI_STATUS = MpiStatus()
+"""global MpiStatus object"""
+
 MPI_GATE = MpiGate()
+"""global MpiGate object"""
