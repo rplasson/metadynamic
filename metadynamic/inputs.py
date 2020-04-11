@@ -18,6 +18,28 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
+"""
+metadynamic.inputs
+==================
+
+Define parameter json files and a generic Readerclass for reading them.
+
+
+Provides
+--------
+
+ - L{LockedError}
+ - L{Castreader}
+ - L{Readerclass}
+ - L{RuleParam}
+ - L{RulesetParam}
+ - L{StatParam}
+ - L{MapParam}
+ - L{Param}
+ - L{DotParam}
+
+"""
+
 from psutil import virtual_memory
 from json import load, dump, JSONDecodeError
 from typing import List, Dict, TypeVar, Type, Any
@@ -27,13 +49,17 @@ from metadynamic.caster import Caster
 from metadynamic.ends import BadFile, FileNotFound, BadJSON
 
 R = TypeVar("R", bound="Readerclass")
+"""Generic type for Readerclass and subclasses"""
 
 
 class LockedError(Exception):
+    """Exception raised when attempting to modify a locked Readerclass"""
     pass
 
 
 class Castreader(Caster):
+    """Extend a L{Caster} for dealing with L{Readerclass}, converting them as dictionary"""
+    
     def __call__(self, value: Any) -> Any:
         if issubclass(self.dest, Readerclass):
             return self.dest.readdict(value)
@@ -256,43 +282,69 @@ class Param(Readerclass):
     name: str = "run"
     comment: str = ""
     # Save
-    savedir: str = ""  # Where the final .hdf5 file will be saved. Defaults to working dir
-    logdir: str = ""  # Where the logs will be saved. If empty, log to standard output
-    loglevel: str = "INFO"   # logging level (CRITICAL, ERROR, WARNING, INFO, or DEBUG)
+    savedir: str = ""
+    """Where the final .hdf5 file will be saved. Defaults to working dir"""
+    logdir: str = ""
+    """Where the logs will be saved. If empty, log to standard output"""
+    loglevel: str = "INFO"
+    """logging level (CRITICAL, ERROR, WARNING, INFO, or DEBUG)"""
     # chemical
-    conc: float = 0.1  # Concentration
+    conc: float = 0.1
+    """Concentration"""
     ptot: int = field(init=False)
     vol: float = field(init=False)
-    init: Dict[str, int] = field(default_factory=dict)  # initial concentrations
-    rulemodel: str = "metadynamic.models.polymers"  # rule model to be used
-    reactions: List[str] = field(default_factory=list)  # list of reaction types to load from rulemodel (if empty, load all)
-    parameters: Dict[str, float] = field(default_factory=dict)  # kinetic constants
+    init: Dict[str, int] = field(default_factory=dict)
+    """initial concentrations"""
+    rulemodel: str = "metadynamic.models.polymers"
+    """rule model to be used"""
+    reactions: List[str] = field(default_factory=list)
+    """list of reaction types to load from rulemodel (if empty, load all)"""
+    parameters: Dict[str, float] = field(default_factory=dict)
+    """kinetic constants"""
     # simulation
-    tend: float = 1.0  # final simulation time
-    tstep: float = 0.01  # timestep
-    sstep: float = -1  # snapshot step (if <0: only at end, if = 0: at each step)
-    rtlim: float = 900.0  # Limit runtime
-    maxsteps: int = 10000  # maximum time steps
+    tend: float = 1.0
+    """final simulation time"""
+    tstep: float = 0.01
+    """timestep"""
+    sstep: float = -1
+    """snapshot step (if <0: only at end, if = 0: at each step)"""
+    rtlim: float = 900.0
+    """Limit runtime"""
+    maxsteps: int = 10000
+    """maximum time steps"""
     # System
-    autoclean: bool = True  # Perform a periodic cleaning of probabilities if True
-    dropmode: str = ""  # drop mode (can be 'keep', 'drop' or 'soft')
-    gcperio: bool = True  # if True, only call garbage collector at each timestep.
-    endbarrier: float = 0.01  # If non zero, final threads will wait in idle loops of corresponding values
-    maxmem: int = 0  # Max memory (in Mb). If 0, set to maxmem_percent/100 * total physical memory
+    autoclean: bool = True
+    """"Perform a periodic cleaning of probabilities if True"""
+    dropmode: str = ""
+    """drop mode (can be 'keep', 'drop' or 'soft')"""
+    gcperio: bool = True
+    """if True, only call garbage collector at each timestep."""
+    endbarrier: float = 0.01
+    """finished threads will wait in idle loops of corresponding values the end of others"""
+    maxmem: int = 0
+    """Max memory (in Mb). If 0, set to maxmem_percent/100 * total physical memory"""
     maxmem_percent: int = 95
     # IO
     save: List[str] = field(
         default_factory=list
-    )  # list of compounds to be saved at each time step
-    stat: str = ""  # json filename describing statistics
+    )
+    """list of compounds to be saved at each time step"""
+    stat: str = ""
+    """json filename describing statistics"""
     statparam: Dict[str, StatParam] = field(init=False)
-    maps: str = ""  # json filename describing stat maps
+    maps: str = ""
+    """json filename describing stat maps"""
     mapsparam: Dict[str, MapParam] = field(init=False)
-    store_snapreac: bool = False  # Store reaction snapshots? (can take lots of time for large CRNs)
-    maxstrlen: int = 256  # max string length to be stored in hdf5
-    lengrow: int = 20  # number of length left before requesting a resize
-    maxlog: int = 100  # max log lines per process to be saved
-    timeformat: str = "[%d.%m.%Y-%H:%M:%S]"  # timeformat used in log files
+    store_snapreac: bool = False
+    """Store reaction snapshots? (can take lots of time for large CRNs)"""
+    maxstrlen: int = 256
+    """max string length to be stored in hdf5"""
+    lengrow: int = 20
+    """number of length left before requesting a resize"""
+    maxlog: int = 100
+    """max log lines per process to be saved"""
+    timeformat: str = "[%d.%m.%Y-%H:%M:%S]"
+    """timeformat used in log files"""
 
     def __post_init__(self) -> None:
         self.ptot = sum([pop * len(comp) for comp, pop in self.init.items()])
