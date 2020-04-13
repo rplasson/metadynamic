@@ -32,19 +32,19 @@ Provides
 
  - L{Castreader}: Extend a L{Caster} for dealing with L{Readerclass}, converting them as dictionary
 
- - L{Readerclass}:
+ - L{Readerclass}: dataclass with interface for reading its data from json files
 
- - L{RuleParam}:
+ - L{RuleParam}: Parameters for a reaction rule
 
- - L{RulesetParam}:
+ - L{RulesetParam}: Parameters for a reaction ruleset
 
- - L{StatParam}:
+ - L{StatParam}: Parameters for statistics
 
- - L{MapParam}:
+ - L{MapParam}: Parameters for map statistics
 
- - L{Param}:
+ - L{Param}: Run parameters
 
- - L{DotParam}:
+ - L{DotParam}: Parameters for graphviz CRN representation
 
 """
 
@@ -398,37 +398,60 @@ class RuleParam(Readerclass):
 
 @dataclass
 class RulesetParam(Readerclass):
-    rulemodel: str = "metadynamic.models.polymers"  # rulemodel to be used
-    categories: List[str] = field(default_factory=list)  # categories
-    relations: List[str] = field(default_factory=list)  # relations
-    properties: List[str] = field(default_factory=list)  # properties
-    rules: Dict[str, RuleParam] = field(default_factory=dict)  # rules
+    """Parameters for a reaction ruleset"""
+    rulemodel: str = "metadynamic.models.polymers"
+    """rulemodel module to be used"""
+    categories: List[str] = field(default_factory=list)
+    """list of categories to be imported from the rulemodel"""
+    relations: List[str] = field(default_factory=list)
+    """list of relations to be imported from the rulemodel"""
+    properties: List[str] = field(default_factory=list)
+    """list of properties to be imported from the rulemodel"""
+    rules: Dict[str, RuleParam] = field(default_factory=dict)
+    """list of rules to be imported from the rulemodel, followinfg L{RuleParam} format"""
 
 
 @dataclass
 class StatParam(Readerclass):
+    """Parameters for statistics"""
     prop: str = "count"
+    """property used for the statistic calculation"""
     weight: str = "count"
+    """property used as weight (e.g. for weighted average)"""
     method: str = "m"
+    """method; '+' returns the weighted sum, 'm' the weighted average,
+       'max' the weighted max value, 'min' the weighted min value"""
     full: bool = False
+    """statistics to be performed on active (False) are the full pool (True)"""
     collection: str = "compounds"
+    """Statisitic to be performed on 'compounds' or 'reactions'"""
 
 
 @dataclass
 class MapParam(Readerclass):
+    """Parameters for map statistics"""
     prop: str = "count"
+    """property used for the statistic calculation"""
     weight: str = "count"
+    """property used as weight (e.g. for weighted average)"""
     sort: str = "count"
+    """property used for sorting the statistics in categories"""
     method: str = "+"
+    """method; '+' returns the weighted sum, 'm' the weighted average"""
     full: bool = False
+    """statistics to be performed on active (False) are the full pool (True)"""
     collection: str = "compounds"
+    """Statisitic to be performed on 'compounds' or 'reactions'"""
 
 
 @dataclass
 class Param(Readerclass):
+    """Run parameters"""
     # Description
     name: str = "run"
+    """Run name"""
     comment: str = ""
+    """Run comment"""
     # Save
     savedir: str = ""
     """Where the final .hdf5 file will be saved. Defaults to working dir"""
@@ -440,7 +463,9 @@ class Param(Readerclass):
     conc: float = 0.1
     """Concentration"""
     ptot: int = field(init=False)
+    """Total population"""
     vol: float = field(init=False)
+    """System volume"""
     init: Dict[str, int] = field(default_factory=dict)
     """initial concentrations"""
     rulemodel: str = "metadynamic.models.polymers"
@@ -472,6 +497,7 @@ class Param(Readerclass):
     maxmem: int = 0
     """Max memory (in Mb). If 0, set to maxmem_percent/100 * total physical memory"""
     maxmem_percent: int = 95
+    """Maximum percentage of memory to be used (used if maxmem set to 0)"""
     # IO
     save: List[str] = field(
         default_factory=list
@@ -480,9 +506,11 @@ class Param(Readerclass):
     stat: str = ""
     """json filename describing statistics"""
     statparam: Dict[str, StatParam] = field(init=False)
+    """List of statistic parameters, with fields as described in L{StatParam}"""
     maps: str = ""
     """json filename describing stat maps"""
     mapsparam: Dict[str, MapParam] = field(init=False)
+    """List of statistic parameters, with fields as described in L{MapParam}"""
     store_snapreac: bool = False
     """Store reaction snapshots? (can take lots of time for large CRNs)"""
     maxstrlen: int = 256
@@ -513,30 +541,53 @@ class Param(Readerclass):
 
 @dataclass
 class DotParam(Readerclass):
+    """Parameters for graphviz CRN representation"""
     # type
     binode: bool = False
+    """reaction graph with only compounds as single nodes (False) or both compounds and reaction as dual nodes (True)"""
     # Graph rendering
     margin: float = 0.0
+    """graph margin"""
     concentrate: bool = False
+    """if true, trye to reduce graph size"""
     maxsize: float = 10.0
+    """maximum size"""
     # compounds
     min_fontsize: float = 1.0
+    """minimum compound font size"""
     max_fontsize: float = 20.0
+    """maximum compound font size"""
     min_c_width: float = 0.05
+    """minimal compounds width"""
     max_c_width: float = 0.5
+    """maximal compound width"""
     c_penwidth: float = 0.5
+    """compound pen width"""
     c_margin: float = 0.01
+    """compound margin"""
     c_color: str = "blue"
+    """compound color"""
     c_powerscale: float = 0.5
+    """compound size scale as pop**c_powerscale"""
     font_powerscale: float = 1.0
+    """compound font scale as pop**font_powerscale"""
     # reactions
     min_r_width: float = 0.01
+    """minimum reaction width"""
     max_r_width: float = 0.1
+    """maximum reaction width"""
     r_color: str = "red"
+    """reaction color"""
     r_powerscale: float = 1.0
+    """reaction scale as const**r_powerscale"""
     # flows
     min_f_width: float = 0.001
+    """minimum flow width"""
     max_f_width: float = 5.0
+    """maximum flow width"""
     f_color: str = "black"
+    """flow color"""
     cutoff: float = 0.05
+    """cuto data below cutoff fraction"""
     f_powerscale: float = 1.0
+    """scale flow as prob**f+powerscale"""
