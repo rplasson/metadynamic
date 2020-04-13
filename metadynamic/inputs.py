@@ -81,7 +81,8 @@ class Castreader(Caster):
 class Readerclass:
     """dataclass with interface for reading its data from json files"""
 
-    _list_param: Dict[str, Any] = field(init=False, repr=False)
+    _list_param: Dict[str, Castreader] = field(init=False, repr=False)
+    """all class parameters as a dictionary {parameter name: parameter caster}"""
     __dataclass_fields__: Dict[str, Any] = field(init=False, repr=False)
     """list of fields types"""
 
@@ -316,7 +317,8 @@ class Readerclass:
 
     def lock(self) -> None:
         """Lock the object, preventing parameter changes"""
-        self._locked = True
+        self._locked: bool = True
+        """lock flag"""
 
     def unlock(self) -> None:
         """Unlock the object, enabling parameter changes"""
@@ -336,7 +338,8 @@ class Readerclass:
 
     def set_autocast(self) -> None:
         """Set the autocast feature"""
-        self._autocast = True
+        self._autocast: bool = True
+        """autocast flag"""
 
     def unset_autocast(self) -> None:
         """Unset the autocast feature"""
@@ -345,7 +348,7 @@ class Readerclass:
     @property
     def autocast(self) -> bool:
         """
-        autocast flag
+        autocast state
 
         @return: autocast flag value
         @rtype: bool
@@ -356,7 +359,8 @@ class Readerclass:
 
     def set_checktype(self) -> None:
         """Set the checktype feature"""
-        self._checktype = True
+        self._checktype: bool = True
+        """checktype flag"""
 
     def unset_checktype(self) -> None:
         """Unset the checktype feature"""
@@ -365,7 +369,7 @@ class Readerclass:
     @property
     def checktype(self) -> bool:
         """
-        checktype flag
+        checktype state
 
         @return: checktype flag value
         @rtype: bool
@@ -377,12 +381,19 @@ class Readerclass:
 
 @dataclass
 class RuleParam(Readerclass):
+    """Parameters for a reaction rule"""
     reactants: List[str] = field(default_factory=list)
+    """list of reactants categories"""
     builder_func: str = ""
+    """Name of the reaction builder function"""
     builder_const: str = "kinvar"
+    """Name of the reaction constant builder function"""
     builder_variant: str = "novariant"
+    """Name of the reaction variant builder function"""
     descr: str = ""
+    """Description of the reaction"""
     robust: bool = True
+    """Reaction robustness flag (products are recomputed at each reaction proceesing step when non-robust)"""
 
 
 @dataclass
