@@ -28,15 +28,23 @@ Define parameter json files and a generic Readerclass for reading them.
 Provides
 --------
 
- - L{LockedError}
- - L{Castreader}
- - L{Readerclass}
- - L{RuleParam}
- - L{RulesetParam}
- - L{StatParam}
- - L{MapParam}
- - L{Param}
- - L{DotParam}
+ - L{LockedError}: Exception raised when attempting to modify a locked Readerclass
+
+ - L{Castreader}: Extend a L{Caster} for dealing with L{Readerclass}, converting them as dictionary
+
+ - L{Readerclass}:
+
+ - L{RuleParam}:
+
+ - L{RulesetParam}:
+
+ - L{StatParam}:
+
+ - L{MapParam}:
+
+ - L{Param}:
+
+ - L{DotParam}:
 
 """
 
@@ -49,7 +57,7 @@ from metadynamic.caster import Caster
 from metadynamic.ends import BadFile, FileNotFound, BadJSON
 
 R = TypeVar("R", bound="Readerclass")
-"""Generic type for Readerclass and subclasses"""
+"""Generic type for L{Readerclass} and  its subclasses"""
 
 
 class LockedError(Exception):
@@ -59,8 +67,9 @@ class LockedError(Exception):
 
 class Castreader(Caster):
     """Extend a L{Caster} for dealing with L{Readerclass}, converting them as dictionary"""
-    
+
     def __call__(self, value: Any) -> Any:
+        """Convert 'value' to self.dest type"""
         if issubclass(self.dest, Readerclass):
             return self.dest.readdict(value)
         if self.dest is dict and issubclass(self.args[1].dest, Readerclass):
@@ -70,14 +79,26 @@ class Castreader(Caster):
 
 @dataclass
 class Readerclass:
+    """dataclass with interface for reading its data from json files"""
+
     _list_param: Dict[str, Any] = field(init=False, repr=False)
-    __dataclass_fields__: Dict[str, Any] = field(init=False, repr=False)  # for mypy...
+    __dataclass_fields__: Dict[str, Any] = field(init=False, repr=False)
+    """list of fields types"""
 
     def __post_init__(self) -> None:
+        """(re) calculate data after fields init or change"""
         pass
 
     @staticmethod
     def _fromfile(filename: str) -> Dict[str, Any]:
+        """
+        Read a json file named 'filename' as a dict
+
+        @param filename: name of json file
+        @type filename: str
+        @return: json data as dict
+        @rtype: Dict[str, Any]
+        """
         if filename == "":
             return {}
         try:
@@ -96,7 +117,18 @@ class Readerclass:
         checktype: bool = True,
         autocast: bool = True,
     ) -> R:
-        """Return a Readerclass object, updated by the data from parameters dict"""
+        """
+        Return a Readerclass object, updated by the data from parameters dict
+
+        @param parameters: parameters to be set (override the default values)
+        @type parameters: Dict[str, Any]
+        @param checktype: if True, an error will be raised if the parameters are given in a faulty type (Default value = True)
+        @type checktype: bool
+        @param autocast: if True, given parameters will be catsed to the correct type (Default value = True)
+        @type autocast: bool
+        @return: new object
+        @rtype: Readerclass
+        """
         new = cls()
         if checktype:
             new.set_checktype()
@@ -116,6 +148,19 @@ class Readerclass:
         checktype: bool = True,
         autocast: bool = True,
     ) -> Dict[str, R]:
+        """
+        Return a dictionary of Readerclass object,
+        each one updated by the data from a dictionary of parameters dict
+
+        @param parameters: dictionary of parameters to be set (override the default values)
+        @type parameters: Dict[str, Dict[str, Any]]
+        @param checktype: if True, an error will be raised if the parameters are given in a faulty type (Default value = True)
+        @type checktype: bool
+        @param autocast: if True, given parameters will be catsed to the correct type (Default value = True)
+        @type autocast: bool
+        @return: dictionary of new objects
+        @rtype: Dict[str, Readerclass]
+        """
         res: Dict[str, R] = {}
         for name, params in parameters.items():
             res[name] = cls.readdict(
@@ -127,7 +172,18 @@ class Readerclass:
     def readfile(
         cls: Type[R], filename: str, checktype: bool = True, autocast: bool = True,
     ) -> R:
-        """Return a Readerclass object, updated by the data from filename"""
+        """
+        Return a Readerclass object, updated by the data from a json Param file
+
+        @param filename: name of json file
+        @type filename: str
+        @param checktype: if True, an error will be raised if the parameters are given in a faulty type (Default value = True)
+        @type checktype: bool
+        @param autocast: if True, given parameters will be catsed to the correct type (Default value = True)
+        @type autocast: bool
+        @return: new object
+        @rtype: Readerclass
+        """
         return cls.readdict(
             parameters=cls._fromfile(filename), checktype=checktype, autocast=autocast
         )
@@ -136,14 +192,31 @@ class Readerclass:
     def readmultiple(
         cls: Type[R], filename: str, checktype: bool = True, autocast: bool = True,
     ) -> Dict[str, R]:
-        """Return a dictionnary of Readerclass object,
-           each updated by specific entry from filename"""
+        """
+        Return a dictionnary of Readerclass object,
+        each one updated by specific entry from a json file
+
+        @param filename: name of json file
+        @type filename: str
+        @param checktype: if True, an error will be raised if the parameters are given in a faulty type (Default value = True)
+        @type checktype: bool
+        @param autocast: if True, given parameters will be catsed to the correct type (Default value = True)
+        @type autocast: bool
+        @return: dictionary of new objects
+        @rtype: Dict[str, Readerclass]
+        """
         return cls.multipledict(
             parameters=cls._fromfile(filename), checktype=checktype, autocast=autocast
         )
 
     @classmethod
     def list_param(cls) -> Dict[str, Castreader]:
+        """
+        List all the parameters of the class, with a caster to their type
+
+        @return: dictionary {parameter name: parameter caster}
+        @rtype: Dict[str, Castreader]
+        """
         if not hasattr(cls, "_list_param"):
             cls._list_param = {
                 key: Castreader(val.type)
@@ -154,9 +227,28 @@ class Readerclass:
 
     @classmethod
     def conv_param(cls, param: str) -> Castreader:
+        """
+        Return the caster to the type defined for 'param'
+
+        @param param: parameter name
+        @type param: str
+        @return caster to the parameter type
+        @rtype: Castreader
+        """
         return cls.list_param()[param]
 
     def checked_items(self, key: str, val: Any) -> Any:
+        """
+        Autocast and check 'val' to the consistent type defined for 'key',
+        depnding on self.autocast and self.checktype flags
+
+        @param key: name of the parameter
+        @type key: str
+        @param val: value to be checked
+        @return: converted value consistent with 'key' type
+        @raise BadFile: raised if 'val' cannot be casted, or if 'val' if not of the correct type
+        (in case of an autocast set to False, or of a faulty Caster
+        """
         err = ""
         if key not in self.list_param().keys():
             err += f"'{key}' parameter unknown.\n"
@@ -174,6 +266,15 @@ class Readerclass:
         return val
 
     def set_param(self, **kwd: Any) -> None:
+        """
+        Set the object parameters.
+
+        This function must be used, instead of directly setting parameters, so that the check/autocast/lock
+        features can be correctly used.
+
+        @raise LockedError: raised if attempted on a locked object
+        @raise BadFile: raised if parameters value are of uncorrect type
+        """
         if self.locked:
             raise LockedError
         for key, val in kwd.items():
@@ -182,6 +283,12 @@ class Readerclass:
         self.__post_init__()
 
     def asdict(self) -> Dict[str, Any]:
+        """
+        Convert the object data to a dictionary
+
+        @return:  full set of parameters as a dictionary
+        @rtype: Dict[str, Any]
+        """
         res = {}
         for key in self.list_param().keys():
             val = getattr(self, key)
@@ -198,41 +305,71 @@ class Readerclass:
         return res
 
     def tojson(self, filename: str) -> None:
+        """
+        Write all parameters in a json file
+
+        @param filename: name of json file
+        @type filename: str
+        """
         with open(filename, "w") as out:
             dump(self.asdict(), out, indent=4)
 
     def lock(self) -> None:
+        """Lock the object, preventing parameter changes"""
         self._locked = True
 
     def unlock(self) -> None:
+        """Unlock the object, enabling parameter changes"""
         self._locked = False
 
     @property
     def locked(self) -> bool:
+        """
+        Lock state
+
+        @return: lock state value
+        @rtype: bool
+        """
         if not hasattr(self, "_locked"):
             self._locked = False
         return self._locked
 
     def set_autocast(self) -> None:
+        """Set the autocast feature"""
         self._autocast = True
 
     def unset_autocast(self) -> None:
+        """Unset the autocast feature"""
         self._autocast = False
 
     @property
     def autocast(self) -> bool:
+        """
+        autocast flag
+
+        @return: autocast flag value
+        @rtype: bool
+        """
         if not hasattr(self, "_autocast"):
             self._autocast = True
         return self._autocast
 
     def set_checktype(self) -> None:
+        """Set the checktype feature"""
         self._checktype = True
 
     def unset_checktype(self) -> None:
+        """Unset the checktype feature"""
         self._checktype = False
 
     @property
     def checktype(self) -> bool:
+        """
+        checktype flag
+
+        @return: checktype flag value
+        @rtype: bool
+        """
         if not hasattr(self, "_checktype"):
             self._checktype = True
         return self._checktype
