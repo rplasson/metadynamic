@@ -549,7 +549,7 @@ class DotParam(Readerclass):
     margin: float = 0.0
     """graph margin"""
     concentrate: bool = False
-    """if true, trye to reduce graph size"""
+    """if true, try to reduce graph size"""
     maxsize: float = 10.0
     """maximum size"""
     # compounds
@@ -588,6 +588,6 @@ class DotParam(Readerclass):
     f_color: str = "black"
     """flow color"""
     cutoff: float = 0.05
-    """cuto data below cutoff fraction"""
+    """cut data below cutoff fraction"""
     f_powerscale: float = 1.0
     """scale flow as prob**f+powerscale"""
