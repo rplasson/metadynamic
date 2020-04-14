@@ -17,6 +17,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
+"""tag metadynamic package version"""
+
 
 __version__ = '1.0.rc5-dev'
 """metadynamic version number"""
