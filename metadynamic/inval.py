@@ -132,5 +132,5 @@ class InvalidStr(Invalid, str):
     _invalrepr = "Invalid string"
 
 
-invalidstr: Invalidstr = InvalidStr()
+invalidstr: InvalidStr = InvalidStr()
 """invalid str object"""
