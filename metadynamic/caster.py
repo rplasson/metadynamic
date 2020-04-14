@@ -36,7 +36,7 @@ from typing import Type, Any, List
 class Caster:
     """generic type-caster generator"""
     def __init__(self, target: Type[Any]):
-        """ 
+        """
         creates an callable object that will try to cast any value to
         the given target.
 
@@ -62,7 +62,7 @@ class Caster:
     def __call__(self, value: Any) -> Any:
         """
         cast the value to the pre-defined target type
-        
+
         @param value: the value to be casted
         @return: the casted value
         """

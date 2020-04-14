@@ -17,7 +17,7 @@
 metadynamic.inval
 =================
 
-defines invalid values for any type. 
+defines invalid values for any type.
 
 Provides:
 ---------
