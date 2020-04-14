@@ -45,13 +45,11 @@ from typing import Any
 class InvalidError(ValueError):
     """error to be raised when an invalid value is found where unexpected"""
 
-    pass
-
 
 class Invalid:
     """
     For defining Invalid classes of any type.
-    An invalid object of type <T> is an instance of a class 
+    An invalid object of type <T> is an instance of a class
     that inherits from both Invalid and <T>
 
         >>> class InvalidInt(Invalid, int):

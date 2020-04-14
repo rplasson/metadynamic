@@ -38,13 +38,15 @@ Provides
 
 
 import gc
-import numpy as np
 
 from math import ceil
 from itertools import repeat
 from os import getpid
 from typing import Dict, Any, List, Union
 from psutil import Process
+
+import numpy as np
+
 
 from metadynamic.ends import (
     Finished,
@@ -563,8 +565,7 @@ class System:
             self.signcatch.reset()
             LOGGER.info(f"System {'fully ' if fullrelease else ''}cleaned")
             return f"{end} ({LOGGER.runtime} s)"
-        else:
-            raise InternalError("Attempt to release non-initialized system!")
+        raise InternalError("Attempt to release non-initialized system!")
 
     def _process(self) -> None:
         """Perform a run step"""

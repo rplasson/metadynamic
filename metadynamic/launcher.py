@@ -34,9 +34,11 @@ Provides
 
 """
 
-from metadynamic import System, ResultReader
 from os import path
 from typing import Any
+
+from metadynamic.system import System
+from metadynamic.result import ResultReader
 
 
 def launch(parameters: str, **kwd: Any) -> ResultReader:
@@ -56,7 +58,7 @@ def launch(parameters: str, **kwd: Any) -> ResultReader:
     ext = path.splitext(parameters)[-1]
     if ext == ".json":
         syst = System.fromjson(parameters, **kwd)
-    elif ext == ".hdf5" or ext == ".h5":
+    elif ext in (".hdf5", ".h5"):
         syst = System.fromhdf5(parameters, **kwd)
     syst.run()
     return ResultReader(syst.output.h5file)

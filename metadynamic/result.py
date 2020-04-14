@@ -31,12 +31,12 @@ Provides
 
 """
 
-import numpy as np
-
+from typing import List, Dict, Tuple, Any, Callable, Optional
 from pandas import DataFrame
 from h5py import File, Group, Dataset
 from graphviz import Digraph
-from typing import List, Dict, Tuple, Any, Callable, Optional
+
+import numpy as np
 
 from metadynamic.inval import invalidstr, invalidint, isvalid
 from metadynamic.inputs import StatParam, MapParam, Param, RulesetParam

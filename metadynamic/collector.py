@@ -17,11 +17,25 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
+"""
+metadynamic.collect
+===================
 
-import numpy as np
+For collecting objects into a collection
+
+
+Provides:
+---------
+
+ - L{Collectable}: for classes of objects that can be collected
+ - L{Collect}: for the collection objects
+
+"""
 
 from typing import Generic, TypeVar, Dict, Set, Hashable, Any
 from collections import defaultdict
+
+import numpy as np
 
 from metadynamic.ruleset import Model
 from metadynamic.ends import BadFile
@@ -29,6 +43,7 @@ from metadynamic.logger import LOGGER
 
 
 class Collectable:
+    """Generic class, to be derived in classes that will be collected in Collect"""
     def delete(self) -> None:
         """
         Clean memory of the object.
@@ -48,7 +63,9 @@ class Collectable:
 
 
 K = TypeVar("K", bound=Hashable)
+"""generic Hashable type"""
 T = TypeVar("T", bound=Collectable)
+"""generic Collectable type"""
 
 
 class Collect(Generic[K, T]):

@@ -32,14 +32,14 @@ Provides:
 
 """
 
-import numpy as np
-
 from os import path
 from itertools import product
 from json import load
-from graphviz import Digraph
 from subprocess import CalledProcessError
 from typing import Any, Tuple, Dict, List
+from graphviz import Digraph
+
+import numpy as np
 
 from metadynamic.inputs import DotParam
 

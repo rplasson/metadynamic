@@ -40,19 +40,19 @@ Provides
 
 """
 
-import numpy as np
-
-from mpi4py import MPI
 from datetime import datetime
 from socket import gethostname
 from time import sleep
 from typing import List, Dict, Any, Callable, Iterable, Optional, Type
 from types import TracebackType
+from mpi4py import MPI
+
+
+import numpy as np
 
 
 def nop() -> None:
     """'no operation function' (surprisingly useful)"""
-    pass
 
 
 class Cont:

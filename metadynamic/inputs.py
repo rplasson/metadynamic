@@ -48,12 +48,12 @@ Provides
 
 """
 
-from psutil import virtual_memory
 from json import load, dump, JSONDecodeError
 from typing import List, Dict, TypeVar, Type, Any
 from dataclasses import dataclass, field
-from metadynamic.caster import Caster
+from psutil import virtual_memory
 
+from metadynamic.caster import Caster
 from metadynamic.ends import BadFile, FileNotFound, BadJSON
 
 R = TypeVar("R", bound="Readerclass")
@@ -62,7 +62,6 @@ R = TypeVar("R", bound="Readerclass")
 
 class LockedError(Exception):
     """Exception raised when attempting to modify a locked Readerclass"""
-    pass
 
 
 class Castreader(Caster):
@@ -88,7 +87,6 @@ class Readerclass:
 
     def __post_init__(self) -> None:
         """(re) calculate data after fields init or change"""
-        pass
 
     @staticmethod
     def _fromfile(filename: str) -> Dict[str, Any]:

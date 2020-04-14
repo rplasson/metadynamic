@@ -45,8 +45,6 @@ Provides
 """
 
 
-import numpy as np
-
 from typing import (
     Generic,
     List,
@@ -62,6 +60,8 @@ from typing import (
 )
 from math import factorial
 from itertools import repeat
+
+import numpy as np
 
 from metadynamic.collector import Collect, Collectable
 from metadynamic.proba import Probalist
@@ -291,7 +291,6 @@ class Chemical(Generic[K], Collectable):
 
         Does nothing, to be implemented in subclasses when needed.
         """
-        pass
 
     def unactivate(self) -> None:
         """Unactivate the chemical object"""
@@ -305,7 +304,6 @@ class Chemical(Generic[K], Collectable):
 
         Does nothing, to be implemented in subclasses when needed.
         """
-        pass
 
     def update(self, change: int = 0) -> None:
         """

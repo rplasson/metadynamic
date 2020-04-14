@@ -18,12 +18,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-import numpy as np
-
 from typing import Callable, Dict, KeysView, Tuple, Set, Iterable, List
 from itertools import product
 from importlib import import_module
 from dataclasses import dataclass
+
+import numpy as np
 
 # from functools import partial, cached_property from 3.8 only
 # from functools import reduce
@@ -428,8 +428,7 @@ def kdualchoice(
         if c1:
             if c2:
                 return k[name_tt]
-            else:
-                return k[name_tf]
+            return k[name_tf]
         if c2:
             return k[name_ft]
         return k[name_ff]

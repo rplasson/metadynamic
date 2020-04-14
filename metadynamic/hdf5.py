@@ -18,18 +18,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-import numpy as np
-
 from datetime import datetime
 from typing import Dict, Any, List, Tuple, Mapping
 from h5py import File, Group, Dataset, string_dtype
+
+import numpy as np
 
 from metadynamic.ends import Finished, FileCreationError, InternalError
 from metadynamic.inval import isvalid
 from metadynamic.inputs import Readerclass, Param
 from metadynamic.caster import Caster
 from metadynamic.mpi import MPI_GATE, MPI_STATUS
-from metadynamic import __version__
+from metadynamic.version import __version__
 
 
 comp_cast = Caster(Dict[str, int])

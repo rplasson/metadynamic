@@ -87,25 +87,17 @@ class Finished(Exception):
 class HappyEnding(Finished):
     """Raised for normal run completion"""
 
-    pass
-
 
 class BadEnding(Finished):
     """Raised for faulty run completion"""
-
-    pass
 
 
 class Aborted(Finished):
     """Raised for shortened, but correct, run completion"""
 
-    pass
-
 
 class InputError(BadEnding):
     """Raised when problem are encountered when reading input files"""
-
-    pass
 
 
 # Exceptions expected to be raised
