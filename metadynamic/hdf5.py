@@ -131,8 +131,6 @@ class ResultWriter:
         """If True, file space have been correctly sized for storing snapshots"""
         self.maps: Group
         """hdf5 Group 'Maps' for storing maps statistics"""
-        self.map_cat: Dict[str, List[float]]
-        """Dictionary listing all categories for each map"""
         self.currentcol: int
         """Cuurent column to save data"""
         # Logging data
@@ -320,7 +318,6 @@ class ResultWriter:
                 fillvalue=np.nan,
                 dtype="float32",
             )
-        self.map_cat = {}
         self.currentcol = 0
         MPI_GATE.register_function("addcol", self.add_col)
         self._init_stat = True
@@ -341,23 +338,25 @@ class ResultWriter:
         self.data_resize(self.nbcol)
 
     def data_resize(self, nbcol: float = invalidfloat) -> None:
-        """Resize data size of hdf5 datasets"""
+        """
+        Resize data size of hdf5 datasets
+
+        @param nbcol: number of column to resize to (if invalid, cutout empty lines)
+            (Default value = invalidfloat)
+        @type nbcol: float
+        """
         if not isvalid(nbcol):
             nbcol = MPI_STATUS.max(self.currentcol)
         self.data.resize(nbcol, axis=2)
         for datamap in self.maps.values():
             datamap.resize(nbcol + 1, axis=2)
 
-    def mapsize(self, name: str, categories: List[float]) -> None:
+    def add_map(self, name: str, categories: List[float], data: Dict[float, List[float]]) -> None:
         self.test_initialized()
-        self.map_cat[name] = categories
         mapsize = len(categories)
         self.maps[name].resize(mapsize, axis=1)
         self.maps[name][MPI_STATUS.rank, :, 0] = categories
-
-    def add_map(self, name: str, data: Dict[float, List[float]]) -> None:
-        self.test_initialized()
-        for catnum, cat in enumerate(self.map_cat[name]):
+        for catnum, cat in enumerate(categories):
             try:
                 length = len(data[cat])
                 self.maps[name][MPI_STATUS.rank, catnum, 1 : length + 1] = data[cat]

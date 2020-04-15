@@ -343,11 +343,9 @@ class Statistic:
     def writemap(self) -> None:
         """Write all previously calculated map statistics to hdf5"""
         for name in self.mapnames:
-            # correct sizes
-            categories = MPI_STATUS.sortlist(list(self._mapdict[name].keys()))
-            self.writer.mapsize(name, categories)
             # write maps
-            self.writer.add_map(name, self._mapdict[name])
+            categories = MPI_STATUS.sortlist(list(self._mapdict[name].keys()))
+            self.writer.add_map(name, categories, self._mapdict[name])
 
     def calcsnapshot(self, final: bool = False) -> None:
         """Snapshot the CRN at present time, if time reached tsnapshot
