@@ -42,7 +42,7 @@
       </div>
 
       <div class="moduleDocstring">
-        <div class="undocumented">Undocumented</div>
+        <div><p>Interface to general MPI operations.</p></div>
       </div>
 
       <div id="splitTables">
@@ -52,7 +52,7 @@
     
     <td>Method</td>
     <td><a href="metadynamic.mpi.MpiStatus.html#__init__" class="code" data-type="Method">__init__</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Create a status object</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
@@ -87,32 +87,32 @@
     
     <td>Method</td>
     <td><a href="metadynamic.mpi.MpiStatus.html#init" class="code" data-type="Method">init</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Initialize the time 0 (synchronized between threads)</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.mpi.MpiStatus.html#starttime" class="code" data-type="Method">starttime</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Return time 0</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.mpi.MpiStatus.html#root" class="code" data-type="Method">root</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Is this thread the MPI root?</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.mpi.MpiStatus.html#max" class="code" data-type="Method">max</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Return the max value among threads</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.mpi.MpiStatus.html#bcast" class="code" data-type="Method">bcast</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Broadcast the value to all threads. All will return value sent by the root thread.</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.mpi.MpiStatus.html#sortlist" class="code" data-type="Method">sortlist</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Return a sorted list of all data sent by all threads (removing duplicates)</span></td>
   </tr><tr class="instancevariable private">
     
     <td>Instance Variable</td>
@@ -144,7 +144,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Create a status object</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">rootnum</td><td>set the number of the root process (type: int)</td></tr></table></div>
   </div>
 </div><div class="baseinstancevariable">
   
@@ -261,7 +261,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Initialize the time 0 (synchronized between threads)</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">timeformat</td><td>formatting string for the date/time (type: str)</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -280,7 +280,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Return time 0</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">start time (type: str)</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -299,7 +299,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Is this thread the MPI root?</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">True if root (type: bool)</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -318,7 +318,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Return the max value among threads</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">val</td><td>value to be gathered and compared</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">max value</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -337,7 +337,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Broadcast the value to all threads. All will return value sent by the root thread.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">val</td><td>value to be brodcasted</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">root thread value</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -356,13 +356,13 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Return a sorted list of all data sent by all threads (removing duplicates)</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">data</td><td>list of values to be gathered and sorted (type: List[float])</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">sorted gathered list</td></tr></table></div>
   </div>
 </div>
 
       </div>
       <address>
-        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-13 17:37:36.
+        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-15 17:38:26.
       </address>
 
     </div>

@@ -52,167 +52,162 @@
     
     <td>Method</td>
     <td><a href="metadynamic.mpi.MpiGate.html#__init__" class="code" data-type="Method">__init__</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>create a gate</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.mpi.MpiGate.html#comm" class="code" data-type="Instance Variable">comm</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>MPI communicator</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.mpi.MpiGate.html#size" class="code" data-type="Instance Variable">size</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>total number of MPI threads</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.mpi.MpiGate.html#rank" class="code" data-type="Instance Variable">rank</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>thread number</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.mpi.MpiGate.html#procs" class="code" data-type="Instance Variable">procs</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
-  </tr><tr class="instancevariable">
-    
-    <td>Instance Variable</td>
-    <td><a href="metadynamic.mpi.MpiGate.html#snd_state" class="code" data-type="Instance Variable">snd_state</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
-  </tr><tr class="instancevariable">
-    
-    <td>Instance Variable</td>
-    <td><a href="metadynamic.mpi.MpiGate.html#rcv_state" class="code" data-type="Instance Variable">rcv_state</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
-  </tr><tr class="instancevariable">
-    
-    <td>Instance Variable</td>
-    <td><a href="metadynamic.mpi.MpiGate.html#gatenum" class="code" data-type="Instance Variable">gatenum</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
-  </tr><tr class="instancevariable">
-    
-    <td>Instance Variable</td>
-    <td><a href="metadynamic.mpi.MpiGate.html#running" class="code" data-type="Instance Variable">running</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
-  </tr><tr class="instancevariable">
-    
-    <td>Instance Variable</td>
-    <td><a href="metadynamic.mpi.MpiGate.html#launched" class="code" data-type="Instance Variable">launched</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
-  </tr><tr class="instancevariable">
-    
-    <td>Instance Variable</td>
-    <td><a href="metadynamic.mpi.MpiGate.html#nb_running" class="code" data-type="Instance Variable">nb_running</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>list of thread numbers</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.mpi.MpiGate.html#mem_divide" class="code" data-type="Instance Variable">mem_divide</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>number of thread actaually using memory</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.mpi.MpiGate.html#gatenum" class="code" data-type="Instance Variable">gatenum</a></td>
+    <td><span>Present gate operation n umber</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.mpi.MpiGate.html#sleeptime" class="code" data-type="Instance Variable">sleeptime</a></td>
+    <td><span>time spent (in seconds) in idle loops when waiting before the exit gate</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.mpi.MpiGate.html#running" class="code" data-type="Instance Variable">running</a></td>
+    <td><span>running flag state</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.mpi.MpiGate.html#launched" class="code" data-type="Instance Variable">launched</a></td>
+    <td><span>launched flag state</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.mpi.MpiGate.html#cont" class="code" data-type="Instance Variable">cont</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
-  </tr><tr class="instancevariable">
-    
-    <td>Instance Variable</td>
-    <td><a href="metadynamic.mpi.MpiGate.html#msg" class="code" data-type="Instance Variable">msg</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>continue toggable state</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.mpi.MpiGate.html#init" class="code" data-type="Method">init</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Initialize a gate to its starting position</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.mpi.MpiGate.html#__enter__" class="code" data-type="Method">__enter__</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Operations performed when entering the gate (via context manager)</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.mpi.MpiGate.html#__exit__" class="code" data-type="Method">__exit__</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Operations performed at gate exit.</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.mpi.MpiGate.html#register_function" class="code" data-type="Method">register_function</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
-  </tr><tr class="method">
-    
-    <td>Method</td>
-    <td><a href="metadynamic.mpi.MpiGate.html#operate" class="code" data-type="Method">operate</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
-  </tr><tr class="method">
-    
-    <td>Method</td>
-    <td><a href="metadynamic.mpi.MpiGate.html#oomkill" class="code" data-type="Method">oomkill</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
-  </tr><tr class="method">
-    
-    <td>Method</td>
-    <td><a href="metadynamic.mpi.MpiGate.html#check_all_out" class="code" data-type="Method">check_all_out</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
-  </tr><tr class="method">
-    
-    <td>Method</td>
-    <td><a href="metadynamic.mpi.MpiGate.html#check_msg" class="code" data-type="Method">check_msg</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
-  </tr><tr class="method">
-    
-    <td>Method</td>
-    <td><a href="metadynamic.mpi.MpiGate.html#read_msg" class="code" data-type="Method">read_msg</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
-  </tr><tr class="method">
-    
-    <td>Method</td>
-    <td><a href="metadynamic.mpi.MpiGate.html#wait_sent" class="code" data-type="Method">wait_sent</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
-  </tr><tr class="method">
-    
-    <td>Method</td>
-    <td><a href="metadynamic.mpi.MpiGate.html#send_msg" class="code" data-type="Method">send_msg</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>register a new synchronisation operation function</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.mpi.MpiGate.html#closed" class="code" data-type="Method">closed</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>True if gate is closed (i.e. messages were received)</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.mpi.MpiGate.html#close" class="code" data-type="Method">close</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
-  </tr><tr class="method">
-    
-    <td>Method</td>
-    <td><a href="metadynamic.mpi.MpiGate.html#open" class="code" data-type="Method">open</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Request the gate to be closed by sending a message</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.mpi.MpiGate.html#checkpoint" class="code" data-type="Method">checkpoint</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
-  </tr><tr class="method">
-    
-    <td>Method</td>
-    <td><a href="metadynamic.mpi.MpiGate.html#exit" class="code" data-type="Method">exit</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Check if the gate is closed before passing the checkpoint If the gate is closed, this will imply to perform synchronous operations before continuing.</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.mpi.MpiGate.html#launch" class="code" data-type="Method">launch</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Launch a gated processing</span></td>
+  </tr><tr class="instancevariable private">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.mpi.MpiGate.html#_send_state" class="code" data-type="Instance Variable">_send_state</a></td>
+    <td><span>list of send states (to which thread which messages were sent?)</span></td>
+  </tr><tr class="instancevariable private">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.mpi.MpiGate.html#_receive_state" class="code" data-type="Instance Variable">_receive_state</a></td>
+    <td><span>list of received states (from which a message was received?)</span></td>
+  </tr><tr class="instancevariable private">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.mpi.MpiGate.html#_nb_running" class="code" data-type="Instance Variable">_nb_running</a></td>
+    <td><span>number of threads still runnning</span></td>
   </tr><tr class="instancevariable private">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.mpi.MpiGate.html#_op" class="code" data-type="Instance Variable">_op</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>dictionary of synchronisation operation functions</span></td>
   </tr><tr class="instancevariable private">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.mpi.MpiGate.html#_opnum" class="code" data-type="Instance Variable">_opnum</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>dictionary of synchronisation operation numbers</span></td>
+  </tr><tr class="method private">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.mpi.MpiGate.html#_operate" class="code" data-type="Method">_operate</a></td>
+    <td><span>Perform synchronisation operation function num 'funcnum'</span></td>
+  </tr><tr class="method private">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.mpi.MpiGate.html#_oomkill" class="code" data-type="Method">_oomkill</a></td>
+    <td><span>Synchronisation operation to be called when too much memory is used.</span></td>
+  </tr><tr class="method private">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.mpi.MpiGate.html#_check_all_out" class="code" data-type="Method">_check_all_out</a></td>
+    <td><span>Synchronisation operation function to be called when a thread enters the exit.</span></td>
+  </tr><tr class="method private">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.mpi.MpiGate.html#_check_msg" class="code" data-type="Method">_check_msg</a></td>
+    <td><span>Check if MPI messages were received</span></td>
+  </tr><tr class="method private">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.mpi.MpiGate.html#_read_msg" class="code" data-type="Method">_read_msg</a></td>
+    <td><span>Check if message were received, and store them</span></td>
+  </tr><tr class="method private">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.mpi.MpiGate.html#_wait_sent" class="code" data-type="Method">_wait_sent</a></td>
+    <td><span>Check if all sent messages were sent</span></td>
+  </tr><tr class="method private">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.mpi.MpiGate.html#_send_msg" class="code" data-type="Method">_send_msg</a></td>
+    <td><span>Send a message to all threads</span></td>
+  </tr><tr class="method private">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.mpi.MpiGate.html#_open" class="code" data-type="Method">_open</a></td>
+    <td><span>Open a closed gate.</span></td>
   </tr>
 </table>
         
@@ -233,13 +228,13 @@
   <div class="functionHeader">
     
     def
-    __init__(self, taginit=1, operations=None):
+    __init__(self, taginit=1, operations=None, sleeptime=0.1):
     
   </div>
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>create a gate</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">taginit</td><td>initial tag number. each request will be tagged from tag increments starting from this value (type: int)</td></tr><tr><td></td><td class="fieldArg">operations</td><td>Dictionary of synchronisation operations {name: operation}</td></tr><tr><td></td><td class="fieldArg">sleeptime</td><td>time spent (in seconds) in idle loops when waiting before the exit gate</td></tr></table></div>
   </div>
 </div><div class="baseinstancevariable">
   
@@ -253,7 +248,7 @@
     comm =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>MPI.Intracomm</code>)
+    <div><p>MPI communicator</p></div> (type: <code>MPI.Intracomm</code>)
   </div>
 </div><div class="baseinstancevariable">
   
@@ -267,7 +262,7 @@
     size =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>int</code>)
+    <div><p>total number of MPI threads</p></div> (type: <code>int</code>)
   </div>
 </div><div class="baseinstancevariable">
   
@@ -281,7 +276,7 @@
     rank =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>int</code>)
+    <div><p>thread number</p></div> (type: <code>int</code>)
   </div>
 </div><div class="baseinstancevariable">
   
@@ -295,91 +290,49 @@
     procs =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>Iterable[int]</code>)
+    <div><p>list of thread numbers</p></div> (type: <code>Iterable[int]</code>)
   </div>
-</div><div class="baseinstancevariable">
+</div><div class="baseinstancevariable private">
   
-  <a name="metadynamic.mpi.MpiGate.snd_state">
+  <a name="metadynamic.mpi.MpiGate._send_state">
     
   </a>
-  <a name="snd_state">
+  <a name="_send_state">
     
   </a>
   <div class="functionHeader">
-    snd_state =
+    _send_state =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>List[Optional[MPI.Request]]</code>)
+    <div><p>list of send states (to which thread which messages were sent?)</p></div> (type: <code>List[List[MPI.Request]]</code>)
   </div>
-</div><div class="baseinstancevariable">
+</div><div class="baseinstancevariable private">
   
-  <a name="metadynamic.mpi.MpiGate.rcv_state">
+  <a name="metadynamic.mpi.MpiGate._receive_state">
     
   </a>
-  <a name="rcv_state">
+  <a name="_receive_state">
     
   </a>
   <div class="functionHeader">
-    rcv_state =
+    _receive_state =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>List[bool]</code>)
+    <div><p>list of received states (from which a message was received?)</p></div> (type: <code>List[bool]</code>)
   </div>
-</div><div class="baseinstancevariable">
+</div><div class="baseinstancevariable private">
   
-  <a name="metadynamic.mpi.MpiGate.gatenum">
+  <a name="metadynamic.mpi.MpiGate._nb_running">
     
   </a>
-  <a name="gatenum">
+  <a name="_nb_running">
     
   </a>
   <div class="functionHeader">
-    gatenum =
+    _nb_running =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
-  </div>
-</div><div class="baseinstancevariable">
-  
-  <a name="metadynamic.mpi.MpiGate.running">
-    
-  </a>
-  <a name="running">
-    
-  </a>
-  <div class="functionHeader">
-    running =
-  </div>
-  <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>bool</code>)
-  </div>
-</div><div class="baseinstancevariable">
-  
-  <a name="metadynamic.mpi.MpiGate.launched">
-    
-  </a>
-  <a name="launched">
-    
-  </a>
-  <div class="functionHeader">
-    launched =
-  </div>
-  <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>bool</code>)
-  </div>
-</div><div class="baseinstancevariable">
-  
-  <a name="metadynamic.mpi.MpiGate.nb_running">
-    
-  </a>
-  <a name="nb_running">
-    
-  </a>
-  <div class="functionHeader">
-    nb_running =
-  </div>
-  <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>number of threads still runnning</p></div>
   </div>
 </div><div class="baseinstancevariable">
   
@@ -393,7 +346,63 @@
     mem_divide =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>int</code>)
+    <div><p>number of thread actaually using memory</p></div> (type: <code>int</code>)
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.mpi.MpiGate.gatenum">
+    
+  </a>
+  <a name="gatenum">
+    
+  </a>
+  <div class="functionHeader">
+    gatenum =
+  </div>
+  <div class="functionBody">
+    <div><p>Present gate operation n umber</p></div>
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.mpi.MpiGate.sleeptime">
+    
+  </a>
+  <a name="sleeptime">
+    
+  </a>
+  <div class="functionHeader">
+    sleeptime =
+  </div>
+  <div class="functionBody">
+    <div><p>time spent (in seconds) in idle loops when waiting before the exit gate</p></div>
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.mpi.MpiGate.running">
+    
+  </a>
+  <a name="running">
+    
+  </a>
+  <div class="functionHeader">
+    running =
+  </div>
+  <div class="functionBody">
+    <div><p>running flag state</p></div> (type: <code>bool</code>)
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.mpi.MpiGate.launched">
+    
+  </a>
+  <a name="launched">
+    
+  </a>
+  <div class="functionHeader">
+    launched =
+  </div>
+  <div class="functionBody">
+    <div><p>launched flag state</p></div> (type: <code>bool</code>)
   </div>
 </div><div class="baseinstancevariable">
   
@@ -407,21 +416,7 @@
     cont =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
-  </div>
-</div><div class="baseinstancevariable">
-  
-  <a name="metadynamic.mpi.MpiGate.msg">
-    
-  </a>
-  <a name="msg">
-    
-  </a>
-  <div class="functionHeader">
-    msg =
-  </div>
-  <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>continue toggable state</p></div>
   </div>
 </div><div class="baseinstancevariable private">
   
@@ -435,7 +430,7 @@
     _op =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>Dict[int, Callable[[], None]]</code>)
+    <div><p>dictionary of synchronisation operation functions</p></div> (type: <code>Dict[int, Callable[[], None]]</code>)
   </div>
 </div><div class="baseinstancevariable private">
   
@@ -449,7 +444,7 @@
     _opnum =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>Dict[str, int]</code>)
+    <div><p>dictionary of synchronisation operation numbers</p></div> (type: <code>Dict[str, int]</code>)
   </div>
 </div><div class="basemethod">
   
@@ -462,13 +457,13 @@
   <div class="functionHeader">
     
     def
-    init(self, taginit=1):
+    init(self, taginit=(-1), sleeptime=(-1)):
     
   </div>
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Initialize a gate to its starting position</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">taginit</td><td>initial tag number (if &lt;0 value given, stays untouched) (type: int)</td></tr><tr><td></td><td class="fieldArg">sleeptime</td><td>sleep time  (if &lt;0 value given, stays untouched) (type: float)</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -487,7 +482,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Operations performed when entering the gate (via context manager)</p></div>
   </div>
 </div><div class="basemethod">
   
@@ -506,7 +501,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Operations performed at gate exit.</p><p>The parameters (automatically sent by the context manager) are ignored.</p></div>
   </div>
 </div><div class="basemethod">
   
@@ -525,140 +520,140 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>register a new synchronisation operation function</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">opname</td><td>name of the operation (will override a previously registered one) (type: str)</td></tr><tr><td></td><td class="fieldArg">fun</td><td>synchronisation operation function</td></tr></table></div>
   </div>
-</div><div class="basemethod">
+</div><div class="basemethod private">
   
-  <a name="metadynamic.mpi.MpiGate.operate">
+  <a name="metadynamic.mpi.MpiGate._operate">
     
   </a>
-  <a name="operate">
+  <a name="_operate">
     
   </a>
   <div class="functionHeader">
     
     def
-    operate(self, funcnum):
+    _operate(self, funcnum):
     
   </div>
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Perform synchronisation operation function num 'funcnum'</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">funcnum</td><td>synchronisation operation function number (type: int)</td></tr></table></div>
   </div>
-</div><div class="basemethod">
+</div><div class="basemethod private">
   
-  <a name="metadynamic.mpi.MpiGate.oomkill">
+  <a name="metadynamic.mpi.MpiGate._oomkill">
     
   </a>
-  <a name="oomkill">
+  <a name="_oomkill">
     
   </a>
   <div class="functionHeader">
     
     def
-    oomkill(self):
+    _oomkill(self):
     
   </div>
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Synchronisation operation to be called when too much memory is used.</p><p>Half of still running processes will be kindly asked to stop.</p></div>
   </div>
-</div><div class="basemethod">
+</div><div class="basemethod private">
   
-  <a name="metadynamic.mpi.MpiGate.check_all_out">
+  <a name="metadynamic.mpi.MpiGate._check_all_out">
     
   </a>
-  <a name="check_all_out">
+  <a name="_check_all_out">
     
   </a>
   <div class="functionHeader">
     
     def
-    check_all_out(self):
+    _check_all_out(self):
     
   </div>
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Synchronisation operation function to be called when a thread enters the exit.</p><p>The number of still running threads is updated.</p></div>
   </div>
-</div><div class="basemethod">
+</div><div class="basemethod private">
   
-  <a name="metadynamic.mpi.MpiGate.check_msg">
+  <a name="metadynamic.mpi.MpiGate._check_msg">
     
   </a>
-  <a name="check_msg">
+  <a name="_check_msg">
     
   </a>
   <div class="functionHeader">
     
     def
-    check_msg(self, tag):
+    _check_msg(self):
     
   </div>
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Check if MPI messages were received</p></div>
   </div>
-</div><div class="basemethod">
+</div><div class="basemethod private">
   
-  <a name="metadynamic.mpi.MpiGate.read_msg">
+  <a name="metadynamic.mpi.MpiGate._read_msg">
     
   </a>
-  <a name="read_msg">
+  <a name="_read_msg">
     
   </a>
   <div class="functionHeader">
     
     def
-    read_msg(self, tag):
+    _read_msg(self):
     
   </div>
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Check if message were received, and store them</p></div>
   </div>
-</div><div class="basemethod">
+</div><div class="basemethod private">
   
-  <a name="metadynamic.mpi.MpiGate.wait_sent">
+  <a name="metadynamic.mpi.MpiGate._wait_sent">
     
   </a>
-  <a name="wait_sent">
+  <a name="_wait_sent">
     
   </a>
   <div class="functionHeader">
     
     def
-    wait_sent(self, tag):
+    _wait_sent(self):
     
   </div>
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Check if all sent messages were sent</p></div>
   </div>
-</div><div class="basemethod">
+</div><div class="basemethod private">
   
-  <a name="metadynamic.mpi.MpiGate.send_msg">
+  <a name="metadynamic.mpi.MpiGate._send_msg">
     
   </a>
-  <a name="send_msg">
+  <a name="_send_msg">
     
   </a>
   <div class="functionHeader">
     
     def
-    send_msg(self, tag, msg):
+    _send_msg(self, msg):
     
   </div>
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Send a message to all threads</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">msg</td><td>message as the syn operation name (type: str)</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -677,7 +672,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>True if gate is closed (i.e. messages were received)</p></div>
   </div>
 </div><div class="basemethod">
   
@@ -696,26 +691,26 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Request the gate to be closed by sending a message</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">msg</td><td>sync. operation to be performed at gate (Default value = "nop") (type: str)</td></tr></table></div>
   </div>
-</div><div class="basemethod">
+</div><div class="basemethod private">
   
-  <a name="metadynamic.mpi.MpiGate.open">
+  <a name="metadynamic.mpi.MpiGate._open">
     
   </a>
-  <a name="open">
+  <a name="_open">
     
   </a>
   <div class="functionHeader">
     
     def
-    open(self):
+    _open(self):
     
   </div>
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Open a closed gate.</p><p>This implies to wait all threads to be present, then process synchronously all requested operations before opening back the gate and returning to normal operations.</p></div>
   </div>
 </div><div class="basemethod">
   
@@ -734,26 +729,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
-  </div>
-</div><div class="basemethod">
-  
-  <a name="metadynamic.mpi.MpiGate.exit">
-    
-  </a>
-  <a name="exit">
-    
-  </a>
-  <div class="functionHeader">
-    
-    def
-    exit(self, sleeptime=0.1):
-    
-  </div>
-  <div class="docstring functionBody">
-    
-    
-    <div class="undocumented">Undocumented</div>
+    <div><p>Check if the gate is closed before passing the checkpoint If the gate is closed, this will imply to perform synchronous operations before continuing.</p></div>
   </div>
 </div><div class="basemethod">
   
@@ -772,13 +748,18 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Launch a gated processing</p><p>Intended to be lauched as a context manager:</p><pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span><span class="py-keyword">with</span> MPI_GATE.launch():
+<span class="py-output">        while MPI_GATE.cont:</span>
+<span class="py-output">            do_stuff()</span>
+<span class="py-output">            MPI_GATE.checkpoint()</span>
+</pre></div>
   </div>
 </div>
 
       </div>
       <address>
-        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-13 17:37:36.
+        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-15 17:38:26.
       </address>
 
     </div>

@@ -42,7 +42,7 @@
       </div>
 
       <div class="moduleDocstring">
-        <div class="undocumented">Undocumented</div>
+        <div><p>Instances of this class can be used to temporarily catch SIGTERM and SIGINT signal interruptions</p></div>
       </div>
 
       <div id="splitTables">
@@ -52,62 +52,62 @@
     
     <td>Method</td>
     <td><a href="metadynamic.ends.SignalCatcher.html#__init__" class="code" data-type="Method">__init__</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Simply create the object, and do not change anything to signal handling</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.ends.SignalCatcher.html#alive" class="code" data-type="Instance Variable">alive</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>aliveness flag (when set in listen state, it is True until SIGINT or SIGTERM is received)</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.ends.SignalCatcher.html#signal" class="code" data-type="Instance Variable">signal</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Name of the signal received while in 'listen' state</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.ends.SignalCatcher.html#frame" class="code" data-type="Instance Variable">frame</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Frame of the signal received while in 'listen' state</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.ends.SignalCatcher.html#reset" class="code" data-type="Method">reset</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Return to the signal handling state as it was at object creation</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.ends.SignalCatcher.html#ignore" class="code" data-type="Method">ignore</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>SIGTERM and SIGINT signales to be ignored</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.ends.SignalCatcher.html#release" class="code" data-type="Method">release</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>SIGTERM and SIGINT signal to be set to default behaviour</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.ends.SignalCatcher.html#listen" class="code" data-type="Method">listen</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>SIGTERM and SIGINT signal to be set to listen:</span></td>
   </tr><tr class="staticmethod">
     
     <td>Static Method</td>
     <td><a href="metadynamic.ends.SignalCatcher.html#init_signal" class="code" data-type="Static Method">init_signal</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Connect the SIGTERM and SIGINT signals to a specific handler</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.ends.SignalCatcher.html#signal_listen" class="code" data-type="Method">signal_listen</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Actions to be performed when SIGINT or SIGTERM are received when in 'listen' state.</span></td>
   </tr><tr class="instancevariable private">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.ends.SignalCatcher.html#_initial_term" class="code" data-type="Instance Variable">_initial_term</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Initial handler to which SIGTERM was connected</span></td>
   </tr><tr class="instancevariable private">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.ends.SignalCatcher.html#_initial_int" class="code" data-type="Instance Variable">_initial_int</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Initial handler to which SIGTINT was connected</span></td>
   </tr>
 </table>
         
@@ -134,7 +134,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Simply create the object, and do not change anything to signal handling</p></div>
   </div>
 </div><div class="baseinstancevariable">
   
@@ -148,7 +148,7 @@
     alive =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>bool</code>)
+    <div><p>aliveness flag (when set in listen state, it is True until SIGINT or SIGTERM is received)</p></div> (type: <code>bool</code>)
   </div>
 </div><div class="baseinstancevariable">
   
@@ -162,7 +162,7 @@
     signal =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>Name of the signal received while in 'listen' state</p></div>
   </div>
 </div><div class="baseinstancevariable">
   
@@ -176,7 +176,7 @@
     frame =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>Frame of the signal received while in 'listen' state</p></div>
   </div>
 </div><div class="baseinstancevariable private">
   
@@ -190,7 +190,7 @@
     _initial_term =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>SignHandler</code>)
+    <div><p>Initial handler to which SIGTERM was connected</p></div> (type: <code>SignHandler</code>)
   </div>
 </div><div class="baseinstancevariable private">
   
@@ -204,7 +204,7 @@
     _initial_int =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>SignHandler</code>)
+    <div><p>Initial handler to which SIGTINT was connected</p></div> (type: <code>SignHandler</code>)
   </div>
 </div><div class="basemethod">
   
@@ -223,7 +223,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Return to the signal handling state as it was at object creation</p></div>
   </div>
 </div><div class="basemethod">
   
@@ -242,7 +242,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>SIGTERM and SIGINT signales to be ignored</p></div>
   </div>
 </div><div class="basemethod">
   
@@ -261,7 +261,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>SIGTERM and SIGINT signal to be set to default behaviour</p></div>
   </div>
 </div><div class="basemethod">
   
@@ -280,7 +280,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>SIGTERM and SIGINT signal to be set to listen:</p><p>When a signal is received, <a href="metadynamic.ends.SignalCatcher.html#signal_listen"><code>signal_listen</code></a> is called, namely setting the flag alive to False</p></div>
   </div>
 </div><div class="basestaticmethod">
   
@@ -299,7 +299,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Connect the SIGTERM and SIGINT signals to a specific handler</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">handler</td><td>signal handler to connect to (type: SignHandler)</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -318,13 +318,13 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Actions to be performed when SIGINT or SIGTERM are received when in 'listen' state.</p><p>It switches the self.alive flag to False, saves the signal name in self.signal, saves the signal frame in self.frame, then switches the signal reception to 'ignore'</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">received_signal</td><td>received signal (type: Signals)</td></tr><tr><td></td><td class="fieldArg">frame</td><td>context frame at signal reception (type: FrameType)</td></tr></table></div>
   </div>
 </div>
 
       </div>
       <address>
-        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-13 17:37:36.
+        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-15 17:38:26.
       </address>
 
     </div>

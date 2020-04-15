@@ -42,62 +42,52 @@
       </div>
 
       <div class="moduleDocstring">
-        <div class="undocumented">Undocumented</div>
+        <div><p>Access to output files and folders</p></div>
       </div>
 
       <div id="splitTables">
-        <table class="children sortable" id="id96">
+        <table class="children sortable" id="id95">
   
   <tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.outputs.Output.html#__init__" class="code" data-type="Method">__init__</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Generate files structures from parameters</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.outputs.Output.html#name" class="code" data-type="Instance Variable">name</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
-  </tr><tr class="instancevariable">
-    
-    <td>Instance Variable</td>
-    <td><a href="metadynamic.outputs.Output.html#timeformat" class="code" data-type="Instance Variable">timeformat</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>run name</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.outputs.Output.html#savedir" class="code" data-type="Instance Variable">savedir</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>save folder</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.outputs.Output.html#logdir" class="code" data-type="Instance Variable">logdir</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
-  </tr><tr class="instancevariable">
-    
-    <td>Instance Variable</td>
-    <td><a href="metadynamic.outputs.Output.html#loginfile" class="code" data-type="Instance Variable">loginfile</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>log folder</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.outputs.Output.html#process" class="code" data-type="Method">process</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>return '-p&lt;n&gt;' where n is the process number in a MPI run, or an empty string if the run is not MPI_GATE</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.outputs.Output.html#basename" class="code" data-type="Method">basename</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>file basename, as &lt;run name&gt;-&lt;hostname&gt;-&lt;start time&gt;</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.outputs.Output.html#h5file" class="code" data-type="Method">h5file</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>hdf5 file name (with full path)</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.outputs.Output.html#logfile" class="code" data-type="Method">logfile</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>log file name (with full path) empty string if log to standard output</span></td>
   </tr>
 </table>
         
@@ -124,7 +114,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Generate files structures from parameters</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">param</td><td>parameters (type: Param)</td></tr></table></div>
   </div>
 </div><div class="baseinstancevariable">
   
@@ -138,21 +128,7 @@
     name =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
-  </div>
-</div><div class="baseinstancevariable">
-  
-  <a name="metadynamic.outputs.Output.timeformat">
-    
-  </a>
-  <a name="timeformat">
-    
-  </a>
-  <div class="functionHeader">
-    timeformat =
-  </div>
-  <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>run name</p></div> (type: <code>str</code>)
   </div>
 </div><div class="baseinstancevariable">
   
@@ -166,7 +142,7 @@
     savedir =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>save folder</p></div> (type: <code>str</code>)
   </div>
 </div><div class="baseinstancevariable">
   
@@ -180,21 +156,7 @@
     logdir =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
-  </div>
-</div><div class="baseinstancevariable">
-  
-  <a name="metadynamic.outputs.Output.loginfile">
-    
-  </a>
-  <a name="loginfile">
-    
-  </a>
-  <div class="functionHeader">
-    loginfile =
-  </div>
-  <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>log folder</p></div> (type: <code>str</code>)
   </div>
 </div><div class="basemethod">
   
@@ -213,7 +175,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>return '-p&lt;n&gt;' where n is the process number in a MPI run, or an empty string if the run is not MPI_GATE</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">process string (type: str)</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -232,7 +194,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>file basename, as &lt;run name&gt;-&lt;hostname&gt;-&lt;start time&gt;</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">file basename (type: str)</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -251,7 +213,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>hdf5 file name (with full path)</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">hdf5 file name (type: str)</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -270,13 +232,13 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>log file name (with full path) empty string if log to standard output</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">log file name (type: str)</td></tr></table></div>
   </div>
 </div>
 
       </div>
       <address>
-        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-13 17:37:36.
+        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-15 17:38:26.
       </address>
 
     </div>

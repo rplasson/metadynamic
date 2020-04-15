@@ -42,122 +42,122 @@
       </div>
 
       <div class="moduleDocstring">
-        <div><p>General exceptions to be used in metadynamic code</p><p>Exception categories inherit from Finished: HappyEnding, BadEnding, Aborted, InputError</p><p>All exceptions intended to be used are derived from one of these categories. indicating the general context of the exception.</p><ul><li>HappyEnding is intended for normal end of the computation</li><li>Aborted is intended to signal that the computation ended earlier than expected, but lead to a nonetheless correct result</li><li>HappyEnding is intended to signal that something when wrong during the computation</li><li>InputError is intended to signal problems with file read or write, unrekated to the computation itself.</li></ul></div>
+        <div><h1>metadynamic.ends</h1><p>General exceptions to be used in metadynamic code</p><h2>Provides:</h2><p>Exception categories inherit from Finished: HappyEnding, BadEnding, Aborted, InputError</p><ul><li><a href="metadynamic.ends.HappyEnding.html"><code>HappyEnding</code></a> is intended for normal end of the computation</li><li><a href="metadynamic.ends.Aborted.html"><code>Aborted</code></a> is intended to signal that the computation ended earlier than expected, but lead to a nonetheless correct result</li><li><a href="metadynamic.ends.BadEnding.html"><code>BadEnding</code></a> is intended to signal that something when wrong during the computation</li><li><a href="metadynamic.ends.InputError.html"><code>InputError</code></a> is intended to signal problems with file read or write, unrelated to the computation itself.</li></ul><p>All exceptions intended to be used are derived from one of these categories. indicating the general context of the exception.</p></div>
       </div>
 
       <div id="splitTables">
         <table class="children sortable" id="id20">
   
-  <tr class="variable">
-    
-    <td>Variable</td>
-    <td><a href="metadynamic.ends.html#SignHandler" class="code" data-type="Variable">SignHandler</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
-  </tr><tr class="class">
+  <tr class="class">
     
     <td>Class</td>
     <td><a href="metadynamic.ends.Finished.html" class="code" data-type="Class">Finished</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>General exception raised at run completion</span></td>
   </tr><tr class="class">
     
     <td>Class</td>
     <td><a href="metadynamic.ends.HappyEnding.html" class="code" data-type="Class">HappyEnding</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Raised for normal run completion</span></td>
   </tr><tr class="class">
     
     <td>Class</td>
     <td><a href="metadynamic.ends.BadEnding.html" class="code" data-type="Class">BadEnding</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Raised for faulty run completion</span></td>
   </tr><tr class="class">
     
     <td>Class</td>
     <td><a href="metadynamic.ends.Aborted.html" class="code" data-type="Class">Aborted</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Raised for shortened, but correct, run completion</span></td>
   </tr><tr class="class">
     
     <td>Class</td>
     <td><a href="metadynamic.ends.InputError.html" class="code" data-type="Class">InputError</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Raised when problem are encountered when reading input files</span></td>
   </tr><tr class="class">
     
     <td>Class</td>
     <td><a href="metadynamic.ends.InternalError.html" class="code" data-type="Class">InternalError</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Something went bad in the code</span></td>
   </tr><tr class="class">
     
     <td>Class</td>
     <td><a href="metadynamic.ends.TimesUp.html" class="code" data-type="Class">TimesUp</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Time is up</span></td>
   </tr><tr class="class">
     
     <td>Class</td>
     <td><a href="metadynamic.ends.NoMore.html" class="code" data-type="Class">NoMore</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>No more reactions can be processed</span></td>
   </tr><tr class="class">
     
     <td>Class</td>
     <td><a href="metadynamic.ends.NotFound.html" class="code" data-type="Class">NotFound</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>No reaction could be find</span></td>
   </tr><tr class="class">
     
     <td>Class</td>
     <td><a href="metadynamic.ends.RoundError.html" class="code" data-type="Class">RoundError</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Rounding problem/negative probability</span></td>
   </tr><tr class="class">
     
     <td>Class</td>
     <td><a href="metadynamic.ends.DecrZero.html" class="code" data-type="Class">DecrZero</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Tried to decrement unpopulated species</span></td>
   </tr><tr class="class">
     
     <td>Class</td>
     <td><a href="metadynamic.ends.RuntimeLim.html" class="code" data-type="Class">RuntimeLim</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Runtime limit exceeded</span></td>
   </tr><tr class="class">
     
     <td>Class</td>
     <td><a href="metadynamic.ends.InitError.html" class="code" data-type="Class">InitError</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Error during initialization</span></td>
   </tr><tr class="class">
     
     <td>Class</td>
     <td><a href="metadynamic.ends.Interrupted.html" class="code" data-type="Class">Interrupted</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Asked to stop</span></td>
   </tr><tr class="class">
     
     <td>Class</td>
     <td><a href="metadynamic.ends.OOMError.html" class="code" data-type="Class">OOMError</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Out of Memory</span></td>
   </tr><tr class="class">
     
     <td>Class</td>
     <td><a href="metadynamic.ends.FileNotFound.html" class="code" data-type="Class">FileNotFound</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>The provided file was not found.</span></td>
   </tr><tr class="class">
     
     <td>Class</td>
     <td><a href="metadynamic.ends.BadFile.html" class="code" data-type="Class">BadFile</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>The provided file is badly formed</span></td>
   </tr><tr class="class">
     
     <td>Class</td>
     <td><a href="metadynamic.ends.BadJSON.html" class="code" data-type="Class">BadJSON</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Bad JSON format</span></td>
   </tr><tr class="class">
     
     <td>Class</td>
     <td><a href="metadynamic.ends.FileCreationError.html" class="code" data-type="Class">FileCreationError</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>The file couldn't be created</span></td>
   </tr><tr class="class">
     
     <td>Class</td>
     <td><a href="metadynamic.ends.NotAFolder.html" class="code" data-type="Class">NotAFolder</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>The provided foldername is not a folder</span></td>
+  </tr><tr class="variable">
+    
+    <td>Variable</td>
+    <td><a href="metadynamic.ends.html#SignHandler" class="code" data-type="Variable">SignHandler</a></td>
+    <td><span>Generic type that can be returned as a signal handler</span></td>
   </tr><tr class="class">
     
     <td>Class</td>
     <td><a href="metadynamic.ends.SignalCatcher.html" class="code" data-type="Class">SignalCatcher</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Instances of this class can be used to temporarily catch SIGTERM and SIGINT signal interruptions</span></td>
   </tr>
 </table>
         
@@ -179,13 +179,13 @@
     SignHandler =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>Generic type that can be returned as a signal handler</p></div>
   </div>
 </div>
 
       </div>
       <address>
-        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-13 17:37:36.
+        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-15 17:38:26.
       </address>
 
     </div>

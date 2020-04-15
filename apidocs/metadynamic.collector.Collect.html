@@ -42,7 +42,7 @@
       </div>
 
       <div class="moduleDocstring">
-        <div class="undocumented">Undocumented</div>
+        <div><p>Object collector.</p><p>Generic class to be implemented for Collectable objects of type T, indexed with Hashable key of type K. Keeps two dictionaries {K:T} (a pool with all objects, an activ for only active ones</p></div>
       </div>
 
       <div id="splitTables">
@@ -52,42 +52,42 @@
     
     <td>Method</td>
     <td><a href="metadynamic.collector.Collect.html#__init__" class="code" data-type="Method">__init__</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Create a collection from a model (for categorizing and building objects)</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.collector.Collect.html#model" class="code" data-type="Instance Variable">model</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>rule model</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.collector.Collect.html#dropmode" class="code" data-type="Instance Variable">dropmode</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>drop mode 'keep' or 'drop'</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.collector.Collect.html#pool" class="code" data-type="Instance Variable">pool</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>pool of all objects</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.collector.Collect.html#categories" class="code" data-type="Instance Variable">categories</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>categories of objects</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.collector.Collect.html#active" class="code" data-type="Instance Variable">active</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>pool of active objects</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.collector.Collect.html#categorize" class="code" data-type="Instance Variable">categorize</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>shall the objects be categorized</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.collector.Collect.html#__repr__" class="code" data-type="Method">__repr__</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Format the collection representation as &lt;Collect of &lt;n&gt; T&gt;</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
@@ -112,32 +112,32 @@
     
     <td>Method</td>
     <td><a href="metadynamic.collector.Collect.html#save" class="code" data-type="Method">save</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Return the collected data as a dict without value change</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.collector.Collect.html#asdict" class="code" data-type="Method">asdict</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Return the collected data as a dict, serializing the values</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.collector.Collect.html#proplist" class="code" data-type="Method">proplist</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Return a list of all property values of the collection. The data order is not important, used for statistics.</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.collector.Collect.html#stat" class="code" data-type="Method">stat</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Return statistics on all property values of the collection.</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.collector.Collect.html#map" class="code" data-type="Method">map</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Return a statistics maps on all property values of the collection.</span></td>
   </tr><tr class="classvariable private">
     
     <td>Class Variable</td>
     <td><a href="metadynamic.collector.Collect.html#_colltype" class="code" data-type="Class Variable">_colltype</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>string description of the collected object</span></td>
   </tr><tr class="method private">
     
     <td>Method</td>
@@ -147,7 +147,7 @@
     
     <td>Method</td>
     <td><a href="metadynamic.collector.Collect.html#_categorize" class="code" data-type="Method">_categorize</a></td>
-    <td><span>List the categories of the object. Must be implemented in subclasses</span></td>
+    <td><span>List the categories the object belongs to. Must be implemented in subclasses</span></td>
   </tr><tr class="method private">
     
     <td>Method</td>
@@ -174,7 +174,7 @@
     _colltype =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>str</code>)
+    <div><p>string description of the collected object</p></div> (type: <code>str</code>)
   </div>
 </div><div class="basemethod">
   
@@ -193,7 +193,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Create a collection from a model (for categorizing and building objects)</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">model</td><td>Model containing all rules (type: Model)</td></tr><tr><td></td><td class="fieldArg">categorize</td><td>shall the objects be automatically categorized (Default value = True) (type: bool)</td></tr><tr><td></td><td class="fieldArg">dropmode</td><td>how the unactivated object are dealt ("drop"=&gt; removed, "keep"=&gt; kept in pool) (Default value = "drop") (type: str)</td></tr></table></div>
   </div>
 </div><div class="baseinstancevariable">
   
@@ -207,7 +207,7 @@
     model =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>rule model</p></div> (type: <code>Model</code>)
   </div>
 </div><div class="baseinstancevariable">
   
@@ -221,7 +221,7 @@
     dropmode =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>drop mode 'keep' or 'drop'</p></div> (type: <code>str</code>)
   </div>
 </div><div class="baseinstancevariable">
   
@@ -235,7 +235,7 @@
     pool =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>Dict[K, T]</code>)
+    <div><p>pool of all objects</p></div> (type: <code>Dict[K, T]</code>)
   </div>
 </div><div class="baseinstancevariable">
   
@@ -249,7 +249,7 @@
     categories =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>Dict[str, Set[K]]</code>)
+    <div><p>categories of objects</p></div> (type: <code>Dict[str, Set[K]]</code>)
   </div>
 </div><div class="baseinstancevariable">
   
@@ -263,7 +263,7 @@
     active =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>Dict[K, T]</code>)
+    <div><p>pool of active objects</p></div> (type: <code>Dict[K, T]</code>)
   </div>
 </div><div class="baseinstancevariable">
   
@@ -277,7 +277,7 @@
     categorize =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>shall the objects be categorized</p></div> (type: <code>bool</code>)
   </div>
 </div><div class="basemethod">
   
@@ -296,7 +296,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Format the collection representation as &lt;Collect of &lt;n&gt; T&gt;</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">formatted dtring (type: str)</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -334,7 +334,7 @@
   <div class="docstring functionBody">
     
     
-    <div><p>Put the object 'key' in the active section, then categorize it</p></div>
+    <div><p>Put the object 'key' in the active section, then categorize it</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">key</td><td>object key (type: K)</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -353,7 +353,7 @@
   <div class="docstring functionBody">
     
     
-    <div><p>Remove the object 'key' from the active section, then uncategorize it</p></div>
+    <div><p>Remove the object 'key' from the active section, then uncategorize it</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">key</td><td>object key (type: K)</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -372,7 +372,7 @@
   <div class="docstring functionBody">
     
     
-    <div><p>Return all (active) objects from the specified 'categories'</p></div>
+    <div><p>Return all (active) objects from the specified 'categories'</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">category</td><td>category name (type: str)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">set of compounds in the corresponding category (type: Set[K])</td></tr></table></div>
   </div>
 </div><div class="basemethod private">
   
@@ -391,7 +391,7 @@
   <div class="docstring functionBody">
     
     
-    <div><p>Create the object &lt;T&gt; from its key. Must be implemented in subclasses</p></div>
+    <div><p>Create the object &lt;T&gt; from its key. Must be implemented in subclasses</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">key</td><td>object key (type: K)</td></tr></table></div>
   </div>
 </div><div class="basemethod private">
   
@@ -410,7 +410,7 @@
   <div class="docstring functionBody">
     
     
-    <div><p>List the categories of the object. Must be implemented in subclasses</p></div>
+    <div><p>List the categories the object belongs to. Must be implemented in subclasses</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">obj</td><td>object to categorize (type: T)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">list of the categories (type: Set[str])</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -429,7 +429,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Return the collected data as a dict without value change</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">full</td><td>collect all pool data if True, else all active data (type: bool)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">data dictionary (type: Dict[str, T])</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -448,7 +448,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Return the collected data as a dict, serializing the values</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">full</td><td>collect all pool data if True, else all active data (type: bool)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">data dictionary (type: Dict[str, Any])</td></tr></table></div>
   </div>
 </div><div class="basemethod private">
   
@@ -467,7 +467,7 @@
   <div class="docstring functionBody">
     
     
-    <div><p>Return a given property of a &lt;T&gt; object. Shouldn't be directly used (used by proplist method only)</p><p>If not implemented in derived classes, only returns 1.0 to "count" property</p><p>:param prop: property name :type prop: str :param obj: object to be probed :type obj: &lt;T&gt;</p></div>
+    <div><p>Return a given property of a &lt;T&gt; object. Shouldn't be directly used (used by proplist method only)</p><p>If not implemented in derived classes, only returns 1.0 to "count" property</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">prop</td><td>property name (type: str)</td></tr><tr><td></td><td class="fieldArg">obj</td><td>object to be probed (type: T)</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -486,7 +486,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Return a list of all property values of the collection. The data order is not important, used for statistics.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">prop</td><td>name of the property to be collected (type: str)</td></tr><tr><td></td><td class="fieldArg">full</td><td>if False, only collect properties of active objects (Default value = False) (type: bool)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">array of properties (type: nv.ndarray)</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -505,7 +505,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Return statistics on all property values of the collection.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">prop</td><td>name of the property to be collected (type: str)</td></tr><tr><td></td><td class="fieldArg">weight</td><td>name of the property to be used as weight (type: str)</td></tr><tr><td></td><td class="fieldArg">method</td><td>'+' returns the weighted sum, 'm' the weighted average, 'max' the weighted max value, 'min' the weighted min value (type: str)</td></tr><tr><td></td><td class="fieldArg">full</td><td>if False, only collect properties of active objects (Default value = False) (type: bool)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">stat value (type: float)</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -524,13 +524,13 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Return a statistics maps on all property values of the collection.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">prop</td><td>name of the property to be collected (type: str)</td></tr><tr><td></td><td class="fieldArg">weight</td><td>name of the property to be used as weight (type: str)</td></tr><tr><td></td><td class="fieldArg">sort</td><td>name of the property to be used as a sorting key (type: str)</td></tr><tr><td></td><td class="fieldArg">method</td><td>'+' returns the weighted sum, 'm' the weighted average (type: str)</td></tr><tr><td></td><td class="fieldArg">full</td><td>if False, only collect properties of active objects (Default value = False) (type: bool)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">stat values (type: Dict[float, float])</td></tr></table></div>
   </div>
 </div>
 
       </div>
       <address>
-        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-13 17:37:36.
+        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-15 17:38:26.
       </address>
 
     </div>

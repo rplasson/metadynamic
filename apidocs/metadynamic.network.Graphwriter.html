@@ -42,7 +42,7 @@
       </div>
 
       <div class="moduleDocstring">
-        <div class="undocumented">Undocumented</div>
+        <div><p>Interface for building a graphviz Digraph from a CRN</p></div>
       </div>
 
       <div id="splitTables">
@@ -52,32 +52,32 @@
     
     <td>Method</td>
     <td><a href="metadynamic.network.Graphwriter.html#__init__" class="code" data-type="Method">__init__</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Create the network</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.network.Graphwriter.html#dot" class="code" data-type="Instance Variable">dot</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>graphviz representation of the CRN</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.network.Graphwriter.html#compound" class="code" data-type="Method">compound</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Add a compound node to the network</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.network.Graphwriter.html#reaction" class="code" data-type="Method">reaction</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Add a reaction node to the network</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.network.Graphwriter.html#edge" class="code" data-type="Method">edge</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Add a chemical flux edge to the network</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.network.Graphwriter.html#render" class="code" data-type="Method">render</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>render the network in a file.</span></td>
   </tr>
 </table>
         
@@ -104,7 +104,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Create the network</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">margin</td><td>margin size (type: float)</td></tr><tr><td></td><td class="fieldArg">concentrate</td><td>if True, try to reduce graph size (type: bool)</td></tr><tr><td></td><td class="fieldArg">maxsize</td><td>graph size (type: float)</td></tr></table></div>
   </div>
 </div><div class="baseinstancevariable">
   
@@ -118,7 +118,7 @@
     dot =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>graphviz representation of the CRN</p></div> (type: <code>Digraph</code>)
   </div>
 </div><div class="basemethod">
   
@@ -137,7 +137,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Add a compound node to the network</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">name</td><td>compound name (type: str)</td></tr><tr><td></td><td class="fieldArg">width</td><td>compound width (type: float)</td></tr><tr><td></td><td class="fieldArg">fontsize</td><td>compound font size (type: float)</td></tr><tr><td></td><td class="fieldArg">color</td><td>compound color (type: str)</td></tr><tr><td></td><td class="fieldArg">margin</td><td>compound margin size (type: float)</td></tr><tr><td></td><td class="fieldArg">penwidth</td><td>compound box pen width (type: float)</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -156,7 +156,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Add a reaction node to the network</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">name</td><td>reaction name (type: str)</td></tr><tr><td></td><td class="fieldArg">width</td><td>reaction width (type: float)</td></tr><tr><td></td><td class="fieldArg">color</td><td>reaction color (type: str)</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -175,7 +175,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Add a chemical flux edge to the network</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">start</td><td>node start name (type: str)</td></tr><tr><td></td><td class="fieldArg">end</td><td>node end name (type: str)</td></tr><tr><td></td><td class="fieldArg">width</td><td>edge width (type: float)</td></tr><tr><td></td><td class="fieldArg">color</td><td>edge color (type: str)</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -194,13 +194,13 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>render the network in a file.</p><p>The output format is guessed from filename extension.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">filename</td><td>name of the output file (type: str)</td></tr><tr><td></td><td class="fieldArg">engine</td><td>output engine (Default value = "dot") (type: str)</td></tr><tr><td></td><td class="fieldArg">view</td><td>if True, a viewer will be opened after file creation (Default value = False) (type: bool)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">return True if rendering is OK, False if a problem occured (type: bool)</td></tr></table></div>
   </div>
 </div>
 
       </div>
       <address>
-        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-13 17:37:36.
+        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-15 17:38:26.
       </address>
 
     </div>

@@ -42,47 +42,47 @@
       </div>
 
       <div class="moduleDocstring">
-        <div class="undocumented">Undocumented</div>
+        <div><h1>metadynamic.ruleset</h1><p>All elements for designing a set of rule, i.e. the Core for model design !</p><h2>Provides:</h2><p>...lots...</p></div>
       </div>
 
       <div id="splitTables">
-        <table class="children sortable" id="id100">
+        <table class="children sortable" id="id99">
   
   <tr class="variable">
     
     <td>Variable</td>
     <td><a href="metadynamic.ruleset.html#Compset" class="code" data-type="Variable">Compset</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Set of componds</span></td>
   </tr><tr class="variable">
     
     <td>Variable</td>
     <td><a href="metadynamic.ruleset.html#Paramdict" class="code" data-type="Variable">Paramdict</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Parameters as {name:value}</span></td>
   </tr><tr class="variable">
     
     <td>Variable</td>
     <td><a href="metadynamic.ruleset.html#Paramrel" class="code" data-type="Variable">Paramrel</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Function calculating a value from a given Paramdict (i.e. rule for computing a value from a parameters set)</span></td>
   </tr><tr class="variable">
     
     <td>Variable</td>
     <td><a href="metadynamic.ruleset.html#Stoechio" class="code" data-type="Variable">Stoechio</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Stoechimetry, as a list of (compound name,stechiometry number)</span></td>
   </tr><tr class="variable">
     
     <td>Variable</td>
     <td><a href="metadynamic.ruleset.html#Categorizer" class="code" data-type="Variable">Categorizer</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Function returning a bool from a given name string ('does name belongs to my category?')</span></td>
   </tr><tr class="variable">
     
     <td>Variable</td>
     <td><a href="metadynamic.ruleset.html#Propertizer" class="code" data-type="Variable">Propertizer</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Function returning a float from a given name string (i.e. computes a property from a name)</span></td>
   </tr><tr class="variable">
     
     <td>Variable</td>
     <td><a href="metadynamic.ruleset.html#ProdBuilder" class="code" data-type="Variable">ProdBuilder</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Function computing products from (reactants, variant)</span></td>
   </tr><tr class="class">
     
     <td>Class</td>
@@ -162,7 +162,7 @@
     
     <td>Function</td>
     <td><a href="metadynamic.ruleset.html#karrh" class="code" data-type="Function">karrh</a></td>
-    <td><span>Return a kinetic constant at temperature 'T' from Arrhenius equation, with 'k0' pre-exponential factor, and 'eact' the activation energy</span></td>
+    <td><span>Return a kinetic constant at temperature 'T' from Arrhenius equation, with 'k_0' pre-exponential factor, and 'eact' the activation energy</span></td>
   </tr><tr class="function">
     
     <td>Function</td>
@@ -219,7 +219,7 @@
     Compset =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>Set of componds</p></div>
   </div>
 </div><div class="basevariable">
   
@@ -233,7 +233,7 @@
     Paramdict =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>Parameters as {name:value}</p></div>
   </div>
 </div><div class="basevariable">
   
@@ -247,7 +247,7 @@
     Paramrel =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>Function calculating a value from a given Paramdict (i.e. rule for computing a value from a parameters set)</p></div>
   </div>
 </div><div class="basevariable">
   
@@ -261,7 +261,7 @@
     Stoechio =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>Stoechimetry, as a list of (compound name,stechiometry number)</p></div>
   </div>
 </div><div class="basevariable">
   
@@ -275,7 +275,7 @@
     Categorizer =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>Function returning a bool from a given name string ('does name belongs to my category?')</p></div>
   </div>
 </div><div class="basevariable">
   
@@ -289,7 +289,7 @@
     Propertizer =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>Function returning a float from a given name string (i.e. computes a property from a name)</p></div>
   </div>
 </div><div class="basevariable">
   
@@ -303,7 +303,7 @@
     ProdBuilder =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>Function computing products from (reactants, variant)</p></div>
   </div>
 </div><div class="basevariable">
   
@@ -405,7 +405,7 @@
   <div class="functionHeader">
     
     def
-    arrhenius(k0, eact):
+    arrhenius(k_0, eact):
     
   </div>
   <div class="docstring functionBody">
@@ -481,13 +481,13 @@
   <div class="functionHeader">
     
     def
-    karrh(k0, eact):
+    karrh(k_0, eact):
     
   </div>
   <div class="docstring functionBody">
     
     
-    <div><p>Return a kinetic constant at temperature 'T' from Arrhenius equation, with 'k0' pre-exponential factor, and 'eact' the activation energy</p></div>
+    <div><p>Return a kinetic constant at temperature 'T' from Arrhenius equation, with 'k_0' pre-exponential factor, and 'eact' the activation energy</p></div>
   </div>
 </div><div class="basefunction">
   
@@ -626,7 +626,7 @@
 
       </div>
       <address>
-        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-13 17:37:36.
+        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-15 17:38:26.
       </address>
 
     </div>

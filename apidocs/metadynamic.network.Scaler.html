@@ -42,7 +42,7 @@
       </div>
 
       <div class="moduleDocstring">
-        <div class="undocumented">Undocumented</div>
+        <div><p>convert values from one scale to another</p></div>
       </div>
 
       <div id="splitTables">
@@ -52,32 +52,47 @@
     
     <td>Method</td>
     <td><a href="metadynamic.network.Scaler.html#__init__" class="code" data-type="Method">__init__</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Create a scaler from data as the origin dataset to [minimal, maximal] scale with powerscale exponent</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.network.Scaler.html#minimal" class="code" data-type="Instance Variable">minimal</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>min value of the destination scale</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.network.Scaler.html#maximal" class="code" data-type="Instance Variable">maximal</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>max value of the destination scale</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
-    <td><a href="metadynamic.network.Scaler.html#powerscale" class="code" data-type="Instance Variable">powerscale</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><a href="metadynamic.network.Scaler.html#maxval" class="code" data-type="Instance Variable">maxval</a></td>
+    <td><span>max value of the origin scale</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.network.Scaler.html#minval" class="code" data-type="Instance Variable">minval</a></td>
+    <td><span>min value of the origin scale</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.network.Scaler.html#pow" class="code" data-type="Instance Variable">pow</a></td>
+    <td><span>scaling exponent</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.network.Scaler.html#__call__" class="code" data-type="Method">__call__</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
-  </tr><tr class="staticmethod">
+    <td><span>scale as _factor × value^n + _const</span></td>
+  </tr><tr class="instancevariable private">
     
-    <td>Static Method</td>
-    <td><a href="metadynamic.network.Scaler.html#minmax" class="code" data-type="Static Method">minmax</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.network.Scaler.html#_lambda" class="code" data-type="Instance Variable">_lambda</a></td>
+    <td><span>scaling factor</span></td>
+  </tr><tr class="instancevariable private">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.network.Scaler.html#_const" class="code" data-type="Instance Variable">_const</a></td>
+    <td><span>scaling constant</span></td>
   </tr>
 </table>
         
@@ -104,7 +119,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Create a scaler from data as the origin dataset to [minimal, maximal] scale with powerscale exponent</p><p>the origin scale is set from the minimal and maximal values of data, once outlier values smaller than cutoff×max(data) are removed.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">data</td><td>origin data reference to scale</td></tr><tr><td></td><td class="fieldArg">minimal</td><td>minimal destination scale value (type: float)</td></tr><tr><td></td><td class="fieldArg">maximal</td><td>maximal destination scale value (type: float)</td></tr><tr><td></td><td class="fieldArg">cutoff</td><td>cutoff fraction for removing small outliers (Default value = 0.0) (type: float)</td></tr><tr><td></td><td class="fieldArg">powerscale</td><td>scaling exponent (Default value = 1.0) (type: float)</td></tr></table></div>
   </div>
 </div><div class="baseinstancevariable">
   
@@ -118,7 +133,7 @@
     minimal =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>min value of the destination scale</p></div> (type: <code>float</code>)
   </div>
 </div><div class="baseinstancevariable">
   
@@ -132,21 +147,77 @@
     maximal =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>max value of the destination scale</p></div> (type: <code>float</code>)
   </div>
 </div><div class="baseinstancevariable">
   
-  <a name="metadynamic.network.Scaler.powerscale">
+  <a name="metadynamic.network.Scaler.maxval">
     
   </a>
-  <a name="powerscale">
+  <a name="maxval">
     
   </a>
   <div class="functionHeader">
-    powerscale =
+    maxval =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>max value of the origin scale</p></div> (type: <code>float</code>)
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.network.Scaler.minval">
+    
+  </a>
+  <a name="minval">
+    
+  </a>
+  <div class="functionHeader">
+    minval =
+  </div>
+  <div class="functionBody">
+    <div><p>min value of the origin scale</p></div> (type: <code>float</code>)
+  </div>
+</div><div class="baseinstancevariable private">
+  
+  <a name="metadynamic.network.Scaler._lambda">
+    
+  </a>
+  <a name="_lambda">
+    
+  </a>
+  <div class="functionHeader">
+    _lambda =
+  </div>
+  <div class="functionBody">
+    <div><p>scaling factor</p></div>
+  </div>
+</div><div class="baseinstancevariable private">
+  
+  <a name="metadynamic.network.Scaler._const">
+    
+  </a>
+  <a name="_const">
+    
+  </a>
+  <div class="functionHeader">
+    _const =
+  </div>
+  <div class="functionBody">
+    <div><p>scaling constant</p></div>
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.network.Scaler.pow">
+    
+  </a>
+  <a name="pow">
+    
+  </a>
+  <div class="functionHeader">
+    pow =
+  </div>
+  <div class="functionBody">
+    <div><p>scaling exponent</p></div>
   </div>
 </div><div class="basemethod">
   
@@ -165,32 +236,13 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
-  </div>
-</div><div class="basestaticmethod">
-  
-  <a name="metadynamic.network.Scaler.minmax">
-    
-  </a>
-  <a name="minmax">
-    
-  </a>
-  <div class="functionHeader">
-    @staticmethod<br />
-    def
-    minmax(data, cutoff=0.0):
-    
-  </div>
-  <div class="docstring functionBody">
-    
-    
-    <div class="undocumented">Undocumented</div>
+    <div><p>scale as _factor × value^n + _const</p><p>the scaled value will range from minimal to maximal</p><p>original values outside of the [minval, maxval] range will be scaled to either minimal or maximal</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">value</td><td>value to be scaled</td></tr><tr><td></td><td class="fieldArg">type</td><td>float</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">scaled value (type: float)</td></tr></table></div>
   </div>
 </div>
 
       </div>
       <address>
-        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-13 17:37:36.
+        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-15 17:38:26.
       </address>
 
     </div>

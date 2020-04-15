@@ -18,6 +18,21 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
+"""
+metadynamic.ruleset
+===================
+
+All elements for designing a set of rule,
+i.e. the Core for model design !
+
+
+Provides:
+---------
+
+...lots...
+
+"""
+
 from typing import Callable, Dict, KeysView, Tuple, Set, Iterable, List
 from itertools import product
 from importlib import import_module
@@ -38,14 +53,22 @@ from metadynamic.inputs import RulesetParam
 
 # Type alias (~~ data struct)
 Compset = Tuple[str, ...]
+"""Set of componds"""
 Paramdict = Dict[str, float]
+"""Parameters as {name:value}"""
 Paramrel = Callable[[Paramdict], float]
+"""Function calculating a value from a given Paramdict
+(i.e. rule for computing a value from a parameters set)"""
 Stoechio = Iterable[Tuple[str, int]]
+"""Stoechimetry, as a list of (compound name,stechiometry number)"""
 Categorizer = Callable[[str], bool]
+"""Function returning a bool from a given name string
+('does name belongs to my category?')"""
 Propertizer = Callable[[str], float]
-# reactants, variant -> products
+"""Function returning a float from a given name string
+(i.e. computes a property from a name)"""
 ProdBuilder = Callable[[Compset, int], Compset]
-# reactants, parameters, variant -> constant
+"""Function computing products from (reactants, variant)"""
 
 
 class Parameters:
@@ -113,6 +136,7 @@ class Parameters:
         return str(self._paramdict)
 
 
+# reactants, parameters, variant -> constant
 ConstBuilder = Callable[[Compset, Parameters, int], float]
 # reactants -> variants
 VariantBuilder = Callable[[Compset], Iterable[int]]
@@ -203,11 +227,11 @@ class Rule:
         if length == 1:
             return ((compounds[0], 1),)
         if length == 2:
-            c0 = compounds[0]
-            c1 = compounds[1]
-            if c0 == c1:
-                return ((c0, 2),)
-            return ((c0, 1), (c1, 1))
+            c_0 = compounds[0]
+            c_1 = compounds[1]
+            if c_0 == c_1:
+                return ((c_0, 2),)
+            return ((c_0, 1), (c_1, 1))
         # General computation from order 3
         return ((reac, compounds.count(reac)) for reac in set(compounds))
 
@@ -359,8 +383,8 @@ def parmul(name: str, factor: str) -> Paramrel:
     return lambda k: k[name] * k[factor]
 
 
-def arrhenius(k0: str, eact: str) -> Paramrel:
-    return lambda k: k[k0] * float(np.exp(-k[eact] / 8.314 / k["T"]))
+def arrhenius(k_0: str, eact: str) -> Paramrel:
+    return lambda k: k[k_0] * float(np.exp(-k[eact] / 8.314 / k["T"]))
 
 
 def linproc(start: str, end: str) -> Paramrel:
@@ -385,10 +409,10 @@ def klinproc(start: str, end: str) -> ConstBuilder:
     )
 
 
-def karrh(k0: str, eact: str) -> ConstBuilder:
+def karrh(k_0: str, eact: str) -> ConstBuilder:
     """Return a kinetic constant at temperature 'T' from Arrhenius equation,
-       with 'k0' pre-exponential factor, and 'eact' the activation energy"""
-    return lambda names, k, variant: k[k0] * float(np.exp(-k[eact] / 8.314 / k["T"]))
+       with 'k_0' pre-exponential factor, and 'eact' the activation energy"""
+    return lambda names, k, variant: k[k_0] * float(np.exp(-k[eact] / 8.314 / k["T"]))
 
 
 def kalternate(
@@ -423,13 +447,13 @@ def kdualchoice(
         name_ft = name_tf
 
     def kdual(names: Compset, k: Parameters, variant: int) -> float:  # ConstBuilder
-        c1 = condition_1(names, variant)
-        c2 = condition_2(names, variant)
-        if c1:
-            if c2:
+        c_1 = condition_1(names, variant)
+        c_2 = condition_2(names, variant)
+        if c_1:
+            if c_2:
                 return k[name_tt]
             return k[name_tf]
-        if c2:
+        if c_2:
             return k[name_ft]
         return k[name_ff]
 

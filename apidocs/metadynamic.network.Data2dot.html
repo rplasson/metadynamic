@@ -42,52 +42,87 @@
       </div>
 
       <div class="moduleDocstring">
-        <div class="undocumented">Undocumented</div>
+        <div><p>generate a graphviz Digraph from dict description of compounds/reaction</p></div>
       </div>
 
       <div id="splitTables">
-        <table class="children sortable" id="id94">
+        <table class="children sortable" id="id93">
   
-  <tr class="method">
+  <tr class="classmethod">
+    
+    <td>Class Method</td>
+    <td><a href="metadynamic.network.Data2dot.html#fromjson" class="code" data-type="Class Method">fromjson</a></td>
+    <td><span>generate a graphviz Digraph from a json file describing compounds/reactions</span></td>
+  </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.network.Data2dot.html#__init__" class="code" data-type="Method">__init__</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Generate the network</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.network.Data2dot.html#compounds" class="code" data-type="Instance Variable">compounds</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Chemical compounds {name:population}</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.network.Data2dot.html#reactions" class="code" data-type="Instance Variable">reactions</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Chemical reaction {name:(constant,probability)}</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.network.Data2dot.html#param" class="code" data-type="Instance Variable">param</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Rendering parameters</span></td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.network.Data2dot.html#crn" class="code" data-type="Instance Variable">crn</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Chemical Reaction Network renderer</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.network.Data2dot.html#compset" class="code" data-type="Instance Variable">compset</a></td>
+    <td><span>set of compound names</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.network.Data2dot.html#reacset" class="code" data-type="Instance Variable">reacset</a></td>
+    <td><span>set of reaction names</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.network.Data2dot.html#binode" class="code" data-type="Instance Variable">binode</a></td>
+    <td><span>is the graph to be drawn with dual nodes comp/reac</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.network.Data2dot.html#write" class="code" data-type="Method">write</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Write the network in a file (format guessed from file extension)</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.network.Data2dot.html#view" class="code" data-type="Method">view</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Open a viewer to visualize the network</span></td>
   </tr><tr class="staticmethod">
     
     <td>Static Method</td>
     <td><a href="metadynamic.network.Data2dot.html#cutdown" class="code" data-type="Static Method">cutdown</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Identify the stoechiometry+name from a str</span></td>
+  </tr><tr class="method private">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.network.Data2dot.html#_scan_fluxes" class="code" data-type="Method">_scan_fluxes</a></td>
+    <td><span>scan reaction fluxes and add them to the graph</span></td>
+  </tr><tr class="method private">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.network.Data2dot.html#_scan_compounds" class="code" data-type="Method">_scan_compounds</a></td>
+    <td><span>Scan compounds and add them to the graph</span></td>
+  </tr><tr class="method private">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.network.Data2dot.html#_scan_reactions" class="code" data-type="Method">_scan_reactions</a></td>
+    <td><span>scan reactions and add them to the graph</span></td>
   </tr>
 </table>
         
@@ -97,7 +132,26 @@
 
       <div id="childList">
 
-        <div class="basemethod">
+        <div class="baseclassmethod">
+  
+  <a name="metadynamic.network.Data2dot.fromjson">
+    
+  </a>
+  <a name="fromjson">
+    
+  </a>
+  <div class="functionHeader">
+    @classmethod<br />
+    def
+    fromjson(cls, filename, parameterfile=""""""):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>generate a graphviz Digraph from a json file describing compounds/reactions</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">filename</td><td>name of json file containing compiunds/reactions (type: str)</td></tr><tr><td></td><td class="fieldArg">parameterfile</td><td>Name of json Dotparam file (if empty, use default values) (Default value = "") (type: str)</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
   
   <a name="metadynamic.network.Data2dot.__init__">
     
@@ -114,7 +168,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Generate the network</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">compdict</td><td>Chemical compounds {name:population} (type: Dict[str, int])</td></tr><tr><td></td><td class="fieldArg">reacdict</td><td>Chemical reaction {name:(constant,probability)}</td></tr><tr><td></td><td class="fieldArg">parameterfile</td><td>Name of json Dotparam file (if empty, use default values) (Default value = "") (type: str)</td></tr></table></div>
   </div>
 </div><div class="baseinstancevariable">
   
@@ -128,7 +182,7 @@
     compounds =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>Chemical compounds {name:population}</p></div> (type: <code>Dict[str, int]</code>)
   </div>
 </div><div class="baseinstancevariable">
   
@@ -142,7 +196,7 @@
     reactions =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>Chemical reaction {name:(constant,probability)}</p></div> (type: <code>Dict[str, List[float]]</code>)
   </div>
 </div><div class="baseinstancevariable">
   
@@ -156,7 +210,7 @@
     param =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>Rendering parameters</p></div> (type: <code>DotParam</code>)
   </div>
 </div><div class="baseinstancevariable">
   
@@ -170,7 +224,106 @@
     crn =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>Chemical Reaction Network renderer</p></div> (type: <code>Graphwriter</code>)
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.network.Data2dot.compset">
+    
+  </a>
+  <a name="compset">
+    
+  </a>
+  <div class="functionHeader">
+    compset =
+  </div>
+  <div class="functionBody">
+    <div><p>set of compound names</p></div> (type: <code>Set[str]</code>)
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.network.Data2dot.reacset">
+    
+  </a>
+  <a name="reacset">
+    
+  </a>
+  <div class="functionHeader">
+    reacset =
+  </div>
+  <div class="functionBody">
+    <div><p>set of reaction names</p></div> (type: <code>Set[str]</code>)
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.network.Data2dot.binode">
+    
+  </a>
+  <a name="binode">
+    
+  </a>
+  <div class="functionHeader">
+    binode =
+  </div>
+  <div class="functionBody">
+    <div><p>is the graph to be drawn with dual nodes comp/reac</p></div>
+  </div>
+</div><div class="basemethod private">
+  
+  <a name="metadynamic.network.Data2dot._scan_fluxes">
+    
+  </a>
+  <a name="_scan_fluxes">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    _scan_fluxes(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>scan reaction fluxes and add them to the graph</p></div>
+  </div>
+</div><div class="basemethod private">
+  
+  <a name="metadynamic.network.Data2dot._scan_compounds">
+    
+  </a>
+  <a name="_scan_compounds">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    _scan_compounds(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Scan compounds and add them to the graph</p></div>
+  </div>
+</div><div class="basemethod private">
+  
+  <a name="metadynamic.network.Data2dot._scan_reactions">
+    
+  </a>
+  <a name="_scan_reactions">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    _scan_reactions(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>scan reactions and add them to the graph</p></div>
   </div>
 </div><div class="basemethod">
   
@@ -189,7 +342,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Write the network in a file (format guessed from file extension)</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">filename</td><td>name of the output file (type: str)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">return True if rendering is OK, False if a problem occured (type: bool)</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -202,13 +355,13 @@
   <div class="functionHeader">
     
     def
-    view(self, filename):
+    view(self):
     
   </div>
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Open a viewer to visualize the network</p></div>
   </div>
 </div><div class="basestaticmethod">
   
@@ -227,13 +380,18 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Identify the stoechiometry+name from a str</p><pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>Data2dot.cutdown(<span class="py-string">"ab3"</span>)
+<span class="py-output">(1, 'ab3')</span>
+<span class="py-prompt">&gt;&gt;&gt; </span>Data2dot.cutdown(<span class="py-string">"23ab3"</span>)
+<span class="py-output">(23, 'ab3')</span>
+</pre><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">name</td><td>string to confert (type: str)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">stoechiometry, compound name (type: Tuple[int, str])</td></tr></table></div>
   </div>
 </div>
 
       </div>
       <address>
-        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-13 17:37:36.
+        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-15 17:38:26.
       </address>
 
     </div>
