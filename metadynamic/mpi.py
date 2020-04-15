@@ -109,11 +109,11 @@ class MpiGate:
         """thread number"""
         self.procs: Iterable[int] = range(self.size)
         """list of thread numbers"""
-        self.snd_state: List[List[MPI.Request]] = [[] for _ in range(self.size)]
+        self._send_state: List[List[MPI.Request]] = [[] for _ in range(self.size)]
         """list of send states (to which thread which messages were sent?)"""
-        self.rcv_state: List[bool] = [False] * (self.size)
+        self._receive_state: List[bool] = [False] * (self.size)
         """list of received states (from which a message was received?)"""
-        self.nb_running: int = self.size
+        self._nb_running: int = self.size
         """number of threads still runnning"""
         self.mem_divide: int = self.size
         """number of thread actaually using memory"""
@@ -130,9 +130,9 @@ class MpiGate:
         """continue toggable state"""
         self._op: Dict[int, Callable[[], None]] = {
             1: nop,
-            2: self.check_all_out,
+            2: self._check_all_out,
             3: self.cont.stop,
-            4: self.oomkill,
+            4: self._oomkill,
         }
         """dictionary of synchronisation operation functions"""
         self._opnum: Dict[str, int] = {"nop": 1, "final": 2, "exit": 3, "oom": 4}
@@ -150,7 +150,7 @@ class MpiGate:
         @param sleeptime: sleep time  (if <0 value given, stays untouched)
         @type sleeptime: float
         """
-        self.nb_running = self.size
+        self._nb_running = self.size
         self.mem_divide = self.size
         if taginit > 0:
             self.gatenum = taginit
@@ -176,7 +176,7 @@ class MpiGate:
         """
         self.running = False
         self.close("final")
-        while self.nb_running > 0:
+        while self._nb_running > 0:
             sleep(self.sleeptime)
             self.checkpoint()
         self.launched = False
@@ -194,7 +194,7 @@ class MpiGate:
         self._op[funcnum] = func
         self._opnum[opname] = funcnum
 
-    def operate(self, funcnum: int) -> None:
+    def _operate(self, funcnum: int) -> None:
         """
         Perform synchronisation operation function num 'funcnum'
 
@@ -203,13 +203,13 @@ class MpiGate:
         """
         self._op[funcnum]()
 
-    def oomkill(self) -> None:
+    def _oomkill(self) -> None:
         """
         Synchronisation operation to be called when too much memory is used.
 
         Half of still running processes will be kindly asked to stop.
         """
-        self.mem_divide = self.nb_running
+        self.mem_divide = self._nb_running
         runningpos = np.where(self.comm.allgather(self.running))
         for running in runningpos[0][::2]:
             if running == self.rank:
@@ -218,38 +218,38 @@ class MpiGate:
         if self.mem_divide == 0:
             self.mem_divide = 1
 
-    def check_all_out(self) -> None:
+    def _check_all_out(self) -> None:
         """
         Synchronisation operation function to be called when a thread enters the exit.
 
         The number of still running threads is updated.
         """
-        self.nb_running = self.comm.allreduce(self.running, op=MPI.SUM)
+        self._nb_running = self.comm.allreduce(self.running, op=MPI.SUM)
 
-    def check_msg(self) -> None:
+    def _check_msg(self) -> None:
         """Check if MPI messages were received"""
         for src in self.procs:
             received = self.comm.Iprobe(source=src, tag=self.gatenum)
-            self.rcv_state[src] = received
+            self._receive_state[src] = received
 
-    def read_msg(self) -> List[int]:
+    def _read_msg(self) -> List[int]:
         """Check if message were received, and store them"""
         res: List[int] = []
         while self.closed:
             for src in self.procs:
-                if self.rcv_state[src]:
+                if self._receive_state[src]:
                     res.append(self.comm.recv(source=src, tag=self.gatenum))
-                    self.rcv_state[src] = False
+                    self._receive_state[src] = False
         return res
 
-    def wait_sent(self) -> None:
+    def _wait_sent(self) -> None:
         """Check if all sent messages were sent"""
         for dest in self.procs:
-            for req in self.snd_state[dest]:
+            for req in self._send_state[dest]:
                 req.Wait()
-            self.snd_state[dest] = []
+            self._send_state[dest] = []
 
-    def send_msg(self, msg: str) -> None:
+    def _send_msg(self, msg: str) -> None:
         """
         Send a message to all threads
 
@@ -258,15 +258,15 @@ class MpiGate:
         """
         for dest in self.procs:
             msgnum = self._opnum[msg]
-            self.snd_state[dest].append(
+            self._send_state[dest].append(
                 self.comm.isend(msgnum, dest=dest, tag=self.gatenum)
             )
 
     @property
     def closed(self) -> bool:
         """True if gate is closed (i.e. messages were received)"""
-        self.check_msg()
-        return sum(self.rcv_state) > 0
+        self._check_msg()
+        return sum(self._receive_state) > 0
 
     def close(self, msg: str = "nop") -> None:
         """
@@ -277,9 +277,9 @@ class MpiGate:
         """
         if not self.launched:
             raise ValueError("Cannot close a gate that has not been launched.")
-        self.send_msg(msg)
+        self._send_msg(msg)
 
-    def open(self) -> None:
+    def _open(self) -> None:
         """
         Open a closed gate.
 
@@ -293,14 +293,14 @@ class MpiGate:
         self.comm.Barrier()
         # get operation list, sorted to be processed in order.
         # 0 is removed as it corresponds to 'no message'
-        operations = list(set(self.read_msg()) - {0})
+        operations = list(set(self._read_msg()) - {0})
         operations.sort()
-        self.wait_sent()
+        self._wait_sent()
         self.gatenum += 1
         # Wait for everyone for processing operations
         self.comm.Barrier()
         for oper in operations:
-            self.operate(oper)
+            self._operate(oper)
 
     def checkpoint(self) -> None:
         """
@@ -309,7 +309,7 @@ class MpiGate:
         before continuing.
         """
         if self.closed:
-            self.open()
+            self._open()
 
     def launch(self) -> "MpiGate":
         """
