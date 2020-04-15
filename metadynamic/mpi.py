@@ -228,18 +228,18 @@ class MpiGate:
         """
         self.nb_running = self.comm.allreduce(self.running, op=MPI.SUM)
 
-    def check_msg(self, tag: int) -> None:
+    def check_msg(self) -> None:
         """
         """
         for src in self.procs:
-            received = self.comm.Iprobe(source=src, tag=tag)
+            received = self.comm.Iprobe(source=src, tag=self.gatenum)
             self.rcv_state[src] = received
 
-    def read_msg(self, tag: int) -> List[int]:
-        self.check_msg(tag)
+    def read_msg(self) -> List[int]:
+        self.check_msg()
         for src in self.procs:
             if self.rcv_state[src]:
-                msg = self.comm.recv(source=src, tag=tag)
+                msg = self.comm.recv(source=src, tag=self.gatenum)
                 self.msg[src] = msg
                 self.rcv_state[src] = False
         res = self.msg.copy()
@@ -253,21 +253,21 @@ class MpiGate:
                 req.Wait()
                 self.snd_state[dest] = None
 
-    def send_msg(self, tag: int, msg: str) -> None:
+    def send_msg(self, msg: str) -> None:
         for dest in self.procs:
             if self.snd_state[dest] is None:
                 msgnum = self._opnum[msg]
-                self.snd_state[dest] = self.comm.isend(msgnum, dest=dest, tag=tag)
+                self.snd_state[dest] = self.comm.isend(msgnum, dest=dest, tag=self.gatenum)
 
     @property
     def closed(self) -> bool:
-        self.check_msg(tag=self.gatenum)
+        self.check_msg()
         return sum(self.rcv_state) > 0
 
     def close(self, msg: str = "nop") -> None:
         if not self.launched:
             raise ValueError("Cannot close a gate that has not been launched.")
-        self.send_msg(tag=self.gatenum, msg=msg)
+        self.send_msg(msg)
 
     def open(self) -> None:
         # Wait for everyone for exchanging messages
@@ -276,7 +276,7 @@ class MpiGate:
         self.comm.Barrier()
         # get operation list, sorted to be processed in order.
         # 0 is removed as it corresponds to 'no message'
-        operations = list(set(self.read_msg(tag=self.gatenum)) - {0})
+        operations = list(set(self.read_msg()) - {0})
         operations.sort()
         self.wait_sent()
         self.gatenum += 1
