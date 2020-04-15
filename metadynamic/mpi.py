@@ -61,6 +61,7 @@ class Cont:
     def __init__(self) -> None:
         """Create an object in initial 'continue' state"""
         self._cont = True
+        """'continue' state flag"""
 
     def stop(self) -> None:
         """set object to 'stop' state"""
@@ -82,47 +83,85 @@ class Cont:
 class MpiGate:
     """
     MPI barrier that can be opened/closed by any thread, for on-demand requests of synchronization
-
     """
 
     def __init__(
         self,
         taginit: int = 1,
         operations: Optional[Dict[str, Callable[[], None]]] = None,
+        sleeptime: float = 0.1,
     ) -> None:
+        """
+        create a gate
+
+        @param taginit: initial tag number. each request will be tagged from tag increments
+            starting from this value
+        @type taginit: int
+        @param operations: Dictionary of synchronisation operations {name: operation}
+        @type operation: Dict[str, Callable[[], None]]
+        @param sleeptime: time spent (in seconds) in idle loops when waiting before the exit gate
+        """
         self.comm: MPI.Intracomm = MPI.COMM_WORLD
+        """MPI communicator"""
         self.size: int = int(self.comm.size)
+        """total number of MPI threads"""
         self.rank: int = int(self.comm.rank)
+        """thread number"""
         self.procs: Iterable[int] = range(self.size)
+        """list of thread numbers"""
         self.snd_state: List[Optional[MPI.Request]] = [None] * (self.size)
+        """list of send states (to which a message was sent?)"""
         self.rcv_state: List[bool] = [False] * (self.size)
-        self.gatenum: int
-        self.init(taginit)
-        self.running: bool = False
-        self.launched: bool = False
+        """list of received states (from which a message was received?)"""
         self.nb_running: int = self.size
+        """number of threads still runnning"""
         self.mem_divide: int = self.size
+        """number of thread actaually using memory"""
+        self.gatenum: int
+        """Present gate operation n umber"""
+        self.sleeptime: float
+        """time spent (in seconds) in idle loops when waiting before the exit gate"""
+        self.init(taginit, sleeptime)
+        self.running: bool = False
+        """running flag state"""
+        self.launched: bool = False
+        """launched flag state"""
         self.cont = Cont()
+        """coninue toggable state"""
         self.msg: List[int] = [0] * (self.size)
+        """list of MPI message box"""
         self._op: Dict[int, Callable[[], None]] = {
             1: nop,
             2: self.check_all_out,
             3: self.cont.stop,
             4: self.oomkill,
         }
+        """dictionary of synchronisation operation functions"""
         self._opnum: Dict[str, int] = {"nop": 1, "final": 2, "exit": 3, "oom": 4}
+        """dictionary of synchronisation operation numbers"""
         if operations:
-            for name, op in operations.items():
-                self.register_function(name, op)
+            for name, oper in operations.items():
+                self.register_function(name, oper)
 
-    def init(self, taginit: int = 1) -> None:
+    def init(self, taginit: int = -1, sleeptime: float = -1) -> None:
+        """
+        Initialize a gate to its starting position
+
+        @param taginit: initial tag number (if <0 value given, stays untouched)
+        @type taginit: int
+        @param sleeptime: sleep time  (if <0 value given, stays untouched)
+        @type sleeptime: float
+        """
         self.nb_running = self.size
         self.mem_divide = self.size
-        self.gatenum = taginit
+        if taginit > 0:
+            self.gatenum = taginit
+        if sleeptime > 0:
+            self.sleeptime = sleeptime
 
     def __enter__(self) -> "MpiGate":
-        self.nb_running = self.size
-        self.mem_divide = self.size
+        """Operations performed when entering the gate (via context manager)"""
+        self.init()
         self.cont.reset()
         return self
 
@@ -132,17 +171,46 @@ class MpiGate:
         excinst: Optional[BaseException],
         exctb: Optional[TracebackType],
     ) -> None:
-        self.exit()
+        """
+        Operations performed at gate exit.
+
+        The parameters (automatically sent by the context manager) are ignored.
+        """
+        self.running = False
+        self.close("final")
+        while self.nb_running > 0:
+            sleep(self.sleeptime)
+            self.checkpoint()
+        self.launched = False
 
     def register_function(self, opname: str, func: Callable[[], None]) -> None:
+        """
+        register a new synchronisation operation function
+
+        @param opname: name of the operation (will override a previously registered one)
+        @type opname: str
+        @param fun: synchronisation operation function
+        @type func: Callable[[], None]
+        """
         funcnum = len(self._op) + 1
         self._op[funcnum] = func
         self._opnum[opname] = funcnum
 
     def operate(self, funcnum: int) -> None:
+        """
+        Perform synchronisation operation function num 'funcnum'
+
+        @param funcnum: synchronisation operation function number
+        @type funcnum: int
+        """
         self._op[funcnum]()
 
     def oomkill(self) -> None:
+        """
+        Synchronisation operation to be called when too much memory is used.
+
+        Half of still running processes will be kindly asked to stop.
+        """
         self.mem_divide = self.nb_running
         runningpos = np.where(self.comm.allgather(self.running))
         for running in runningpos[0][::2]:
@@ -153,9 +221,16 @@ class MpiGate:
             self.mem_divide = 1
 
     def check_all_out(self) -> None:
+        """
+        Synchronisation operation function to be called when a thread enters the exit.
+
+        The number of still running threads is updated.
+        """
         self.nb_running = self.comm.allreduce(self.running, op=MPI.SUM)
 
     def check_msg(self, tag: int) -> None:
+        """
+        """
         for src in self.procs:
             received = self.comm.Iprobe(source=src, tag=tag)
             self.rcv_state[src] = received
@@ -171,7 +246,7 @@ class MpiGate:
         self.msg = [0] * self.size
         return res
 
-    def wait_sent(self, tag: int) -> None:
+    def wait_sent(self) -> None:
         for dest in self.procs:
             req = self.snd_state[dest]
             if req is not None:
@@ -203,24 +278,16 @@ class MpiGate:
         # 0 is removed as it corresponds to 'no message'
         operations = list(set(self.read_msg(tag=self.gatenum)) - {0})
         operations.sort()
-        self.wait_sent(self.gatenum)
+        self.wait_sent()
         self.gatenum += 1
         # Wait for everyone for processing operations
         self.comm.Barrier()
-        for op in operations:
-            self.operate(op)
+        for oper in operations:
+            self.operate(oper)
 
     def checkpoint(self) -> None:
         if self.closed:
             self.open()
-
-    def exit(self, sleeptime: float = 0.1) -> None:
-        self.running = False
-        self.close("final")
-        while self.nb_running > 0:
-            sleep(sleeptime)
-            self.checkpoint()
-        self.launched = False
 
     def launch(self) -> "MpiGate":
         self.running = True

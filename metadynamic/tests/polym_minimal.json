@@ -15,7 +15,6 @@
     "save" : ["A", "B", "C", "AA", "AB", "AC", "BA", "BC", "CC", "AAA", "BBB", "CCC"],
     "stat" : "metadynamic/tests/minimal-stat.json",
     "maps" : "metadynamic/tests/minimal-maps.json",
-    "endbarrier" : 0.1,
     "rtlim" : 600.0,
     "rulemodel" : "metadynamic.models.polym_minimal",
     "parameters" :{

@@ -14,7 +14,6 @@
     "save" : ["a", "aa", "aaa", "aaaa", "A", "Aa", "aA", "AA", "a*", "A*"],
     "stat" : "metadynamic/tests/aped-stat.json",
     "maps" : "metadynamic/tests/aped-maps.json",
-    "endbarrier" : 0.1,
     "rtlim" : 600.0,
     "rulemodel" : "metadynamic.models.polymers",
     "reactions" : ["A", "H", "E", "a"],

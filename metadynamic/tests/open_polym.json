@@ -12,7 +12,6 @@
     "tstep" : 10.0,
     "sstep" : 10.0,
     "save" : ["a", "aa", "aaa", "aaaa", "aaaaa"],
-    "endbarrier" : 0.1,
     "rtlim" : 600.0,
     "rulemodel" : "metadynamic.models.open_polym",
     "parameters" :{

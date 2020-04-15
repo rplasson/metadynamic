@@ -514,7 +514,7 @@ class System:
         """Interface to run status"""
         self.comment = self.param.comment
         """run comment"""
-        MPI_GATE.init(taginit=100)
+        MPI_GATE.init(taginit=100, sleeptime=param.sleeptime)
         LOGGER.info("System created")
         self.crn: Crn
         """Chemical Reaction Network"""

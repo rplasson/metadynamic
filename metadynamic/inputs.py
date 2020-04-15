@@ -493,7 +493,7 @@ class Param(Readerclass):
     """drop mode (can be 'keep', 'drop' or 'soft')"""
     gcperio: bool = True
     """if True, only call garbage collector at each timestep."""
-    endbarrier: float = 0.01
+    sleeptime: float = 0.1
     """finished threads will wait in idle loops of corresponding values the end of others"""
     maxmem: int = 0
     """Max memory (in Mb). If 0, set to maxmem_percent/100 * total physical memory"""
