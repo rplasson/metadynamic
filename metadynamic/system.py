@@ -407,11 +407,6 @@ class Statistic:
         else:
             LOGGER.warning(str(the_end))
 
-    def close_log(self) -> None:
-        """Stop logging to hdf5"""
-        cutline = MPI_STATUS.max(self.writer.logcount[MPI_STATUS.rank])
-        self.writer.close_log(cutline)
-
     def data_recut(self) -> None:
         """Remove unneccessary blank lines from hdf5 datasets"""
         maxcol = MPI_STATUS.max(self.writer.currentcol)
@@ -423,7 +418,7 @@ class Statistic:
         self.writesnap()
         self.writemap()
         self.data_recut()
-        self.close_log()
+        self.writer.close_log()
         self.writer.close()
         LOGGER.info(f"...written and closed, done.")
 

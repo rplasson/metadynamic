@@ -18,8 +18,21 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
+"""
+metadynamic.hdf5
+================
+
+interface to hdf5 result file
+
+
+Provides:
+---------
+
+ - L{ResultWriter}: storage for all the simulation data and results
+"""
+
 from datetime import datetime
-from typing import Dict, Any, List, Tuple, Mapping
+from typing import Dict, Any, List, Tuple, Mapping, Callable
 from h5py import File, Group, Dataset, string_dtype
 
 import numpy as np
@@ -32,11 +45,15 @@ from metadynamic.mpi import MPI_GATE, MPI_STATUS
 from metadynamic.version import __version__
 
 
-comp_cast = Caster(Dict[str, int])
-reac_cast = Caster(Dict[str, List[float]])
+comp_cast: Callable[[Any], Dict[str, int]] = Caster(Dict[str, int])
+"""Caster to a compound field"""
+reac_cast: Callable[[Any], Dict[str, List[float]]] = Caster(Dict[str, List[float]])
+"""Caster to a reaction field"""
 
 
 class ResultWriter:
+    """Storage for all the simulation data and results"""
+
     def __init__(
         self,
         filename: str,
@@ -44,12 +61,30 @@ class ResultWriter:
         lengrow: int = 10,
         timeformat: str = "%H:%M:%S, %d/%m/%y",
     ) -> None:
+        """
+        Open the hdf5 result file
+
+        @param filename: name of the hdf5 file
+        @type filename: str
+        @param maxstrlen: maximum length of strings stored in the file (Default value = 256)
+        @type maxlength: int
+        @param lengrow: maximal remaining data space left empty before adding more space (default value = 10)
+        @type lengrow: int
+        @param timeformat: time/date formatting string
+        @type timeformat: str
+        """
         if not isvalid(filename) or filename == "":
             raise FileNotFoundError(f"Plese enter a valid output file name")
-        self.filename = MPI_STATUS.bcast(filename)
-        self.maxstrlen = maxstrlen
-        self.lengrow = lengrow
-        self.timeformat = timeformat
+        self.filename: str = MPI_STATUS.bcast(filename)
+        """name of hdf5 file"""
+        self.maxstrlen: int = maxstrlen
+        """maximum length of strings stored in the file"""
+        self.lengrow: int = lengrow
+        """maximal remaining data space left empty before adding more space"""
+        self.timeformat: str = timeformat
+        """time/date formatting string"""
+        self.h5file: File
+        """hdf5 file object"""
         try:
             if MPI_STATUS.ismpi:
                 self.h5file = File(filename, "w", driver="mpio", comm=MPI_STATUS.comm)
@@ -59,18 +94,78 @@ class ResultWriter:
             raise FileCreationError(f"'{filename}': {err}")
         except ValueError as err:
             raise FileNotFoundError(f"Couldn't find file {filename} : {err}")
+        # result data
         self._init_stat: bool = False
+        """flag indicating if the writer is initialized"""
+        self.nbcol: int
+        """Available number of columns for writing data"""
+        self.dcol: int
+        """Number of column increment to add when space goes missing"""
+        self.run: Group
+        """hdf5 Group 'Run' for storing generic run informations"""
+        self.params: Group
+        """hdf5 Group 'Parameters' for storing run parameters"""
+        self.statparam: Group
+        """hdf5 Group 'Stats' for storing statistics parameters"""
+        self.mapparam: Group
+        """hdf5 Group 'Maps' for storing maps parameters"""
+        self.ruleparam: Group
+        """hdf5 Group 'Rules' for storing ruleset parameters"""
+        self.dataset: Group
+        """hdf5 Group 'Dataset' for storing result data"""
+        self.data: Dataset
+        """hdf5 Dataset 'Dataset/results' (recording results)"""
+        self.end: Dataset
+        """hdf5 Dataset 'Dataset/end' (recording end messages)"""
+        self.snapshots: Group
+        """hdf5 Group 'Snapshots' for storing snapshots"""
+        self.timesnap: Dataset
+        """hdf5 Dataset 'Snapshots/time' (times of snapshots)"""
+        self.compsnap: Dataset
+        """hdf5 Dataset 'Snapshots/compounds' (compounds snapshots)"""
+        self.reacsnap: Dataset
+        """hdf5 Dataset 'Snapshots/reactions' (reactions snapshots)"""
+        self.reacsnapsaved: Dataset
+        """hdf5 Dataset 'Snapshots/reactions_saved' (were reactions snapshotted?)"""
+        self._snapsized: bool
+        """If True, file space have been correctly sized for storing snapshots"""
+        self.maps: Group
+        """hdf5 Group 'Maps' for storing maps statistics"""
+        self.map_cat: Dict[str, List[float]]
+        """Dictionary listing all categories for each map"""
+        self.currentcol: int
+        """Cuurent column to save data"""
+        # Logging data
         self._init_log: bool = False
+        """flag indicating if logging into the writer is initialized"""
+        self.maxlog: int
+        """maximum log line to be recorded in file"""
+        self.dlog: int
+        """log line increment to add in file when space goes missing"""
+        self.logging: Group
+        """hdf5 Group 'Logging' for storing log data"""
+        self.logcount: Dataset
+        """hdf5 Dataset 'Logging/count' (number of recorded log lines)"""
+        self.logs: Dataset
+        """hdf5 Dataset 'Logging/logs' (recorded log lines)"""
 
     def init_log(self, maxlog: int) -> None:
+        """
+        Init logging interface to hdf5 file
+
+        @param maxlog: (initial) maximum log line to reserve in hdf5 file
+            if more space is needed, maxlog more lines will be reserved.
+            unused lines will be removed at run end.
+        @type maxlog: int
+        """
         self.maxlog = maxlog
         self.dlog = maxlog
         size = MPI_STATUS.size
-        self.logging: Group = self.h5file.create_group("Logging")
-        self.logcount: Dataset = self.logging.create_dataset(
+        self.logging = self.h5file.create_group("Logging")
+        self.logcount = self.logging.create_dataset(
             "count", (size,), fillvalue=0, dtype="int32"
         )
-        self.logs: Dataset = self.logging.create_dataset(
+        self.logs = self.logging.create_dataset(
             "logs",
             (size, maxlog),
             maxshape=(size, None),
@@ -85,6 +180,8 @@ class ResultWriter:
         self._init_log = True
 
     def add_log_line(self) -> None:
+        """Reserve more lines for logging
+        (function intended to be called as a sync. op. of MPI gate)"""
         self.maxlog = self.maxlog + self.dlog
         try:
             self.logs.resize(self.maxlog, axis=1)
@@ -93,6 +190,18 @@ class ResultWriter:
             self._init_log = False
 
     def write_log(self, level: int, time: str, runtime: float, msg: str) -> None:
+        """
+        Write a log line if the file
+
+        @param level: logging level number
+        @type level: int
+        @param time: time at logging event
+        @type time: str
+        @param runtime: runtime at logging event
+        @type runtime: float
+        @param msg: logged message
+        @type msg: str
+        """
         try:
             if self._init_log:
                 rank = MPI_STATUS.rank
@@ -110,10 +219,12 @@ class ResultWriter:
                         # run out of room for log outside the gate, cannot sync withn other threads
                         self._init_log = False
         except OSError:
-            # Big problem.... stop logging
+            # Big problem.... stop logging... probably an overflow of error messages...
             self._init_log = False
 
-    def close_log(self, cutline: int) -> None:
+    def close_log(self) -> None:
+        """Stop logging in file"""
+        cutline = MPI_STATUS.max(self.logcount[MPI_STATUS.rank])
         self.logs.resize(cutline, axis=1)
         self._init_log = False
 
@@ -129,29 +240,29 @@ class ResultWriter:
         size = MPI_STATUS.size
         self.nbcol = nbcol + self.lengrow
         self.dcol = nbcol
-        self.run: Group = self.h5file.create_group("Run")
+        self.run = self.h5file.create_group("Run")
         self.run.attrs["version"] = __version__
         self.run.attrs["hostname"] = MPI_STATUS.hostname
         self.run.attrs["date"] = MPI_STATUS.starttime
         self.run.attrs["threads"] = MPI_STATUS.size
         self.run.attrs["comment"] = comment
-        self.params: Group = self.h5file.create_group("Parameters")
+        self.params = self.h5file.create_group("Parameters")
         self.dict_as_attr(self.params, params.asdict())
-        self.statparam: Group = self.params.create_group("Stats")
+        self.statparam = self.params.create_group("Stats")
         self.multiread_as_attr(self.statparam, params.statparam)
-        self.mapparam: Group = self.params.create_group("Maps")
+        self.mapparam = self.params.create_group("Maps")
         self.multiread_as_attr(self.mapparam, params.mapsparam)
-        self.ruleparam: Group = self.params.create_group("Rules")
+        self.ruleparam = self.params.create_group("Rules")
         self.dict_as_attr(self.ruleparam, ruleparam)
-        self.dataset: Group = self.h5file.create_group("Dataset")
+        self.dataset = self.h5file.create_group("Dataset")
         self.dataset.attrs["datanames"] = datanames
-        self.data: Dataset = self.dataset.create_dataset(
+        self.data = self.dataset.create_dataset(
             "results",
             (size, len(datanames), self.nbcol),
             maxshape=(size, len(datanames), None),
             fillvalue=np.nan,
         )
-        self.end: Dataset = self.dataset.create_dataset(
+        self.end = self.dataset.create_dataset(
             "end",
             (size,),
             dtype=[
@@ -160,17 +271,17 @@ class ResultWriter:
                 ("runtime", "float32"),
             ],
         )
-        self.snapshots: Group = self.h5file.create_group("Snapshots")
-        self.timesnap: Dataset = self.snapshots.create_dataset(
+        self.snapshots = self.h5file.create_group("Snapshots")
+        self.timesnap = self.snapshots.create_dataset(
             "time", (size, 1), maxshape=(size, None), dtype="float32",
         )
-        self.compsnap: Dataset = self.snapshots.create_dataset(
+        self.compsnap = self.snapshots.create_dataset(
             "compounds",
             (size, 1, 1),
             maxshape=(size, None, None),
             dtype=[("name", string_dtype(length=self.maxstrlen)), ("pop", "int32")],
         )
-        self.reacsnap: Dataset = self.snapshots.create_dataset(
+        self.reacsnap = self.snapshots.create_dataset(
             "reactions",
             (size, 1, 1),
             maxshape=(size, None, None),
@@ -180,11 +291,11 @@ class ResultWriter:
                 ("rate", "float32"),
             ],
         )
-        self.reacsnapsaved: Dataset = self.snapshots.create_dataset(
+        self.reacsnapsaved = self.snapshots.create_dataset(
             "reactions_saved", (size, 1), maxshape=(size, None), dtype=bool,
         )
-        self._snapsized: bool = False
-        self.maps: Group = self.h5file.create_group("Maps")
+        self._snapsized = False
+        self.maps = self.h5file.create_group("Maps")
         for name in mapnames:
             self.maps.create_dataset(
                 name,
@@ -193,7 +304,7 @@ class ResultWriter:
                 fillvalue=np.nan,
                 dtype="float32",
             )
-        self.map_cat: Dict[str, List[float]] = {}
+        self.map_cat = {}
         self.currentcol = 0
         MPI_GATE.register_function("addcol", self.add_col)
         self._init_stat = True
