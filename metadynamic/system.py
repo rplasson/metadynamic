@@ -151,14 +151,14 @@ class RunStatus:
             f"#{self.step}'{self.dstep}'': {self.time} -> {self.tnext}  <{int(self.memuse)}Mb>"
         )
 
-    def inc(self, dt: float) -> None:
+    def inc(self, delta_t: float) -> None:
         """
-        Increment time by 'dt' and dstep by 1
+        Increment time by 'delta_t' and dstep by 1
 
-        @param dt: time increment
-        @type dt: float
+        @param delta_t: time increment
+        @type delta_t: float
         """
-        self.time += dt
+        self.time += delta_t
         self.dstep += 1
 
     def next_step(self) -> None:
@@ -371,6 +371,7 @@ class Statistic:
         self._nbsnap += 1
         self._nbcomp = max(self._nbcomp, nbcomp)
         self._nbreac = max(self._nbreac, nbreac)
+        return None
 
     def writesnap(self) -> None:
         """Write all previous snapshots to hdf5"""

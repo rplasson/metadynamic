@@ -36,7 +36,7 @@ from os import path
 from itertools import product
 from json import load
 from subprocess import CalledProcessError
-from typing import Any, Tuple, Dict, List
+from typing import Any, Tuple, Dict, List, Set
 from graphviz import Digraph
 
 import numpy as np
@@ -84,7 +84,7 @@ class Scaler:
         """scaling factor"""
         self._const: float
         """scaling constant"""
-        self.n = powerscale
+        self.pow = powerscale
         """scaling exponent"""
         try:
             self.maxval = max(data)
@@ -95,11 +95,12 @@ class Scaler:
             self.minval = 0.0
             self.maxval = 1.0
         self._lambda = (self.maximal - self.minimal) / (
-            self.maxval ** self.n - self.minval ** self.n
+            self.maxval ** self.pow - self.minval ** self.pow
         )
         self._const = (
-            +self.minimal * self.maxval ** self.n - self.maximal * self.minval ** self.n
-        ) / (self.maxval ** self.n - self.minval ** self.n)
+            +self.minimal * self.maxval ** self.pow
+            - self.maximal * self.minval ** self.pow
+        ) / (self.maxval ** self.pow - self.minval ** self.pow)
 
     def __call__(self, value: float) -> float:
         """
@@ -119,7 +120,7 @@ class Scaler:
             return self.minimal
         if value >= self.maxval:
             return self.maximal
-        return self._lambda * value ** self.n + self._const
+        return self._lambda * value ** self.pow + self._const
 
 
 class Graphwriter:
@@ -291,9 +292,20 @@ class Data2dot:
             maxsize=self.param.maxsize,
         )
         """Chemical Reaction Network renderer"""
-        binode = self.param.binode
-        compset = set()
-        reacset = set()
+        self.compset: Set[str] = set()
+        """set of compound names"""
+        self.reacset: Set[str] = set()
+        """set of reaction names"""
+        self.binode = self.param.binode
+        """is the graph to be drawn with dual nodes comp/reac"""
+
+        self._scan_fluxes()
+        self._scan_compounds()
+        if self.binode:
+            self._scan_reactions()
+
+    def _scan_fluxes(self) -> None:
+        """scan reaction fluxes and add them to the graph"""
         color = self.param.f_color
         scaler = Scaler(
             data=[rate for _, rate in self.reactions.values()],
@@ -304,17 +316,17 @@ class Data2dot:
         )
         for name, (_, rate) in self.reactions.items():
             if rate >= scaler.minval:
-                reacset.add(name)
+                self.reacset.add(name)
                 width = scaler(rate)
                 reactants, products = name.split("->")
-                if not binode:
+                if not self.binode:
                     reaclist = []
                     prodlist = []
                 for reac in reactants.split("+"):
                     num, reacname = self.cutdown(reac)
-                    compset.add(reacname)
+                    self.compset.add(reacname)
                     for _ in range(num):
-                        if binode:
+                        if self.binode:
                             self.crn.edge(
                                 start=reacname, end=name, width=width, color=color
                             )
@@ -322,19 +334,22 @@ class Data2dot:
                             reaclist.append(reacname)
                 for prod in products.split("+"):
                     num, prodname = self.cutdown(prod)
-                    compset.add(prodname)
+                    self.compset.add(prodname)
                     for _ in range(num):
-                        if binode:
+                        if self.binode:
                             self.crn.edge(
                                 start=name, end=prodname, width=width, color=color
                             )
                         else:
                             prodlist.append(prodname)
-                if not binode:
+                if not self.binode:
                     for reacname, prodname in product(reaclist, prodlist):
                         self.crn.edge(
                             start=reacname, end=prodname, width=width, color=color
                         )
+
+    def _scan_compounds(self) -> None:
+        """Scan compounds and add them to the graph"""
         color = self.param.c_color
         scaler = Scaler(
             data=list(self.compounds.values()),
@@ -348,7 +363,7 @@ class Data2dot:
             maximal=self.param.max_fontsize,
             powerscale=self.param.font_powerscale,
         )
-        for name in compset:
+        for name in self.compset:
             try:
                 pop = self.compounds[name]
                 width = scaler(pop)
@@ -364,18 +379,20 @@ class Data2dot:
                 margin=self.param.c_margin,
                 penwidth=self.param.c_penwidth,
             )
-        if binode:
-            color = self.param.r_color
-            scaler = Scaler(
-                data=[const for const, _ in self.reactions.values()],
-                minimal=self.param.min_r_width,
-                maximal=self.param.max_r_width,
-                powerscale=self.param.r_powerscale,
-            )
-            for name in reacset:
-                const, _ = self.reactions[name]
-                width = scaler(const)
-                self.crn.reaction(name=name, width=width, color=color)
+
+    def _scan_reactions(self) -> None:
+        """scan reactions and add them to the graph"""
+        color = self.param.r_color
+        scaler = Scaler(
+            data=[const for const, _ in self.reactions.values()],
+            minimal=self.param.min_r_width,
+            maximal=self.param.max_r_width,
+            powerscale=self.param.r_powerscale,
+        )
+        for name in self.reacset:
+            const, _ = self.reactions[name]
+            width = scaler(const)
+            self.crn.reaction(name=name, width=width, color=color)
 
     def write(self, filename: str) -> bool:
         """

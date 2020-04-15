@@ -452,10 +452,11 @@ class ResultReader:
         @return: three 1D data arrays for x, y+err, y-err
         @rtype: ndarray, ndarray, ndarray
         """
-        x = self.get(field=x, method="m", meanlength=meanlength)
-        yp = self.get(field=y, method=f"+{delta}", meanlength=meanlength)
-        ym = self.get(field=y, method=f"-{delta}", meanlength=meanlength)
-        return x, yp, ym
+        return (
+            self.get(field=x, method="m", meanlength=meanlength),
+            self.get(field=y, method=f"+{delta}", meanlength=meanlength),
+            self.get(field=y, method=f"-{delta}", meanlength=meanlength),
+        )
 
     def xyerr(
         self,
