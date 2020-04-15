@@ -41,7 +41,16 @@ exception.
 
 from typing import Union, Callable
 from types import FrameType
-import signal
+from signal import (
+    signal,
+    getsignal,
+    Signals,
+    Handlers,
+    SIGTERM,
+    SIGINT,
+    SIG_IGN,
+    SIG_DFL,
+)
 
 
 class Finished(Exception):
@@ -224,9 +233,7 @@ class NotAFolder(InputError):
 
 # Signal handling
 
-SignHandler = Union[
-    Callable[[signal.Signals, FrameType], None], int, signal.Handlers, None
-]
+SignHandler = Union[Callable[[Signals, FrameType], None], int, Handlers, None]
 """Generic type that can be returned as a signal handler"""
 
 
@@ -243,23 +250,23 @@ class SignalCatcher:
         """Name of the signal received while in 'listen' state"""
         self.frame: str = ""
         """Frame of the signal received while in 'listen' state"""
-        self._initial_term: SignHandler = signal.getsignal(signal.SIGTERM)
+        self._initial_term: SignHandler = getsignal(SIGTERM)
         """Initial handler to which SIGTERM was connected"""
-        self._initial_int: SignHandler = signal.getsignal(signal.SIGINT)
+        self._initial_int: SignHandler = getsignal(SIGINT)
         """Initial handler to which SIGTINT was connected"""
 
     def reset(self) -> None:
         """Return to the signal handling state as it was at object creation"""
-        signal.signal(signal.SIGTERM, self._initial_term)
-        signal.signal(signal.SIGINT, self._initial_int)
+        signal(SIGTERM, self._initial_term)
+        signal(SIGINT, self._initial_int)
 
     def ignore(self) -> None:
         """SIGTERM and SIGINT signales to be ignored"""
-        self.init_signal(signal.SIG_IGN)
+        self.init_signal(SIG_IGN)
 
     def release(self) -> None:
         """SIGTERM and SIGINT signal to be set to default behaviour"""
-        self.init_signal(signal.SIG_DFL)
+        self.init_signal(SIG_DFL)
 
     def listen(self) -> None:
         """
@@ -279,10 +286,10 @@ class SignalCatcher:
         @param handler: signal handler to connect to
         @type handler: SignHandler
         """
-        signal.signal(signal.SIGTERM, handler)
-        signal.signal(signal.SIGINT, handler)
+        signal(SIGTERM, handler)
+        signal(SIGINT, handler)
 
-    def signal_listen(self, received_signal: signal.Signals, frame: FrameType) -> None:
+    def signal_listen(self, received_signal: Signals, frame: FrameType) -> None:
         """
         Actions to be performed when SIGINT or SIGTERM are received when in 'listen' state.
 
@@ -292,11 +299,11 @@ class SignalCatcher:
         then switches the signal reception to 'ignore'
 
         @param received_signal: received signal
-        @type received_signal: signal.Signals
+        @type received_signal: Signals
         @param frame: context frame at signal reception
         @type frame: FrameType
         """
         self.alive = False
-        self.signal = signal.Signals(received_signal).name
+        self.signal = Signals(received_signal).name
         self.frame = str(frame)
         self.ignore()
