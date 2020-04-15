@@ -102,7 +102,7 @@ class Memcalc:
 
 
 # only use the value of order! (but often), with order rarely above 3...
-fact = Memcalc(factorial)
+FACT = Memcalc(factorial)
 """Memoized factorial"""
 
 
@@ -122,16 +122,16 @@ class CollectofCompound(Collect[str, "Compound"]):
 
     _colltype = "Compound"
 
-    def _create(self, name: str) -> "Compound":
+    def _create(self, key: str) -> "Compound":
         """
         Create a Compound from its key
 
-        @param name: name of the compound to be created
-        @type name: str
+        @param key: name of the compound to be created
+        @type key: str
         @return: newly created Compound object
         @rtype: Compound
         """
-        newcomp = Compound(name, self.crn)
+        newcomp = Compound(key, self.crn)
         return newcomp
 
     def _categorize(self, obj: "Compound") -> Set[str]:
@@ -187,16 +187,16 @@ class CollectofReaction(Collect[ReacDescr, "Reaction"]):
 
     _colltype = "Reaction"
 
-    def _create(self, description: ReacDescr) -> "Reaction":
+    def _create(self, key: ReacDescr) -> "Reaction":
         """
         Create a Reaction from its key
 
-        @param description: description of the compound to be created
-        @type name: ReacDescr
+        @param key: description of the compound to be created
+        @type key: ReacDescr
         @return: newly created Reaction object
         @rtype: Reaction
         """
-        newreac = Reaction(description, self.crn)
+        newreac = Reaction(key, self.crn)
         return newreac
 
     def _categorize(self, obj: "Reaction") -> Set[str]:
@@ -385,7 +385,7 @@ class Reaction(Chemical[ReacDescr]):
                 # /!\  Check if this cannot be computed earlier using ruleset.Parameters facilities
                 #
                 if stoechnum > 1:
-                    self.const /= fact(stoechnum)
+                    self.const /= FACT(stoechnum)
             self.const /= self.crn.probalist.vol ** (order - 1)
             self.tobeinitialized = True
             self._unset_proba_pos()
@@ -752,13 +752,13 @@ class Crn:
         @rtype: float
         """
         # choose a random event
-        chosen, dt = self.probalist.choose()
+        chosen, delta_t = self.probalist.choose()
         # check if there even was an event to choose
         if chosen is None:
-            raise NotFound(f"dt={dt}")
+            raise NotFound(f"dt={delta_t}")
         # perform the (chosen one) event
         chosen.process()
-        return dt
+        return delta_t
 
     def reac_toupdate(self, reac: Reaction) -> None:
         """
