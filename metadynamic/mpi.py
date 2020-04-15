@@ -109,8 +109,8 @@ class MpiGate:
         """thread number"""
         self.procs: Iterable[int] = range(self.size)
         """list of thread numbers"""
-        self.snd_state: List[Optional[MPI.Request]] = [None] * (self.size)
-        """list of send states (to which a message was sent?)"""
+        self.snd_state: List[List[MPI.Request]] = [[] for _ in range(self.size)]
+        """list of send states (to which thread which messages were sent?)"""
         self.rcv_state: List[bool] = [False] * (self.size)
         """list of received states (from which a message was received?)"""
         self.nb_running: int = self.size
@@ -128,8 +128,6 @@ class MpiGate:
         """launched flag state"""
         self.cont = Cont()
         """coninue toggable state"""
-        self.msg: List[int] = [0] * (self.size)
-        """list of MPI message box"""
         self._op: Dict[int, Callable[[], None]] = {
             1: nop,
             2: self.check_all_out,
@@ -229,35 +227,38 @@ class MpiGate:
         self.nb_running = self.comm.allreduce(self.running, op=MPI.SUM)
 
     def check_msg(self) -> None:
-        """
-        """
+        """Check if MPI messages were received"""
         for src in self.procs:
             received = self.comm.Iprobe(source=src, tag=self.gatenum)
             self.rcv_state[src] = received
 
     def read_msg(self) -> List[int]:
-        self.check_msg()
-        for src in self.procs:
-            if self.rcv_state[src]:
-                msg = self.comm.recv(source=src, tag=self.gatenum)
-                self.msg[src] = msg
-                self.rcv_state[src] = False
-        res = self.msg.copy()
-        self.msg = [0] * self.size
+        res: List[int] = []
+        """Check if message were received, and store them"""
+        while self.closed:
+            for src in self.procs:
+                if self.rcv_state[src]:
+                    res.append(self.comm.recv(source=src, tag=self.gatenum))
+                    self.rcv_state[src] = False
         return res
 
     def wait_sent(self) -> None:
+        """Check if all sent messages were sent"""
         for dest in self.procs:
-            req = self.snd_state[dest]
-            if req is not None:
+            for req in self.snd_state[dest]:
                 req.Wait()
-                self.snd_state[dest] = None
+            self.snd_state[dest] = []
 
     def send_msg(self, msg: str) -> None:
+        """
+        Send a message to all threads
+
+        @param msg: message as the syn operation name
+        @type msg: str
+        """
         for dest in self.procs:
-            if self.snd_state[dest] is None:
-                msgnum = self._opnum[msg]
-                self.snd_state[dest] = self.comm.isend(msgnum, dest=dest, tag=self.gatenum)
+            msgnum = self._opnum[msg]
+            self.snd_state[dest].append(self.comm.isend(msgnum, dest=dest, tag=self.gatenum))
 
     @property
     def closed(self) -> bool:
