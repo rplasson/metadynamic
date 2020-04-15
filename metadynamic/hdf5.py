@@ -38,7 +38,7 @@ from h5py import File, Group, Dataset, string_dtype
 import numpy as np
 
 from metadynamic.ends import Finished, FileCreationError, InternalError
-from metadynamic.inval import isvalid
+from metadynamic.inval import isvalid, invalidfloat
 from metadynamic.inputs import Readerclass, Param
 from metadynamic.caster import Caster
 from metadynamic.mpi import MPI_GATE, MPI_STATUS
@@ -237,6 +237,22 @@ class ResultWriter:
         comment: str,
         nbcol: int,
     ) -> None:
+        """
+        Initialize statistics recording
+
+        @param datanames: list of data field names
+        @type datanames: List[str]
+        @param mapnames: list of map field names
+        @type mapnames: List[str]
+        @param params: run parameters
+        @type params: Param
+        @param ruleparam: rules parameters
+        @type ruleparam: Dict[str, Any]
+        @param comment: run comment
+        @type comment: str
+        @param nbcol: initial number of columns to reserve in file
+        @type nbcol: int
+        """
         size = MPI_STATUS.size
         self.nbcol = nbcol + self.lengrow
         self.dcol = nbcol
@@ -310,17 +326,27 @@ class ResultWriter:
         self._init_stat = True
 
     def test_initialized(self) -> None:
+        """
+        Test if the file was intialized for storing statistics
+
+        @raise: InternalError if not initialized
+        """
         if not self._init_stat:
             raise InternalError("Attempt to write in HDF5 file before intialization")
 
     def add_col(self) -> None:
+        """Reserve additional columns for storing results
+        (function intended to be called as a sync. op. of MPI gate)"""
         self.nbcol = self.nbcol + self.dcol
         self.data_resize(self.nbcol)
 
-    def data_resize(self, maxcol: int) -> None:
-        self.data.resize(maxcol, axis=2)
+    def data_resize(self, nbcol: float = invalidfloat) -> None:
+        """Resize data size of hdf5 datasets"""
+        if not isvalid(nbcol):
+            nbcol = MPI_STATUS.max(self.currentcol)
+        self.data.resize(nbcol, axis=2)
         for datamap in self.maps.values():
-            datamap.resize(maxcol + 1, axis=2)
+            datamap.resize(nbcol + 1, axis=2)
 
     def mapsize(self, name: str, categories: List[float]) -> None:
         self.test_initialized()
@@ -347,6 +373,8 @@ class ResultWriter:
         self._snapsized = True
 
     def close(self) -> None:
+        self.data_resize()
+        self.close_log()
         self.run.attrs["end"] = datetime.now().strftime(self.timeformat)
         self._init_log = False
         self._init_stat = False

@@ -407,18 +407,11 @@ class Statistic:
         else:
             LOGGER.warning(str(the_end))
 
-    def data_recut(self) -> None:
-        """Remove unneccessary blank lines from hdf5 datasets"""
-        maxcol = MPI_STATUS.max(self.writer.currentcol)
-        self.writer.data_resize(maxcol)
-
     def close(self) -> None:
         """Write all remaining data  in hdf5 file, clean it, then close it"""
         LOGGER.info(f"File {self.writer.filename} to be written and closed...")
         self.writesnap()
         self.writemap()
-        self.data_recut()
-        self.writer.close_log()
         self.writer.close()
         LOGGER.info(f"...written and closed, done.")
 
