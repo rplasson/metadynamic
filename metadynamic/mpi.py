@@ -329,7 +329,15 @@ class MpiGate:
 
 
 class MpiStatus:
+    """Interface to general MPI operations."""
+
     def __init__(self, rootnum: int = 0) -> None:
+        """
+        Create a status object
+
+        @param rootnum: set the number of the root process
+        @type rootnum: int
+        """
         self.comm = MPI.COMM_WORLD
         self.hostname = gethostname()
         self.size: int = int(self.comm.size)
@@ -339,22 +347,53 @@ class MpiStatus:
         self._starttime: str = "[not-started]"
 
     def init(self, timeformat: str) -> None:
+        """
+        Initialize the time 0 (synchronized between threads)
+
+        @param timeformat: formatting string for the date/time
+        @type timeformat: str
+        """
         self._starttime = self.bcast(datetime.now().strftime(timeformat))
 
     @property
     def starttime(self) -> str:
+        """
+        Return time 0
+
+        @return: start time
+        @rtype: str
+        """
         return self._starttime
 
     @property
     def root(self) -> bool:
+        """
+        Is this thread the MPI root?
+
+        @return: True if root
+        @rtype: bool
+        """
         return self.rank == self.rootnum
 
     def max(self, val: Any) -> Any:
+        """
+        Return the max value among threads
+
+        @param val: value to be gathered and compared
+        @return: max value
+        """
         if self.ismpi:
             return self.comm.allreduce(val, op=MPI.MAX)
         return val
 
     def bcast(self, val: Any) -> Any:
+        """
+        Broadcast the value to all threads.
+        All will return value sent by the root thread.
+
+        @param val: value to be brodcasted
+        @return: root thread value
+        """
         if self.root:
             res = val
         else:
@@ -363,6 +402,15 @@ class MpiStatus:
         return res
 
     def sortlist(self, data: List[float]) -> List[float]:
+        """
+        Return a sorted list of all data sent by all threads
+        (removing duplicates)
+
+        @param data: list of values to be gathered and sorted
+        @type data: List[float]
+        @return: sorted gathered list
+        @type: List[float]
+        """
         if not self.ismpi:
             data.sort()
             return data
