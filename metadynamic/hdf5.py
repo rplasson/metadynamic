@@ -326,7 +326,7 @@ class ResultWriter:
         """
         Test if the file was intialized for storing statistics
 
-        @raise: InternalError if not initialized
+        @raise InternalError: if not initialized
         """
         if not self._init_stat:
             raise InternalError("Attempt to write in HDF5 file before intialization")
@@ -351,7 +351,19 @@ class ResultWriter:
         for datamap in self.maps.values():
             datamap.resize(nbcol + 1, axis=2)
 
-    def add_map(self, name: str, categories: List[float], data: Dict[float, List[float]]) -> None:
+    def add_map(
+        self, name: str, categories: List[float], data: Dict[float, List[float]]
+    ) -> None:
+        """
+        write a datya map into the file
+
+        @param name: name of the map to save
+        @type name: str
+        @param categories: list of numeric categories of the map
+        @type categories: List[float]
+        @param data: data map to save
+        @type data: Dict[str, List[float]]
+        """
         self.test_initialized()
         mapsize = len(categories)
         self.maps[name].resize(mapsize, axis=1)
@@ -364,6 +376,16 @@ class ResultWriter:
                 pass  # No problem, some categories may have been reached by only some processes
 
     def snapsize(self, maxcomp: int, maxreac: int, maxsnap: int) -> None:
+        """
+        Reserve space for storing snapshots
+
+        @param maxcomp: maximum number of compounds
+        @type maxcomp: int
+        @param maxreac: maximum number of reactions
+        @type maxreac: int
+        @param maxsnap: maximum number of snapshots
+        @type maxsnap: int
+        """
         self.test_initialized()
         self.timesnap.resize((MPI_STATUS.size, maxsnap))
         self.compsnap.resize((MPI_STATUS.size, maxsnap, maxcomp))
@@ -372,6 +394,7 @@ class ResultWriter:
         self._snapsized = True
 
     def close(self) -> None:
+        """Close hdf5 file"""
         self.data_resize()
         self.close_log()
         self.run.attrs["end"] = datetime.now().strftime(self.timeformat)
@@ -380,6 +403,14 @@ class ResultWriter:
         self.h5file.close()
 
     def add_data(self, result: List[float]) -> None:
+        """
+        Write a data column
+
+        @param result: dataset to save
+        @param type: List[float]
+
+        @raise InternalError: if no more space is left for storing data
+        """
         self.test_initialized()
         try:
             self.data[MPI_STATUS.rank, :, self.currentcol] = result
@@ -392,6 +423,14 @@ class ResultWriter:
             )
 
     def add_end(self, ending: Finished, time: float) -> None:
+        """
+        Write an ending message
+
+        @param ending: Finished exception raised for ending the runinfo
+        @type ending: Finished
+        @param time: ending time
+        @type time: float
+        """
         self.test_initialized()
         self.end[MPI_STATUS.rank] = (
             ending.num,
@@ -406,6 +445,20 @@ class ResultWriter:
         col: int,
         time: float,
     ) -> None:
+        """
+        Write a snapshot
+
+        @param complist: compound collection as {name:population}
+        @type complist: Dict[str, int]
+        @param reaclist: reaction collections as {name (const, rate)}
+        @type reaclist: Dict[str, Tuple[float, float]]
+        @param col: column to store the snapshot
+        @type col: int
+        @param time: snapshot time
+        @type time: float
+
+        @raise InternalError: if attempt to write a snapshot before correct dataset sizing
+        """
         self.test_initialized()
         if self._snapsized:
             self.timesnap[MPI_STATUS.rank, col] = time
@@ -425,6 +478,21 @@ class ResultWriter:
             raise InternalError(f"Snapshots data in hdf5 file wasn't properly sized")
 
     def dict_as_attr(self, group: Group, datas: Dict[str, Any], name: str = "") -> None:
+        """
+        Write the data dictionary as a set of attributes in hdf5 group
+
+        In case of embedded dictionary {'key1':{'key2': value}},
+        attributes will be flatten as {'key1->key2' : value}
+
+        @param group: hdf5 group to which attributes will be written
+        @type group: Group
+        @param datas: dictionary to be stored as attributes.
+        @type datas: Dict[str, Any]
+        @param name: name of embedding (for flattening embedded dictionaries,
+            intended to be used only by recursive calls)
+            Ignored if empty (default).
+        @type name: str
+        """
         for key, val in datas.items():
             if name:
                 key = f"{name}->{key}"
@@ -434,6 +502,17 @@ class ResultWriter:
                 self.dict_as_attr(group, val, name=key)
 
     def multiread_as_attr(self, group: Group, datas: Mapping[str, Readerclass]) -> None:
+        """
+        Write multiple dictionaries from a collection of identical embedded Readerclass fields
+        (typically for the statparams and mapparams field of Param)
+
+        subgroups will be created for each datas key, and corresponding attributes written there.
+
+        @param group: hdf5 group to which attributes will be written
+        @type group: Group
+        @param datas: dictionary to be stored as attributes.
+        @type datas: Mapping[str, Readerclass]
+        """
         for key, val in datas.items():
             subgroup = group.create_group(key)
             self.dict_as_attr(subgroup, val.asdict())
