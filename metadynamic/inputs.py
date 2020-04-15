@@ -87,6 +87,12 @@ class Readerclass:
 
     def __post_init__(self) -> None:
         """(re) calculate data after fields init or change"""
+        self._locked: bool
+        """lock flag"""
+        self._autocast: bool
+        """autocast flag"""
+        self._checktype: bool
+        """checktype flag"""
 
     @staticmethod
     def _fromfile(filename: str) -> Dict[str, Any]:
@@ -315,8 +321,7 @@ class Readerclass:
 
     def lock(self) -> None:
         """Lock the object, preventing parameter changes"""
-        self._locked: bool = True
-        """lock flag"""
+        self._locked = True
 
     def unlock(self) -> None:
         """Unlock the object, enabling parameter changes"""
@@ -336,8 +341,7 @@ class Readerclass:
 
     def set_autocast(self) -> None:
         """Set the autocast feature"""
-        self._autocast: bool = True
-        """autocast flag"""
+        self._autocast = True
 
     def unset_autocast(self) -> None:
         """Unset the autocast feature"""
@@ -357,8 +361,7 @@ class Readerclass:
 
     def set_checktype(self) -> None:
         """Set the checktype feature"""
-        self._checktype: bool = True
-        """checktype flag"""
+        self._checktype = True
 
     def unset_checktype(self) -> None:
         """Unset the checktype feature"""

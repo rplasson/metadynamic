@@ -7,7 +7,7 @@ extension-pkg-whitelist=mpi4py
 
 # Add files or directories to the blacklist. They should be base names, not
 # paths.
-ignore=CVS
+ignore=CVS,tests
 
 # Add files or directories matching the regex patterns to the blacklist. The
 # regex matches against base names, not paths.
@@ -252,6 +252,7 @@ good-names=x,
 	   K,
 	   T,
 	   C,
+	   R,
            ex,
            Run,
            _
@@ -516,7 +517,7 @@ valid-metaclass-classmethod-first-arg=cls
 max-args=10
 
 # Maximum number of attributes for a class (see R0902).
-max-attributes=20
+max-attributes=50
 
 # Maximum number of boolean expressions in an if statement (see R0916).
 max-bool-expr=5
