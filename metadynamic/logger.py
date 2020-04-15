@@ -67,7 +67,7 @@ class Timer:
 
 class Log:
     """High level class for MPI-aware logging, with log save in hdf5."""
-    
+
     def __init__(
         self,
         filename: str = invalidstr,
