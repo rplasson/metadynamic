@@ -127,7 +127,7 @@ class MpiGate:
         self.launched: bool = False
         """launched flag state"""
         self.cont = Cont()
-        """coninue toggable state"""
+        """continue toggable state"""
         self._op: Dict[int, Callable[[], None]] = {
             1: nop,
             2: self.check_all_out,
@@ -233,8 +233,8 @@ class MpiGate:
             self.rcv_state[src] = received
 
     def read_msg(self) -> List[int]:
-        res: List[int] = []
         """Check if message were received, and store them"""
+        res: List[int] = []
         while self.closed:
             for src in self.procs:
                 if self.rcv_state[src]:
@@ -258,19 +258,35 @@ class MpiGate:
         """
         for dest in self.procs:
             msgnum = self._opnum[msg]
-            self.snd_state[dest].append(self.comm.isend(msgnum, dest=dest, tag=self.gatenum))
+            self.snd_state[dest].append(
+                self.comm.isend(msgnum, dest=dest, tag=self.gatenum)
+            )
 
     @property
     def closed(self) -> bool:
+        """True if gate is closed (i.e. messages were received)"""
         self.check_msg()
         return sum(self.rcv_state) > 0
 
     def close(self, msg: str = "nop") -> None:
+        """
+        Request the gate to be closed by sending a message
+
+        @param msg: sync. operation to be performed at gate (Default value = "nop")
+        @type msg: str
+        """
         if not self.launched:
             raise ValueError("Cannot close a gate that has not been launched.")
         self.send_msg(msg)
 
     def open(self) -> None:
+        """
+        Open a closed gate.
+
+        This implies to wait all threads to be present,
+        then process synchronously all requested operations
+        before opening back the gate and returning to normal operations.
+        """
         # Wait for everyone for exchanging messages
         if not self.launched:
             raise ValueError("Cannot open a gate that has not been launched.")
@@ -287,10 +303,26 @@ class MpiGate:
             self.operate(oper)
 
     def checkpoint(self) -> None:
+        """
+        Check if the gate is closed before passing the checkpoint
+        If the gate is closed, this will imply to perform synchronous operations
+        before continuing.
+        """
         if self.closed:
             self.open()
 
     def launch(self) -> "MpiGate":
+        """
+        Launch a gated processing
+
+        Intended to be lauched as a context manager:
+
+            >>> with MPI_GATE.launch():
+                    while MPI_GATE.cont:
+                        do_stuff()
+                        MPI_GATE.checkpoint()
+
+        """
         self.running = True
         self.launched = True
         return self
