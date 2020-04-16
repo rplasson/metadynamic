@@ -33,6 +33,7 @@ Provides:
 
 """
 
+from types import ModuleType
 from typing import Callable, Dict, KeysView, Tuple, Set, Iterable, List
 from itertools import product
 from importlib import import_module
@@ -138,7 +139,7 @@ class Parameters:
 
         This will automatically update parameters defined by a relation
 
-        If an attempt is done to fix the value of a parameter defined by a 
+        If an attempt is done to fix the value of a parameter defined by a
         relation, the request will be ignored *except* if the 'terminate'
         flag is set to False (do not use this flag manually, this is intended to be used
         by _param_init; direct use may result in an inconsistent set of parameters)
@@ -372,48 +373,84 @@ class Ruleset:
 
 
 class Model:
+    """full description of a rule model"""
+
     def __init__(
         self, modelparam: str, reactions: List[str], paramdict: Paramdict
     ) -> None:
-        # load parameters an rule module
+        """
+        Create a model
+
+        @param modelparam: name of the module containing the rule model code
+        @type modelparam: str
+        @param reactions: list of reaction types to load from rulemodel (if empty, load all)
+        @type reactions: List[str]
+        @param paramdict:parameters values
+        @type paramdict: Paramdict
+        """
+        self.modelparam: str = modelparam
+        """name of the module containing the rule model code"""
+        self.rulepath: ModuleType
+        """Direct access to model code"""
+        self.param: RulesetParam
+        """ruleset parameters"""
+        self.load_param()
+        self.reactions: Iterable[
+            str
+        ] = reactions if reactions else self.param.rules.keys()
+        """list of reactions types"""
+        self.parameters = Parameters(paramdict)
+        """set of model parameters (constants, temperature, etc.)"""
+        self.descriptor: Descriptor = Descriptor()
+        """set of categorizers/propertizers"""
+        self.create_descriptors()
+        # create rules
+        self.ruleset: Ruleset = Ruleset(self.descriptor)
+        """set of rules"""
+        self.create_rules()
+
+    def load_param(self) -> None:
+        """load parameters of the rule module"""
         try:
             # model given as a module, e.g. metadynamic.models.polymers
-            self.rulepath = import_module(modelparam)
+            self.rulepath = import_module(self.modelparam)
             try:
                 ruleset = getattr(self.rulepath, "default_ruleset")
             except AttributeError:
-                InitError(f"'{modelparam}' module didn't define a 'default_ruleset'")
+                InitError(
+                    f"'{self.modelparam}' module didn't define a 'default_ruleset'"
+                )
             self.param = RulesetParam.readdict(ruleset)
         except AttributeError:
             raise InitError(
-                f"Model {modelparam} does not provides a 'default_ruleset' dict"
+                f"Model {self.modelparam} does not provides a 'default_ruleset' dict"
             )
         except ModuleNotFoundError:
             # model given as a json file
-            self.param = RulesetParam.readfile(modelparam)
+            self.param = RulesetParam.readfile(self.modelparam)
             self.rulepath = import_module(self.param.rulemodel)
-        # create descriptors
-        self.descriptor: Descriptor = Descriptor()
-        self.parameters = Parameters(paramdict)
+
+    def create_descriptors(self) -> None:
+        """create the descriptors"""
         for rel in self.param.relations:
             try:
                 self.parameters.add_relation(rel, getattr(self.rulepath, rel))
             except AttributeError:
-                LOGGER.error(f"relation '{rel}' not found in {modelparam}")
+                LOGGER.error(f"relation '{rel}' not found in {self.modelparam}")
         for catname in self.param.categories:
             try:
                 self.descriptor.add_cat(catname, getattr(self.rulepath, catname))
             except AttributeError:
-                LOGGER.error(f"category '{catname}' not found in {modelparam}")
+                LOGGER.error(f"category '{catname}' not found in {self.modelparam}")
         for propname in self.param.properties:
             try:
                 self.descriptor.add_prop(propname, getattr(self.rulepath, propname))
             except AttributeError:
-                LOGGER.error(f"'[property '{propname}' not found in {modelparam}")
-        # create rules
-        self.ruleset: Ruleset = Ruleset(self.descriptor)
-        # read all rules from reactions if not empty, else read them from [aram.rules
-        for rulename in reactions if reactions else self.param.rules:
+                LOGGER.error(f"'[property '{propname}' not found in {self.modelparam}")
+
+    def create_rules(self) -> None:
+        """Read and create rules"""
+        for rulename in self.reactions:
             # Get rule from parameter file
             if rulename in self.param.rules:
                 ruleparam = self.param.rules[rulename]
@@ -434,7 +471,7 @@ class Model:
                 except AttributeError:
                     # raise an error if the rule from file is not in the module
                     raise InitError(
-                        f"The rule '{rulename}' from '{modelparam}' is not defined in '{self.rulepath}'"
+                        f"The rule '{rulename}' from '{self.modelparam}' is not defined in '{self.rulepath}'"
                     )
                 # Register the created rule
                 self.ruleset.add_rule(rulename, rule)
@@ -442,6 +479,8 @@ class Model:
                 LOGGER.warning(
                     f"Reaction '{rulename}' not found in {self.rulepath}, ignored."
                 )
+
+
 
 
 # - Generic elements - #
