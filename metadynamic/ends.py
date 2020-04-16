@@ -29,10 +29,13 @@ Provides:
 
 Exception categories inherit from Finished:
 HappyEnding, BadEnding, Aborted, InputError
+
  - L{HappyEnding} is intended for normal end of the computation
- - L{Aborted} is intended to signal that the computation ended earlier than expected, but lead to a nonetheless correct result
+ - L{Aborted} is intended to signal that the computation ended earlier than expected,
+   but lead to a nonetheless correct result
  - L{BadEnding} is intended to signal that something when wrong during the computation
- - L{InputError} is intended to signal problems with file read or write, unrelated to the computation itself.
+ - L{InputError} is intended to signal problems with file read or write, unrelated to
+   the computation itself.
 
 All exceptions intended to be used are derived from one
 of these categories. indicating the general context of the
@@ -245,7 +248,8 @@ class SignalCatcher:
     def __init__(self) -> None:
         """Simply create the object, and do not change anything to signal handling"""
         self.alive: bool = False
-        """aliveness flag (when set in listen state, it is True until SIGINT or SIGTERM is received)"""
+        """aliveness flag
+        (when set in listen state, it is True until SIGINT or SIGTERM is received)"""
         self.signal: str = ""
         """Name of the signal received while in 'listen' state"""
         self.frame: str = ""

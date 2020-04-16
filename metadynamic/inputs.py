@@ -127,9 +127,11 @@ class Readerclass:
 
         @param parameters: parameters to be set (override the default values)
         @type parameters: Dict[str, Any]
-        @param checktype: if True, an error will be raised if the parameters are given in a faulty type (Default value = True)
+        @param checktype: if True, an error will be raised if the parameters are given
+            in a faulty type (Default value = True)
         @type checktype: bool
-        @param autocast: if True, given parameters will be catsed to the correct type (Default value = True)
+        @param autocast: if True, given parameters will be catsed to the correct type
+            (Default value = True)
         @type autocast: bool
         @return: new object
         @rtype: Readerclass
@@ -159,9 +161,11 @@ class Readerclass:
 
         @param parameters: dictionary of parameters to be set (override the default values)
         @type parameters: Dict[str, Dict[str, Any]]
-        @param checktype: if True, an error will be raised if the parameters are given in a faulty type (Default value = True)
+        @param checktype: if True, an error will be raised if the parameters are given
+            in a faulty type (Default value = True)
         @type checktype: bool
-        @param autocast: if True, given parameters will be catsed to the correct type (Default value = True)
+        @param autocast: if True, given parameters will be catsed to the correct type
+            (Default value = True)
         @type autocast: bool
         @return: dictionary of new objects
         @rtype: Dict[str, Readerclass]
@@ -182,9 +186,11 @@ class Readerclass:
 
         @param filename: name of json file
         @type filename: str
-        @param checktype: if True, an error will be raised if the parameters are given in a faulty type (Default value = True)
+        @param checktype: if True, an error will be raised if the parameters are given
+            in a faulty type (Default value = True)
         @type checktype: bool
-        @param autocast: if True, given parameters will be catsed to the correct type (Default value = True)
+        @param autocast: if True, given parameters will be catsed to the correct type
+            (Default value = True)
         @type autocast: bool
         @return: new object
         @rtype: Readerclass
@@ -203,9 +209,11 @@ class Readerclass:
 
         @param filename: name of json file
         @type filename: str
-        @param checktype: if True, an error will be raised if the parameters are given in a faulty type (Default value = True)
+        @param checktype: if True, an error will be raised if the parameters are given
+            in a faulty type (Default value = True)
         @type checktype: bool
-        @param autocast: if True, given parameters will be catsed to the correct type (Default value = True)
+        @param autocast: if True, given parameters will be catsed to the correct type
+            (Default value = True)
         @type autocast: bool
         @return: dictionary of new objects
         @rtype: Dict[str, Readerclass]
@@ -265,7 +273,8 @@ class Readerclass:
                     err += f"Couldn't cast '{val}' into {self.conv_param(key).dest}. "
             if self.checktype:
                 if not isinstance(val, self.conv_param(key).dest):
-                    err += f"{key} parameter should be of type {self.conv_param(key).dest}, not {type(val)}\n"
+                    err += f"{key} parameter should be of type {self.conv_param(key).dest}, "
+                    err += f"not {type(val)}\n"
         if err != "":
             raise BadFile(err)
         return val
@@ -274,8 +283,8 @@ class Readerclass:
         """
         Set the object parameters.
 
-        This function must be used, instead of directly setting parameters, so that the check/autocast/lock
-        features can be correctly used.
+        This function must be used, instead of directly setting parameters,
+        so that the check/autocast/lock features can be correctly used.
 
         @raise LockedError: raised if attempted on a locked object
         @raise BadFile: raised if parameters value are of uncorrect type
@@ -383,6 +392,7 @@ class Readerclass:
 @dataclass
 class RuleParam(Readerclass):
     """Parameters for a reaction rule"""
+
     reactants: List[str] = field(default_factory=list)
     """list of reactants categories"""
     builder_func: str = ""
@@ -394,12 +404,14 @@ class RuleParam(Readerclass):
     descr: str = ""
     """Description of the reaction"""
     robust: bool = True
-    """Reaction robustness flag (products are recomputed at each reaction proceesing step when non-robust)"""
+    """Reaction robustness flag (products are recomputed
+    at each reaction proceesing step when non-robust)"""
 
 
 @dataclass
 class RulesetParam(Readerclass):
     """Parameters for a reaction ruleset"""
+
     rulemodel: str = "metadynamic.models.polymers"
     """rulemodel module to be used"""
     categories: List[str] = field(default_factory=list)
@@ -415,6 +427,7 @@ class RulesetParam(Readerclass):
 @dataclass
 class StatParam(Readerclass):
     """Parameters for statistics"""
+
     prop: str = "count"
     """property used for the statistic calculation"""
     weight: str = "count"
@@ -431,6 +444,7 @@ class StatParam(Readerclass):
 @dataclass
 class MapParam(Readerclass):
     """Parameters for map statistics"""
+
     prop: str = "count"
     """property used for the statistic calculation"""
     weight: str = "count"
@@ -448,6 +462,7 @@ class MapParam(Readerclass):
 @dataclass
 class Param(Readerclass):
     """Run parameters"""
+
     # Description
     name: str = "run"
     """Run name"""
@@ -500,9 +515,7 @@ class Param(Readerclass):
     maxmem_percent: int = 95
     """Maximum percentage of memory to be used (used if maxmem set to 0)"""
     # IO
-    save: List[str] = field(
-        default_factory=list
-    )
+    save: List[str] = field(default_factory=list)
     """list of compounds to be saved at each time step"""
     stat: str = ""
     """json filename describing statistics"""
@@ -529,7 +542,9 @@ class Param(Readerclass):
         self.statparam = StatParam.readmultiple(self.stat)
         self.mapsparam = MapParam.readmultiple(self.maps)
         if self.maxmem == 0:
-            self.maxmem = int(self.maxmem_percent * virtual_memory().total/1024/1024/100)
+            self.maxmem = int(
+                self.maxmem_percent * virtual_memory().total / 1024 / 1024 / 100
+            )
 
     def set_param(self, **kwd: Any) -> None:
         if "parameters" in kwd:
@@ -543,9 +558,11 @@ class Param(Readerclass):
 @dataclass
 class DotParam(Readerclass):
     """Parameters for graphviz CRN representation"""
+
     # type
     binode: bool = False
-    """reaction graph with only compounds as single nodes (False) or both compounds and reaction as dual nodes (True)"""
+    """reaction graph with only compounds as single nodes (False)
+    or both compounds and reaction as dual nodes (True)"""
     # Graph rendering
     margin: float = 0.0
     """graph margin"""

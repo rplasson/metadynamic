@@ -68,7 +68,8 @@ class ResultWriter:
         @type filename: str
         @param maxstrlen: maximum length of strings stored in the file (Default value = 256)
         @type maxlength: int
-        @param lengrow: maximal remaining data space left empty before adding more space (default value = 10)
+        @param lengrow: maximal remaining data space left empty before adding more space
+            (default value = 10)
         @type lengrow: int
         @param timeformat: time/date formatting string
         @type timeformat: str

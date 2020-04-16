@@ -174,7 +174,8 @@ class ResultReader:
         else:
             raise ValueError(f"'method'={method} is invalid")
         return (
-            # Running mean from https://stackoverflow.com/questions/13728392/moving-average-or-running-mean
+            # Running mean taken from
+            # https://stackoverflow.com/questions/13728392/moving-average-or-running-mean
             np.convolve(res, np.ones((meanlength,)) / meanlength, mode="valid")
             if isvalid(meanlength)
             else res
@@ -227,7 +228,8 @@ class ResultReader:
         else:
             raise ValueError(f"'method'={method} is invalid")
         return (
-            # Running mean from https://stackoverflow.com/questions/13728392/moving-average-or-running-mean
+            # Running mean taken from
+            # https://stackoverflow.com/questions/13728392/moving-average-or-running-mean
             np.convolve(res, np.ones((meanlength,)) / meanlength, mode="valid")
             if isvalid(meanlength)
             else res
@@ -354,7 +356,7 @@ class ResultReader:
             index = self.datanames
         return DataFrame(data, index=index)
 
-    def xy(
+    def x_y(
         self,
         y: str = "ptime",
         x: str = "time",
@@ -388,7 +390,7 @@ class ResultReader:
         y = self.get(field=y, method=method, meanlength=meanlength)
         return x, y
 
-    def xyproc(
+    def x_y_proc(
         self,
         y: str = "ptime",
         x: str = "time",
@@ -424,7 +426,7 @@ class ResultReader:
         ).T
         return x, y
 
-    def xypm(
+    def x_y_pm(
         self,
         y: str = "ptime",
         x: str = "time",
@@ -458,7 +460,7 @@ class ResultReader:
             self.get(field=y, method=f"-{delta}", meanlength=meanlength),
         )
 
-    def xyerr(
+    def x_y_err(
         self,
         y: str = "ptime",
         x: str = "time",
@@ -491,7 +493,7 @@ class ResultReader:
         err = self.get(field=y, method=f"s", meanlength=meanlength) * delta
         return x, y, err
 
-    def xyz(
+    def x_y_z(
         self,
         field: str,
         method: str = "m",

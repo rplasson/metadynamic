@@ -42,7 +42,7 @@
       </div>
 
       <div class="moduleDocstring">
-        <div class="undocumented">Undocumented</div>
+        <div><p>Maintain a set of parameters {name:values} that can be linked with each other.</p></div>
       </div>
 
       <div id="splitTables">
@@ -52,37 +52,32 @@
     
     <td>Method</td>
     <td><a href="metadynamic.ruleset.Parameters.html#__init__" class="code" data-type="Method">__init__</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Create a Parameters object from a dictionary</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.ruleset.Parameters.html#add_set_param" class="code" data-type="Method">add_set_param</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Create a new parameter and set it.</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.ruleset.Parameters.html#add_param" class="code" data-type="Method">add_param</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Create a new parameter (set to 0.0)</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.ruleset.Parameters.html#set_param" class="code" data-type="Method">set_param</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Set a parameter value.</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.ruleset.Parameters.html#__getitem__" class="code" data-type="Method">__getitem__</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Return the value of key. If the key is non existent, it is created and set to 0</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><a href="metadynamic.ruleset.Parameters.html#add_relation" class="code" data-type="Method">add_relation</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
-  </tr><tr class="method">
-    
-    <td>Method</td>
-    <td><a href="metadynamic.ruleset.Parameters.html#param_init" class="code" data-type="Method">param_init</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Add a new parameter and set it by a relation.</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
@@ -97,17 +92,22 @@
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.ruleset.Parameters.html#_paramdict" class="code" data-type="Instance Variable">_paramdict</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>internal parameter values storage</span></td>
   </tr><tr class="instancevariable private">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.ruleset.Parameters.html#_relation" class="code" data-type="Instance Variable">_relation</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>relation functions between parameters</span></td>
   </tr><tr class="instancevariable private">
     
     <td>Instance Variable</td>
     <td><a href="metadynamic.ruleset.Parameters.html#_updating" class="code" data-type="Instance Variable">_updating</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>list of parameters being updated (avoids circular updates)</span></td>
+  </tr><tr class="method private">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.ruleset.Parameters.html#_param_init" class="code" data-type="Method">_param_init</a></td>
+    <td><span>Initialize all relation-defined parameters</span></td>
   </tr>
 </table>
         
@@ -134,7 +134,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Create a Parameters object from a dictionary</p><p>Defaults parameters will be created:</p><ul><li>T = 300.0 (temperature)</li><li>pH = 7.0</li><li>num = MPI rank</li><li>ntot = MPI size</li></ul><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">paramdict</td><td>dictionary of parameters as {name:value}</td></tr></table></div>
   </div>
 </div><div class="baseinstancevariable private">
   
@@ -148,7 +148,7 @@
     _paramdict =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>Paramdict</code>)
+    <div><p>internal parameter values storage</p></div> (type: <code>Paramdict</code>)
   </div>
 </div><div class="baseinstancevariable private">
   
@@ -162,7 +162,7 @@
     _relation =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>Dict[str, Paramrel]</code>)
+    <div><p>relation functions between parameters</p></div> (type: <code>Dict[str, Paramrel]</code>)
   </div>
 </div><div class="baseinstancevariable private">
   
@@ -176,7 +176,7 @@
     _updating =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div> (type: <code>List[str]</code>)
+    <div><p>list of parameters being updated (avoids circular updates)</p></div> (type: <code>List[str]</code>)
   </div>
 </div><div class="basemethod">
   
@@ -195,7 +195,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Create a new parameter and set it.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">key</td><td>parameter name (type: str)</td></tr><tr><td></td><td class="fieldArg">val</td><td>parameter value (type: float)</td></tr><tr class="fieldStart"><td class="fieldName">Raises</td><td class="fieldArg">KeyError</td><td>if the parameter already exists</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -214,7 +214,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Create a new parameter (set to 0.0)</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">key</td><td>parameter name (type: str)</td></tr><tr class="fieldStart"><td class="fieldName">Raises</td><td class="fieldArg">KeyError</td><td>if the parameter already exists</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -233,7 +233,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Set a parameter value.</p><p>This will automatically update parameters defined by a relation</p><p>If an attempt is done to fix the value of a parameter defined by a relation, the request will be ignored *except* if the 'terminate' flag is set to False (do not use this flag manually, this is intended to be used by _param_init; direct use may result in an inconsistent set of parameters)</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">key</td><td>parameter name (type: str)</td></tr><tr><td></td><td class="fieldArg">val</td><td>parameter value (type: float)</td></tr><tr><td></td><td class="fieldArg">terminate</td><td>do not use manually (see above) (type: bool)</td></tr><tr class="fieldStart"><td class="fieldName">Raises</td><td class="fieldArg">KeyError</td><td>if the parameter does not exists</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -252,7 +252,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Return the value of key. If the key is non existent, it is created and set to 0</p></div>
   </div>
 </div><div class="basemethod">
   
@@ -271,26 +271,26 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Add a new parameter and set it by a relation.</p><p>If the key already exists, it will be overriden.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">key</td><td>parameter name (type: str)</td></tr><tr><td></td><td class="fieldArg">relation</td><td>relation function (type: Paramrel)</td></tr></table></div>
   </div>
-</div><div class="basemethod">
+</div><div class="basemethod private">
   
-  <a name="metadynamic.ruleset.Parameters.param_init">
+  <a name="metadynamic.ruleset.Parameters._param_init">
     
   </a>
-  <a name="param_init">
+  <a name="_param_init">
     
   </a>
   <div class="functionHeader">
     
     def
-    param_init(self):
+    _param_init(self):
     
   </div>
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Initialize all relation-defined parameters</p></div>
   </div>
 </div><div class="basemethod">
   
@@ -334,7 +334,7 @@
 
       </div>
       <address>
-        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-15 17:38:26.
+        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-16 14:53:14.
       </address>
 
     </div>

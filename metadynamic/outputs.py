@@ -42,6 +42,7 @@ from metadynamic.ends import NotAFolder
 
 class Output:
     """Access to output files and folders"""
+
     def __init__(self, param: Param):
         """
         Generate files structures from parameters
@@ -59,7 +60,9 @@ class Output:
         self.logdir: str = param.logdir
         """log folder"""
         if not path.isdir(self.logdir):
-            LOGGER.debug("Logs will be sent to standard output because {self.logdir} is not a folder.")
+            LOGGER.debug(
+                "Logs will be sent to standard output because {self.logdir} is not a folder."
+            )
 
     @property
     def process(self) -> str:

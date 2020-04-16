@@ -51,7 +51,12 @@ A script named 'metarun' is provided for launching a simulation from the command
 
 Usage::
 
-    metarun [-h] [--logdir [logdir]] [--comment [comment]] [--loglevel [loglevel]] [--compress [compress]] parameters
+    metarun [-h]
+            [--logdir [logdir]]
+            [--comment [comment]]
+            [--loglevel [loglevel]]
+            [--compress [compress]]
+            parameters
 
 """
 

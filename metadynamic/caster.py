@@ -35,6 +35,7 @@ from typing import Type, Any, List
 
 class Caster:
     """generic type-caster generator"""
+
     def __init__(self, target: Type[Any]):
         """
         creates an callable object that will try to cast any value to
@@ -54,7 +55,9 @@ class Caster:
         if hasattr(target, "__origin__"):
             self.dest = target.__origin__
             args = target.__args__
-            self.args = [Caster(args[0])] if Ellipsis in args else [Caster(arg) for arg in args]
+            self.args = (
+                [Caster(args[0])] if Ellipsis in args else [Caster(arg) for arg in args]
+            )
         else:
             self.dest = target
             self.args = []
@@ -82,5 +85,7 @@ class Caster:
 
     def __repr__(self) -> str:
         """represent a caster as 'TO<destination type>'"""
-        args = "" if len(self.args) == 0 else " , ".join([str(arg) for arg in self.args])
+        args = (
+            "" if len(self.args) == 0 else " , ".join([str(arg) for arg in self.args])
+        )
         return f"TO{self.dest}[{args}]"

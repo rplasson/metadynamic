@@ -103,7 +103,7 @@ novariant: VariantBuilder = novariant_gen()
 
 # (length-1) possible reactions from a given reaction
 # (e.g. abc -[1]-> a+bc and abc -[2]->  ab+c)
-intervariant: VariantBuilder = rangevariant(first_offset=1, last_offset=0, reacnum=0)
+intervariant: VariantBuilder = rangevariant(reacnum=0, first_offset=1)
 
 
 default_ruleset: Dict[str, Any] = {

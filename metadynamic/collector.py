@@ -89,7 +89,8 @@ class Collect(Generic[K, T]):
         @type model: Model
         @param categorize: shall the objects be automatically categorized (Default value = True)
         @type categorize: bool
-        @param dropmode: how the unactivated object are dealt ("drop"=> removed, "keep"=> kept in pool)
+        @param dropmode: how the unactivated object are dealt
+            ("drop"=> removed, "keep"=> kept in pool)
             (Default value = "drop")
         @type dropmode: str
         """

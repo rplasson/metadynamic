@@ -42,7 +42,7 @@
       </div>
 
       <div class="moduleDocstring">
-        <div><h1>metadynamic.ruleset</h1><p>All elements for designing a set of rule, i.e. the Core for model design !</p><h2>Provides:</h2><p>...lots...</p></div>
+        <div><h1>metadynamic.ruleset</h1><p>All elements for designing a set of rule, i.e. the Core for model design !</p><h2>Provides:</h2><ul><li>classes for the description of a rule model:<ul><li><a href="metadynamic.ruleset.Parameters.html"><code>Parameters</code></a>:</li><li><a href="metadynamic.ruleset.Descriptor.html"><code>Descriptor</code></a>:</li><li><a href="metadynamic.ruleset.Rule.html"><code>Rule</code></a>:</li><li><a href="metadynamic.ruleset.Model.html"><code>Model</code></a>:</li></ul></li><li>generators to be used for building models:<ul><li><a href="metadynamic.ruleset.html#Paramrel"><code>Paramrel</code></a> generators:<ul><li><a href="metadynamic.ruleset.html#parmul"><code>parmul</code></a></li><li><a href="metadynamic.ruleset.html#arrhenius"><code>arrhenius</code></a></li><li><a href="metadynamic.ruleset.html#linproc"><code>linproc</code></a></li></ul></li><li><a href="metadynamic.ruleset.html#ConstBuilder"><code>ConstBuilder</code></a> generators:<ul><li><a href="metadynamic.ruleset.html#kinvar"><code>kinvar</code></a></li><li><a href="metadynamic.ruleset.html#kalternate"><code>kalternate</code></a></li><li><a href="metadynamic.ruleset.html#kdualchoice"><code>kdualchoice</code></a></li></ul></li><li><a href="metadynamic.ruleset.html#VariantBuilder"><code>VariantBuilder</code></a> generators:<ul><li><a href="metadynamic.ruleset.html#novariant_gen"><code>novariant_gen</code></a></li><li><a href="metadynamic.ruleset.html#singlevariant"><code>singlevariant</code></a></li><li><a href="metadynamic.ruleset.html#rangevariant"><code>rangevariant</code></a></li></ul></li><li><a href="metadynamic.ruleset.html#ProdBuilder"><code>ProdBuilder</code></a> generators:<ul><li><a href="metadynamic.ruleset.html#joiner"><code>joiner</code></a></li><li><a href="metadynamic.ruleset.html#splitter"><code>splitter</code></a></li></ul></li></ul></li></ul></div>
       </div>
 
       <div id="splitTables">
@@ -57,12 +57,12 @@
     
     <td>Variable</td>
     <td><a href="metadynamic.ruleset.html#Paramdict" class="code" data-type="Variable">Paramdict</a></td>
-    <td><span>Parameters as {name:value}</span></td>
+    <td><span>Parameters, as {name:value}</span></td>
   </tr><tr class="variable">
     
     <td>Variable</td>
     <td><a href="metadynamic.ruleset.html#Paramrel" class="code" data-type="Variable">Paramrel</a></td>
-    <td><span>Function calculating a value from a given Paramdict (i.e. rule for computing a value from a parameters set)</span></td>
+    <td><span>Function computing a value from a set of parameters (i.e. calculating a value from a given Paramdict)</span></td>
   </tr><tr class="variable">
     
     <td>Variable</td>
@@ -72,122 +72,107 @@
     
     <td>Variable</td>
     <td><a href="metadynamic.ruleset.html#Categorizer" class="code" data-type="Variable">Categorizer</a></td>
-    <td><span>Function returning a bool from a given name string ('does name belongs to my category?')</span></td>
+    <td><span>Function identifying if a name belongs to a specific category?' (i.e. returning a bool from a given name string)</span></td>
   </tr><tr class="variable">
     
     <td>Variable</td>
     <td><a href="metadynamic.ruleset.html#Propertizer" class="code" data-type="Variable">Propertizer</a></td>
-    <td><span>Function returning a float from a given name string (i.e. computes a property from a name)</span></td>
+    <td><span>Function computing a property from a name (i.e. returning a float from a given name string)</span></td>
   </tr><tr class="variable">
     
     <td>Variable</td>
     <td><a href="metadynamic.ruleset.html#ProdBuilder" class="code" data-type="Variable">ProdBuilder</a></td>
-    <td><span>Function computing products from (reactants, variant)</span></td>
+    <td><span>Function computing products from (reactants, variant) (i.e. computing a new Compset from a Compset and a reaction variant)</span></td>
   </tr><tr class="class">
     
     <td>Class</td>
     <td><a href="metadynamic.ruleset.Parameters.html" class="code" data-type="Class">Parameters</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Maintain a set of parameters {name:values} that can be linked with each other.</span></td>
   </tr><tr class="variable">
     
     <td>Variable</td>
     <td><a href="metadynamic.ruleset.html#ConstBuilder" class="code" data-type="Variable">ConstBuilder</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Function computing a kinetic constant from (reactants, parameters, variant) (i.e. computing a float from a Compset, a Parameters and a reaction variant)</span></td>
   </tr><tr class="variable">
     
     <td>Variable</td>
     <td><a href="metadynamic.ruleset.html#VariantBuilder" class="code" data-type="Variable">VariantBuilder</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Function computing a list of possible reaction variants from reactants (i.e. computing an iterable of int from a Compset)</span></td>
   </tr><tr class="variable">
     
     <td>Variable</td>
     <td><a href="metadynamic.ruleset.html#Builder" class="code" data-type="Variable">Builder</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Full reaction builder, with all elements for describing a reaction simply a tuple (prodbuilder,constbuilder,variantbuilder)</span></td>
   </tr><tr class="variable">
     
     <td>Variable</td>
     <td><a href="metadynamic.ruleset.html#ReacDescr" class="code" data-type="Variable">ReacDescr</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>reaction description as (rule name, reactants, variant)</span></td>
   </tr><tr class="variable">
     
     <td>Variable</td>
     <td><a href="metadynamic.ruleset.html#ReacProp" class="code" data-type="Variable">ReacProp</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>reaction property, as (reactants stoechiometry, products stoechiometry, constant, robustness)</span></td>
   </tr><tr class="class">
     
     <td>Class</td>
     <td><a href="metadynamic.ruleset.Descriptor.html" class="code" data-type="Class">Descriptor</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>tool for describing a compound from its name (categories and properties)</span></td>
   </tr><tr class="class">
     
     <td>Class</td>
     <td><a href="metadynamic.ruleset.Rule.html" class="code" data-type="Class">Rule</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
-  </tr><tr class="class">
-    
-    <td>Class</td>
-    <td><a href="metadynamic.ruleset.Ruleset.html" class="code" data-type="Class">Ruleset</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Describes a given rule for building a reaction</span></td>
   </tr><tr class="class">
     
     <td>Class</td>
     <td><a href="metadynamic.ruleset.Model.html" class="code" data-type="Class">Model</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>full description of a rule model</span></td>
   </tr><tr class="function">
     
     <td>Function</td>
     <td><a href="metadynamic.ruleset.html#parmul" class="code" data-type="Function">parmul</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Generate a parameter relation →'name'×'factor'</span></td>
   </tr><tr class="function">
     
     <td>Function</td>
     <td><a href="metadynamic.ruleset.html#arrhenius" class="code" data-type="Function">arrhenius</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Generate a parameter relation →'k_0'·e^(-'eact'/(R·'T')) With R=8.314</span></td>
   </tr><tr class="function">
     
     <td>Function</td>
     <td><a href="metadynamic.ruleset.html#linproc" class="code" data-type="Function">linproc</a></td>
-    <td><span>Return a kinetic constant ranging from 'start' to 'end', proportionally to process number</span></td>
+    <td><span>Generate a parameter relation returning a value proportional to the thread number, ranging from 'start' to 'end'</span></td>
   </tr><tr class="function">
     
     <td>Function</td>
     <td><a href="metadynamic.ruleset.html#kinvar" class="code" data-type="Function">kinvar</a></td>
-    <td><span>Build an invariable kinetic constant named 'name'</span></td>
-  </tr><tr class="function">
-    
-    <td>Function</td>
-    <td><a href="metadynamic.ruleset.html#klinproc" class="code" data-type="Function">klinproc</a></td>
-    <td><span>Return a kinetic constant ranging from 'start' to 'end', proportionally to process number</span></td>
-  </tr><tr class="function">
-    
-    <td>Function</td>
-    <td><a href="metadynamic.ruleset.html#karrh" class="code" data-type="Function">karrh</a></td>
-    <td><span>Return a kinetic constant at temperature 'T' from Arrhenius equation, with 'k_0' pre-exponential factor, and 'eact' the activation energy</span></td>
+    <td><span>Generates a Constbuilder giving the same constant 'name' in all situations</span></td>
   </tr><tr class="function">
     
     <td>Function</td>
     <td><a href="metadynamic.ruleset.html#kalternate" class="code" data-type="Function">kalternate</a></td>
-    <td><span class="undocumented">No summary</span></td>
+    <td><span>Generates a Constbuilder giving constant 'name_t' when 'condition' is True, and 'name_f' when 'condition' is False.</span></td>
   </tr><tr class="function">
     
     <td>Function</td>
     <td><a href="metadynamic.ruleset.html#kdualchoice" class="code" data-type="Function">kdualchoice</a></td>
-    <td><span>Build an kinetic constant 'name_xy' where x and y are either t or f (True or False), depending on the respective booleam results of 'condition_1' and 'condition_2'.</span></td>
+    <td><span>Generates a Constbuilder giving constant 'name_xy' where x and y are either t or f (True or False), depending on the respective booleam results of 'condition_1' and 'condition_2'.</span></td>
   </tr><tr class="function">
     
     <td>Function</td>
     <td><a href="metadynamic.ruleset.html#novariant_gen" class="code" data-type="Function">novariant_gen</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Generate a VariantBuilder for reactions with no variant (i.e. only one possible outcome).</span></td>
   </tr><tr class="function">
     
     <td>Function</td>
     <td><a href="metadynamic.ruleset.html#singlevariant" class="code" data-type="Function">singlevariant</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Generate a VariantBuilder for reactions with a single variant (i.e. only one possible outcome).</span></td>
   </tr><tr class="function">
     
     <td>Function</td>
     <td><a href="metadynamic.ruleset.html#rangevariant" class="code" data-type="Function">rangevariant</a></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><span>Generate a VariantBuilder for reactions with as many variants as the length of the reactant number 'reacnum', ranging from 0 to len(reactants[reacnum]).</span></td>
   </tr><tr class="function">
     
     <td>Function</td>
@@ -233,7 +218,7 @@
     Paramdict =
   </div>
   <div class="functionBody">
-    <div><p>Parameters as {name:value}</p></div>
+    <div><p>Parameters, as {name:value}</p></div>
   </div>
 </div><div class="basevariable">
   
@@ -247,7 +232,7 @@
     Paramrel =
   </div>
   <div class="functionBody">
-    <div><p>Function calculating a value from a given Paramdict (i.e. rule for computing a value from a parameters set)</p></div>
+    <div><p>Function computing a value from a set of parameters (i.e. calculating a value from a given Paramdict)</p></div>
   </div>
 </div><div class="basevariable">
   
@@ -275,7 +260,7 @@
     Categorizer =
   </div>
   <div class="functionBody">
-    <div><p>Function returning a bool from a given name string ('does name belongs to my category?')</p></div>
+    <div><p>Function identifying if a name belongs to a specific category?' (i.e. returning a bool from a given name string)</p></div>
   </div>
 </div><div class="basevariable">
   
@@ -289,7 +274,7 @@
     Propertizer =
   </div>
   <div class="functionBody">
-    <div><p>Function returning a float from a given name string (i.e. computes a property from a name)</p></div>
+    <div><p>Function computing a property from a name (i.e. returning a float from a given name string)</p></div>
   </div>
 </div><div class="basevariable">
   
@@ -303,7 +288,7 @@
     ProdBuilder =
   </div>
   <div class="functionBody">
-    <div><p>Function computing products from (reactants, variant)</p></div>
+    <div><p>Function computing products from (reactants, variant) (i.e. computing a new Compset from a Compset and a reaction variant)</p></div>
   </div>
 </div><div class="basevariable">
   
@@ -317,7 +302,7 @@
     ConstBuilder =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>Function computing a kinetic constant from (reactants, parameters, variant) (i.e. computing a float from a Compset, a Parameters and a reaction variant)</p></div>
   </div>
 </div><div class="basevariable">
   
@@ -331,7 +316,7 @@
     VariantBuilder =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>Function computing a list of possible reaction variants from reactants (i.e. computing an iterable of int from a Compset)</p></div>
   </div>
 </div><div class="basevariable">
   
@@ -345,7 +330,7 @@
     Builder =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>Full reaction builder, with all elements for describing a reaction simply a tuple (prodbuilder,constbuilder,variantbuilder)</p></div>
   </div>
 </div><div class="basevariable">
   
@@ -359,7 +344,7 @@
     ReacDescr =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>reaction description as (rule name, reactants, variant)</p></div>
   </div>
 </div><div class="basevariable">
   
@@ -373,7 +358,7 @@
     ReacProp =
   </div>
   <div class="functionBody">
-    <div class="undocumented">Undocumented</div>
+    <div><p>reaction property, as (reactants stoechiometry, products stoechiometry, constant, robustness)</p></div>
   </div>
 </div><div class="basefunction">
   
@@ -392,7 +377,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Generate a parameter relation →'name'×'factor'</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">name</td><td>name of the base parameter. (type: str)</td></tr><tr><td></td><td class="fieldArg">factor</td><td>name of the factor parameter. (type: str)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">Paramrel function (type: Paramrel)</td></tr></table></div>
   </div>
 </div><div class="basefunction">
   
@@ -411,7 +396,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Generate a parameter relation →'k_0'·e^(-'eact'/(R·'T')) With R=8.314</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">k_0</td><td>name of the Arrhenius pre-exponential factor</td></tr><tr><td></td><td class="fieldArg">eact</td><td>name of the activation energy (type: str)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">Paramrel function (type: Paramrel)</td></tr></table></div>
   </div>
 </div><div class="basefunction">
   
@@ -430,7 +415,7 @@
   <div class="docstring functionBody">
     
     
-    <div><p>Return a kinetic constant ranging from 'start' to 'end', proportionally to process number</p></div>
+    <div><p>Generate a parameter relation returning a value proportional to the thread number, ranging from 'start' to 'end'</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">start</td><td>name of the parameter given to the first thread (type: str)</td></tr><tr><td></td><td class="fieldArg">end</td><td>name of the parameter given to the last thread (type: str)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">Paramrel function (type: Paramrel)</td></tr></table></div>
   </div>
 </div><div class="basefunction">
   
@@ -449,45 +434,7 @@
   <div class="docstring functionBody">
     
     
-    <div><p>Build an invariable kinetic constant named 'name'</p></div>
-  </div>
-</div><div class="basefunction">
-  
-  <a name="metadynamic.ruleset.klinproc">
-    
-  </a>
-  <a name="klinproc">
-    
-  </a>
-  <div class="functionHeader">
-    
-    def
-    klinproc(start, end):
-    
-  </div>
-  <div class="docstring functionBody">
-    
-    
-    <div><p>Return a kinetic constant ranging from 'start' to 'end', proportionally to process number</p></div>
-  </div>
-</div><div class="basefunction">
-  
-  <a name="metadynamic.ruleset.karrh">
-    
-  </a>
-  <a name="karrh">
-    
-  </a>
-  <div class="functionHeader">
-    
-    def
-    karrh(k_0, eact):
-    
-  </div>
-  <div class="docstring functionBody">
-    
-    
-    <div><p>Return a kinetic constant at temperature 'T' from Arrhenius equation, with 'k_0' pre-exponential factor, and 'eact' the activation energy</p></div>
+    <div><p>Generates a Constbuilder giving the same constant 'name' in all situations</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">name</td><td>name of the constant to return (type: str)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">ConstBuilder function (type: ConstBuilder)</td></tr></table></div>
   </div>
 </div><div class="basefunction">
   
@@ -506,7 +453,7 @@
   <div class="docstring functionBody">
     
     
-    <div><p>Build an kinetic constant 'name_t' when 'condition' is True, and 'name_f' when 'condition' is False. 'condition' is a function that takes as arguments a set of compound names (a tuple of strings) and a variant (integer)</p></div>
+    <div><p>Generates a Constbuilder giving constant 'name_t' when 'condition' is True, and 'name_f' when 'condition' is False.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">condition</td><td>function that takes as arguments a set of compound names (a tuple of strings) and a variant (integer) (type: Callable[[Compset, int], bool])</td></tr><tr><td></td><td class="fieldArg">name_t</td><td>name of the constant to return when condition is True (type: str)</td></tr><tr><td></td><td class="fieldArg">name_f</td><td>name of the constant to return when condition is False (type: str)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">ConstBuilder function (type: ConstBuilder)</td></tr></table></div>
   </div>
 </div><div class="basefunction">
   
@@ -525,7 +472,7 @@
   <div class="docstring functionBody">
     
     
-    <div><p>Build an kinetic constant 'name_xy' where x and y are either t or f (True or False), depending on the respective booleam results of 'condition_1' and 'condition_2'.</p><p>if 'name_ft' is not set, it is equal to 'name_tf'</p><p>'condition_n' are functions that takes as arguments a set of compound names (a tuple of strings) and a variant (integer)</p></div>
+    <div><p>Generates a Constbuilder giving constant 'name_xy' where x and y are either t or f (True or False), depending on the respective booleam results of 'condition_1' and 'condition_2'.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">condition_1</td><td>first condition, as a function that takes as arguments a set of compound names (a tuple of strings) and a variant (integer) (type: Callable[[Compset, int], bool])</td></tr><tr><td></td><td class="fieldArg">condition_2</td><td>second condition (type: Callable[[Compset, int], bool])</td></tr><tr><td></td><td class="fieldArg">name_tt</td><td>name of the constant to return when conditions are (True, True) (type: str)</td></tr><tr><td></td><td class="fieldArg">name_ff</td><td>name of the constant to return when conditions are (False, False) (type: str)</td></tr><tr><td></td><td class="fieldArg">name_tf</td><td>name of the constant to return when conditions are (True, False) (type: str)</td></tr><tr><td></td><td class="fieldArg">name_ft</td><td>name of the constant to return when conditions are (False, True) if not set (default), it will be set equal to 'name_tf'. (type: str)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">ConstBuilder function (type: ConstBuilder)</td></tr></table></div>
   </div>
 </div><div class="basefunction">
   
@@ -544,7 +491,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Generate a VariantBuilder for reactions with no variant (i.e. only one possible outcome).</p><p>The returned VariantBuilder will return a single invalid variant value, thus is intended to be used with ProdBuilder and ConstBuilder that do not use variant for computing the reaction property.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">VariantBuilder function (type: VariantBuilder)</td></tr></table></div>
   </div>
 </div><div class="basefunction">
   
@@ -563,7 +510,7 @@
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Generate a VariantBuilder for reactions with a single variant (i.e. only one possible outcome).</p><p>The returned VariantBuilder will return a single valid variant value 'num', thus is intended to be used with ProdBuilder and ConstBuilder that do use variant for computing the reaction property, but in cases where only one of all possible variants is expected to be used.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">num</td><td>variant number to return (type: int)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">VariantBuilder function (type: VariantBuilder)</td></tr></table></div>
   </div>
 </div><div class="basefunction">
   
@@ -576,13 +523,13 @@
   <div class="functionHeader">
     
     def
-    rangevariant(first_offset, last_offset, reacnum):
+    rangevariant(reacnum, first_offset=0, last_offset=0):
     
   </div>
   <div class="docstring functionBody">
     
     
-    <div class="undocumented">Undocumented</div>
+    <div><p>Generate a VariantBuilder for reactions with as many variants as the length of the reactant number 'reacnum', ranging from 0 to len(reactants[reacnum]).</p><p>A first_offset can be added to change the first variant. A last_offset can be added to change the last variant.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">reacnum</td><td>number of the reactant to be used for computing the variant (type: int)</td></tr><tr><td></td><td class="fieldArg">first_offset</td><td>offset to be added to the first variant (type: int)</td></tr><tr><td></td><td class="fieldArg">last_offset</td><td>offset to be added to the last variant (type: int)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">VariantBuilder function (type: VariantBuilder)</td></tr></table></div>
   </div>
 </div><div class="basefunction">
   
@@ -626,7 +573,7 @@
 
       </div>
       <address>
-        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-15 17:38:26.
+        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-16 14:53:14.
       </address>
 
     </div>

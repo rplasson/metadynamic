@@ -253,7 +253,8 @@ class Data2dot:
 
         @param filename: name of json file containing compiunds/reactions
         @type filename: str
-        @param parameterfile: Name of json Dotparam file (if empty, use default values) (Default value = "")
+        @param parameterfile: Name of json Dotparam file (if empty, use default values)
+            (Default value = "")
         @type parameterfile: str
         """
         with open(filename) as infile:
@@ -275,7 +276,8 @@ class Data2dot:
         @type compdict: Dict[str, int]
         @param reacdict: Chemical reaction {name:(constant,probability)}
         @type reactdict: Dict[str, List[float]]
-        @param parameterfile: Name of json Dotparam file (if empty, use default values) (Default value = "")
+        @param parameterfile: Name of json Dotparam file (if empty, use default values)
+            (Default value = "")
         @type parameterfile: str
         """
         self.compounds: Dict[str, int] = compdict

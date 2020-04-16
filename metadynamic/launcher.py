@@ -28,9 +28,9 @@ High level interface to direct run launch
 Provides
 --------
 
-    - L{launch}: function for launching a simulation from a .json parameter file, a .hdf5 result file
-      from a previous run, with eventual additional parameters, and storing the results in a new
-      .hdf5 file.
+    - L{launch}: function for launching a simulation from a .json parameter file,
+      or a .hdf5 result file from a previous run, with eventual additional parameters,
+      and storing the results in a new .hdf5 file.
 
 """
 
