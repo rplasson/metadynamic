@@ -55,27 +55,48 @@ from metadynamic.inputs import RulesetParam
 Compset = Tuple[str, ...]
 """Set of componds"""
 Paramdict = Dict[str, float]
-"""Parameters as {name:value}"""
+"""Parameters, as {name:value}"""
 Paramrel = Callable[[Paramdict], float]
-"""Function calculating a value from a given Paramdict
-(i.e. rule for computing a value from a parameters set)"""
+"""Function computing a value from a set of parameters
+(i.e. calculating a value from a given Paramdict)"""
 Stoechio = Iterable[Tuple[str, int]]
 """Stoechimetry, as a list of (compound name,stechiometry number)"""
 Categorizer = Callable[[str], bool]
-"""Function returning a bool from a given name string
-('does name belongs to my category?')"""
+"""Function identifying if a name belongs to a specific category?'
+(i.e. returning a bool from a given name string)"""
 Propertizer = Callable[[str], float]
-"""Function returning a float from a given name string
-(i.e. computes a property from a name)"""
+"""Function computing a property from a name
+(i.e. returning a float from a given name string)"""
 ProdBuilder = Callable[[Compset, int], Compset]
-"""Function computing products from (reactants, variant)"""
+"""Function computing products from (reactants, variant)
+(i.e. computing a new Compset from a Compset and a reaction variant)"""
 
 
 class Parameters:
+    """
+    Maintain a set of parameters {name:values}
+    that can be linked with each other.
+    """
+
     def __init__(self, paramdict: Paramdict) -> None:
+        """
+        Create a Parameters object from a dictionary
+
+        Defaults parameters will be created:
+         - T = 300.0 (temperature)
+         - pH = 7.0
+         - num = MPI rank
+         - ntot = MPI size
+
+        @param paramdict: dictionary of parameters as {name:value}
+        @type object: Paramdict
+        """
         self._paramdict: Paramdict = {}
+        """internal parameter values storage"""
         self._relation: Dict[str, Paramrel] = {}
+        """relation functions between parameters"""
         self._updating: List[str] = []
+        """list of parameters being updated (avoids circular updates)"""
         self.add_set_param("T", 300.0)
         self.add_set_param("pH", 7.0)
         self.add_set_param("num", MPI_STATUS.rank)
@@ -84,16 +105,53 @@ class Parameters:
             self.add_set_param(key, val)
 
     def add_set_param(self, key: str, val: float) -> None:
+        """
+        Create a new parameter and set it.
+
+        @param key: parameter name
+        @type key: str
+        @param val: parameter value
+        @type val: float
+
+        @raise KeyError: if the parameter already exists
+        """
         self.add_param(key)
         self.set_param(key, val)
 
     def add_param(self, key: str) -> None:
+        """
+        Create a new parameter (set to 0.0)
+
+        @param key: parameter name
+        @type key: str
+
+        @raise KeyError: if the parameter already exists
+        """
         if key not in self._paramdict:
             self._paramdict[key] = 0.0
         else:
             raise KeyError(f"Key {key} already registered")
 
     def set_param(self, key: str, val: float, terminate: bool = True) -> None:
+        """
+        Set a parameter value.
+
+        This will automatically update parameters defined by a relation
+
+        If an attempt is done to fix the value of a parameter defined by a 
+        relation, the request will be ignored *except* if the 'terminate'
+        flag is set to False (do not use this flag manually, this is intended to be used
+        by _param_init; direct use may result in an inconsistent set of parameters)
+
+        @param key: parameter name
+        @type key: str
+        @param val: parameter value
+        @type val: float
+        @param terminate: do not use manually (see above)
+        @type terminate: bool
+
+        @raise KeyError: if the parameter does not exists
+        """
         if terminate and key in self._relation:
             LOGGER.warning(
                 f"'{key}' was set by a relation, direct setting request to '{val}' ignored"
@@ -102,13 +160,14 @@ class Parameters:
             if key not in self._updating:
                 self._paramdict[key] = val
                 self._updating.append(key)
-                self.param_init()
+                self._param_init()
         else:
             raise KeyError(f"Key {key} not registered")
         if terminate:
             self._updating.clear()
 
     def __getitem__(self, key: str) -> float:
+        """Return the value of key. If the key is non existent, it is created and set to 0"""
         try:
             return self._paramdict[key]
         except KeyError:  # better dealing of missing keys ???
@@ -116,6 +175,16 @@ class Parameters:
             return 0.0
 
     def add_relation(self, key: str, relation: Paramrel) -> None:
+        """
+        Add a new parameter and set it by a relation.
+
+        If the key already exists, it will be overriden.
+
+        @param key: parameter name
+        @type key: str
+        @param relation: relation function
+        @type relation: Paramrel
+        """
         try:
             self.add_param(key)
         except KeyError:
@@ -123,9 +192,10 @@ class Parameters:
                 f"Setting '{key}' relation will override already set value ({self[key]})"
             )
         self._relation[key] = relation
-        self.param_init()
+        self._param_init()
 
-    def param_init(self) -> None:
+    def _param_init(self) -> None:
+        """Initialize all relation-defined parameters"""
         for param, func in self._relation.items():
             self.set_param(param, func(self._paramdict), terminate=False)
 
