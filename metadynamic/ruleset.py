@@ -29,7 +29,30 @@ i.e. the Core for model design !
 Provides:
 ---------
 
-...lots...
+ - classes for the description of a rule model:
+    - L{Parameters}:
+    - L{Descriptor}:
+    - L{Rule}:
+    - L{Ruleset}:
+    - L{model}:
+ - generators to be used for building models:
+    - L{Paramrel} generators:
+      - L{parmul}
+      - L{arrhenius}
+      - L{linproc}
+    - L{ConstBuilder} generators:
+      - L{kinvar}
+      - L{klinproc}
+      - L{karrh}
+      - L{kalternate}
+      - L{kdualchoice}
+    - L{VariantBuilder} generators:
+      - L{novariant_gen}
+      - L{singlevariant}
+      - L{rangevariant}
+    - L{ProdBuilder} generators:
+      - L{joiner}
+      - L{splitter}
 
 """
 
@@ -53,21 +76,28 @@ from metadynamic.inputs import RulesetParam
 
 
 # Type alias (~~ data struct)
+
 Compset = Tuple[str, ...]
 """Set of componds"""
+
 Paramdict = Dict[str, float]
 """Parameters, as {name:value}"""
+
 Paramrel = Callable[[Paramdict], float]
 """Function computing a value from a set of parameters
 (i.e. calculating a value from a given Paramdict)"""
+
 Stoechio = Iterable[Tuple[str, int]]
 """Stoechimetry, as a list of (compound name,stechiometry number)"""
+
 Categorizer = Callable[[str], bool]
 """Function identifying if a name belongs to a specific category?'
 (i.e. returning a bool from a given name string)"""
+
 Propertizer = Callable[[str], float]
 """Function computing a property from a name
 (i.e. returning a float from a given name string)"""
+
 ProdBuilder = Callable[[Compset, int], Compset]
 """Function computing products from (reactants, variant)
 (i.e. computing a new Compset from a Compset and a reaction variant)"""
@@ -207,45 +237,94 @@ class Parameters:
         return str(self._paramdict)
 
 
-# reactants, parameters, variant -> constant
 ConstBuilder = Callable[[Compset, Parameters, int], float]
-# reactants -> variants
+"""Function computing a kinetic constant from (reactants, parameters, variant)
+(i.e. computing a float from a Compset, a Parameters and a reaction variant)"""
+
 VariantBuilder = Callable[[Compset], Iterable[int]]
+"""Function computing a list of possible reaction variants from reactants
+(i.e. computing an iterable of int from a Compset)"""
+
 Builder = Tuple[ProdBuilder, ConstBuilder, VariantBuilder]
-# rule, reactants, variant
+"""Full reaction builder, with all elements for describing a reaction
+simply a tuple (prodbuilder,constbuilder,variantbuilder)"""
+
 ReacDescr = Tuple[str, Compset, int]
-# products, constant, stoechiometry, robustness
+"""reaction description as (rule name, reactants, variant)"""
+
 ReacProp = Tuple[Stoechio, Stoechio, float, bool]
-ChemDescr = str
+"""reaction property, as
+(reactants stoechiometry, products stoechiometry, constant, robustness)"""
 
 
 class Descriptor:
+    """tool for describing a compound from its name (categories and properties)"""
+
     def __init__(self) -> None:
         self.cat_dict: Dict[str, Categorizer] = {}
         self.prop_dict: Dict[str, Propertizer] = {}
 
     @property
     def catlist(self) -> KeysView[str]:
+        """
+        List of possible category names
+
+        @rtype: KeysView[str]
+        """
         return self.cat_dict.keys()
 
     def prop(self, propname: str, name: str) -> float:
+        """
+        Return the property from a name
+
+        @param propname: name of the property to be computed
+        @type propname: str
+        @param name: name of the compound to be evaluated
+        @type name: str
+        @return: computed property value:
+        @rtype: float
+        """
         try:
             return self.prop_dict[propname](name)
         except KeyError:
             return float(self.cat_dict[propname](name))
 
     def categories(self, name: str) -> Set[str]:
+        """
+        Return the set of categories a compound belongs to
+
+        @param name: name of the compound to be evaluated
+        @type name: str
+        @return: set of categories
+        @rtype: Set[str]
+        """
         return {catname for catname, rule in self.cat_dict.items() if rule(name)}
 
     def __repr__(self) -> str:
         return f"Descriptor: {self.cat_dict.keys()}"
 
     def add_cat(self, catname: str, rule: Categorizer) -> None:
+        """
+        Add a new Categorizer to the Descriptor
+
+        @param catname: name of the categorizer
+        @type catname: str
+        @param rule: Categorizer function
+        @type rule: Categorizer
+        """
         if catname in self.cat_dict:
             raise KeyError(f"Category {catname} already defined")
         self.cat_dict[catname] = rule
 
     def add_prop(self, propname: str, func: Propertizer) -> None:
+        """
+        Add a new Properizer to the Descriptor
+
+        @param propname: name of the propertizer
+        @type propname: str
+        @param func: Propertizer function
+        @type func: Propertizer
+        """
         if propname in self.prop_dict:
             raise KeyError(f"Propert {propname} already defined")
         self.prop_dict[propname] = func
@@ -253,17 +332,20 @@ class Descriptor:
 
 @dataclass
 class Rule:
-    name: str
-    reactants: Compset
-    builder: Builder
-    descr: str
-    parameters: Parameters
-    robust: bool
-    #    initialized: bool = False
+    """Describes a given rule for building a reaction"""
 
-    #    def set_param(self, paramdict: Paramdict) -> None:
-    #        self.paramdict = paramdict
-    #        self.initialized = True      ### Still useful???
+    name: str
+    """rule name"""
+    reactants: Compset
+    """set of reactant category names"""
+    builder: Builder
+    """Builder function"""
+    descr: str
+    """reaction rule description"""
+    parameters: Parameters
+    """parameter set"""
+    robust: bool
+    """robustness"""
 
     def _build_products(self, reactants: Compset, variant: int) -> Compset:
         products: Compset = self.builder[0](reactants, variant)
@@ -277,6 +359,14 @@ class Rule:
         return self.builder[1](reactants, self.parameters, variant)
 
     def build(self, description: ReacDescr) -> ReacProp:
+        """
+        Build a reaction from its description
+
+        @param description: reaction description
+        @param type: ReacDescr
+        @return: reaction properties
+        @rtype: ReacProp
+        """
         _, reactants, variant = description
         products: Compset = self._build_products(reactants, variant)
         constant: float = self._build_constant(reactants, variant)
@@ -328,10 +418,6 @@ class Ruleset:
             except KeyError:
                 raise ValueError(f"Unrecognize category {reac}")
 
-    #    def initialize(self, paramdict: Paramdict) -> None:
-    #        for rules in self.rules.values():
-    #            rules.set_param(paramdict)
-
     def get_related(
         self, comp_name: str, coll_cat: Dict[str, Set[str]]
     ) -> Set[ReacDescr]:
@@ -339,6 +425,7 @@ class Ruleset:
         comp_categories = self.descriptor.categories(comp_name)
         res: Set[ReacDescr] = set()
         # Scan all registered rules
+        # NOTE: dense and critical code. to be checked again (performance are important!)
         for rulename, rule in self.rules.items():
             # Check if the compound is concerned by the rule
             # necessary? avoid to scan further, but => overhead...
@@ -479,8 +566,6 @@ class Model:
                 LOGGER.warning(
                     f"Reaction '{rulename}' not found in {self.rulepath}, ignored."
                 )
-
-
 
 
 # - Generic elements - #
