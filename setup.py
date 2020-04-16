@@ -34,7 +34,7 @@ setuptools.setup(
     #       'dependency==1.2.3',
     # ],
     # no scripts in this example
-    scripts=['bin/metarun.py'],
+    scripts=['bin/metarun'],
     include_package_data=True,
     # classifiers=[
     #    'Development Status :: 5 - Production/Stable',
