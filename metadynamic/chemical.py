@@ -329,7 +329,7 @@ class Reaction(Chemical[ReacDescr]):
         parent 'crn'
 
         The description is of complex type. This object is intended to be built
-        from the description created by Ruleset.get_related, not manually.
+        from the description created by Model.get_related, not manually.
 
         The description can be decomposed as a tuple of:
          - str: the reaction type (rule name)
