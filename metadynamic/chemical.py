@@ -368,7 +368,7 @@ class Reaction(Chemical[ReacDescr]):
                 self._stoechproduct,
                 const,
                 self.robust,
-            ) = self.crn.model.ruleset.buildreac(self.description)
+            ) = self.crn.model.buildreac(self.description)
             self.stoechio = []
             order: int = 0
             # stochastic rate between n reactions must be divided by V^(n-1)
@@ -457,9 +457,7 @@ class Reaction(Chemical[ReacDescr]):
             if self.robust:
                 self.tobeinitialized = False
             else:
-                self._stoechproduct = self.crn.model.ruleset.rebuild_prod(
-                    self.description
-                )
+                self._stoechproduct = self.crn.model.rebuild_prod(self.description)
         for prod, order in self.products:
             prod.change_pop(order)
         # Decrement reactants
@@ -612,7 +610,7 @@ class Compound(Chemical[str]):
         """Scan (and create if needed) all related reactions."""
         self.reactions = {
             self.crn.reac_collect[descr]
-            for descr in self.crn.model.ruleset.get_related(
+            for descr in self.crn.model.get_related(
                 self.description, self.crn.comp_collect.categories
             )
         }
