@@ -1,2 +1,3 @@
 include README.rst LICENSE
 include metadynamic/models
+include apidocs
