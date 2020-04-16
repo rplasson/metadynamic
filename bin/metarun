@@ -7,7 +7,6 @@ from os import rename
 from metadynamic import launch
 from metadynamic.inputs import Param
 from metadynamic import MPI_STATUS
-from tempfile import NamedTemporaryFile
 
 parser = ArgumentParser(description="Launch run from a json file")
 
@@ -39,8 +38,6 @@ args = parser.parse_args()
 
 if MPI_STATUS.root:
     print(f"Launched run '{args.comment}' on {MPI_STATUS.size} processes...")
-
-param = Param.readfile(args.parameters)
 
 kwd = {}
 if args.comment:

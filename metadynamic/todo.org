@@ -1,7 +1,0 @@
-*** TODO  initialize system from a parameter file
-
-*** TODO better tunable description => dictionary of lambda function?
-
-*** TODO investigates memory effects of gc tuning
-
-

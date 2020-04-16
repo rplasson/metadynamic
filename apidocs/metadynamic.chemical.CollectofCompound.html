@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+          "DTD/xhtml1-strict.dtd">
+<html>
+  <head>
+    <title>metadynamic.chemical.CollectofCompound : API documentation</title>
+
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="apidocs.css" />
+  </head>
+  <body>
+
+    <nav class="navbar navbar-default">
+      <div class="container">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="index.html">
+            metadynamic API Documentation
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <div id="showPrivate">
+      <button class="btn btn-link" onclick="togglePrivate()">Toggle Private API</button>
+    </div>
+
+    <div class="container">
+
+      <div class="page-header">
+        <h1 class="class"><code>metadynamic.chemical.CollectofCompound(<span title="Collect[str, 'Compound']">Collect[str, 'Compound']</span>)</code> <small>class documentation</small></h1>
+
+        <span id="partOf">
+          Part of <code><a href="metadynamic.html" class="code" data-type="Package">metadynamic</a>.<a href="metadynamic.chemical.html" class="code" data-type="Module">chemical</a></code>
+          
+          <a href="classIndex.html#metadynamic.chemical.CollectofCompound">(View In Hierarchy)</a>
+        </span>
+      </div>
+
+      <div class="extrasDocstring">
+        
+      </div>
+
+      <div class="moduleDocstring">
+        <div><p><a href="metadynamic.collector.Collect.html"><code>Collect</code></a> class for storing a pool of <a href="metadynamic.chemical.Compound.html"><code>Compound</code></a></p></div>
+      </div>
+
+      <div id="splitTables">
+        <table class="children sortable" id="id11">
+  
+  <tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.chemical.CollectofCompound.html#set_crn" class="code" data-type="Method">set_crn</a></td>
+    <td><span>set the parent Crn</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.chemical.CollectofCompound.html#crn" class="code" data-type="Instance Variable">crn</a></td>
+    <td><span>parent CRN</span></td>
+  </tr><tr class="classvariable private">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.chemical.CollectofCompound.html#_colltype" class="code" data-type="Class Variable">_colltype</a></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="method private">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.chemical.CollectofCompound.html#_create" class="code" data-type="Method">_create</a></td>
+    <td><span>Create a Compound from its key</span></td>
+  </tr><tr class="method private">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.chemical.CollectofCompound.html#_categorize" class="code" data-type="Method">_categorize</a></td>
+    <td><span>List the categories of the Compound</span></td>
+  </tr><tr class="method private">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.chemical.CollectofCompound.html#_getprop" class="code" data-type="Method">_getprop</a></td>
+    <td><span>Return a given property of a Compound object. Shouldn't be directly used (used by proplist method only)</span></td>
+  </tr>
+</table>
+        
+
+          
+      </div>
+
+      <div id="childList">
+
+        <div class="baseclassvariable private">
+  
+  <a name="metadynamic.chemical.CollectofCompound._colltype">
+    
+  </a>
+  <a name="_colltype">
+    
+  </a>
+  <div class="functionHeader">
+    _colltype =
+  </div>
+  <div class="functionBody">
+    <div class="undocumented">Undocumented</div> (type: <code>str</code>)
+  </div>
+</div><div class="basemethod private">
+  
+  <a name="metadynamic.chemical.CollectofCompound._create">
+    
+  </a>
+  <a name="_create">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    _create(self, key):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Create a Compound from its key</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">key</td><td>name of the compound to be created (type: str)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">newly created Compound object (type: Compound)</td></tr></table></div>
+  </div>
+</div><div class="basemethod private">
+  
+  <a name="metadynamic.chemical.CollectofCompound._categorize">
+    
+  </a>
+  <a name="_categorize">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    _categorize(self, obj):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>List the categories of the Compound</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">obj</td><td>object to catagorize (type: Compound)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">set of categories (type: Set[str])</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.chemical.CollectofCompound.set_crn">
+    
+  </a>
+  <a name="set_crn">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    set_crn(self, crn):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>set the parent Crn</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">crn</td><td>parent Crn (type: Crn)</td></tr></table></div>
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.chemical.CollectofCompound.crn">
+    
+  </a>
+  <a name="crn">
+    
+  </a>
+  <div class="functionHeader">
+    crn =
+  </div>
+  <div class="functionBody">
+    <div><p>parent CRN</p></div> (type: <code>Crn</code>)
+  </div>
+</div><div class="basemethod private">
+  
+  <a name="metadynamic.chemical.CollectofCompound._getprop">
+    
+  </a>
+  <a name="_getprop">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    _getprop(self, prop, obj):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Return a given property of a Compound object. Shouldn't be directly used (used by proplist method only)</p><p>The property may be:</p><ul><li>"count": returns 1.0</li><li>"pop": returns the compound population</li><li>"entropy": returns pop×log(pop)</li><li>other values: a property defined in model.descriptor</li></ul><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">prop</td><td>property name (type: str)</td></tr><tr><td></td><td class="fieldArg">obj</td><td>object to be probed (type: "Compound")</td></tr></table></div>
+  </div>
+</div>
+
+      </div>
+      <address>
+        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-16 15:24:10.
+      </address>
+
+    </div>
+
+    <script src="pydoctor.js" type="text/javascript"></script>
+
+  </body>
+</html>

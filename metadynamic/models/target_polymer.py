@@ -20,12 +20,64 @@
 
 from fuzzywuzzy.fuzz import ratio
 
-from metadynamic.ruleset import Categorizer, ProdBuilder, ConstBuilder, splitter, kinvar
+from metadynamic.ruleset import (
+    Categorizer,
+    Propertizer,
+    ProdBuilder,
+    ConstBuilder,
+    VariantBuilder,
+    joiner,
+    splitter,
+    kinvar,
+)
 
-from metadynamic.models.polymers import *
+from metadynamic.models import polymers
 
+default_ruleset = polymers.default_ruleset.copy()
 
-default_ruleset = default_ruleset.copy()
+# Categorizer
+
+polym: Categorizer = polymers.polym
+mono: Categorizer = polymers.mono
+actpol: Categorizer = polymers.actpol
+actmono: Categorizer = polymers.actmono
+longpol: Categorizer = polymers.longpol
+
+# Propertizer
+
+length: Propertizer = polymers.length
+asym: Propertizer = polymers.asym
+right: Propertizer = polymers.right
+left: Propertizer = polymers.left
+
+# ProdBuilder
+
+merge: ProdBuilder = polymers.merge
+cut: ProdBuilder = polymers.cut
+act_polym: ProdBuilder = polymers.act_polym
+activ: ProdBuilder = polymers.activ
+deactiv: ProdBuilder = polymers.deactiv
+epimer: ProdBuilder = polymers.epimer
+
+# ConstBuilder
+
+kpol: ConstBuilder = polymers.kpol
+kpola: ConstBuilder = polymers.kpola
+kpola_mono: ConstBuilder = polymers.kpola_mono
+kact: ConstBuilder = polymers.kact
+kdeact: ConstBuilder = polymers.kdeact
+khyd: ConstBuilder = polymers.khyd
+kepi: ConstBuilder = polymers.kepi
+krac: ConstBuilder = polymers.krac
+
+# VariantBuilder
+
+novariant: VariantBuilder = polymers.novariant
+intervariant: VariantBuilder = polymers.intervariant
+lenvariant: VariantBuilder = polymers.lenvariant
+firstonly: VariantBuilder = polymers.firstonly
+lastonly: VariantBuilder = polymers.lastonly
+
 
 #  target compounds as '{abcd}' patterns
 target: Categorizer = lambda name: name[0] == "{" and name[-1] == "}" and polym(

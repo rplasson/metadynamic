@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-from metadynamic.json2dot import Json2dot
+from metadynamic.network import Data2dot
 from argparse import ArgumentParser
 
 parser = ArgumentParser(description="Test multithread.")
@@ -29,4 +29,4 @@ parser.add_argument("--param", metavar="param", type=str, help="output file (dot
 
 args = parser.parse_args()
 
-Json2dot(args.file_in, parameterfile=args.param).write(args.file_out)
+Data2dot.fromjson(args.file_in, parameterfile=args.param).write(args.file_out)

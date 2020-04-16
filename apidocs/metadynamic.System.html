@@ -1,0 +1,435 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+          "DTD/xhtml1-strict.dtd">
+<html>
+  <head>
+    <title>metadynamic.System : API documentation</title>
+
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="apidocs.css" />
+  </head>
+  <body>
+
+    <nav class="navbar navbar-default">
+      <div class="container">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="index.html">
+            metadynamic API Documentation
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <div id="showPrivate">
+      <button class="btn btn-link" onclick="togglePrivate()">Toggle Private API</button>
+    </div>
+
+    <div class="container">
+
+      <div class="page-header">
+        <h1 class="class"><code>metadynamic.System</code> <small>class documentation</small></h1>
+
+        <span id="partOf">
+          Part of <code><a href="metadynamic.html" class="code" data-type="Package">metadynamic</a></code>
+          
+          <a href="classIndex.html#metadynamic.System">(View In Hierarchy)</a>
+        </span>
+      </div>
+
+      <div class="extrasDocstring">
+        
+      </div>
+
+      <div class="moduleDocstring">
+        <div><p>Create, run and control a simulation</p></div>
+      </div>
+
+      <div id="splitTables">
+        <table class="children sortable" id="id4">
+  
+  <tr class="classmethod">
+    
+    <td>Class Method</td>
+    <td><a href="metadynamic.System.html#fromjson" class="code" data-type="Class Method">fromjson</a></td>
+    <td><span>Create a System object from a Param json file</span></td>
+  </tr><tr class="classmethod">
+    
+    <td>Class Method</td>
+    <td><a href="metadynamic.System.html#fromhdf5" class="code" data-type="Class Method">fromhdf5</a></td>
+    <td><span>Create a System object from a result hdf5 file</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.System.html#__init__" class="code" data-type="Method">__init__</a></td>
+    <td><span>Create a System from parameters 'param'</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.System.html#initialized" class="code" data-type="Instance Variable">initialized</a></td>
+    <td><span>Initialized flag</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.System.html#param" class="code" data-type="Instance Variable">param</a></td>
+    <td><span>run parameters</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.System.html#output" class="code" data-type="Instance Variable">output</a></td>
+    <td><span>Access to output files and folders</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.System.html#writer" class="code" data-type="Instance Variable">writer</a></td>
+    <td><span>Writer to HDF5 file.</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.System.html#signcatch" class="code" data-type="Instance Variable">signcatch</a></td>
+    <td><span>Signal catcher for dealing with system interruptions</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.System.html#status" class="code" data-type="Instance Variable">status</a></td>
+    <td><span>Interface to run status</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.System.html#comment" class="code" data-type="Instance Variable">comment</a></td>
+    <td><span>run comment</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.System.html#crn" class="code" data-type="Instance Variable">crn</a></td>
+    <td><span>Chemical Reaction Network</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.System.html#statistic" class="code" data-type="Instance Variable">statistic</a></td>
+    <td><span>interface to run statistics</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.System.html#run" class="code" data-type="Method">run</a></td>
+    <td><span>Launch a run.</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.System.html#set_param" class="code" data-type="Method">set_param</a></td>
+    <td><span>Set run parameters, overriding the previous ones</span></td>
+  </tr><tr class="method private">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.System.html#_initialize" class="code" data-type="Method">_initialize</a></td>
+    <td><span>Initialize the system before starting the run</span></td>
+  </tr><tr class="method private">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.System.html#_release" class="code" data-type="Method">_release</a></td>
+    <td><span>Clean data before run ending</span></td>
+  </tr><tr class="method private">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.System.html#_process" class="code" data-type="Method">_process</a></td>
+    <td><span>Perform a run step</span></td>
+  </tr>
+</table>
+        
+
+          
+      </div>
+
+      <div id="childList">
+
+        <div class="baseclassmethod">
+  
+  <a name="metadynamic.System.fromjson">
+    
+  </a>
+  <a name="fromjson">
+    
+  </a>
+  <div class="functionHeader">
+    @classmethod<br />
+    def
+    fromjson(cls, filename, **kwd):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Create a System object from a Param json file</p><p>Additional parameters can be passed, they will override the one defined in the json file.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">filename</td><td>Name of the Param json file (type: str)</td></tr><tr><td></td><td class="fieldArg">**kwd</td><td>Additional parameters</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">newly created System object (type: System)</td></tr></table></div>
+  </div>
+</div><div class="baseclassmethod">
+  
+  <a name="metadynamic.System.fromhdf5">
+    
+  </a>
+  <a name="fromhdf5">
+    
+  </a>
+  <div class="functionHeader">
+    @classmethod<br />
+    def
+    fromhdf5(cls, filename, snapnum=invalidint, snapstep=(-1), **kwd):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Create a System object from a result hdf5 file</p><p>Additional parameters can be passed, they will override the one defined in the hdf5 file.</p><p>if a 'snapnum' is provided, initial conditions will be set from the recorded snapshot as saved by the corresponding thread number at the corresponding 'snapstep' (defaulting to the final snapshot)</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">filename</td><td>Name of the Param json file (type: str)</td></tr><tr><td></td><td class="fieldArg">snapnum</td><td>snapshot number to start from (Default value = invalindint) (type: int)</td></tr><tr><td></td><td class="fieldArg">snapstep</td><td>snapshot step to start from (Default value = -1) (type: int)</td></tr><tr><td></td><td class="fieldArg">**kwd</td><td>Additional parameters</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">newly created System object (type: System)</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.System.__init__">
+    
+  </a>
+  <a name="__init__">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    __init__(self, param):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Create a System from parameters 'param'</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">param</td><td>parameters (type: Param)</td></tr></table></div>
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.System.initialized">
+    
+  </a>
+  <a name="initialized">
+    
+  </a>
+  <div class="functionHeader">
+    initialized =
+  </div>
+  <div class="functionBody">
+    <div><p>Initialized flag</p></div> (type: <code>bool</code>)
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.System.param">
+    
+  </a>
+  <a name="param">
+    
+  </a>
+  <div class="functionHeader">
+    param =
+  </div>
+  <div class="functionBody">
+    <div><p>run parameters</p></div> (type: <code>Param</code>)
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.System.output">
+    
+  </a>
+  <a name="output">
+    
+  </a>
+  <div class="functionHeader">
+    output =
+  </div>
+  <div class="functionBody">
+    <div><p>Access to output files and folders</p></div> (type: <code>Output</code>)
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.System.writer">
+    
+  </a>
+  <a name="writer">
+    
+  </a>
+  <div class="functionHeader">
+    writer =
+  </div>
+  <div class="functionBody">
+    <div><p>Writer to HDF5 file.</p></div> (type: <code>ResultWriter</code>)
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.System.signcatch">
+    
+  </a>
+  <a name="signcatch">
+    
+  </a>
+  <div class="functionHeader">
+    signcatch =
+  </div>
+  <div class="functionBody">
+    <div><p>Signal catcher for dealing with system interruptions</p></div> (type: <code>SignalCatcher</code>)
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.System.status">
+    
+  </a>
+  <a name="status">
+    
+  </a>
+  <div class="functionHeader">
+    status =
+  </div>
+  <div class="functionBody">
+    <div><p>Interface to run status</p></div> (type: <code>RunStatus</code>)
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.System.comment">
+    
+  </a>
+  <a name="comment">
+    
+  </a>
+  <div class="functionHeader">
+    comment =
+  </div>
+  <div class="functionBody">
+    <div><p>run comment</p></div>
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.System.crn">
+    
+  </a>
+  <a name="crn">
+    
+  </a>
+  <div class="functionHeader">
+    crn =
+  </div>
+  <div class="functionBody">
+    <div><p>Chemical Reaction Network</p></div>
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.System.statistic">
+    
+  </a>
+  <a name="statistic">
+    
+  </a>
+  <div class="functionHeader">
+    statistic =
+  </div>
+  <div class="functionBody">
+    <div><p>interface to run statistics</p></div>
+  </div>
+</div><div class="basemethod private">
+  
+  <a name="metadynamic.System._initialize">
+    
+  </a>
+  <a name="_initialize">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    _initialize(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Initialize the system before starting the run</p><p>A double initialization will raise an InternalError. Intended to be launched from self.run, not manually</p></div>
+  </div>
+</div><div class="basemethod private">
+  
+  <a name="metadynamic.System._release">
+    
+  </a>
+  <a name="_release">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    _release(self, end, fullrelease=(True)):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Clean data before run ending</p><p>A double release will raise an InternalError. Intended to be launched from self.run, not manually</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">end</td><td>ending message (type: Finished)</td></tr><tr><td></td><td class="fieldArg">fullrelease</td><td>if true, also clean memory (Default value = True) (type: bool)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">end message (type: str)</td></tr></table></div>
+  </div>
+</div><div class="basemethod private">
+  
+  <a name="metadynamic.System._process">
+    
+  </a>
+  <a name="_process">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    _process(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Perform a run step</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.System.run">
+    
+  </a>
+  <a name="run">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    run(self, release=(True)):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Launch a run.</p><p>The final state can be kept by setting 'release' to false (useful for run directly launched from the command line for further direct data manipulation). It is by default released in order to release memory as soon as a run is finished during batch runs.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">release</td><td>Shall the final state be released at run end (type: bool)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">end message (type: str)</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.System.set_param">
+    
+  </a>
+  <a name="set_param">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    set_param(self, **kwd):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Set run parameters, overriding the previous ones</p></div>
+  </div>
+</div>
+
+      </div>
+      <address>
+        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-16 15:24:10.
+      </address>
+
+    </div>
+
+    <script src="pydoctor.js" type="text/javascript"></script>
+
+  </body>
+</html>

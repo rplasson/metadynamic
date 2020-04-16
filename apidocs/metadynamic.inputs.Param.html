@@ -1,0 +1,875 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+          "DTD/xhtml1-strict.dtd">
+<html>
+  <head>
+    <title>metadynamic.inputs.Param : API documentation</title>
+
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="apidocs.css" />
+  </head>
+  <body>
+
+    <nav class="navbar navbar-default">
+      <div class="container">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="index.html">
+            metadynamic API Documentation
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <div id="showPrivate">
+      <button class="btn btn-link" onclick="togglePrivate()">Toggle Private API</button>
+    </div>
+
+    <div class="container">
+
+      <div class="page-header">
+        <h1 class="class"><code>metadynamic.inputs.Param(<a href="metadynamic.inputs.Readerclass.html" class="code" data-type="Class">Readerclass</a>)</code> <small>class documentation</small></h1>
+
+        <span id="partOf">
+          Part of <code><a href="metadynamic.html" class="code" data-type="Package">metadynamic</a>.<a href="metadynamic.inputs.html" class="code" data-type="Module">inputs</a></code>
+          
+          <a href="classIndex.html#metadynamic.inputs.Param">(View In Hierarchy)</a>
+        </span>
+      </div>
+
+      <div class="extrasDocstring">
+        
+      </div>
+
+      <div class="moduleDocstring">
+        <div><p>Run parameters</p></div>
+      </div>
+
+      <div id="splitTables">
+        <table class="children sortable" id="id71">
+  
+  <tr class="classvariable">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.inputs.Param.html#name" class="code" data-type="Class Variable">name</a></td>
+    <td><span>Run name</span></td>
+  </tr><tr class="classvariable">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.inputs.Param.html#comment" class="code" data-type="Class Variable">comment</a></td>
+    <td><span>Run comment</span></td>
+  </tr><tr class="classvariable">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.inputs.Param.html#savedir" class="code" data-type="Class Variable">savedir</a></td>
+    <td><span>Where the final .hdf5 file will be saved. Defaults to working dir</span></td>
+  </tr><tr class="classvariable">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.inputs.Param.html#logdir" class="code" data-type="Class Variable">logdir</a></td>
+    <td><span>Where the logs will be saved. If empty, log to standard output</span></td>
+  </tr><tr class="classvariable">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.inputs.Param.html#loglevel" class="code" data-type="Class Variable">loglevel</a></td>
+    <td><span>logging level (CRITICAL, ERROR, WARNING, INFO, or DEBUG)</span></td>
+  </tr><tr class="classvariable">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.inputs.Param.html#conc" class="code" data-type="Class Variable">conc</a></td>
+    <td><span>Concentration</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.inputs.Param.html#ptot" class="code" data-type="Instance Variable">ptot</a></td>
+    <td><span>Total population</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.inputs.Param.html#vol" class="code" data-type="Instance Variable">vol</a></td>
+    <td><span>System volume</span></td>
+  </tr><tr class="classvariable">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.inputs.Param.html#init" class="code" data-type="Class Variable">init</a></td>
+    <td><span>initial concentrations</span></td>
+  </tr><tr class="classvariable">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.inputs.Param.html#rulemodel" class="code" data-type="Class Variable">rulemodel</a></td>
+    <td><span>name of the module containing the rule model code</span></td>
+  </tr><tr class="classvariable">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.inputs.Param.html#reactions" class="code" data-type="Class Variable">reactions</a></td>
+    <td><span>list of reaction types to load from rulemodel (if empty, load all)</span></td>
+  </tr><tr class="classvariable">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.inputs.Param.html#parameters" class="code" data-type="Class Variable">parameters</a></td>
+    <td><span>kinetic constants</span></td>
+  </tr><tr class="classvariable">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.inputs.Param.html#tend" class="code" data-type="Class Variable">tend</a></td>
+    <td><span>final simulation time</span></td>
+  </tr><tr class="classvariable">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.inputs.Param.html#tstep" class="code" data-type="Class Variable">tstep</a></td>
+    <td><span>timestep</span></td>
+  </tr><tr class="classvariable">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.inputs.Param.html#sstep" class="code" data-type="Class Variable">sstep</a></td>
+    <td><span>snapshot step (if &lt;0: only at end, if = 0: at each step)</span></td>
+  </tr><tr class="classvariable">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.inputs.Param.html#rtlim" class="code" data-type="Class Variable">rtlim</a></td>
+    <td><span>Limit runtime</span></td>
+  </tr><tr class="classvariable">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.inputs.Param.html#maxsteps" class="code" data-type="Class Variable">maxsteps</a></td>
+    <td><span>maximum time steps</span></td>
+  </tr><tr class="classvariable">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.inputs.Param.html#autoclean" class="code" data-type="Class Variable">autoclean</a></td>
+    <td><span>"Perform a periodic cleaning of probabilities if True</span></td>
+  </tr><tr class="classvariable">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.inputs.Param.html#dropmode" class="code" data-type="Class Variable">dropmode</a></td>
+    <td><span>drop mode (can be 'keep', 'drop' or 'soft')</span></td>
+  </tr><tr class="classvariable">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.inputs.Param.html#gcperio" class="code" data-type="Class Variable">gcperio</a></td>
+    <td><span>if True, only call garbage collector at each timestep.</span></td>
+  </tr><tr class="classvariable">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.inputs.Param.html#sleeptime" class="code" data-type="Class Variable">sleeptime</a></td>
+    <td><span>finished threads will wait in idle loops of corresponding values the end of others</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.inputs.Param.html#maxmem" class="code" data-type="Instance Variable">maxmem</a></td>
+    <td><span>Max memory (in Mb). If 0, set to maxmem_percent/100 * total physical memory</span></td>
+  </tr><tr class="classvariable">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.inputs.Param.html#maxmem_percent" class="code" data-type="Class Variable">maxmem_percent</a></td>
+    <td><span>Maximum percentage of memory to be used (used if maxmem set to 0)</span></td>
+  </tr><tr class="classvariable">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.inputs.Param.html#save" class="code" data-type="Class Variable">save</a></td>
+    <td><span>list of compounds to be saved at each time step</span></td>
+  </tr><tr class="classvariable">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.inputs.Param.html#stat" class="code" data-type="Class Variable">stat</a></td>
+    <td><span>json filename describing statistics</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.inputs.Param.html#statparam" class="code" data-type="Instance Variable">statparam</a></td>
+    <td><span>List of statistic parameters, with fields as described in <a href="metadynamic.inputs.StatParam.html"><code>StatParam</code></a></span></td>
+  </tr><tr class="classvariable">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.inputs.Param.html#maps" class="code" data-type="Class Variable">maps</a></td>
+    <td><span>json filename describing stat maps</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.inputs.Param.html#mapsparam" class="code" data-type="Instance Variable">mapsparam</a></td>
+    <td><span>List of statistic parameters, with fields as described in <a href="metadynamic.inputs.MapParam.html"><code>MapParam</code></a></span></td>
+  </tr><tr class="classvariable">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.inputs.Param.html#store_snapreac" class="code" data-type="Class Variable">store_snapreac</a></td>
+    <td><span>Store reaction snapshots? (can take lots of time for large CRNs)</span></td>
+  </tr><tr class="classvariable">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.inputs.Param.html#maxstrlen" class="code" data-type="Class Variable">maxstrlen</a></td>
+    <td><span>max string length to be stored in hdf5</span></td>
+  </tr><tr class="classvariable">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.inputs.Param.html#lengrow" class="code" data-type="Class Variable">lengrow</a></td>
+    <td><span>number of length left before requesting a resize</span></td>
+  </tr><tr class="classvariable">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.inputs.Param.html#maxlog" class="code" data-type="Class Variable">maxlog</a></td>
+    <td><span>max log lines per process to be saved</span></td>
+  </tr><tr class="classvariable">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.inputs.Param.html#timeformat" class="code" data-type="Class Variable">timeformat</a></td>
+    <td><span>timeformat used in log files</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Param.html#__post_init__" class="code" data-type="Method">__post_init__</a></td>
+    <td><span>(re) calculate data after fields init or change</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Param.html#set_param" class="code" data-type="Method">set_param</a></td>
+    <td><span>Set the object parameters.</span></td>
+  </tr>
+</table>
+        
+          <p class="inheritedFrom">
+            Inherited from <a href="metadynamic.inputs.Readerclass.html" class="code" data-type="Class">Readerclass</a>:
+          </p>
+          <table class="children sortable" id="id72">
+  
+  <tr class="baseclassvariable">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#__dataclass_fields__" class="code" data-type="Class Variable">__dataclass_fields__</a></td>
+    <td><span>list of fields types</span></td>
+  </tr><tr class="baseclassmethod">
+    
+    <td>Class Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#readdict" class="code" data-type="Class Method">readdict</a></td>
+    <td><span>Return a Readerclass object, updated by the data from parameters dict</span></td>
+  </tr><tr class="baseclassmethod">
+    
+    <td>Class Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#multipledict" class="code" data-type="Class Method">multipledict</a></td>
+    <td><span>Return a dictionary of Readerclass object, each one updated by the data from a dictionary of parameters dict</span></td>
+  </tr><tr class="baseclassmethod">
+    
+    <td>Class Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#readfile" class="code" data-type="Class Method">readfile</a></td>
+    <td><span>Return a Readerclass object, updated by the data from a json Param file</span></td>
+  </tr><tr class="baseclassmethod">
+    
+    <td>Class Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#readmultiple" class="code" data-type="Class Method">readmultiple</a></td>
+    <td><span>Return a dictionnary of Readerclass object, each one updated by specific entry from a json file</span></td>
+  </tr><tr class="baseclassmethod">
+    
+    <td>Class Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#list_param" class="code" data-type="Class Method">list_param</a></td>
+    <td><span>List all the parameters of the class, with a caster to their type</span></td>
+  </tr><tr class="baseclassmethod">
+    
+    <td>Class Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#conv_param" class="code" data-type="Class Method">conv_param</a></td>
+    <td><span>Return the caster to the type defined for 'param'</span></td>
+  </tr><tr class="basemethod">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#checked_items" class="code" data-type="Method">checked_items</a></td>
+    <td><span>Autocast and check 'val' to the consistent type defined for 'key', depnding on self.autocast and self.checktype flags</span></td>
+  </tr><tr class="basemethod">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#asdict" class="code" data-type="Method">asdict</a></td>
+    <td><span>Convert the object data to a dictionary</span></td>
+  </tr><tr class="basemethod">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#tojson" class="code" data-type="Method">tojson</a></td>
+    <td><span>Write all parameters in a json file</span></td>
+  </tr><tr class="basemethod">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#lock" class="code" data-type="Method">lock</a></td>
+    <td><span>Lock the object, preventing parameter changes</span></td>
+  </tr><tr class="basemethod">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#unlock" class="code" data-type="Method">unlock</a></td>
+    <td><span>Unlock the object, enabling parameter changes</span></td>
+  </tr><tr class="basemethod">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#locked" class="code" data-type="Method">locked</a></td>
+    <td><span>Lock state</span></td>
+  </tr><tr class="basemethod">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#set_autocast" class="code" data-type="Method">set_autocast</a></td>
+    <td><span>Set the autocast feature</span></td>
+  </tr><tr class="basemethod">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#unset_autocast" class="code" data-type="Method">unset_autocast</a></td>
+    <td><span>Unset the autocast feature</span></td>
+  </tr><tr class="basemethod">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#autocast" class="code" data-type="Method">autocast</a></td>
+    <td><span>autocast state</span></td>
+  </tr><tr class="basemethod">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#set_checktype" class="code" data-type="Method">set_checktype</a></td>
+    <td><span>Set the checktype feature</span></td>
+  </tr><tr class="basemethod">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#unset_checktype" class="code" data-type="Method">unset_checktype</a></td>
+    <td><span>Unset the checktype feature</span></td>
+  </tr><tr class="basemethod">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#checktype" class="code" data-type="Method">checktype</a></td>
+    <td><span>checktype state</span></td>
+  </tr><tr class="baseclassvariable private">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#_list_param" class="code" data-type="Class Variable">_list_param</a></td>
+    <td><span>all class parameters as a dictionary {parameter name: parameter caster}</span></td>
+  </tr><tr class="baseinstancevariable private">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#_locked" class="code" data-type="Instance Variable">_locked</a></td>
+    <td><span>lock flag</span></td>
+  </tr><tr class="baseinstancevariable private">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#_autocast" class="code" data-type="Instance Variable">_autocast</a></td>
+    <td><span>autocast flag</span></td>
+  </tr><tr class="baseinstancevariable private">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#_checktype" class="code" data-type="Instance Variable">_checktype</a></td>
+    <td><span>checktype flag</span></td>
+  </tr><tr class="basestaticmethod private">
+    
+    <td>Static Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#_fromfile" class="code" data-type="Static Method">_fromfile</a></td>
+    <td><span>Read a json file named 'filename' as a dict</span></td>
+  </tr>
+</table>
+          
+
+          
+      </div>
+
+      <div id="childList">
+
+        <div class="baseclassvariable">
+  
+  <a name="metadynamic.inputs.Param.name">
+    
+  </a>
+  <a name="name">
+    
+  </a>
+  <div class="functionHeader">
+    name =
+  </div>
+  <div class="functionBody">
+    <div><p>Run name</p></div> (type: <code>str</code>)
+  </div>
+</div><div class="baseclassvariable">
+  
+  <a name="metadynamic.inputs.Param.comment">
+    
+  </a>
+  <a name="comment">
+    
+  </a>
+  <div class="functionHeader">
+    comment =
+  </div>
+  <div class="functionBody">
+    <div><p>Run comment</p></div> (type: <code>str</code>)
+  </div>
+</div><div class="baseclassvariable">
+  
+  <a name="metadynamic.inputs.Param.savedir">
+    
+  </a>
+  <a name="savedir">
+    
+  </a>
+  <div class="functionHeader">
+    savedir =
+  </div>
+  <div class="functionBody">
+    <div><p>Where the final .hdf5 file will be saved. Defaults to working dir</p></div> (type: <code>str</code>)
+  </div>
+</div><div class="baseclassvariable">
+  
+  <a name="metadynamic.inputs.Param.logdir">
+    
+  </a>
+  <a name="logdir">
+    
+  </a>
+  <div class="functionHeader">
+    logdir =
+  </div>
+  <div class="functionBody">
+    <div><p>Where the logs will be saved. If empty, log to standard output</p></div> (type: <code>str</code>)
+  </div>
+</div><div class="baseclassvariable">
+  
+  <a name="metadynamic.inputs.Param.loglevel">
+    
+  </a>
+  <a name="loglevel">
+    
+  </a>
+  <div class="functionHeader">
+    loglevel =
+  </div>
+  <div class="functionBody">
+    <div><p>logging level (CRITICAL, ERROR, WARNING, INFO, or DEBUG)</p></div> (type: <code>str</code>)
+  </div>
+</div><div class="baseclassvariable">
+  
+  <a name="metadynamic.inputs.Param.conc">
+    
+  </a>
+  <a name="conc">
+    
+  </a>
+  <div class="functionHeader">
+    conc =
+  </div>
+  <div class="functionBody">
+    <div><p>Concentration</p></div> (type: <code>float</code>)
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.inputs.Param.ptot">
+    
+  </a>
+  <a name="ptot">
+    
+  </a>
+  <div class="functionHeader">
+    ptot =
+  </div>
+  <div class="functionBody">
+    <div><p>Total population</p></div>
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.inputs.Param.vol">
+    
+  </a>
+  <a name="vol">
+    
+  </a>
+  <div class="functionHeader">
+    vol =
+  </div>
+  <div class="functionBody">
+    <div><p>System volume</p></div>
+  </div>
+</div><div class="baseclassvariable">
+  
+  <a name="metadynamic.inputs.Param.init">
+    
+  </a>
+  <a name="init">
+    
+  </a>
+  <div class="functionHeader">
+    init =
+  </div>
+  <div class="functionBody">
+    <div><p>initial concentrations</p></div> (type: <code>Dict[str, int]</code>)
+  </div>
+</div><div class="baseclassvariable">
+  
+  <a name="metadynamic.inputs.Param.rulemodel">
+    
+  </a>
+  <a name="rulemodel">
+    
+  </a>
+  <div class="functionHeader">
+    rulemodel =
+  </div>
+  <div class="functionBody">
+    <div><p>name of the module containing the rule model code</p></div> (type: <code>str</code>)
+  </div>
+</div><div class="baseclassvariable">
+  
+  <a name="metadynamic.inputs.Param.reactions">
+    
+  </a>
+  <a name="reactions">
+    
+  </a>
+  <div class="functionHeader">
+    reactions =
+  </div>
+  <div class="functionBody">
+    <div><p>list of reaction types to load from rulemodel (if empty, load all)</p></div> (type: <code>List[str]</code>)
+  </div>
+</div><div class="baseclassvariable">
+  
+  <a name="metadynamic.inputs.Param.parameters">
+    
+  </a>
+  <a name="parameters">
+    
+  </a>
+  <div class="functionHeader">
+    parameters =
+  </div>
+  <div class="functionBody">
+    <div><p>kinetic constants</p></div> (type: <code>Dict[str, float]</code>)
+  </div>
+</div><div class="baseclassvariable">
+  
+  <a name="metadynamic.inputs.Param.tend">
+    
+  </a>
+  <a name="tend">
+    
+  </a>
+  <div class="functionHeader">
+    tend =
+  </div>
+  <div class="functionBody">
+    <div><p>final simulation time</p></div> (type: <code>float</code>)
+  </div>
+</div><div class="baseclassvariable">
+  
+  <a name="metadynamic.inputs.Param.tstep">
+    
+  </a>
+  <a name="tstep">
+    
+  </a>
+  <div class="functionHeader">
+    tstep =
+  </div>
+  <div class="functionBody">
+    <div><p>timestep</p></div> (type: <code>float</code>)
+  </div>
+</div><div class="baseclassvariable">
+  
+  <a name="metadynamic.inputs.Param.sstep">
+    
+  </a>
+  <a name="sstep">
+    
+  </a>
+  <div class="functionHeader">
+    sstep =
+  </div>
+  <div class="functionBody">
+    <div><p>snapshot step (if &lt;0: only at end, if = 0: at each step)</p></div> (type: <code>float</code>)
+  </div>
+</div><div class="baseclassvariable">
+  
+  <a name="metadynamic.inputs.Param.rtlim">
+    
+  </a>
+  <a name="rtlim">
+    
+  </a>
+  <div class="functionHeader">
+    rtlim =
+  </div>
+  <div class="functionBody">
+    <div><p>Limit runtime</p></div> (type: <code>float</code>)
+  </div>
+</div><div class="baseclassvariable">
+  
+  <a name="metadynamic.inputs.Param.maxsteps">
+    
+  </a>
+  <a name="maxsteps">
+    
+  </a>
+  <div class="functionHeader">
+    maxsteps =
+  </div>
+  <div class="functionBody">
+    <div><p>maximum time steps</p></div> (type: <code>int</code>)
+  </div>
+</div><div class="baseclassvariable">
+  
+  <a name="metadynamic.inputs.Param.autoclean">
+    
+  </a>
+  <a name="autoclean">
+    
+  </a>
+  <div class="functionHeader">
+    autoclean =
+  </div>
+  <div class="functionBody">
+    <div><p>"Perform a periodic cleaning of probabilities if True</p></div> (type: <code>bool</code>)
+  </div>
+</div><div class="baseclassvariable">
+  
+  <a name="metadynamic.inputs.Param.dropmode">
+    
+  </a>
+  <a name="dropmode">
+    
+  </a>
+  <div class="functionHeader">
+    dropmode =
+  </div>
+  <div class="functionBody">
+    <div><p>drop mode (can be 'keep', 'drop' or 'soft')</p></div> (type: <code>str</code>)
+  </div>
+</div><div class="baseclassvariable">
+  
+  <a name="metadynamic.inputs.Param.gcperio">
+    
+  </a>
+  <a name="gcperio">
+    
+  </a>
+  <div class="functionHeader">
+    gcperio =
+  </div>
+  <div class="functionBody">
+    <div><p>if True, only call garbage collector at each timestep.</p></div> (type: <code>bool</code>)
+  </div>
+</div><div class="baseclassvariable">
+  
+  <a name="metadynamic.inputs.Param.sleeptime">
+    
+  </a>
+  <a name="sleeptime">
+    
+  </a>
+  <div class="functionHeader">
+    sleeptime =
+  </div>
+  <div class="functionBody">
+    <div><p>finished threads will wait in idle loops of corresponding values the end of others</p></div> (type: <code>float</code>)
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.inputs.Param.maxmem">
+    
+  </a>
+  <a name="maxmem">
+    
+  </a>
+  <div class="functionHeader">
+    maxmem =
+  </div>
+  <div class="functionBody">
+    <div><p>Max memory (in Mb). If 0, set to maxmem_percent/100 * total physical memory</p></div>
+  </div>
+</div><div class="baseclassvariable">
+  
+  <a name="metadynamic.inputs.Param.maxmem_percent">
+    
+  </a>
+  <a name="maxmem_percent">
+    
+  </a>
+  <div class="functionHeader">
+    maxmem_percent =
+  </div>
+  <div class="functionBody">
+    <div><p>Maximum percentage of memory to be used (used if maxmem set to 0)</p></div> (type: <code>int</code>)
+  </div>
+</div><div class="baseclassvariable">
+  
+  <a name="metadynamic.inputs.Param.save">
+    
+  </a>
+  <a name="save">
+    
+  </a>
+  <div class="functionHeader">
+    save =
+  </div>
+  <div class="functionBody">
+    <div><p>list of compounds to be saved at each time step</p></div> (type: <code>List[str]</code>)
+  </div>
+</div><div class="baseclassvariable">
+  
+  <a name="metadynamic.inputs.Param.stat">
+    
+  </a>
+  <a name="stat">
+    
+  </a>
+  <div class="functionHeader">
+    stat =
+  </div>
+  <div class="functionBody">
+    <div><p>json filename describing statistics</p></div> (type: <code>str</code>)
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.inputs.Param.statparam">
+    
+  </a>
+  <a name="statparam">
+    
+  </a>
+  <div class="functionHeader">
+    statparam =
+  </div>
+  <div class="functionBody">
+    <div><p>List of statistic parameters, with fields as described in <a href="metadynamic.inputs.StatParam.html"><code>StatParam</code></a></p></div>
+  </div>
+</div><div class="baseclassvariable">
+  
+  <a name="metadynamic.inputs.Param.maps">
+    
+  </a>
+  <a name="maps">
+    
+  </a>
+  <div class="functionHeader">
+    maps =
+  </div>
+  <div class="functionBody">
+    <div><p>json filename describing stat maps</p></div> (type: <code>str</code>)
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.inputs.Param.mapsparam">
+    
+  </a>
+  <a name="mapsparam">
+    
+  </a>
+  <div class="functionHeader">
+    mapsparam =
+  </div>
+  <div class="functionBody">
+    <div><p>List of statistic parameters, with fields as described in <a href="metadynamic.inputs.MapParam.html"><code>MapParam</code></a></p></div>
+  </div>
+</div><div class="baseclassvariable">
+  
+  <a name="metadynamic.inputs.Param.store_snapreac">
+    
+  </a>
+  <a name="store_snapreac">
+    
+  </a>
+  <div class="functionHeader">
+    store_snapreac =
+  </div>
+  <div class="functionBody">
+    <div><p>Store reaction snapshots? (can take lots of time for large CRNs)</p></div> (type: <code>bool</code>)
+  </div>
+</div><div class="baseclassvariable">
+  
+  <a name="metadynamic.inputs.Param.maxstrlen">
+    
+  </a>
+  <a name="maxstrlen">
+    
+  </a>
+  <div class="functionHeader">
+    maxstrlen =
+  </div>
+  <div class="functionBody">
+    <div><p>max string length to be stored in hdf5</p></div> (type: <code>int</code>)
+  </div>
+</div><div class="baseclassvariable">
+  
+  <a name="metadynamic.inputs.Param.lengrow">
+    
+  </a>
+  <a name="lengrow">
+    
+  </a>
+  <div class="functionHeader">
+    lengrow =
+  </div>
+  <div class="functionBody">
+    <div><p>number of length left before requesting a resize</p></div> (type: <code>int</code>)
+  </div>
+</div><div class="baseclassvariable">
+  
+  <a name="metadynamic.inputs.Param.maxlog">
+    
+  </a>
+  <a name="maxlog">
+    
+  </a>
+  <div class="functionHeader">
+    maxlog =
+  </div>
+  <div class="functionBody">
+    <div><p>max log lines per process to be saved</p></div> (type: <code>int</code>)
+  </div>
+</div><div class="baseclassvariable">
+  
+  <a name="metadynamic.inputs.Param.timeformat">
+    
+  </a>
+  <a name="timeformat">
+    
+  </a>
+  <div class="functionHeader">
+    timeformat =
+  </div>
+  <div class="functionBody">
+    <div><p>timeformat used in log files</p></div> (type: <code>str</code>)
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.inputs.Param.__post_init__">
+    
+  </a>
+  <a name="__post_init__">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    __post_init__(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    <div class="interfaceinfo">overrides <a href="metadynamic.inputs.Readerclass.html#__post_init__" class="code" data-type="Method">metadynamic.inputs.Readerclass.__post_init__</a></div>
+    
+    <div><p>(re) calculate data after fields init or change</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.inputs.Param.set_param">
+    
+  </a>
+  <a name="set_param">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    set_param(self, **kwd):
+    
+  </div>
+  <div class="docstring functionBody">
+    <div class="interfaceinfo">overrides <a href="metadynamic.inputs.Readerclass.html#set_param" class="code" data-type="Method">metadynamic.inputs.Readerclass.set_param</a></div>
+    
+    <div><p>Set the object parameters.</p><p>This function must be used, instead of directly setting parameters, so that the check/autocast/lock features can be correctly used.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Raises</td><td class="fieldArg">LockedError</td><td>raised if attempted on a locked object</td></tr><tr><td></td><td class="fieldArg">BadFile</td><td>raised if parameters value are of uncorrect type</td></tr></table></div>
+  </div>
+</div>
+
+      </div>
+      <address>
+        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-16 15:24:10.
+      </address>
+
+    </div>
+
+    <script src="pydoctor.js" type="text/javascript"></script>
+
+  </body>
+</html>

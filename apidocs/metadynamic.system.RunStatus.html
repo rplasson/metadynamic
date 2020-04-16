@@ -1,0 +1,550 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+          "DTD/xhtml1-strict.dtd">
+<html>
+  <head>
+    <title>metadynamic.system.RunStatus : API documentation</title>
+
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="apidocs.css" />
+  </head>
+  <body>
+
+    <nav class="navbar navbar-default">
+      <div class="container">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="index.html">
+            metadynamic API Documentation
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <div id="showPrivate">
+      <button class="btn btn-link" onclick="togglePrivate()">Toggle Private API</button>
+    </div>
+
+    <div class="container">
+
+      <div class="page-header">
+        <h1 class="class"><code>metadynamic.system.RunStatus</code> <small>class documentation</small></h1>
+
+        <span id="partOf">
+          Part of <code><a href="metadynamic.html" class="code" data-type="Package">metadynamic</a>.<a href="metadynamic.system.html" class="code" data-type="Module">system</a></code>
+          
+          <a href="classIndex.html#metadynamic.system.RunStatus">(View In Hierarchy)</a>
+        </span>
+      </div>
+
+      <div class="extrasDocstring">
+        
+      </div>
+
+      <div class="moduleDocstring">
+        <div><p>Control the status of a simulation (time, step, memory)</p></div>
+      </div>
+
+      <div id="splitTables">
+        <table class="children sortable" id="id105">
+  
+  <tr class="classvariable">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.system.RunStatus.html#infonames" class="code" data-type="Class Variable">infonames</a></td>
+    <td><span>List of tracked information</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.system.RunStatus.html#__init__" class="code" data-type="Method">__init__</a></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.system.RunStatus.html#tnext" class="code" data-type="Instance Variable">tnext</a></td>
+    <td><span>next time to be reached</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.system.RunStatus.html#dstep" class="code" data-type="Instance Variable">dstep</a></td>
+    <td><span>stochatic step number</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.system.RunStatus.html#step" class="code" data-type="Instance Variable">step</a></td>
+    <td><span>timestep number</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.system.RunStatus.html#time" class="code" data-type="Instance Variable">time</a></td>
+    <td><span>simulated time</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.system.RunStatus.html#tstep" class="code" data-type="Instance Variable">tstep</a></td>
+    <td><span>timestep</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.system.RunStatus.html#tend" class="code" data-type="Instance Variable">tend</a></td>
+    <td><span>final simulated time</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.system.RunStatus.html#rtlim" class="code" data-type="Instance Variable">rtlim</a></td>
+    <td><span>maximum run time</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.system.RunStatus.html#maxmem" class="code" data-type="Instance Variable">maxmem</a></td>
+    <td><span>maximum memory use</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.system.RunStatus.html#gcperio" class="code" data-type="Instance Variable">gcperio</a></td>
+    <td><span>periodic garbage collection flag (True: only GC after each time step, False: regular GC process)</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.system.RunStatus.html#initialize" class="code" data-type="Method">initialize</a></td>
+    <td><span>First initialization of the run from the set of parameters 'param'</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.system.RunStatus.html#memuse" class="code" data-type="Method">memuse</a></td>
+    <td><span>Memory used by the process in Mb</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.system.RunStatus.html#info" class="code" data-type="Method">info</a></td>
+    <td><span>Information summary: thread number, runtime, memory use, simulation step, stochastic step, time</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.system.RunStatus.html#logstat" class="code" data-type="Method">logstat</a></td>
+    <td><span>Log (at INFO level) run information</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.system.RunStatus.html#inc" class="code" data-type="Method">inc</a></td>
+    <td><span>Increment time by 'delta_t' and dstep by 1</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.system.RunStatus.html#next_step" class="code" data-type="Method">next_step</a></td>
+    <td><span>Increment tnext by tstep if tnext was reached, and step by 1</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.system.RunStatus.html#checkend" class="code" data-type="Method">checkend</a></td>
+    <td><span>Check if the run reached its final limit: - raise TimesUp if time reached tend - raise RuntimeLim if runtime reached rtlim</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.system.RunStatus.html#checkmem" class="code" data-type="Method">checkmem</a></td>
+    <td><span>Check if the process reached its memory limit.</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.system.RunStatus.html#checkstep" class="code" data-type="Method">checkstep</a></td>
+    <td><span>Follow a checklist before starting next step, that is:</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.system.RunStatus.html#gcclean" class="code" data-type="Method">gcclean</a></td>
+    <td><span>Call garbage collector for memory cleaning</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.system.RunStatus.html#finished" class="code" data-type="Method">finished</a></td>
+    <td><span>True if present time reached the tnext limit</span></td>
+  </tr>
+</table>
+        
+
+          
+      </div>
+
+      <div id="childList">
+
+        <div class="baseclassvariable">
+  
+  <a name="metadynamic.system.RunStatus.infonames">
+    
+  </a>
+  <a name="infonames">
+    
+  </a>
+  <div class="functionHeader">
+    infonames =
+  </div>
+  <div class="functionBody">
+    <div><p>List of tracked information</p></div> (type: <code>List[str]</code>)
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.system.RunStatus.__init__">
+    
+  </a>
+  <a name="__init__">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    __init__(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div class="undocumented">Undocumented</div>
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.system.RunStatus.tnext">
+    
+  </a>
+  <a name="tnext">
+    
+  </a>
+  <div class="functionHeader">
+    tnext =
+  </div>
+  <div class="functionBody">
+    <div><p>next time to be reached</p></div> (type: <code>float</code>)
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.system.RunStatus.dstep">
+    
+  </a>
+  <a name="dstep">
+    
+  </a>
+  <div class="functionHeader">
+    dstep =
+  </div>
+  <div class="functionBody">
+    <div><p>stochatic step number</p></div> (type: <code>int</code>)
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.system.RunStatus.step">
+    
+  </a>
+  <a name="step">
+    
+  </a>
+  <div class="functionHeader">
+    step =
+  </div>
+  <div class="functionBody">
+    <div><p>timestep number</p></div> (type: <code>int</code>)
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.system.RunStatus.time">
+    
+  </a>
+  <a name="time">
+    
+  </a>
+  <div class="functionHeader">
+    time =
+  </div>
+  <div class="functionBody">
+    <div><p>simulated time</p></div> (type: <code>float</code>)
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.system.RunStatus.tstep">
+    
+  </a>
+  <a name="tstep">
+    
+  </a>
+  <div class="functionHeader">
+    tstep =
+  </div>
+  <div class="functionBody">
+    <div><p>timestep</p></div>
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.system.RunStatus.tend">
+    
+  </a>
+  <a name="tend">
+    
+  </a>
+  <div class="functionHeader">
+    tend =
+  </div>
+  <div class="functionBody">
+    <div><p>final simulated time</p></div>
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.system.RunStatus.rtlim">
+    
+  </a>
+  <a name="rtlim">
+    
+  </a>
+  <div class="functionHeader">
+    rtlim =
+  </div>
+  <div class="functionBody">
+    <div><p>maximum run time</p></div>
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.system.RunStatus.maxmem">
+    
+  </a>
+  <a name="maxmem">
+    
+  </a>
+  <div class="functionHeader">
+    maxmem =
+  </div>
+  <div class="functionBody">
+    <div><p>maximum memory use</p></div>
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.system.RunStatus.gcperio">
+    
+  </a>
+  <a name="gcperio">
+    
+  </a>
+  <div class="functionHeader">
+    gcperio =
+  </div>
+  <div class="functionBody">
+    <div><p>periodic garbage collection flag (True: only GC after each time step, False: regular GC process)</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.system.RunStatus.initialize">
+    
+  </a>
+  <a name="initialize">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    initialize(self, param):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>First initialization of the run from the set of parameters 'param'</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">param</td><td>parameters (type: Param)</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.system.RunStatus.memuse">
+    
+  </a>
+  <a name="memuse">
+    
+  </a>
+  <div class="functionHeader">
+    @property<br />
+    def
+    memuse(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Memory used by the process in Mb</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.system.RunStatus.info">
+    
+  </a>
+  <a name="info">
+    
+  </a>
+  <div class="functionHeader">
+    @property<br />
+    def
+    info(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Information summary: thread number, runtime, memory use, simulation step, stochastic step, time</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.system.RunStatus.logstat">
+    
+  </a>
+  <a name="logstat">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    logstat(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Log (at INFO level) run information</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.system.RunStatus.inc">
+    
+  </a>
+  <a name="inc">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    inc(self, delta_t):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Increment time by 'delta_t' and dstep by 1</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">delta_t</td><td>time increment (type: float)</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.system.RunStatus.next_step">
+    
+  </a>
+  <a name="next_step">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    next_step(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Increment tnext by tstep if tnext was reached, and step by 1</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.system.RunStatus.checkend">
+    
+  </a>
+  <a name="checkend">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    checkend(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Check if the run reached its final limit:</p><ul><li>raise TimesUp if time reached tend</li><li>raise RuntimeLim if runtime reached rtlim</li></ul></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.system.RunStatus.checkmem">
+    
+  </a>
+  <a name="checkmem">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    checkmem(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Check if the process reached its memory limit.</p><p>If reached, close the MPI gate for 'oom' reason for selectively stopping some threads at the next gathering at the MPI gate.</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.system.RunStatus.checkstep">
+    
+  </a>
+  <a name="checkstep">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    checkstep(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Follow a checklist before starting next step, that is:</p><ul><li>check the memory,</li><li>update tnext and step,</li><li>check if run ends.</li></ul></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.system.RunStatus.gcclean">
+    
+  </a>
+  <a name="gcclean">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    gcclean(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Call garbage collector for memory cleaning</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.system.RunStatus.finished">
+    
+  </a>
+  <a name="finished">
+    
+  </a>
+  <div class="functionHeader">
+    @property<br />
+    def
+    finished(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>True if present time reached the tnext limit</p></div>
+  </div>
+</div>
+
+      </div>
+      <address>
+        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-16 15:24:10.
+      </address>
+
+    </div>
+
+    <script src="pydoctor.js" type="text/javascript"></script>
+
+  </body>
+</html>

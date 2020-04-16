@@ -26,6 +26,10 @@ setuptools.setup(
     license='GPL V3.0',
     packages=setuptools.find_packages(),
     # no dependencies in this example
+    install_requires=[
+        'setuptools>=33.1.1',
+        'numpy>=1.12.1'
+    ],
     # install_requires=[
     #       'dependency==1.2.3',
     # ],

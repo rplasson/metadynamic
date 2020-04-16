@@ -32,17 +32,36 @@ from metadynamic.ruleset import (
     Compset,
     parmul,
     kalternate,
-    novariant,
+    kinvar,
+    novariant_gen,
     rangevariant,
     joiner,
 )
 
 # Categorizer #
 
-rabbit: Categorizer = lambda name: name[0] == "R"
-hungry_fox: Categorizer = lambda name: name[0] == "H"
-fox: Categorizer = lambda name: name[0] == "F"
+grass: Categorizer = lambda name: name[0] == "G"
+rabbit: Categorizer = lambda name: name[0] == "R" or name[0] == "r"
+fox: Categorizer = lambda name: name[0] == "F" or name[0] == "f"
+hungry: Categorizer = lambda name: name[0].islower()
+hungry_fox: Categorizer = lambda name: name[0] == "f"
+hungry_rabbit: Categorizer = lambda name: name[0] == "r"
+satiated_fox: Categorizer = lambda name: name[0] == "F"
+satiated_rabbit: Categorizer = lambda name: name[0] == "R"
 
+energy: Propertizer = lambda name: (
+    1
+    if grass(name)
+    else 2
+    if hungry_rabbit(name)
+    else 3
+    if satiated_rabbit(name)
+    else 6
+    if hungry_fox(name)
+    else 9
+    if satiated_fox(name)
+    else 0
+)
 
 # ProdBuilder #
 
@@ -59,10 +78,18 @@ def rotate_gene(gene: str) -> str:
 
 def mutate_gene(gene: str) -> str:
     mutateat = randint(0, len(gene) - 2)
-    return gene[:mutateat] + str(randint(0, 9)) + gene[mutateat+1:]
+    return gene[:mutateat] + str(randint(0, 9)) + gene[mutateat + 1 :]
 
 
-# 2 rabbits -> 3 rabbits, or 2 foxes -> 3 hungry foxes
+def starve(name: str) -> str:
+    return name[0].lower() + name[1:]
+
+
+def feed(name: str) -> str:
+    return name[0].upper() + name[1:]
+
+
+# 2 satiated animals -> 3 hungry animals
 def reproduce(names: Compset, variant: int) -> Compset:
     parent1 = names[0]
     parent2 = names[1]
@@ -73,32 +100,42 @@ def reproduce(names: Compset, variant: int) -> Compset:
         genes3 = [rotate_gene(gene) for gene in genes3]
     if variant == 2:
         genes3 = [mutate_gene(gene) for gene in genes3]
-    if parent1[0] == "R":
-        child = "R" + "-".join(genes3)
-    else:
-        parent1 = "H" + parent1[1:]
-        parent2 = "H" + parent2[1:]
-        child = "H" + "-".join(genes3)
-    return parent1, parent2, child
+    child = parent1[0].lower() + "-".join(genes3)
+    return starve(parent1), starve(parent2), child
 
 
-# hungry fox + rabbit -> fox
+# hungry animal + food -> satiated animal
 def eat(names: Compset, variant: int) -> Compset:
-    return ("F" + names[0][1:],)
+    return (feed(names[0]),)
 
 
-# animal ->
-def die(names: Compset, variant: int) -> Compset:
-    return ()
+# animal -> grass
+def die_gen(size: int) -> ProdBuilder:
+    def die(names: Compset, variant: int) -> Compset:
+        return ("G",) * size
+
+    return die
+
+
+r_die: ProdBuilder = die_gen(2)
+R_die: ProdBuilder = die_gen(3)
+f_die: ProdBuilder = die_gen(6)
+F_die: ProdBuilder = die_gen(9)
 
 
 # Paramrel builder #
 
+k_repro_f: Paramrel = parmul("k_repro_r", "repro_f_factor")
 k_repro_r_rot: Paramrel = parmul("k_repro_r", "rot_ratio")
 k_repro_f_rot: Paramrel = parmul("k_repro_f", "rot_ratio")
 k_repro_r_mute: Paramrel = parmul("k_repro_r", "mute_ratio")
 k_repro_f_mute: Paramrel = parmul("k_repro_f", "mute_ratio")
+
+k_death_f0: Paramrel = parmul("k_death_r0", "death_f_factor")
 k_death_hf0: Paramrel = parmul("k_death_f0", "hunger_factor")
+k_death_hr0: Paramrel = parmul("k_death_r0", "hunger_factor")
+
+k_eat_f0: Paramrel = parmul("k_eat_r0", "eat_f_factor")
 
 # ConstBuilder #
 
@@ -108,7 +145,7 @@ def translate_gene(name: str) -> List[float]:
     return genes
 
 
-def k_repro_gen(name: str, name_rot: str, name_mute: str) -> Compset:
+def k_repro_gen(name: str, name_rot: str, name_mute: str) -> ConstBuilder:
     def k_repro(names: Compset, k: Parameters, variant: int) -> float:  # ConstBuilder
         repro_power_a = translate_gene(names[0])[0]
         repro_power_b = translate_gene(names[1])[0]
@@ -129,80 +166,127 @@ k_repro_rabbit: ConstBuilder = k_repro_gen(
 k_repro_fox: ConstBuilder = k_repro_gen("k_repro_f", "k_repro_f_rot", "k_repro_f_mute")
 
 
-def k_eat(names: Compset, k: Parameters, variant: int) -> float:  # ConstBuilder
+def k_eat_f(names: Compset, k: Parameters, variant: int) -> float:  # ConstBuilder
     hunt_power = translate_gene(names[0])[1]
     escape_power = translate_gene(names[1])[1]
-    return k["k_eat_0"] * hunt_power * escape_power
+    return k["k_eat_f0"] * hunt_power * escape_power
 
 
-def k_death_rabbit(
-    names: Compset, k: Parameters, variant: int
-) -> float:  # ConstBuilder
+k_eat_r: ConstBuilder = kinvar("k_eat_r0")
+
+
+def k_death_hr(names: Compset, k: Parameters, variant: int) -> float:  # ConstBuilder
+    powers = translate_gene(names[0])
+    return k["k_death_hr0"] * powers[0] * (1 - powers[1])
+
+
+def k_death_hf(names: Compset, k: Parameters, variant: int) -> float:  # ConstBuilder
+    powers = translate_gene(names[0])
+    return k["k_death_hf0"] * powers[0] * powers[1]
+
+
+def k_death_r(names: Compset, k: Parameters, variant: int) -> float:  # ConstBuilder
     powers = translate_gene(names[0])
     return k["k_death_r0"] * powers[0] * (1 - powers[1])
 
 
-def k_death_fox_gen(name: str) -> Compset:
-    def k_death(names: Compset, k: Parameters, variant: int) -> float:  # ConstBuilder
-        powers = translate_gene(names[0])
-        return k[name] * powers[0] * powers[1]
-
-    return k_death
+def k_death_f(names: Compset, k: Parameters, variant: int) -> float:  # ConstBuilder
+    powers = translate_gene(names[0])
+    return k["k_death_f0"] * powers[0] * powers[1]
 
 
-k_death_fox: ConstBuilder = k_death_fox_gen("k_death_f0")
-k_death_hungry_fox: ConstBuilder = k_death_fox_gen("k_death_hf0")
+# VariantBuilder #
 
-
+novariant: VariantBuilder = novariant_gen()
 threevariant: VariantBuilder = lambda reactants: range(3)
 
 # Default Ruleset #
 
 default_ruleset: Dict[str, Any] = {
-    "categories": ["rabbit", "fox", "hungry_fox"],
+    "categories": [
+        "grass",
+        "hungry",
+        "rabbit",
+        "hungry_rabbit",
+        "satiated_rabbit",
+        "fox",
+        "hungry_fox",
+        "satiated_fox",
+    ],
+    "properties": ["energy"],
     "relations": [
+        "k_repro_f",
         "k_repro_r_rot",
         "k_repro_f_rot",
         "k_repro_r_mute",
         "k_repro_f_mute",
+        "k_death_f0",
         "k_death_hf0",
+        "k_death_hr0",
+        "k_eat_f0",
     ],
     "rules": {
         "Rrepro": {
-            "reactants": ["rabbit", "rabbit"],
+            "reactants": ["satiated_rabbit", "satiated_rabbit"],
             "builder_func": "reproduce",
             "builder_const": "k_repro_rabbit",
             "builder_variant": "threevariant",
+            "robust": False,
         },
         "Frepro": {
-            "reactants": ["fox", "fox"],
+            "reactants": ["satiated_fox", "satiated_fox"],
             "builder_func": "reproduce",
             "builder_const": "k_repro_fox",
             "builder_variant": "threevariant",
+            "robust": False,
         },
-        "Eat": {
-            "reactants": ["hungry_fox", "rabbit"],
+        "Feat": {
+            "reactants": ["hungry_fox", "satiated_rabbit"],
             "builder_func": "eat",
-            "builder_const": "k_eat",
+            "builder_const": "k_eat_f",
+            "builder_variant": "novariant",
+        },
+        "Reat": {
+            "reactants": ["hungry_rabbit", "grass"],
+            "builder_func": "eat",
+            "builder_const": "k_eat_r",
+            "builder_variant": "novariant",
+        },
+        "rdeath": {
+            "reactants": ["hungry_rabbit"],
+            "builder_func": "r_die",
+            "builder_const": "k_death_hr",
+            "builder_variant": "novariant",
+        },
+        "fdeath": {
+            "reactants": ["hungry_fox"],
+            "builder_func": "f_die",
+            "builder_const": "k_death_hf",
             "builder_variant": "novariant",
         },
         "Rdeath": {
-            "reactants": ["rabbit"],
-            "builder_func": "die",
-            "builder_const": "k_death_rabbit",
+            "reactants": ["satiated_rabbit"],
+            "builder_func": "R_die",
+            "builder_const": "k_death_r",
             "builder_variant": "novariant",
         },
         "Fdeath": {
-            "reactants": ["fox"],
-            "builder_func": "die",
-            "builder_const": "k_death_fox",
-            "builder_variant": "novariant",
-        },
-        "Hdeath": {
-            "reactants": ["hungry_fox"],
-            "builder_func": "die",
-            "builder_const": "k_death_hungry_fox",
+            "reactants": ["satiated_fox"],
+            "builder_func": "F_die",
+            "builder_const": "k_death_f",
             "builder_variant": "novariant",
         },
     },
 }
+#########################################
+#
+#   R + R -> r + r + r        (1): 3r = 2R
+#   F + F -> f + f + f        (2): 3f = 2F  => (3) => 3f = 2f + 6 => f=6, F=9
+#   f + R -> F                (3): f+R = F => (4) => f+3 = F
+#   r + G -> R                (4): r+1 = R  => (1) => 3r = 2r + 2 => r = 2 ; R = 3
+#   r -> G + G
+#   R -> G + G + G
+#   f -> G + G + G + G + G + G
+#   F -> G + G + G + G + G + G + G + G + G
+#
+##########################################

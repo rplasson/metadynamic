@@ -18,15 +18,65 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
+"""
+Metadynamic stochastic simulator
+================================
+
+Simulation of chemical systems based on Gillespie's Stochastic algorithm, with on-the-fly
+creation/destruction of compounds and reactions.
+
+
+Provides
+--------
+
+    - L{launch}: function for launching a simulation from a .json parameter file, a .hdf5 result
+      file from a previous run, with eventual additional parameters, and storing the results in a
+      new .hdf5 file.
+
+    - L{ResultReader}: class for reading and extracting data from a .hdf5 result file.
+
+    - L{System}: class for creating, running, and directly controlling a simmulation.
+
+    - L{Crn}: class describing a Chemical Reaction Network.
+
+    - L{LOGGER}: global object for logging messages
+
+    - L{MPI_STATUS}: global object for getting information about the MPI status
+
+
+CLI interaction
+---------------
+
+A script named 'metarun' is provided for launching a simulation from the command line.
+
+Usage::
+
+    metarun [-h]
+            [--logdir [logdir]]
+            [--comment [comment]]
+            [--loglevel [loglevel]]
+            [--compress [compress]]
+            parameters
+
+"""
+
 
 from metadynamic.version import __version__
 from metadynamic.system import System
-from metadynamic.chemical import CRN
+from metadynamic.chemical import Crn
 from metadynamic.result import ResultReader
 from metadynamic.launcher import launch
 from metadynamic.logger import LOGGER
-from metadynamic.mpi import MPI_STATUS, MPI_GATE
+from metadynamic.mpi import MPI_STATUS
 
-# if somebody does "from somepackage import *", this is what they will
-# be able to access:
-__all__ = ["System", "CRN", "ResultReader", "launch", "LOGGER", "MPI_GATE", "MPI_STATUS", "__version__"]
+
+__all__ = [
+    "System",
+    "Crn",
+    "ResultReader",
+    "launch",
+    "LOGGER",
+    "MPI_STATUS",
+    "__version__",
+]
+"""To be imported by 'from metadynamic import *'"""

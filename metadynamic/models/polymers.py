@@ -29,7 +29,7 @@ from metadynamic.ruleset import (
     Compset,
     kalternate,
     kdualchoice,
-    novariant,
+    novariant_gen,
     singlevariant,
     rangevariant,
     joiner,
@@ -146,8 +146,9 @@ krac: ConstBuilder = kdualchoice(
 
 # VariantBuilder
 
-intervariant: VariantBuilder = rangevariant(first_offset=1, last_offset=0, reacnum=0)
-lenvariant: VariantBuilder = rangevariant(first_offset=0, last_offset=0, reacnum=0)
+novariant: VariantBuilder = novariant_gen()
+intervariant: VariantBuilder = rangevariant(reacnum=0, first_offset=1)
+lenvariant: VariantBuilder = rangevariant(reacnum=0)
 firstonly: VariantBuilder = singlevariant(num=0)
 lastonly: VariantBuilder = singlevariant(num=-1)
 

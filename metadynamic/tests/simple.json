@@ -16,6 +16,5 @@
     "parameters" :{
 	"khyd_same": 1.0,
 	"khyd_diff": 1.0
-    },
-    "endbarrier" : 0.1
+    }
 }

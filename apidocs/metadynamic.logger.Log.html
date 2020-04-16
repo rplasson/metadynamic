@@ -1,0 +1,560 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+          "DTD/xhtml1-strict.dtd">
+<html>
+  <head>
+    <title>metadynamic.logger.Log : API documentation</title>
+
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="apidocs.css" />
+  </head>
+  <body>
+
+    <nav class="navbar navbar-default">
+      <div class="container">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="index.html">
+            metadynamic API Documentation
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <div id="showPrivate">
+      <button class="btn btn-link" onclick="togglePrivate()">Toggle Private API</button>
+    </div>
+
+    <div class="container">
+
+      <div class="page-header">
+        <h1 class="class"><code>metadynamic.logger.Log</code> <small>class documentation</small></h1>
+
+        <span id="partOf">
+          Part of <code><a href="metadynamic.html" class="code" data-type="Package">metadynamic</a>.<a href="metadynamic.logger.html" class="code" data-type="Module">logger</a></code>
+          
+          <a href="classIndex.html#metadynamic.logger.Log">(View In Hierarchy)</a>
+        </span>
+      </div>
+
+      <div class="extrasDocstring">
+        
+      </div>
+
+      <div class="moduleDocstring">
+        <div><p>High level class for MPI-aware logging, with log save in hdf5.</p></div>
+      </div>
+
+      <div id="splitTables">
+        <table class="children sortable" id="id85">
+  
+  <tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.logger.Log.html#__init__" class="code" data-type="Method">__init__</a></td>
+    <td><span class="undocumented">No summary</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.logger.Log.html#connected" class="code" data-type="Instance Variable">connected</a></td>
+    <td><span>Connected flag (is the logger connected to a Handler?)</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.logger.Log.html#timeformat" class="code" data-type="Instance Variable">timeformat</a></td>
+    <td><span>format string for date/time output</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.logger.Log.html#level" class="code" data-type="Instance Variable">level</a></td>
+    <td><span>logging level</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.logger.Log.html#filename" class="code" data-type="Instance Variable">filename</a></td>
+    <td><span>output log file</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.logger.Log.html#writer" class="code" data-type="Instance Variable">writer</a></td>
+    <td><span>writer to hdf5 file</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.logger.Log.html#setsaver" class="code" data-type="Method">setsaver</a></td>
+    <td><span>Connect to a hdf5 writer</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.logger.Log.html#setlevel" class="code" data-type="Method">setlevel</a></td>
+    <td><span>Set logging level</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.logger.Log.html#connect" class="code" data-type="Method">connect</a></td>
+    <td><span>direct logging to textfile 'filename' if empty, log to standard output</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.logger.Log.html#disconnect" class="code" data-type="Method">disconnect</a></td>
+    <td><span>Disconnect to current handler</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.logger.Log.html#debug" class="code" data-type="Method">debug</a></td>
+    <td><span>log message at severity 'DEBUG'</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.logger.Log.html#info" class="code" data-type="Method">info</a></td>
+    <td><span>log message at severity 'INFO'</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.logger.Log.html#warning" class="code" data-type="Method">warning</a></td>
+    <td><span>log message at severity 'WARNING'</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.logger.Log.html#error" class="code" data-type="Method">error</a></td>
+    <td><span>log message at severity 'ERROR'</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.logger.Log.html#time" class="code" data-type="Method">time</a></td>
+    <td><span>Current time</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.logger.Log.html#runtime" class="code" data-type="Method">runtime</a></td>
+    <td><span>run time (in seconds)</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.logger.Log.html#reset_timer" class="code" data-type="Method">reset_timer</a></td>
+    <td><span>reset run timer to 0</span></td>
+  </tr><tr class="instancevariable private">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.logger.Log.html#_timer" class="code" data-type="Instance Variable">_timer</a></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="instancevariable private">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.logger.Log.html#_logger" class="code" data-type="Instance Variable">_logger</a></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="instancevariable private">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.logger.Log.html#_handler" class="code" data-type="Instance Variable">_handler</a></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="method private">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.logger.Log.html#_format_msg" class="code" data-type="Method">_format_msg</a></td>
+    <td><span>Format the log message.</span></td>
+  </tr><tr class="method private">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.logger.Log.html#_savelog" class="code" data-type="Method">_savelog</a></td>
+    <td><span>Save the log message to hdf5.</span></td>
+  </tr>
+</table>
+        
+
+          
+      </div>
+
+      <div id="childList">
+
+        <div class="basemethod">
+  
+  <a name="metadynamic.logger.Log.__init__">
+    
+  </a>
+  <a name="__init__">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    __init__(self, filename=invalidstr, level="""INFO""", timeformat="""%H:%M:%S, %d/%m/%y"""):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">filename</td><td>name of log file (type: str)</td></tr><tr><td></td><td class="fieldArg">level</td><td>logging level (INFO, DEBUG, etc.) (Default value = "INFO") (type: str)</td></tr><tr><td></td><td class="fieldArg">timeformat</td><td>format string for date/time output (Default value = "%H:%M:%S, %d/%m/%y") (type: str)</td></tr></table></div>
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.logger.Log.connected">
+    
+  </a>
+  <a name="connected">
+    
+  </a>
+  <div class="functionHeader">
+    connected =
+  </div>
+  <div class="functionBody">
+    <div><p>Connected flag (is the logger connected to a Handler?)</p></div> (type: <code>bool</code>)
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.logger.Log.timeformat">
+    
+  </a>
+  <a name="timeformat">
+    
+  </a>
+  <div class="functionHeader">
+    timeformat =
+  </div>
+  <div class="functionBody">
+    <div><p>format string for date/time output</p></div> (type: <code>str</code>)
+  </div>
+</div><div class="baseinstancevariable private">
+  
+  <a name="metadynamic.logger.Log._timer">
+    
+  </a>
+  <a name="_timer">
+    
+  </a>
+  <div class="functionHeader">
+    _timer =
+  </div>
+  <div class="functionBody">
+    <div class="undocumented">Undocumented</div> (type: <code>Timer</code>)
+  </div>
+</div><div class="baseinstancevariable private">
+  
+  <a name="metadynamic.logger.Log._logger">
+    
+  </a>
+  <a name="_logger">
+    
+  </a>
+  <div class="functionHeader">
+    _logger =
+  </div>
+  <div class="functionBody">
+    <div class="undocumented">Undocumented</div> (type: <code>Logger</code>)
+  </div>
+</div><div class="baseinstancevariable private">
+  
+  <a name="metadynamic.logger.Log._handler">
+    
+  </a>
+  <a name="_handler">
+    
+  </a>
+  <div class="functionHeader">
+    _handler =
+  </div>
+  <div class="functionBody">
+    <div class="undocumented">Undocumented</div>
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.logger.Log.level">
+    
+  </a>
+  <a name="level">
+    
+  </a>
+  <div class="functionHeader">
+    level =
+  </div>
+  <div class="functionBody">
+    <div><p>logging level</p></div>
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.logger.Log.filename">
+    
+  </a>
+  <a name="filename">
+    
+  </a>
+  <div class="functionHeader">
+    filename =
+  </div>
+  <div class="functionBody">
+    <div><p>output log file</p></div>
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.logger.Log.writer">
+    
+  </a>
+  <a name="writer">
+    
+  </a>
+  <div class="functionHeader">
+    writer =
+  </div>
+  <div class="functionBody">
+    <div><p>writer to hdf5 file</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.logger.Log.setsaver">
+    
+  </a>
+  <a name="setsaver">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    setsaver(self, writer):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Connect to a hdf5 writer</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">writer</td><td>hdf5 writer (type: ResultWriter)</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.logger.Log.setlevel">
+    
+  </a>
+  <a name="setlevel">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    setlevel(self, level="""INFO"""):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Set logging level</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">level</td><td>logging level (Default value = "INFO") (type: str)</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.logger.Log.connect">
+    
+  </a>
+  <a name="connect">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    connect(self, filename=""""""):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>direct logging to textfile 'filename' if empty, log to standard output</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">filename</td><td>log file name (type: str)</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.logger.Log.disconnect">
+    
+  </a>
+  <a name="disconnect">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    disconnect(self, reason="""unknown"""):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Disconnect to current handler</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">reason</td><td>message to debug log (Default value = "unknown") (type: str)</td></tr></table></div>
+  </div>
+</div><div class="basemethod private">
+  
+  <a name="metadynamic.logger.Log._format_msg">
+    
+  </a>
+  <a name="_format_msg">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    _format_msg(self, level, msg):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Format the log message.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">level</td><td>severity level (type: str)</td></tr><tr><td></td><td class="fieldArg">msg</td><td>log message (type: str)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">formatted message (type: str)</td></tr></table></div>
+  </div>
+</div><div class="basemethod private">
+  
+  <a name="metadynamic.logger.Log._savelog">
+    
+  </a>
+  <a name="_savelog">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    _savelog(self, level, msg):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Save the log message to hdf5.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">level</td><td>severity level (type: int)</td></tr><tr><td></td><td class="fieldArg">msg</td><td>log message (type: str)</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.logger.Log.debug">
+    
+  </a>
+  <a name="debug">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    debug(self, msg):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>log message at severity 'DEBUG'</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">msg</td><td>log message (type: str)</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.logger.Log.info">
+    
+  </a>
+  <a name="info">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    info(self, msg):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>log message at severity 'INFO'</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">msg</td><td>log message (type: str)</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.logger.Log.warning">
+    
+  </a>
+  <a name="warning">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    warning(self, msg):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>log message at severity 'WARNING'</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">msg</td><td>log message (type: str)</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.logger.Log.error">
+    
+  </a>
+  <a name="error">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    error(self, msg):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>log message at severity 'ERROR'</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">msg</td><td>log message (type: str)</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.logger.Log.time">
+    
+  </a>
+  <a name="time">
+    
+  </a>
+  <div class="functionHeader">
+    @property<br />
+    def
+    time(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Current time</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2"> (type: str)</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.logger.Log.runtime">
+    
+  </a>
+  <a name="runtime">
+    
+  </a>
+  <div class="functionHeader">
+    @property<br />
+    def
+    runtime(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>run time (in seconds)</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2"> (type: float)</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.logger.Log.reset_timer">
+    
+  </a>
+  <a name="reset_timer">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    reset_timer(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>reset run timer to 0</p></div>
+  </div>
+</div>
+
+      </div>
+      <address>
+        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-16 15:24:10.
+      </address>
+
+    </div>
+
+    <script src="pydoctor.js" type="text/javascript"></script>
+
+  </body>
+</html>

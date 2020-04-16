@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+          "DTD/xhtml1-strict.dtd">
+<html>
+  <head>
+    <title>metadynamic.__init__ : API documentation</title>
+
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="apidocs.css" />
+  </head>
+  <body>
+
+    <nav class="navbar navbar-default">
+      <div class="container">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="index.html">
+            metadynamic API Documentation
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <div id="showPrivate">
+      <button class="btn btn-link" onclick="togglePrivate()">Toggle Private API</button>
+    </div>
+
+    <div class="container">
+
+      <div class="page-header">
+        <h1 class="module"><code>metadynamic.__init__</code> <small>module documentation</small></h1>
+
+        <span id="partOf">
+          Part of <code><a href="metadynamic.html" class="code" data-type="Package">metadynamic</a></code>
+          
+          
+        </span>
+      </div>
+
+      <div class="extrasDocstring">
+        
+      </div>
+
+      <div class="moduleDocstring">
+        <div><h1>Metadynamic stochastic simulator</h1><p>Simulation of chemical systems based on Gillespie's Stochastic algorithm, with on-the-fly creation/destruction of compounds and reactions.</p><h2>Provides</h2><ul><li><a href="metadynamic.html#launch"><code>launch</code></a>: function for launching a simulation from a .json parameter file, a .hdf5 result file from a previous run, with eventual additional parameters, and storing the results in a new .hdf5 file.</li><li><a href="metadynamic.ResultReader.html"><code>ResultReader</code></a>: class for reading and extracting data from a .hdf5 result file.</li><li><a href="metadynamic.System.html"><code>System</code></a>: class for creating, running, and directly controlling a simmulation.</li><li><a href="metadynamic.Crn.html"><code>Crn</code></a>: class describing a Chemical Reaction Network.</li><li><a href="metadynamic.html#LOGGER"><code>LOGGER</code></a>: global object for logging messages</li><li><a href="metadynamic.html#MPI_STATUS"><code>MPI_STATUS</code></a>: global object for getting information about the MPI status</li></ul><h2>CLI interaction</h2><p>A script named 'metarun' is provided for launching a simulation from the command line.</p><p>Usage:</p><pre class="literalblock">
+    metarun [-h]
+            [--logdir [logdir]]
+            [--comment [comment]]
+            [--loglevel [loglevel]]
+            [--compress [compress]]
+            parameters
+</pre></div>
+      </div>
+
+      <div id="splitTables">
+        <table class="children sortable" id="id3">
+  
+  <tr class="variable">
+    
+    <td>Variable</td>
+    <td><a href="metadynamic.html#__version__" class="code" data-type="Variable">__version__</a></td>
+    <td><span>metadynamic version number</span></td>
+  </tr><tr class="class">
+    
+    <td>Class</td>
+    <td><a href="metadynamic.System.html" class="code" data-type="Class">System</a></td>
+    <td><span>Create, run and control a simulation</span></td>
+  </tr><tr class="class">
+    
+    <td>Class</td>
+    <td><a href="metadynamic.Crn.html" class="code" data-type="Class">Crn</a></td>
+    <td><span>Chemical Reaction Network class</span></td>
+  </tr><tr class="class">
+    
+    <td>Class</td>
+    <td><a href="metadynamic.ResultReader.html" class="code" data-type="Class">ResultReader</a></td>
+    <td><span>Interface for a hdf5 result file</span></td>
+  </tr><tr class="function">
+    
+    <td>Function</td>
+    <td><a href="metadynamic.html#launch" class="code" data-type="Function">launch</a></td>
+    <td><span>Launch a metadynamic run, saves the result in a .hdf5 file, and returns a ResulReader object</span></td>
+  </tr><tr class="variable">
+    
+    <td>Variable</td>
+    <td><a href="metadynamic.html#LOGGER" class="code" data-type="Variable">LOGGER</a></td>
+    <td><span>global object for logging messages</span></td>
+  </tr><tr class="variable">
+    
+    <td>Variable</td>
+    <td><a href="metadynamic.html#MPI_STATUS" class="code" data-type="Variable">MPI_STATUS</a></td>
+    <td><span>global MpiStatus object</span></td>
+  </tr><tr class="variable">
+    
+    <td>Variable</td>
+    <td><a href="metadynamic.html#__all__" class="code" data-type="Variable">__all__</a></td>
+    <td><span>To be imported by 'from metadynamic import *'</span></td>
+  </tr>
+</table>
+        
+
+          
+      </div>
+
+      <div id="childList">
+
+        <div class="basevariable">
+  
+  <a name="metadynamic.__version__">
+    
+  </a>
+  <a name="__version__">
+    
+  </a>
+  <div class="functionHeader">
+    __version__ =
+  </div>
+  <div class="functionBody">
+    <div><p>metadynamic version number</p></div> (type: <code>str</code>)
+  </div>
+</div><div class="basefunction">
+  
+  <a name="metadynamic.launch">
+    
+  </a>
+  <a name="launch">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    launch(parameters, **kwd):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Launch a metadynamic run, saves the result in a .hdf5 file, and returns a ResulReader object</p><p>It can be launched either form a .json Param file or from a previous .hdf5 result file.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">parameters</td><td>name of the parameter file (.json or .hdf5) (type: str)</td></tr><tr><td></td><td class="fieldArg">**kwd</td><td>additional parameters (override the one defined in parameters file)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">Interface object to the generated .hdf5 file. (type: ResultReader)</td></tr></table></div>
+  </div>
+</div><div class="basevariable">
+  
+  <a name="metadynamic.LOGGER">
+    
+  </a>
+  <a name="LOGGER">
+    
+  </a>
+  <div class="functionHeader">
+    LOGGER =
+  </div>
+  <div class="functionBody">
+    <div><p>global object for logging messages</p></div>
+  </div>
+</div><div class="basevariable">
+  
+  <a name="metadynamic.MPI_STATUS">
+    
+  </a>
+  <a name="MPI_STATUS">
+    
+  </a>
+  <div class="functionHeader">
+    MPI_STATUS =
+  </div>
+  <div class="functionBody">
+    <div><p>global MpiStatus object</p></div>
+  </div>
+</div><div class="basevariable">
+  
+  <a name="metadynamic.__all__">
+    
+  </a>
+  <a name="__all__">
+    
+  </a>
+  <div class="functionHeader">
+    __all__ =
+  </div>
+  <div class="functionBody">
+    <div><p>To be imported by 'from metadynamic import *'</p></div> (type: <code>List[str]</code>)
+  </div>
+</div>
+
+      </div>
+      <address>
+        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-16 15:24:10.
+      </address>
+
+    </div>
+
+    <script src="pydoctor.js" type="text/javascript"></script>
+
+  </body>
+</html>

@@ -1,0 +1,671 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+          "DTD/xhtml1-strict.dtd">
+<html>
+  <head>
+    <title>metadynamic.inputs.Readerclass : API documentation</title>
+
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="apidocs.css" />
+  </head>
+  <body>
+
+    <nav class="navbar navbar-default">
+      <div class="container">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="index.html">
+            metadynamic API Documentation
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <div id="showPrivate">
+      <button class="btn btn-link" onclick="togglePrivate()">Toggle Private API</button>
+    </div>
+
+    <div class="container">
+
+      <div class="page-header">
+        <h1 class="class"><code>metadynamic.inputs.Readerclass</code> <small>class documentation</small></h1>
+
+        <span id="partOf">
+          Part of <code><a href="metadynamic.html" class="code" data-type="Package">metadynamic</a>.<a href="metadynamic.inputs.html" class="code" data-type="Module">inputs</a></code>
+          
+          <a href="classIndex.html#metadynamic.inputs.Readerclass">(View In Hierarchy)</a>
+        </span>
+      </div>
+
+      <div class="extrasDocstring">
+        <p>Known subclasses: <a href="metadynamic.inputs.DotParam.html" class="code" data-type="Class">metadynamic.inputs.DotParam</a>, <a href="metadynamic.inputs.MapParam.html" class="code" data-type="Class">metadynamic.inputs.MapParam</a>, <a href="metadynamic.inputs.Param.html" class="code" data-type="Class">metadynamic.inputs.Param</a>, <a href="metadynamic.inputs.RuleParam.html" class="code" data-type="Class">metadynamic.inputs.RuleParam</a>, <a href="metadynamic.inputs.RulesetParam.html" class="code" data-type="Class">metadynamic.inputs.RulesetParam</a>, <a href="metadynamic.inputs.StatParam.html" class="code" data-type="Class">metadynamic.inputs.StatParam</a></p>
+      </div>
+
+      <div class="moduleDocstring">
+        <div><p>dataclass with interface for reading its data from json files</p></div>
+      </div>
+
+      <div id="splitTables">
+        <table class="children sortable" id="id62">
+  
+  <tr class="classvariable">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#__dataclass_fields__" class="code" data-type="Class Variable">__dataclass_fields__</a></td>
+    <td><span>list of fields types</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#__post_init__" class="code" data-type="Method">__post_init__</a></td>
+    <td><span>(re) calculate data after fields init or change</span></td>
+  </tr><tr class="classmethod">
+    
+    <td>Class Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#readdict" class="code" data-type="Class Method">readdict</a></td>
+    <td><span>Return a Readerclass object, updated by the data from parameters dict</span></td>
+  </tr><tr class="classmethod">
+    
+    <td>Class Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#multipledict" class="code" data-type="Class Method">multipledict</a></td>
+    <td><span>Return a dictionary of Readerclass object, each one updated by the data from a dictionary of parameters dict</span></td>
+  </tr><tr class="classmethod">
+    
+    <td>Class Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#readfile" class="code" data-type="Class Method">readfile</a></td>
+    <td><span>Return a Readerclass object, updated by the data from a json Param file</span></td>
+  </tr><tr class="classmethod">
+    
+    <td>Class Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#readmultiple" class="code" data-type="Class Method">readmultiple</a></td>
+    <td><span>Return a dictionnary of Readerclass object, each one updated by specific entry from a json file</span></td>
+  </tr><tr class="classmethod">
+    
+    <td>Class Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#list_param" class="code" data-type="Class Method">list_param</a></td>
+    <td><span>List all the parameters of the class, with a caster to their type</span></td>
+  </tr><tr class="classmethod">
+    
+    <td>Class Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#conv_param" class="code" data-type="Class Method">conv_param</a></td>
+    <td><span>Return the caster to the type defined for 'param'</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#checked_items" class="code" data-type="Method">checked_items</a></td>
+    <td><span>Autocast and check 'val' to the consistent type defined for 'key', depnding on self.autocast and self.checktype flags</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#set_param" class="code" data-type="Method">set_param</a></td>
+    <td><span>Set the object parameters.</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#asdict" class="code" data-type="Method">asdict</a></td>
+    <td><span>Convert the object data to a dictionary</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#tojson" class="code" data-type="Method">tojson</a></td>
+    <td><span>Write all parameters in a json file</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#lock" class="code" data-type="Method">lock</a></td>
+    <td><span>Lock the object, preventing parameter changes</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#unlock" class="code" data-type="Method">unlock</a></td>
+    <td><span>Unlock the object, enabling parameter changes</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#locked" class="code" data-type="Method">locked</a></td>
+    <td><span>Lock state</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#set_autocast" class="code" data-type="Method">set_autocast</a></td>
+    <td><span>Set the autocast feature</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#unset_autocast" class="code" data-type="Method">unset_autocast</a></td>
+    <td><span>Unset the autocast feature</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#autocast" class="code" data-type="Method">autocast</a></td>
+    <td><span>autocast state</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#set_checktype" class="code" data-type="Method">set_checktype</a></td>
+    <td><span>Set the checktype feature</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#unset_checktype" class="code" data-type="Method">unset_checktype</a></td>
+    <td><span>Unset the checktype feature</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#checktype" class="code" data-type="Method">checktype</a></td>
+    <td><span>checktype state</span></td>
+  </tr><tr class="classvariable private">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#_list_param" class="code" data-type="Class Variable">_list_param</a></td>
+    <td><span>all class parameters as a dictionary {parameter name: parameter caster}</span></td>
+  </tr><tr class="instancevariable private">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#_locked" class="code" data-type="Instance Variable">_locked</a></td>
+    <td><span>lock flag</span></td>
+  </tr><tr class="instancevariable private">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#_autocast" class="code" data-type="Instance Variable">_autocast</a></td>
+    <td><span>autocast flag</span></td>
+  </tr><tr class="instancevariable private">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#_checktype" class="code" data-type="Instance Variable">_checktype</a></td>
+    <td><span>checktype flag</span></td>
+  </tr><tr class="staticmethod private">
+    
+    <td>Static Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#_fromfile" class="code" data-type="Static Method">_fromfile</a></td>
+    <td><span>Read a json file named 'filename' as a dict</span></td>
+  </tr>
+</table>
+        
+
+          
+      </div>
+
+      <div id="childList">
+
+        <div class="baseclassvariable private">
+  
+  <a name="metadynamic.inputs.Readerclass._list_param">
+    
+  </a>
+  <a name="_list_param">
+    
+  </a>
+  <div class="functionHeader">
+    _list_param =
+  </div>
+  <div class="functionBody">
+    <div><p>all class parameters as a dictionary {parameter name: parameter caster}</p></div> (type: <code>Dict[str, Castreader]</code>)
+  </div>
+</div><div class="baseclassvariable">
+  
+  <a name="metadynamic.inputs.Readerclass.__dataclass_fields__">
+    
+  </a>
+  <a name="__dataclass_fields__">
+    
+  </a>
+  <div class="functionHeader">
+    __dataclass_fields__ =
+  </div>
+  <div class="functionBody">
+    <div><p>list of fields types</p></div> (type: <code>Dict[str, Any]</code>)
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.inputs.Readerclass.__post_init__">
+    
+  </a>
+  <a name="__post_init__">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    __post_init__(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    <div class="interfaceinfo">overridden in <a href="metadynamic.inputs.Param.html" class="code" data-type="Class">metadynamic.inputs.Param</a></div>
+    
+    <div><p>(re) calculate data after fields init or change</p></div>
+  </div>
+</div><div class="baseinstancevariable private">
+  
+  <a name="metadynamic.inputs.Readerclass._locked">
+    
+  </a>
+  <a name="_locked">
+    
+  </a>
+  <div class="functionHeader">
+    _locked =
+  </div>
+  <div class="functionBody">
+    <div><p>lock flag</p></div> (type: <code>bool</code>)
+  </div>
+</div><div class="baseinstancevariable private">
+  
+  <a name="metadynamic.inputs.Readerclass._autocast">
+    
+  </a>
+  <a name="_autocast">
+    
+  </a>
+  <div class="functionHeader">
+    _autocast =
+  </div>
+  <div class="functionBody">
+    <div><p>autocast flag</p></div> (type: <code>bool</code>)
+  </div>
+</div><div class="baseinstancevariable private">
+  
+  <a name="metadynamic.inputs.Readerclass._checktype">
+    
+  </a>
+  <a name="_checktype">
+    
+  </a>
+  <div class="functionHeader">
+    _checktype =
+  </div>
+  <div class="functionBody">
+    <div><p>checktype flag</p></div> (type: <code>bool</code>)
+  </div>
+</div><div class="basestaticmethod private">
+  
+  <a name="metadynamic.inputs.Readerclass._fromfile">
+    
+  </a>
+  <a name="_fromfile">
+    
+  </a>
+  <div class="functionHeader">
+    @staticmethod<br />
+    def
+    _fromfile(filename):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Read a json file named 'filename' as a dict</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">filename</td><td>name of json file (type: str)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">json data as dict (type: Dict[str, Any])</td></tr></table></div>
+  </div>
+</div><div class="baseclassmethod">
+  
+  <a name="metadynamic.inputs.Readerclass.readdict">
+    
+  </a>
+  <a name="readdict">
+    
+  </a>
+  <div class="functionHeader">
+    @classmethod<br />
+    def
+    readdict(cls, parameters, checktype=(True), autocast=(True)):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Return a Readerclass object, updated by the data from parameters dict</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">parameters</td><td>parameters to be set (override the default values) (type: Dict[str, Any])</td></tr><tr><td></td><td class="fieldArg">checktype</td><td>if True, an error will be raised if the parameters are given in a faulty type (Default value = True) (type: bool)</td></tr><tr><td></td><td class="fieldArg">autocast</td><td>if True, given parameters will be catsed to the correct type (Default value = True) (type: bool)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">new object (type: Readerclass)</td></tr></table></div>
+  </div>
+</div><div class="baseclassmethod">
+  
+  <a name="metadynamic.inputs.Readerclass.multipledict">
+    
+  </a>
+  <a name="multipledict">
+    
+  </a>
+  <div class="functionHeader">
+    @classmethod<br />
+    def
+    multipledict(cls, parameters, checktype=(True), autocast=(True)):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Return a dictionary of Readerclass object, each one updated by the data from a dictionary of parameters dict</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">parameters</td><td>dictionary of parameters to be set (override the default values) (type: Dict[str, Dict[str, Any]])</td></tr><tr><td></td><td class="fieldArg">checktype</td><td>if True, an error will be raised if the parameters are given in a faulty type (Default value = True) (type: bool)</td></tr><tr><td></td><td class="fieldArg">autocast</td><td>if True, given parameters will be catsed to the correct type (Default value = True) (type: bool)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">dictionary of new objects (type: Dict[str, Readerclass])</td></tr></table></div>
+  </div>
+</div><div class="baseclassmethod">
+  
+  <a name="metadynamic.inputs.Readerclass.readfile">
+    
+  </a>
+  <a name="readfile">
+    
+  </a>
+  <div class="functionHeader">
+    @classmethod<br />
+    def
+    readfile(cls, filename, checktype=(True), autocast=(True)):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Return a Readerclass object, updated by the data from a json Param file</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">filename</td><td>name of json file (type: str)</td></tr><tr><td></td><td class="fieldArg">checktype</td><td>if True, an error will be raised if the parameters are given in a faulty type (Default value = True) (type: bool)</td></tr><tr><td></td><td class="fieldArg">autocast</td><td>if True, given parameters will be catsed to the correct type (Default value = True) (type: bool)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">new object (type: Readerclass)</td></tr></table></div>
+  </div>
+</div><div class="baseclassmethod">
+  
+  <a name="metadynamic.inputs.Readerclass.readmultiple">
+    
+  </a>
+  <a name="readmultiple">
+    
+  </a>
+  <div class="functionHeader">
+    @classmethod<br />
+    def
+    readmultiple(cls, filename, checktype=(True), autocast=(True)):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Return a dictionnary of Readerclass object, each one updated by specific entry from a json file</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">filename</td><td>name of json file (type: str)</td></tr><tr><td></td><td class="fieldArg">checktype</td><td>if True, an error will be raised if the parameters are given in a faulty type (Default value = True) (type: bool)</td></tr><tr><td></td><td class="fieldArg">autocast</td><td>if True, given parameters will be catsed to the correct type (Default value = True) (type: bool)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">dictionary of new objects (type: Dict[str, Readerclass])</td></tr></table></div>
+  </div>
+</div><div class="baseclassmethod">
+  
+  <a name="metadynamic.inputs.Readerclass.list_param">
+    
+  </a>
+  <a name="list_param">
+    
+  </a>
+  <div class="functionHeader">
+    @classmethod<br />
+    def
+    list_param(cls):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>List all the parameters of the class, with a caster to their type</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">dictionary {parameter name: parameter caster} (type: Dict[str, Castreader])</td></tr></table></div>
+  </div>
+</div><div class="baseclassmethod">
+  
+  <a name="metadynamic.inputs.Readerclass.conv_param">
+    
+  </a>
+  <a name="conv_param">
+    
+  </a>
+  <div class="functionHeader">
+    @classmethod<br />
+    def
+    conv_param(cls, param):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Return the caster to the type defined for 'param'</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">param</td><td>parameter name (type: str @return caster to the parameter type)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2"> (type: Castreader)</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.inputs.Readerclass.checked_items">
+    
+  </a>
+  <a name="checked_items">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    checked_items(self, key, val):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Autocast and check 'val' to the consistent type defined for 'key', depnding on self.autocast and self.checktype flags</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">key</td><td>name of the parameter (type: str)</td></tr><tr><td></td><td class="fieldArg">val</td><td>value to be checked</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">converted value consistent with 'key' type</td></tr><tr class="fieldStart"><td class="fieldName">Raises</td><td class="fieldArg">BadFile</td><td>raised if 'val' cannot be casted, or if 'val' if not of the correct type (in case of an autocast set to False, or of a faulty Caster</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.inputs.Readerclass.set_param">
+    
+  </a>
+  <a name="set_param">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    set_param(self, **kwd):
+    
+  </div>
+  <div class="docstring functionBody">
+    <div class="interfaceinfo">overridden in <a href="metadynamic.inputs.Param.html" class="code" data-type="Class">metadynamic.inputs.Param</a></div>
+    
+    <div><p>Set the object parameters.</p><p>This function must be used, instead of directly setting parameters, so that the check/autocast/lock features can be correctly used.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Raises</td><td class="fieldArg">LockedError</td><td>raised if attempted on a locked object</td></tr><tr><td></td><td class="fieldArg">BadFile</td><td>raised if parameters value are of uncorrect type</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.inputs.Readerclass.asdict">
+    
+  </a>
+  <a name="asdict">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    asdict(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Convert the object data to a dictionary</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">full set of parameters as a dictionary (type: Dict[str, Any])</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.inputs.Readerclass.tojson">
+    
+  </a>
+  <a name="tojson">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    tojson(self, filename):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Write all parameters in a json file</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">filename</td><td>name of json file (type: str)</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.inputs.Readerclass.lock">
+    
+  </a>
+  <a name="lock">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    lock(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Lock the object, preventing parameter changes</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.inputs.Readerclass.unlock">
+    
+  </a>
+  <a name="unlock">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    unlock(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Unlock the object, enabling parameter changes</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.inputs.Readerclass.locked">
+    
+  </a>
+  <a name="locked">
+    
+  </a>
+  <div class="functionHeader">
+    @property<br />
+    def
+    locked(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Lock state</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">lock state value (type: bool)</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.inputs.Readerclass.set_autocast">
+    
+  </a>
+  <a name="set_autocast">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    set_autocast(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Set the autocast feature</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.inputs.Readerclass.unset_autocast">
+    
+  </a>
+  <a name="unset_autocast">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    unset_autocast(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Unset the autocast feature</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.inputs.Readerclass.autocast">
+    
+  </a>
+  <a name="autocast">
+    
+  </a>
+  <div class="functionHeader">
+    @property<br />
+    def
+    autocast(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>autocast state</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">autocast flag value (type: bool)</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.inputs.Readerclass.set_checktype">
+    
+  </a>
+  <a name="set_checktype">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    set_checktype(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Set the checktype feature</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.inputs.Readerclass.unset_checktype">
+    
+  </a>
+  <a name="unset_checktype">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    unset_checktype(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Unset the checktype feature</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.inputs.Readerclass.checktype">
+    
+  </a>
+  <a name="checktype">
+    
+  </a>
+  <div class="functionHeader">
+    @property<br />
+    def
+    checktype(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>checktype state</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">checktype flag value (type: bool)</td></tr></table></div>
+  </div>
+</div>
+
+      </div>
+      <address>
+        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-16 15:24:10.
+      </address>
+
+    </div>
+
+    <script src="pydoctor.js" type="text/javascript"></script>
+
+  </body>
+</html>

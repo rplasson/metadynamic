@@ -18,6 +18,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
+"""
+metadynamic.outputs
+===================
+
+deal with output files organization
+
+
+Provides:
+---------
+
+ - L{Output}: access to output files and folders
+
+"""
 
 from os import path
 
@@ -28,33 +41,71 @@ from metadynamic.ends import NotAFolder
 
 
 class Output:
+    """Access to output files and folders"""
+
     def __init__(self, param: Param):
-        self.name = param.name
-        self.timeformat = param.timeformat
-        self.savedir = param.savedir if param.savedir else path.curdir
+        """
+        Generate files structures from parameters
+
+        @param param: parameters
+        @type param: Param
+        """
+        self.name: str = param.name
+        """run name"""
+        # self.timeformat = param.timeformat
+        self.savedir: str = param.savedir if param.savedir else path.curdir
+        """save folder"""
         if not path.isdir(self.savedir):
             raise NotAFolder("Bad folder name {self.savedir}")
-        self.logdir = param.logdir
-        self.loginfile = self.logdir and path.isdir(self.logdir)
+        self.logdir: str = param.logdir
+        """log folder"""
         if not path.isdir(self.logdir):
-            LOGGER.debug("Logs will be sent to standard output because {self.logdir} is not a folder.")
+            LOGGER.debug(
+                "Logs will be sent to standard output because {self.logdir} is not a folder."
+            )
 
     @property
     def process(self) -> str:
+        """
+        return '-p<n>' where n is the process number in a MPI run,
+        or an empty string if the run is not MPI_GATE
+
+        @return: process string
+        @rtype: str
+        """
         if MPI_STATUS.ismpi:
             return f"-p{MPI_STATUS.rank}"
         return ""
 
     @property
     def basename(self) -> str:
+        """
+        file basename, as <run name>-<hostname>-<start time>
+
+        @return: file basename
+        @rtype: str
+        """
         return f"{self.name}-{MPI_STATUS.hostname}-{MPI_STATUS.starttime}"
 
     @property
     def h5file(self) -> str:
+        """
+        hdf5 file name (with full path)
+
+        @return: hdf5 file name
+        @rtype: str
+        """
         return path.join(self.savedir, f"{self.basename}.hdf5")
 
     @property
     def logfile(self) -> str:
-        if self.loginfile:
+        """
+        log file name (with full path)
+        empty string if log to standard output
+
+        @return: log file name
+        @rtype: str
+        """
+        if self.logdir and path.isdir(self.logdir):
             return path.join(self.logdir, f"{self.basename}{self.process}.log")
         return ""

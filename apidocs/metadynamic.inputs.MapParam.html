@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+          "DTD/xhtml1-strict.dtd">
+<html>
+  <head>
+    <title>metadynamic.inputs.MapParam : API documentation</title>
+
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="apidocs.css" />
+  </head>
+  <body>
+
+    <nav class="navbar navbar-default">
+      <div class="container">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="index.html">
+            metadynamic API Documentation
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <div id="showPrivate">
+      <button class="btn btn-link" onclick="togglePrivate()">Toggle Private API</button>
+    </div>
+
+    <div class="container">
+
+      <div class="page-header">
+        <h1 class="class"><code>metadynamic.inputs.MapParam(<a href="metadynamic.inputs.Readerclass.html" class="code" data-type="Class">Readerclass</a>)</code> <small>class documentation</small></h1>
+
+        <span id="partOf">
+          Part of <code><a href="metadynamic.html" class="code" data-type="Package">metadynamic</a>.<a href="metadynamic.inputs.html" class="code" data-type="Module">inputs</a></code>
+          
+          <a href="classIndex.html#metadynamic.inputs.MapParam">(View In Hierarchy)</a>
+        </span>
+      </div>
+
+      <div class="extrasDocstring">
+        
+      </div>
+
+      <div class="moduleDocstring">
+        <div><p>Parameters for map statistics</p></div>
+      </div>
+
+      <div id="splitTables">
+        <table class="children sortable" id="id69">
+  
+  <tr class="classvariable">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.inputs.MapParam.html#prop" class="code" data-type="Class Variable">prop</a></td>
+    <td><span>property used for the statistic calculation</span></td>
+  </tr><tr class="classvariable">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.inputs.MapParam.html#weight" class="code" data-type="Class Variable">weight</a></td>
+    <td><span>property used as weight (e.g. for weighted average)</span></td>
+  </tr><tr class="classvariable">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.inputs.MapParam.html#sort" class="code" data-type="Class Variable">sort</a></td>
+    <td><span>property used for sorting the statistics in categories</span></td>
+  </tr><tr class="classvariable">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.inputs.MapParam.html#method" class="code" data-type="Class Variable">method</a></td>
+    <td><span>method; '+' returns the weighted sum, 'm' the weighted average</span></td>
+  </tr><tr class="classvariable">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.inputs.MapParam.html#full" class="code" data-type="Class Variable">full</a></td>
+    <td><span>statistics to be performed on active (False) are the full pool (True)</span></td>
+  </tr><tr class="classvariable">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.inputs.MapParam.html#collection" class="code" data-type="Class Variable">collection</a></td>
+    <td><span>Statisitic to be performed on 'compounds' or 'reactions'</span></td>
+  </tr>
+</table>
+        
+          <p class="inheritedFrom">
+            Inherited from <a href="metadynamic.inputs.Readerclass.html" class="code" data-type="Class">Readerclass</a>:
+          </p>
+          <table class="children sortable" id="id70">
+  
+  <tr class="baseclassvariable">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#__dataclass_fields__" class="code" data-type="Class Variable">__dataclass_fields__</a></td>
+    <td><span>list of fields types</span></td>
+  </tr><tr class="basemethod">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#__post_init__" class="code" data-type="Method">__post_init__</a></td>
+    <td><span>(re) calculate data after fields init or change</span></td>
+  </tr><tr class="baseclassmethod">
+    
+    <td>Class Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#readdict" class="code" data-type="Class Method">readdict</a></td>
+    <td><span>Return a Readerclass object, updated by the data from parameters dict</span></td>
+  </tr><tr class="baseclassmethod">
+    
+    <td>Class Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#multipledict" class="code" data-type="Class Method">multipledict</a></td>
+    <td><span>Return a dictionary of Readerclass object, each one updated by the data from a dictionary of parameters dict</span></td>
+  </tr><tr class="baseclassmethod">
+    
+    <td>Class Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#readfile" class="code" data-type="Class Method">readfile</a></td>
+    <td><span>Return a Readerclass object, updated by the data from a json Param file</span></td>
+  </tr><tr class="baseclassmethod">
+    
+    <td>Class Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#readmultiple" class="code" data-type="Class Method">readmultiple</a></td>
+    <td><span>Return a dictionnary of Readerclass object, each one updated by specific entry from a json file</span></td>
+  </tr><tr class="baseclassmethod">
+    
+    <td>Class Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#list_param" class="code" data-type="Class Method">list_param</a></td>
+    <td><span>List all the parameters of the class, with a caster to their type</span></td>
+  </tr><tr class="baseclassmethod">
+    
+    <td>Class Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#conv_param" class="code" data-type="Class Method">conv_param</a></td>
+    <td><span>Return the caster to the type defined for 'param'</span></td>
+  </tr><tr class="basemethod">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#checked_items" class="code" data-type="Method">checked_items</a></td>
+    <td><span>Autocast and check 'val' to the consistent type defined for 'key', depnding on self.autocast and self.checktype flags</span></td>
+  </tr><tr class="basemethod">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#set_param" class="code" data-type="Method">set_param</a></td>
+    <td><span>Set the object parameters.</span></td>
+  </tr><tr class="basemethod">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#asdict" class="code" data-type="Method">asdict</a></td>
+    <td><span>Convert the object data to a dictionary</span></td>
+  </tr><tr class="basemethod">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#tojson" class="code" data-type="Method">tojson</a></td>
+    <td><span>Write all parameters in a json file</span></td>
+  </tr><tr class="basemethod">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#lock" class="code" data-type="Method">lock</a></td>
+    <td><span>Lock the object, preventing parameter changes</span></td>
+  </tr><tr class="basemethod">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#unlock" class="code" data-type="Method">unlock</a></td>
+    <td><span>Unlock the object, enabling parameter changes</span></td>
+  </tr><tr class="basemethod">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#locked" class="code" data-type="Method">locked</a></td>
+    <td><span>Lock state</span></td>
+  </tr><tr class="basemethod">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#set_autocast" class="code" data-type="Method">set_autocast</a></td>
+    <td><span>Set the autocast feature</span></td>
+  </tr><tr class="basemethod">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#unset_autocast" class="code" data-type="Method">unset_autocast</a></td>
+    <td><span>Unset the autocast feature</span></td>
+  </tr><tr class="basemethod">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#autocast" class="code" data-type="Method">autocast</a></td>
+    <td><span>autocast state</span></td>
+  </tr><tr class="basemethod">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#set_checktype" class="code" data-type="Method">set_checktype</a></td>
+    <td><span>Set the checktype feature</span></td>
+  </tr><tr class="basemethod">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#unset_checktype" class="code" data-type="Method">unset_checktype</a></td>
+    <td><span>Unset the checktype feature</span></td>
+  </tr><tr class="basemethod">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#checktype" class="code" data-type="Method">checktype</a></td>
+    <td><span>checktype state</span></td>
+  </tr><tr class="baseclassvariable private">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#_list_param" class="code" data-type="Class Variable">_list_param</a></td>
+    <td><span>all class parameters as a dictionary {parameter name: parameter caster}</span></td>
+  </tr><tr class="baseinstancevariable private">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#_locked" class="code" data-type="Instance Variable">_locked</a></td>
+    <td><span>lock flag</span></td>
+  </tr><tr class="baseinstancevariable private">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#_autocast" class="code" data-type="Instance Variable">_autocast</a></td>
+    <td><span>autocast flag</span></td>
+  </tr><tr class="baseinstancevariable private">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#_checktype" class="code" data-type="Instance Variable">_checktype</a></td>
+    <td><span>checktype flag</span></td>
+  </tr><tr class="basestaticmethod private">
+    
+    <td>Static Method</td>
+    <td><a href="metadynamic.inputs.Readerclass.html#_fromfile" class="code" data-type="Static Method">_fromfile</a></td>
+    <td><span>Read a json file named 'filename' as a dict</span></td>
+  </tr>
+</table>
+          
+
+          
+      </div>
+
+      <div id="childList">
+
+        <div class="baseclassvariable">
+  
+  <a name="metadynamic.inputs.MapParam.prop">
+    
+  </a>
+  <a name="prop">
+    
+  </a>
+  <div class="functionHeader">
+    prop =
+  </div>
+  <div class="functionBody">
+    <div><p>property used for the statistic calculation</p></div> (type: <code>str</code>)
+  </div>
+</div><div class="baseclassvariable">
+  
+  <a name="metadynamic.inputs.MapParam.weight">
+    
+  </a>
+  <a name="weight">
+    
+  </a>
+  <div class="functionHeader">
+    weight =
+  </div>
+  <div class="functionBody">
+    <div><p>property used as weight (e.g. for weighted average)</p></div> (type: <code>str</code>)
+  </div>
+</div><div class="baseclassvariable">
+  
+  <a name="metadynamic.inputs.MapParam.sort">
+    
+  </a>
+  <a name="sort">
+    
+  </a>
+  <div class="functionHeader">
+    sort =
+  </div>
+  <div class="functionBody">
+    <div><p>property used for sorting the statistics in categories</p></div> (type: <code>str</code>)
+  </div>
+</div><div class="baseclassvariable">
+  
+  <a name="metadynamic.inputs.MapParam.method">
+    
+  </a>
+  <a name="method">
+    
+  </a>
+  <div class="functionHeader">
+    method =
+  </div>
+  <div class="functionBody">
+    <div><p>method; '+' returns the weighted sum, 'm' the weighted average</p></div> (type: <code>str</code>)
+  </div>
+</div><div class="baseclassvariable">
+  
+  <a name="metadynamic.inputs.MapParam.full">
+    
+  </a>
+  <a name="full">
+    
+  </a>
+  <div class="functionHeader">
+    full =
+  </div>
+  <div class="functionBody">
+    <div><p>statistics to be performed on active (False) are the full pool (True)</p></div> (type: <code>bool</code>)
+  </div>
+</div><div class="baseclassvariable">
+  
+  <a name="metadynamic.inputs.MapParam.collection">
+    
+  </a>
+  <a name="collection">
+    
+  </a>
+  <div class="functionHeader">
+    collection =
+  </div>
+  <div class="functionBody">
+    <div><p>Statisitic to be performed on 'compounds' or 'reactions'</p></div> (type: <code>str</code>)
+  </div>
+</div>
+
+      </div>
+      <address>
+        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-16 15:24:10.
+      </address>
+
+    </div>
+
+    <script src="pydoctor.js" type="text/javascript"></script>
+
+  </body>
+</html>

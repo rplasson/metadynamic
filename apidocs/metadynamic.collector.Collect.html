@@ -1,0 +1,541 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+          "DTD/xhtml1-strict.dtd">
+<html>
+  <head>
+    <title>metadynamic.collector.Collect : API documentation</title>
+
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="apidocs.css" />
+  </head>
+  <body>
+
+    <nav class="navbar navbar-default">
+      <div class="container">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="index.html">
+            metadynamic API Documentation
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <div id="showPrivate">
+      <button class="btn btn-link" onclick="togglePrivate()">Toggle Private API</button>
+    </div>
+
+    <div class="container">
+
+      <div class="page-header">
+        <h1 class="class"><code>metadynamic.collector.Collect(<span title="Generic[K, T]">Generic[K, T]</span>)</code> <small>class documentation</small></h1>
+
+        <span id="partOf">
+          Part of <code><a href="metadynamic.html" class="code" data-type="Package">metadynamic</a>.<a href="metadynamic.collector.html" class="code" data-type="Module">collector</a></code>
+          
+          <a href="classIndex.html#metadynamic.collector.Collect">(View In Hierarchy)</a>
+        </span>
+      </div>
+
+      <div class="extrasDocstring">
+        
+      </div>
+
+      <div class="moduleDocstring">
+        <div><p>Object collector.</p><p>Generic class to be implemented for Collectable objects of type T, indexed with Hashable key of type K. Keeps two dictionaries {K:T} (a pool with all objects, an activ for only active ones</p></div>
+      </div>
+
+      <div id="splitTables">
+        <table class="children sortable" id="id19">
+  
+  <tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.collector.Collect.html#__init__" class="code" data-type="Method">__init__</a></td>
+    <td><span>Create a collection from a model (for categorizing and building objects)</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.collector.Collect.html#model" class="code" data-type="Instance Variable">model</a></td>
+    <td><span>rule model</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.collector.Collect.html#dropmode" class="code" data-type="Instance Variable">dropmode</a></td>
+    <td><span>drop mode 'keep' or 'drop'</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.collector.Collect.html#pool" class="code" data-type="Instance Variable">pool</a></td>
+    <td><span>pool of all objects</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.collector.Collect.html#categories" class="code" data-type="Instance Variable">categories</a></td>
+    <td><span>categories of objects</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.collector.Collect.html#active" class="code" data-type="Instance Variable">active</a></td>
+    <td><span>pool of active objects</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.collector.Collect.html#categorize" class="code" data-type="Instance Variable">categorize</a></td>
+    <td><span>shall the objects be categorized</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.collector.Collect.html#__repr__" class="code" data-type="Method">__repr__</a></td>
+    <td><span>Format the collection representation as &lt;Collect of &lt;n&gt; T&gt;</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.collector.Collect.html#__getitem__" class="code" data-type="Method">__getitem__</a></td>
+    <td><span>Return the object as described by its key If it is the first call of the object, create it Else, return the already created one</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.collector.Collect.html#activate" class="code" data-type="Method">activate</a></td>
+    <td><span>Put the object 'key' in the active section, then categorize it</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.collector.Collect.html#unactivate" class="code" data-type="Method">unactivate</a></td>
+    <td><span>Remove the object 'key' from the active section, then uncategorize it</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.collector.Collect.html#cat_list" class="code" data-type="Method">cat_list</a></td>
+    <td><span>Return all (active) objects from the specified 'categories'</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.collector.Collect.html#save" class="code" data-type="Method">save</a></td>
+    <td><span>Return the collected data as a dict without value change</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.collector.Collect.html#asdict" class="code" data-type="Method">asdict</a></td>
+    <td><span>Return the collected data as a dict, serializing the values</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.collector.Collect.html#proplist" class="code" data-type="Method">proplist</a></td>
+    <td><span>Return a list of all property values of the collection. The data order is not important, used for statistics.</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.collector.Collect.html#stat" class="code" data-type="Method">stat</a></td>
+    <td><span>Return statistics on all property values of the collection.</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.collector.Collect.html#map" class="code" data-type="Method">map</a></td>
+    <td><span>Return a statistics maps on all property values of the collection.</span></td>
+  </tr><tr class="classvariable private">
+    
+    <td>Class Variable</td>
+    <td><a href="metadynamic.collector.Collect.html#_colltype" class="code" data-type="Class Variable">_colltype</a></td>
+    <td><span>string description of the collected object</span></td>
+  </tr><tr class="method private">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.collector.Collect.html#_create" class="code" data-type="Method">_create</a></td>
+    <td><span>Create the object &lt;T&gt; from its key. Must be implemented in subclasses</span></td>
+  </tr><tr class="method private">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.collector.Collect.html#_categorize" class="code" data-type="Method">_categorize</a></td>
+    <td><span>List the categories the object belongs to. Must be implemented in subclasses</span></td>
+  </tr><tr class="method private">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.collector.Collect.html#_getprop" class="code" data-type="Method">_getprop</a></td>
+    <td><span>Return a given property of a &lt;T&gt; object. Shouldn't be directly used (used by proplist method only)</span></td>
+  </tr>
+</table>
+        
+
+          
+      </div>
+
+      <div id="childList">
+
+        <div class="baseclassvariable private">
+  
+  <a name="metadynamic.collector.Collect._colltype">
+    
+  </a>
+  <a name="_colltype">
+    
+  </a>
+  <div class="functionHeader">
+    _colltype =
+  </div>
+  <div class="functionBody">
+    <div><p>string description of the collected object</p></div> (type: <code>str</code>)
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.collector.Collect.__init__">
+    
+  </a>
+  <a name="__init__">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    __init__(self, model, categorize=(True), dropmode="""drop"""):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Create a collection from a model (for categorizing and building objects)</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">model</td><td>Model containing all rules (type: Model)</td></tr><tr><td></td><td class="fieldArg">categorize</td><td>shall the objects be automatically categorized (Default value = True) (type: bool)</td></tr><tr><td></td><td class="fieldArg">dropmode</td><td>how the unactivated object are dealt ("drop"=&gt; removed, "keep"=&gt; kept in pool) (Default value = "drop") (type: str)</td></tr></table></div>
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.collector.Collect.model">
+    
+  </a>
+  <a name="model">
+    
+  </a>
+  <div class="functionHeader">
+    model =
+  </div>
+  <div class="functionBody">
+    <div><p>rule model</p></div> (type: <code>Model</code>)
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.collector.Collect.dropmode">
+    
+  </a>
+  <a name="dropmode">
+    
+  </a>
+  <div class="functionHeader">
+    dropmode =
+  </div>
+  <div class="functionBody">
+    <div><p>drop mode 'keep' or 'drop'</p></div> (type: <code>str</code>)
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.collector.Collect.pool">
+    
+  </a>
+  <a name="pool">
+    
+  </a>
+  <div class="functionHeader">
+    pool =
+  </div>
+  <div class="functionBody">
+    <div><p>pool of all objects</p></div> (type: <code>Dict[K, T]</code>)
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.collector.Collect.categories">
+    
+  </a>
+  <a name="categories">
+    
+  </a>
+  <div class="functionHeader">
+    categories =
+  </div>
+  <div class="functionBody">
+    <div><p>categories of objects</p></div> (type: <code>Dict[str, Set[K]]</code>)
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.collector.Collect.active">
+    
+  </a>
+  <a name="active">
+    
+  </a>
+  <div class="functionHeader">
+    active =
+  </div>
+  <div class="functionBody">
+    <div><p>pool of active objects</p></div> (type: <code>Dict[K, T]</code>)
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.collector.Collect.categorize">
+    
+  </a>
+  <a name="categorize">
+    
+  </a>
+  <div class="functionHeader">
+    categorize =
+  </div>
+  <div class="functionBody">
+    <div><p>shall the objects be categorized</p></div> (type: <code>bool</code>)
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.collector.Collect.__repr__">
+    
+  </a>
+  <a name="__repr__">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    __repr__(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Format the collection representation as &lt;Collect of &lt;n&gt; T&gt;</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">formatted dtring (type: str)</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.collector.Collect.__getitem__">
+    
+  </a>
+  <a name="__getitem__">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    __getitem__(self, key):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Return the object as described by its key If it is the first call of the object, create it Else, return the already created one</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.collector.Collect.activate">
+    
+  </a>
+  <a name="activate">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    activate(self, key):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Put the object 'key' in the active section, then categorize it</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">key</td><td>object key (type: K)</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.collector.Collect.unactivate">
+    
+  </a>
+  <a name="unactivate">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    unactivate(self, key):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Remove the object 'key' from the active section, then uncategorize it</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">key</td><td>object key (type: K)</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.collector.Collect.cat_list">
+    
+  </a>
+  <a name="cat_list">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    cat_list(self, category):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Return all (active) objects from the specified 'categories'</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">category</td><td>category name (type: str)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">set of compounds in the corresponding category (type: Set[K])</td></tr></table></div>
+  </div>
+</div><div class="basemethod private">
+  
+  <a name="metadynamic.collector.Collect._create">
+    
+  </a>
+  <a name="_create">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    _create(self, key):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Create the object &lt;T&gt; from its key. Must be implemented in subclasses</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">key</td><td>object key (type: K)</td></tr></table></div>
+  </div>
+</div><div class="basemethod private">
+  
+  <a name="metadynamic.collector.Collect._categorize">
+    
+  </a>
+  <a name="_categorize">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    _categorize(self, obj):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>List the categories the object belongs to. Must be implemented in subclasses</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">obj</td><td>object to categorize (type: T)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">list of the categories (type: Set[str])</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.collector.Collect.save">
+    
+  </a>
+  <a name="save">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    save(self, full=(False)):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Return the collected data as a dict without value change</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">full</td><td>collect all pool data if True, else all active data (type: bool)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">data dictionary (type: Dict[str, T])</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.collector.Collect.asdict">
+    
+  </a>
+  <a name="asdict">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    asdict(self, full=(False)):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Return the collected data as a dict, serializing the values</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">full</td><td>collect all pool data if True, else all active data (type: bool)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">data dictionary (type: Dict[str, Any])</td></tr></table></div>
+  </div>
+</div><div class="basemethod private">
+  
+  <a name="metadynamic.collector.Collect._getprop">
+    
+  </a>
+  <a name="_getprop">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    _getprop(self, prop, obj):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Return a given property of a &lt;T&gt; object. Shouldn't be directly used (used by proplist method only)</p><p>If not implemented in derived classes, only returns 1.0 to "count" property</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">prop</td><td>property name (type: str)</td></tr><tr><td></td><td class="fieldArg">obj</td><td>object to be probed (type: T)</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.collector.Collect.proplist">
+    
+  </a>
+  <a name="proplist">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    proplist(self, prop, full=(False)):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Return a list of all property values of the collection. The data order is not important, used for statistics.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">prop</td><td>name of the property to be collected (type: str)</td></tr><tr><td></td><td class="fieldArg">full</td><td>if False, only collect properties of active objects (Default value = False) (type: bool)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">array of properties (type: nv.ndarray)</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.collector.Collect.stat">
+    
+  </a>
+  <a name="stat">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    stat(self, prop, weight, method, full=(False)):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Return statistics on all property values of the collection.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">prop</td><td>name of the property to be collected (type: str)</td></tr><tr><td></td><td class="fieldArg">weight</td><td>name of the property to be used as weight (type: str)</td></tr><tr><td></td><td class="fieldArg">method</td><td>'+' returns the weighted sum, 'm' the weighted average, 'max' the weighted max value, 'min' the weighted min value (type: str)</td></tr><tr><td></td><td class="fieldArg">full</td><td>if False, only collect properties of active objects (Default value = False) (type: bool)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">stat value (type: float)</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.collector.Collect.map">
+    
+  </a>
+  <a name="map">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    map(self, prop, weight, sort, method, full=(False)):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Return a statistics maps on all property values of the collection.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">prop</td><td>name of the property to be collected (type: str)</td></tr><tr><td></td><td class="fieldArg">weight</td><td>name of the property to be used as weight (type: str)</td></tr><tr><td></td><td class="fieldArg">sort</td><td>name of the property to be used as a sorting key (type: str)</td></tr><tr><td></td><td class="fieldArg">method</td><td>'+' returns the weighted sum, 'm' the weighted average (type: str)</td></tr><tr><td></td><td class="fieldArg">full</td><td>if False, only collect properties of active objects (Default value = False) (type: bool)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">stat values (type: Dict[float, float])</td></tr></table></div>
+  </div>
+</div>
+
+      </div>
+      <address>
+        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-16 15:24:10.
+      </address>
+
+    </div>
+
+    <script src="pydoctor.js" type="text/javascript"></script>
+
+  </body>
+</html>

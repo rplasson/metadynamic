@@ -1,0 +1,464 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+          "DTD/xhtml1-strict.dtd">
+<html>
+  <head>
+    <title>metadynamic.Crn : API documentation</title>
+
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="apidocs.css" />
+  </head>
+  <body>
+
+    <nav class="navbar navbar-default">
+      <div class="container">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="index.html">
+            metadynamic API Documentation
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <div id="showPrivate">
+      <button class="btn btn-link" onclick="togglePrivate()">Toggle Private API</button>
+    </div>
+
+    <div class="container">
+
+      <div class="page-header">
+        <h1 class="class"><code>metadynamic.Crn</code> <small>class documentation</small></h1>
+
+        <span id="partOf">
+          Part of <code><a href="metadynamic.html" class="code" data-type="Package">metadynamic</a></code>
+          
+          <a href="classIndex.html#metadynamic.Crn">(View In Hierarchy)</a>
+        </span>
+      </div>
+
+      <div class="extrasDocstring">
+        
+      </div>
+
+      <div class="moduleDocstring">
+        <div><p>Chemical Reaction Network class</p><p>high level interface containing a <a href="metadynamic.chemical.CollectofCompound.html"><code>CollectofCompound</code></a>, a <a href="metadynamic.chemical.CollectofReaction.html"><code>CollectofReaction</code></a>, and a <a href="metadynamic.ruleset.Model.html"><code>Model</code></a> related to a given run.</p></div>
+      </div>
+
+      <div id="splitTables">
+        <table class="children sortable" id="id5">
+  
+  <tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.Crn.html#__init__" class="code" data-type="Method">__init__</a></td>
+    <td><span>create a Crn object from a <a href="metadynamic.inputs.Param.html"><code>Param</code></a> parameter object</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.Crn.html#probalist" class="code" data-type="Instance Variable">probalist</a></td>
+    <td><span>list of probalities</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.Crn.html#comp_collect" class="code" data-type="Instance Variable">comp_collect</a></td>
+    <td><span>compounds collection</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.Crn.html#reac_collect" class="code" data-type="Instance Variable">reac_collect</a></td>
+    <td><span>reactions collection</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.Crn.html#model" class="code" data-type="Instance Variable">model</a></td>
+    <td><span>Model describing the set of rules</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.Crn.html#vol" class="code" data-type="Instance Variable">vol</a></td>
+    <td><span>System volume</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.Crn.html#dropmode" class="code" data-type="Instance Variable">dropmode</a></td>
+    <td><span>dropmode flag (do we 'drop' or 'keep' inactive reactions?)</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.Crn.html#init_collect" class="code" data-type="Method">init_collect</a></td>
+    <td><span>Init the object collections of the Crn</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.Crn.html#close" class="code" data-type="Method">close</a></td>
+    <td><span>Close the crn for freeing some memory</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.Crn.html#clean" class="code" data-type="Method">clean</a></td>
+    <td><span>Cleaning process</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.Crn.html#stepping" class="code" data-type="Method">stepping</a></td>
+    <td><span>Perform a stochastic step.</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.Crn.html#reac_toupdate" class="code" data-type="Method">reac_toupdate</a></td>
+    <td><span>Add Reaction 'reac' to the update list</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.Crn.html#comp_toupdate" class="code" data-type="Method">comp_toupdate</a></td>
+    <td><span>Add Compound 'comp' to the update list, for a population variation of 'change'</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.Crn.html#update" class="code" data-type="Method">update</a></td>
+    <td><span>Perform a full Crn update</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.Crn.html#collstat" class="code" data-type="Method">collstat</a></td>
+    <td><span>Get statistics on compounds if 'collection' is set to 'compounds', else on reactions.</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><a href="metadynamic.Crn.html#collmap" class="code" data-type="Method">collmap</a></td>
+    <td><span>Get statistic map on compounds if 'collection' is set to 'compounds', else on reactions.</span></td>
+  </tr><tr class="instancevariable private">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.Crn.html#_reac_update" class="code" data-type="Instance Variable">_reac_update</a></td>
+    <td><span>Track the reactions to be updated in batch</span></td>
+  </tr><tr class="instancevariable private">
+    
+    <td>Instance Variable</td>
+    <td><a href="metadynamic.Crn.html#_comp_update" class="code" data-type="Instance Variable">_comp_update</a></td>
+    <td><span>Track the compounds to be updated in batch</span></td>
+  </tr>
+</table>
+        
+
+          
+      </div>
+
+      <div id="childList">
+
+        <div class="basemethod">
+  
+  <a name="metadynamic.Crn.__init__">
+    
+  </a>
+  <a name="__init__">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    __init__(self, param):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>create a Crn object from a <a href="metadynamic.inputs.Param.html"><code>Param</code></a> parameter object</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">param</td><td>parameter object (type: Param)</td></tr></table></div>
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.Crn.probalist">
+    
+  </a>
+  <a name="probalist">
+    
+  </a>
+  <div class="functionHeader">
+    probalist =
+  </div>
+  <div class="functionBody">
+    <div><p>list of probalities</p></div>
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.Crn.comp_collect">
+    
+  </a>
+  <a name="comp_collect">
+    
+  </a>
+  <div class="functionHeader">
+    comp_collect =
+  </div>
+  <div class="functionBody">
+    <div><p>compounds collection</p></div>
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.Crn.reac_collect">
+    
+  </a>
+  <a name="reac_collect">
+    
+  </a>
+  <div class="functionHeader">
+    reac_collect =
+  </div>
+  <div class="functionBody">
+    <div><p>reactions collection</p></div>
+  </div>
+</div><div class="baseinstancevariable private">
+  
+  <a name="metadynamic.Crn._reac_update">
+    
+  </a>
+  <a name="_reac_update">
+    
+  </a>
+  <div class="functionHeader">
+    _reac_update =
+  </div>
+  <div class="functionBody">
+    <div><p>Track the reactions to be updated in batch</p></div>
+  </div>
+</div><div class="baseinstancevariable private">
+  
+  <a name="metadynamic.Crn._comp_update">
+    
+  </a>
+  <a name="_comp_update">
+    
+  </a>
+  <div class="functionHeader">
+    _comp_update =
+  </div>
+  <div class="functionBody">
+    <div><p>Track the compounds to be updated in batch</p></div> (type: <code>Dict</code>)
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.Crn.model">
+    
+  </a>
+  <a name="model">
+    
+  </a>
+  <div class="functionHeader">
+    model =
+  </div>
+  <div class="functionBody">
+    <div><p>Model describing the set of rules</p></div> (type: <code>Model</code>)
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.Crn.vol">
+    
+  </a>
+  <a name="vol">
+    
+  </a>
+  <div class="functionHeader">
+    vol =
+  </div>
+  <div class="functionBody">
+    <div><p>System volume</p></div> (type: <code>float</code>)
+  </div>
+</div><div class="baseinstancevariable">
+  
+  <a name="metadynamic.Crn.dropmode">
+    
+  </a>
+  <a name="dropmode">
+    
+  </a>
+  <div class="functionHeader">
+    dropmode =
+  </div>
+  <div class="functionBody">
+    <div><p>dropmode flag (do we 'drop' or 'keep' inactive reactions?)</p></div> (type: <code>str</code>)
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.Crn.init_collect">
+    
+  </a>
+  <a name="init_collect">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    init_collect(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Init the object collections of the Crn</p><p>Automatically called by __init__</p><p>Calling this initialization procedure on an existing object Will erase all previous information (this is namely used when the Crn is closed in order to free some memory)</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.Crn.close">
+    
+  </a>
+  <a name="close">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    close(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Close the crn for freeing some memory</p><p>The only operation performed is to reinit the data collection.</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.Crn.clean">
+    
+  </a>
+  <a name="clean">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    clean(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Cleaning process</p><p>The only operation performed (now) is to recompute the sum of probabilities in order to clean previous rounding errors.</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.Crn.stepping">
+    
+  </a>
+  <a name="stepping">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    stepping(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Perform a stochastic step.</p><p>A reaction is chosen following Gillespies algorithm, then processed. The resulting timestep is returned</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">timestep (type: float)</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.Crn.reac_toupdate">
+    
+  </a>
+  <a name="reac_toupdate">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    reac_toupdate(self, reac):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Add Reaction 'reac' to the update list</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">reac</td><td>reaction to be updated (type: Reaction)</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.Crn.comp_toupdate">
+    
+  </a>
+  <a name="comp_toupdate">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    comp_toupdate(self, comp, change):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Add Compound 'comp' to the update list, for a population variation of 'change'</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">comp</td><td>compound to be updated (type: Compound)</td></tr><tr><td></td><td class="fieldArg">change</td><td>population change value (type: int)</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.Crn.update">
+    
+  </a>
+  <a name="update">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    update(self):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Perform a full Crn update</p><p>It perform the update of all compounds from the update list. These updates place reactions to the next update list These reactions are updated All update lists are then placed to zero</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.Crn.collstat">
+    
+  </a>
+  <a name="collstat">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    collstat(self, collection, prop, weight, method, full):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Get statistics on compounds if 'collection' is set to 'compounds', else on reactions.</p><p>'prop' is the name of the property to be collected as defined in the corresponding  Collect._getprop</p><p>'weight' is the name of another property that will be used as a weight.</p><p>'method': '+' returns the weighted sum, 'm' the weighted average, 'max' the weighted max value, 'min' the weighted min value</p><p>'full': if True, the stat is performed on the full pool if False, only perform on active objects</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">collection</td><td>'compounds' or 'reactions' (type: str)</td></tr><tr><td></td><td class="fieldArg">prop</td><td>property name (type: str)</td></tr><tr><td></td><td class="fieldArg">weight</td><td>statistic weight (type: str)</td></tr><tr><td></td><td class="fieldArg">method</td><td>statistic method (type: str)</td></tr><tr><td></td><td class="fieldArg">full</td><td>perform on pool or only active? (type: bool)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">statistic value (type: float)</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  <a name="metadynamic.Crn.collmap">
+    
+  </a>
+  <a name="collmap">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    collmap(self, collection, prop, weight, sort, method, full):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>Get statistic map on compounds if 'collection' is set to 'compounds', else on reactions.</p><p>'prop' is the name of the property to be collected as defined in the corresponding  Collect._getprop</p><p>'weight' is the name of another property that will be used as a weight.</p><p>'sort' is the name of the property used for sorting the statistics in categories.</p><p>'method': '+' returns the weighted sum, 'm' the weighted average</p><p>'full': if True, the stat is performed on the full pool if False, only perform on active objects</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">collection</td><td>'compounds' or 'reactions' (type: str)</td></tr><tr><td></td><td class="fieldArg">prop</td><td>property name (type: str)</td></tr><tr><td></td><td class="fieldArg">weight</td><td>name of weight property (type: str)</td></tr><tr><td></td><td class="fieldArg">sort</td><td>name of sort property (type: str)</td></tr><tr><td></td><td class="fieldArg">method</td><td>statistic method (type: str)</td></tr><tr><td></td><td class="fieldArg">method</td><td>statistic method (type: str)</td></tr><tr><td></td><td class="fieldArg">full</td><td>perform on full or on pool? (type: bool)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">statistic value (type: float)</td></tr></table></div>
+  </div>
+</div>
+
+      </div>
+      <address>
+        <a href="index.html">API Documentation</a> for metadynamic, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2020-04-16 15:24:10.
+      </address>
+
+    </div>
+
+    <script src="pydoctor.js" type="text/javascript"></script>
+
+  </body>
+</html>

@@ -25,6 +25,12 @@
 	"weight" : "count",
 	"method" : "+"
     },
+    "energy_tot":
+    {
+	"prop" : "energy",
+	"weight" : "pop",
+	"method" : "+"
+    },
     "mix_entro":
     {
 	"prop" : "entropy",
