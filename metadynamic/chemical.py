@@ -689,7 +689,9 @@ class Crn:
         """reactions collection"""
         # update trackers
         self._reac_update: Set[Reaction] = set()
+        """Track the reactions to be updated in batch"""
         self._comp_update: Dict[Compound, int] = {}
+        """Track the compounds to be updated in batch"""
         # Create Crn objects
         self.model: Model = Model(param.rulemodel, param.reactions, param.parameters)
         """Model describing the set of rules"""

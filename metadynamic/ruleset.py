@@ -30,10 +30,12 @@ Provides:
 ---------
 
  - classes for the description of a rule model:
-    - L{Parameters}:
-    - L{Descriptor}:
-    - L{Rule}:
-    - L{Model}:
+    - L{Parameters}: Maintain a set of parameters {name:values}
+      that can be linked with each other.
+    - L{Descriptor}: Tool for describing a compound from its name
+      (categories and properties)
+    - L{Rule}: Describes a given rule for building a reaction
+    - L{Model}: Full description of a rule model
  - generators to be used for building models:
     - L{Paramrel} generators:
       - L{parmul}
@@ -259,7 +261,9 @@ class Descriptor:
 
     def __init__(self) -> None:
         self.cat_dict: Dict[str, Categorizer] = {}
+        """Collection of Categorizers"""
         self.prop_dict: Dict[str, Propertizer] = {}
+        """Collection of Propertizers"""
 
     @property
     def catlist(self) -> KeysView[str]:
