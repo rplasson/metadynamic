@@ -41,8 +41,6 @@ Provides:
       - L{linproc}
     - L{ConstBuilder} generators:
       - L{kinvar}
-      - L{klinproc}
-      - L{karrh}
       - L{kalternate}
       - L{kdualchoice}
     - L{VariantBuilder} generators:
@@ -538,7 +536,8 @@ class Model:
                 except AttributeError:
                     # raise an error if the rule from file is not in the module
                     raise InitError(
-                        f"The rule '{rulename}' from '{self.modelparam}' is not defined in '{self.rulepath}'"
+                        f"The rule '{rulename}' from '{self.modelparam}'"
+                        f"is not defined in '{self.rulepath}'"
                     )
                 # Register the created rule
                 self._add_rule(rulename, rule)
@@ -639,17 +638,46 @@ class Model:
 
 
 def parmul(name: str, factor: str) -> Paramrel:
-    """Return ..."""
+    """
+    Generate a parameter relation →'name'×'factor'
+
+    @param name: name of the base parameter.
+    @type name: str
+    @param factor: name of the factor parameter.
+    @type factor: str
+    @return: Paramrel function
+    @rtype: Paramrel
+    """
     return lambda k: k[name] * k[factor]
 
 
 def arrhenius(k_0: str, eact: str) -> Paramrel:
+    """
+    Generate a parameter relation →'k_0'·e^(-'eact'/(R·'T'))
+    With R=8.314
+
+    @param k_0: name of the Arrhenius pre-exponential factor
+    @type k0: str
+    @param eact: name of the activation energy
+    @type eact: str
+    @return: Paramrel function
+    @rtype: Paramrel
+    """
     return lambda k: k[k_0] * float(np.exp(-k[eact] / 8.314 / k["T"]))
 
 
 def linproc(start: str, end: str) -> Paramrel:
-    """Return a kinetic constant ranging from 'start' to 'end',
-    proportionally to process number"""
+    """
+    Generate a parameter relation returning a value proportional to
+    the thread number, ranging from 'start' to 'end'
+
+    @param start: name of the parameter given to the first thread
+    @type start: str
+    @param end: name of the parameter given to the last thread
+    @type end: str
+    @return: Paramrel function
+    @rtype: Paramrel
+    """
     return lambda k: float(np.linspace(k[start], k[end], k["ntot"])[k["num"]])
 
 
@@ -657,31 +685,34 @@ def linproc(start: str, end: str) -> Paramrel:
 
 
 def kinvar(name: str) -> ConstBuilder:
-    """Build an invariable kinetic constant named 'name'"""
+    """
+    Generates a Constbuilder giving the same constant 'name' in all situations
+
+    @param name: name of the constant to return
+    @type name: str
+    @return: ConstBuilder function
+    @rtype: ConstBuilder
+    """
     return lambda names, k, variant: k[name]
-
-
-def klinproc(start: str, end: str) -> ConstBuilder:
-    """Return a kinetic constant ranging from 'start' to 'end',
-    proportionally to process number"""
-    return lambda names, k, variant: float(
-        np.linspace(k[start], k[end], k["ntot"])[k["num"]]
-    )
-
-
-def karrh(k_0: str, eact: str) -> ConstBuilder:
-    """Return a kinetic constant at temperature 'T' from Arrhenius equation,
-       with 'k_0' pre-exponential factor, and 'eact' the activation energy"""
-    return lambda names, k, variant: k[k_0] * float(np.exp(-k[eact] / 8.314 / k["T"]))
 
 
 def kalternate(
     condition: Callable[[Compset, int], bool], name_t: str, name_f: str
 ) -> ConstBuilder:
-    """Build an kinetic constant 'name_t' when 'condition' is True,
-       and 'name_f' when 'condition' is False.
-       'condition' is a function that takes as arguments a set of compound names
-       (a tuple of strings) and a variant (integer)"""
+    """
+    Generates a Constbuilder giving constant 'name_t' when 'condition' is True,
+    and 'name_f' when 'condition' is False.
+
+    @param condition: function that takes as arguments a set of compound names
+        (a tuple of strings) and a variant (integer)
+    @type condition: Callable[[Compset, int], bool]
+    @param name_t: name of the constant to return when condition is True
+    @type name_t: str
+    @param name_f: name of the constant to return when condition is False
+    @type name_f: str
+    @return: ConstBuilder function
+    @rtype: ConstBuilder
+    """
     return (
         lambda names, k, variant: k[name_t] if condition(names, variant) else k[name_f]
     )
@@ -695,14 +726,28 @@ def kdualchoice(
     name_tf: str,
     name_ft: str = "",
 ) -> ConstBuilder:
-    """Build an kinetic constant 'name_xy' where x and y are either
-       t or f (True or False), depending on the respective booleam results
-       of 'condition_1' and 'condition_2'.
+    """
+    Generates a Constbuilder giving constant 'name_xy' where x and y are either
+    t or f (True or False), depending on the respective booleam results
+    of 'condition_1' and 'condition_2'.
 
-       if 'name_ft' is not set, it is equal to 'name_tf'
-
-       'condition_n' are functions that takes as arguments a set of compound names
-       (a tuple of strings) and a variant (integer)"""
+    @param condition_1: first condition, as a function that takes as arguments
+        a set of compound names (a tuple of strings) and a variant (integer)
+    @type condition_1: Callable[[Compset, int], bool]
+    @param condition_2: second condition
+    @type condition_2: Callable[[Compset, int], bool]
+    @param name_tt: name of the constant to return when conditions are (True, True)
+    @type name_tt: str
+    @param name_ff: name of the constant to return when conditions are (False, False)
+    @type name_ff: str
+    @param name_tf: name of the constant to return when conditions are (True, False)
+    @type name_tf: str
+    @param name_ft: name of the constant to return when conditions are (False, True)
+        if not set (default), it will be set equal to 'name_tf'.
+    @type name_ft: str
+    @return: ConstBuilder function
+    @rtype: ConstBuilder
+    """
     if not name_ft:
         name_ft = name_tf
 
@@ -722,31 +767,95 @@ def kdualchoice(
 
 # VariantBuilder generatore #
 
-# Reaction with no variants
-
 
 def novariant_gen() -> VariantBuilder:
+    """
+    Generate a VariantBuilder for reactions with no variant
+    (i.e. only one possible outcome).
+
+    The returned VariantBuilder will return a single invalid variant value,
+    thus is intended to be used with ProdBuilder and ConstBuilder
+    that do not use variant for computing the reaction property.
+
+    @return: VariantBuilder function
+    @rtype: VariantBuilder
+    """
     return lambda reactants: (invalidint,)
 
 
-# Reactins with a single variant
 def singlevariant(num: int) -> VariantBuilder:
+    """
+    Generate a VariantBuilder for reactions with a single variant
+    (i.e. only one possible outcome).
+
+    The returned VariantBuilder will return a single valid variant value 'num',
+    thus is intended to be used with ProdBuilder and ConstBuilder
+    that do use variant for computing the reaction property, but in cases where
+    only one of all possible variants is expected to be used.
+
+    @param num: variant number to return
+    @type num: int
+    @return: VariantBuilder function
+    @rtype: VariantBuilder
+    """
     return lambda reactants: (num,)
 
 
-def rangevariant(first_offset: int, last_offset: int, reacnum: int) -> VariantBuilder:
+def rangevariant(
+    reacnum: int, first_offset: int = 0, last_offset: int = 0
+) -> VariantBuilder:
+    """
+    Generate a VariantBuilder for reactions with as many variants
+    as the length of the reactant number 'reacnum',
+    ranging from 0 to len(reactants[reacnum]).
+
+    A first_offset can be added to change the first variant.
+    A last_offset can be added to change the last variant.
+
+    @param reacnum: number of the reactant to be used for computing the variant
+    @type reacnum: int
+    @param first_offset: offset to be added to the first variant
+    @type first_offset: int
+    @param last_offset: offset to be added to the last variant
+    @type last_offset: int
+    @return: VariantBuilder function
+    @rtype: VariantBuilder
+    """
     return lambda reactants: range(first_offset, len(reactants[reacnum]) + last_offset)
 
 
+# ProdBuilder generatore #
+
+
 def joiner(sep: str) -> ProdBuilder:
-    """Generate a "joiner" ProdBuilder using a "sep" as a separator string.
-       e.g. chainer=joiner("-") will give a ProdBuilder named chainer
-       that will provide "A-B-C" from chainer(["A","B","C"])"""
+    """
+    Generate a ProdBuilder that will fuse all reactants into a single
+    compounds joining all the names in one using a 'sep' as a separator string.
+
+        >>> chainer=joiner("-")
+        >>> chainer(["A","B","C"], invalidint)
+        "A-B-C"
+
+    @param sep: string separator
+    @type str: str
+    @return: ProdBuilder function
+    @rtype: ProdBuilder
+    """
     return lambda names, variant: (sep.join(names),)
 
 
 def splitter(sep: str) -> ProdBuilder:
-    """Generate a "splitter" ProdBuilder using a "sep" as a separator string.
-       e.g. cutter=splitter("-") will give a ProdBuilder named cutter
-       that will provide ["A","B","C"] from cutter("A-B-C")"""
+    """
+    Generate a ProdBuilder that will cut the first reactant into individual compounds
+    by splitting at each 'sep' occurence:
+
+        >>> cutter=splitter("-")
+        >>> cutter(["A-B-C"], invalidint)
+        ["A", "B", "C"]
+
+    @param sep: string separator
+    @type str: str
+    @return: ProdBuilder function
+    @rtype: ProdBuilder
+    """
     return lambda names, variant: tuple(names[0].split(sep))
