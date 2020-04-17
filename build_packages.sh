@@ -1,4 +1,12 @@
 #! /bin/sh
+
+# build man
+argparse-manpage --pyfile ./bin/metarun  --function get_parser --project-name metadynamic --author R.Plasson --author-email raphael.plasson@univ-avignon.fr  >> man/metarun.1
+
+# build doc
+pydoctor metadynamic
+
+# build packages
 rm -r deb_dist/*
 python3 setup.py --command-packages=stdeb.command bdist_deb
 cp deb_dist/*.deb packages/

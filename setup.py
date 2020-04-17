@@ -2,6 +2,8 @@ import setuptools
 import os
 import sys
 
+from glob import glob
+
 _here = os.path.abspath(os.path.dirname(__file__))
 
 if sys.version_info[0] < 3:
@@ -33,9 +35,11 @@ setuptools.setup(
     # no scripts in this example
     scripts=["bin/metarun"],
     include_package_data=True,
-    # classifiers=[
-    #    'Development Status :: 5 - Production/Stable',
-    #    'Intended Audience :: Science/Research',
-    #    'Programming Language :: Python :: 2.7',
-    #    'Programming Language :: Python :: 3.6'],
+    data_files=[('share/man/man1', ['man/metarun.1']),
+                ('share/doc/python3-metadynamic', glob('apidocs/*'))],
+    classifiers=[
+       'Development Status :: 5 - Production/Stable',
+       'Intended Audience :: Science/Research',
+       'Programming Language :: Python :: 3.7',
+       'Programming Language :: Python :: 3.8'],
 )
