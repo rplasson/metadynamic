@@ -1,5 +1,0 @@
- Note:
- 1- having weak references in pool for "soft" keepreac (may reduce memory AND avoid too much creation/destruction of compounds, by retriving in pool weakly references reactions that were removed from active if asked before GC'd) ? Note that must be careful to activate at the same time of creation (else, it may be instantaneously destroyed....)
-
-2 - Check if revering back to simple sets (now that bugs are fixed) is safe (non-neglectable performance impact of weakset usage...)
-
