@@ -35,11 +35,15 @@ setuptools.setup(
     # no scripts in this example
     scripts=["bin/metarun"],
     include_package_data=True,
-    data_files=[('share/man/man1', ['man/metarun.1']),
-                ('share/doc/python3-metadynamic', glob('apidocs/*'))],
+    data_files=[
+        ("share/man/man1", ["man/metarun.1"]),
+        ("share/doc/python3-metadynamic", glob("apidocs/*")),
+        ("share/doc/python3-metadynamic/examples", glob("examples/*")),
+    ],
     classifiers=[
-       'Development Status :: 5 - Production/Stable',
-       'Intended Audience :: Science/Research',
-       'Programming Language :: Python :: 3.7',
-       'Programming Language :: Python :: 3.8'],
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: Science/Research",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+    ],
 )
