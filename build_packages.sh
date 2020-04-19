@@ -1,10 +1,10 @@
 #! /bin/sh
 
 # build man
-argparse-manpage --pyfile ./bin/metarun  --function get_parser --project-name metadynamic --author R.Plasson --author-email raphael.plasson@univ-avignon.fr  >> man/metarun.1
+argparse-manpage --pyfile ./bin/metarun  --function get_parser --project-name metadynamic --author R.Plasson --author-email raphael.plasson@univ-avignon.fr  >> doc/man/metarun.1
 
 # build doc
-pydoctor metadynamic
+pydoctor --html-output=./docs/ metadynamic
 
 # build packages
 rm -r deb_dist/*
