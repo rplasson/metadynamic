@@ -59,6 +59,7 @@ from types import ModuleType
 from typing import Callable, Dict, KeysView, Tuple, Set, Iterable, List
 from itertools import product
 from importlib import import_module
+from os.path import split, splitext, abspath
 from dataclasses import dataclass
 
 import numpy as np
@@ -482,7 +483,9 @@ class Model:
         """load parameters of the rule module"""
         try:
             # model given as a module, e.g. metadynamic.models.polymers
-            self.rulepath = import_module(self.modelparam)
+            path, modfilename = split(abspath(self.modelparam))
+            modname, _ = splitext(modfilename)
+            self.rulepath = import_module(modname, package=path)
             try:
                 ruleset = getattr(self.rulepath, "default_ruleset")
             except AttributeError:
