@@ -55,11 +55,14 @@ Provides:
 
 """
 
-from types import ModuleType
-from typing import Callable, Dict, KeysView, Tuple, Set, Iterable, List
+# from types import ModuleType
+from typing import Callable, Dict, KeysView, Tuple, Set, Iterable, List, Any
 from itertools import product
-from importlib import import_module
-from os.path import split, splitext, abspath
+
+# from importlib import import_module
+from runpy import run_path
+
+# from os.path import split, splitext, abspath
 from dataclasses import dataclass
 
 import numpy as np
@@ -456,7 +459,8 @@ class Model:
         """
         self.modelparam: str = modelparam
         """name of the module containing the rule model code"""
-        self.rulepath: ModuleType
+        # self.rulepath: ModuleType
+        self.rulepath: Dict[str, Any]
         """Direct access to model code"""
         self.param: RulesetParam
         """ruleset parameters"""
@@ -483,11 +487,15 @@ class Model:
         """load parameters of the rule module"""
         try:
             # model given as a module, e.g. metadynamic.models.polymers
-            path, modfilename = split(abspath(self.modelparam))
-            modname, _ = splitext(modfilename)
-            self.rulepath = import_module(modname, package=path)
+            # path, modfilename = split(abspath(self.modelparam))
+            # modname, _ = splitext(modfilename)
+            # print(f"Will load '{modname}' form '{path}'")
+            # self.rulepath = import_module(modname, package=path)
+            self.rulepath = run_path(self.modelparam)
+            print(f"{self.rulepath} loaded !")
             try:
-                ruleset = getattr(self.rulepath, "default_ruleset")
+                # ruleset = getattr(self.rulepath, "default_ruleset")
+                ruleset = self.rulepath["default_ruleset"]
             except AttributeError:
                 InitError(
                     f"'{self.modelparam}' module didn't define a 'default_ruleset'"
@@ -498,26 +506,36 @@ class Model:
                 f"Model {self.modelparam} does not provides a 'default_ruleset' dict"
             )
         except ModuleNotFoundError:
-            # model given as a json file
+            # model given as a json file /!\ won't be reached!, detect file format
             self.param = RulesetParam.readfile(self.modelparam)
-            self.rulepath = import_module(self.param.rulemodel)
+            # self.rulepath = import_module(self.param.rulemodel)
+            self.rulepath = run_path(self.param.rulemodel)
 
     def _create_descriptors(self) -> None:
         """create the descriptors"""
         for rel in self.param.relations:
             try:
-                self.parameters.add_relation(rel, getattr(self.rulepath, rel))
-            except AttributeError:
+                self.parameters.add_relation(
+                    rel, self.rulepath[rel]
+                )  # getattr(self.rulepath, rel))
+            # except AttributeError:
+            except KeyError:
                 LOGGER.error(f"relation '{rel}' not found in {self.modelparam}")
         for catname in self.param.categories:
             try:
-                self.descriptor.add_cat(catname, getattr(self.rulepath, catname))
-            except AttributeError:
+                self.descriptor.add_cat(
+                    catname, self.rulepath[catname]
+                )  # getattr(self.rulepath, catname))
+            # except AttributeError:
+            except KeyError:
                 LOGGER.error(f"category '{catname}' not found in {self.modelparam}")
         for propname in self.param.properties:
             try:
-                self.descriptor.add_prop(propname, getattr(self.rulepath, propname))
-            except AttributeError:
+                self.descriptor.add_prop(
+                    propname, self.rulepath[propname]
+                )  # getattr(self.rulepath, propname))
+            # except AttributeError:
+            except KeyError:
                 LOGGER.error(f"'[property '{propname}' not found in {self.modelparam}")
 
     def _create_rules(self) -> None:
@@ -532,15 +550,19 @@ class Model:
                         name=rulename,
                         reactants=tuple(ruleparam.reactants),
                         builder=(
-                            getattr(self.rulepath, ruleparam.builder_func),
-                            getattr(self.rulepath, ruleparam.builder_const),
-                            getattr(self.rulepath, ruleparam.builder_variant),
+                            self.rulepath[ruleparam.builder_func],
+                            self.rulepath[ruleparam.builder_const],
+                            self.rulepath[ruleparam.builder_variant],
+                            # getattr(self.rulepath, ruleparam.builder_func),
+                            # getattr(self.rulepath, ruleparam.builder_const),
+                            # getattr(self.rulepath, ruleparam.builder_variant),
                         ),
                         descr=ruleparam.descr,
                         parameters=self.parameters,
                         robust=ruleparam.robust,
                     )
-                except AttributeError:
+                # except AttributeError:
+                except KeyError:
                     # raise an error if the rule from file is not in the module
                     raise InitError(
                         f"The rule '{rulename}' from '{self.modelparam}'"
