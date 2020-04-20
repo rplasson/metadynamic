@@ -567,7 +567,7 @@ ext-import-graph=
 
 # Create a graph of every (i.e. internal and external) dependencies in the
 # given file (report RP0402 must not be disabled).
-import-graph=import-graph.pdf
+import-graph=
 
 # Create a graph of internal dependencies in the given file (report RP0402 must
 # not be disabled).

@@ -27,12 +27,15 @@ setuptools.setup(
     # url='https://github.com/bast/somepackage',
     license="GPL V3.0",
     packages=setuptools.find_packages(),
-    # no dependencies in this example
-    install_requires=["setuptools>=33.1.1", "numpy>=1.12.1"],
-    # install_requires=[
-    #       'dependency==1.2.3',
-    # ],
-    # no scripts in this example
+    install_requires=[
+        "setuptools>=33.1.1",
+        "numpy>=1.12.1",
+        "pandas>=0.19.2",
+        "h5py>=2.7.0",
+        "psutil>=5.0.1",
+        "graphviz>=0.8.4",
+        "numba>=0.48.0"
+    ],
     scripts=["bin/metarun"],
     include_package_data=True,
     data_files=[
@@ -40,6 +43,7 @@ setuptools.setup(
         ("share/doc/python3-metadynamic/apidocs", glob("docs/apidocs/*")),
         ("share/doc/python3-metadynamic/examples", glob("docs/examples/*")),
         ("share/doc/python3-metadynamic/tests", glob("docs/tests/*")),
+        ("share/doc/python3-metadynamic/", ["README.md", "copyright"]),
     ],
     classifiers=[
         "Development Status :: 5 - Production/Stable",
