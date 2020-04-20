@@ -13,10 +13,10 @@
     "tstep" : 0.1,
     "sstep" : 0.1,
     "save" : ["A", "B", "C", "AA", "AB", "AC", "BA", "BC", "CC", "AAA", "BBB", "CCC"],
-    "stat" : "metadynamic/tests/minimal-stat.json",
-    "maps" : "metadynamic/tests/minimal-maps.json",
+    "stat" : "docs/tests/minimal-stat.json",
+    "maps" : "docs/tests/minimal-maps.json",
     "rtlim" : 600.0,
-    "rulemodel" : "metadynamic.models.polym_minimal",
+    "rulemodel" : "docs/examples/polym_minimal.py",
     "parameters" :{
 	"kpol_mono": 1.0,
 	"kpol_long": 10.0,

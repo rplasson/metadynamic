@@ -12,10 +12,10 @@
     "tstep" : 1.0,
     "sstep" : 1.0,
     "save" : ["a", "aa", "aaa", "aaaa", "A", "Aa", "aA", "AA", "a*", "A*"],
-    "stat" : "metadynamic/tests/aped-stat.json",
-    "maps" : "metadynamic/tests/aped-maps.json",
+    "stat" : "docs/tests/aped-stat.json",
+    "maps" : "docs/tests/aped-maps.json",
     "rtlim" : 600.0,
-    "rulemodel" : "metadynamic.models.polymers",
+    "rulemodel" : "docs/examples/polymers.py",
     "reactions" : ["A", "H", "E", "a"],
     "parameters" :{
 	"kpola_same": 1.0,

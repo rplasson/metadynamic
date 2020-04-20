@@ -14,7 +14,7 @@
     "tstep" : 0.1,
     "save" : ["a", "b", "c", "A", "B", "C"],
     "rtlim" : 600.0,
-    "rulemodel" : "metadynamic.models.polymers",
+    "rulemodel" : "docs/examples/polymers.py",
     "parameters" :{
 	"kpol_mono": 10.0,
 	"kpol_long": 10.0,

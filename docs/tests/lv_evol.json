@@ -15,9 +15,9 @@
     "tstep" : 5.0,
     "sstep" : 20.0,
     "save" : ["G"],
-    "stat" : "metadynamic/tests/lvevol-stat.json",
+    "stat" : "docs/tests/lvevol-stat.json",
     "rtlim" : 20.0,
-    "rulemodel" : "metadynamic.models.lotka_volterra_evol",
+    "rulemodel" : "docs/examples/lotka_volterra_evol.py",
     "parameters" :{
 	"k_repro_r": 100.0,
 	"repro_f_factor": 0.1,

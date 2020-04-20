@@ -2,7 +2,7 @@
     "name" : "Simple",
     "savedir" : "results",
     "logdir" : "testlog",
-    "rulemodel" : "metadynamic.models.polymers",
+    "rulemodel" : "docs/examples/polym_minimal.py",
     "init" :
     {
 	"abc": 1000
@@ -11,7 +11,7 @@
     "tend" : 10.0,
     "tstep" : 0.1,
     "save" : ["a", "b", "c", "abc", "ab", "bc"],
-    "stat" : "metadynamic/tests/simple-stat.json",
+    "stat" : "docs/tests/simple-stat.json",
     "reactions" : ["H"],
     "parameters" :{
 	"khyd_same": 1.0,

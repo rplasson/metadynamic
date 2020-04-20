@@ -2,7 +2,7 @@
     "name" : "Target",
     "savedir" : "results",
     "logdir" : "testlog",
-    "rulemodel" : "metadynamic.models.target_polymer",
+    "rulemodel" : "docs/examples/target_polymer.py",
     "init" :
     {
         "A" : 1000,

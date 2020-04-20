@@ -14,7 +14,7 @@
     "tstep" : 0.01,
     "sstep" : 1.0,
     "save" : ["a", "aa", "aaa", "ba", "baba", "aaaa", "A", "Aa", "aA", "AA"],
-    "rulemodel" : "metadynamic.models.polymers",
+    "rulemodel" : "docs/examples/polymers.py",
     "reactions" : ["P", "H", "E"],
     "parameters" :{
 	"kpol_mono": 10.0,

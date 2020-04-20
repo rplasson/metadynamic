@@ -13,7 +13,7 @@
     "sstep" : 10.0,
     "save" : ["a", "aa", "aaa", "aaaa", "aaaaa"],
     "rtlim" : 600.0,
-    "rulemodel" : "metadynamic.models.open_polym",
+    "rulemodel" : "docs/examples/open_polym.py",
     "parameters" :{
 	"kin_min" : 0.0,
 	"kin_max" : 20.0,
