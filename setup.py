@@ -34,7 +34,7 @@ setuptools.setup(
         "h5py>=2.7.0",
         "psutil>=5.0.1",
         "graphviz>=0.8.4",
-        "numba>=0.48.0"
+        "numba>=0.48.0",
     ],
     scripts=["bin/metarun"],
     include_package_data=True,
@@ -43,7 +43,10 @@ setuptools.setup(
         ("share/doc/python3-metadynamic/apidocs", glob("docs/apidocs/*")),
         ("share/doc/python3-metadynamic/examples", glob("docs/examples/*")),
         ("share/doc/python3-metadynamic/tests", glob("docs/tests/*")),
-        ("share/doc/python3-metadynamic/", ["README.md", "copyright"]),
+        (
+            "share/doc/python3-metadynamic/",
+            ["README.md", "copyright", "docs/classes.pdf", "docs/packages.pdf"],
+        ),
     ],
     classifiers=[
         "Development Status :: 5 - Production/Stable",
