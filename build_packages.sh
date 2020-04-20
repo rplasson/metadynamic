@@ -1,4 +1,11 @@
-#! /bin/sh
+#! /bin/bash
+
+# test
+mpirun -c 4 --oversubscribe  pytest-3 --with-mpi  docs/tests
+if [[ $? -ne 0 ]] ; then
+    exit 1
+fi
+
 
 # build man
 argparse-manpage --pyfile ./bin/metarun  --function get_parser --project-name metadynamic --author R.Plasson --author-email raphael.plasson@univ-avignon.fr  >> docs/man/metarun.1
