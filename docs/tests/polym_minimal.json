@@ -9,7 +9,7 @@
 	"C": 100
     },
     "conc" : 1.0,
-    "tend" : 1.0,
+    "tend" : 0.5,
     "tstep" : 0.1,
     "sstep" : 0.1,
     "save" : ["A", "B", "C", "AA", "AB", "AC", "BA", "BC", "CC", "AAA", "BBB", "CCC"],

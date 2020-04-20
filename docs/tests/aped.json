@@ -8,7 +8,7 @@
 	"A": 2100
     },
     "conc" : 30.0,
-    "tend" : 10.0,
+    "tend" : 4.0,
     "tstep" : 1.0,
     "sstep" : 1.0,
     "save" : ["a", "aa", "aaa", "aaaa", "A", "Aa", "aA", "AA", "a*", "A*"],

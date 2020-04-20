@@ -11,9 +11,9 @@
 	"{ABBA}" : 1000
     },
     "conc" : 10.0,
-    "tend" : 20.0,
-    "tstep" : 1.0,
-    "sstep" : 5.0,
+    "tend" : 4.0,
+    "tstep" : 0.25,
+    "sstep" : 1.0,
     "save" : ["A", "B", "C", "{ABBA}", "ABBA", "AA", "AB", "AC", "BA", "BB", "BC", "CA", "CB", "CC"],
     "parameters" :{
 	"kpola_same": 10.0,
