@@ -5,13 +5,13 @@ from subprocess import call
 from os import rename
 
 from metadynamic import launch
-from metadynamic.inputs import Param
 from metadynamic import MPI_STATUS
+from metadynamic import __version__
 
 
 def get_parser():
     parser = ArgumentParser(description="Launch run from a json file")
-    
+
     parser.add_argument("parameters", type=str, help="parameter json file")
     parser.add_argument(
         "--logdir", metavar="logdir", type=str, nargs="?", help="log file", default=""
@@ -25,7 +25,12 @@ def get_parser():
         default="",
     )
     parser.add_argument(
-        "--loglevel", metavar="loglevel", type=str, nargs="?", help="log level", default=""
+        "--loglevel",
+        metavar="loglevel",
+        type=str,
+        nargs="?",
+        help="log level",
+        default="",
     )
     parser.add_argument(
         "--compress",
@@ -36,14 +41,21 @@ def get_parser():
         default="GZIP=9",
     )
     return parser
-    
-    
+
+
 def main():
+    if MPI_STATUS.root:
+        msg1 = f"MPI launcher for metadynamic v{__version__}"
+        msg2 = "Gillespie-based metadynamic modelling tool"
+        print(msg1)
+        print("=" * len(msg1))
+        print(msg2)
+        print("-" * len(msg2))
     parser = get_parser()
     args = parser.parse_args()
     if MPI_STATUS.root:
         print(f"Launched run '{args.comment}' on {MPI_STATUS.size} processes...")
-    
+
     kwd = {}
     if args.comment:
         kwd["comment"] = args.comment
@@ -51,9 +63,9 @@ def main():
         kwd["logdir"] = args.logdir
     if args.loglevel:
         kwd["loglevel"] = args.loglevel
-    
+
     res = launch(args.parameters, **kwd)
-    
+
     if args.compress != "no" and MPI_STATUS.root:
         try:
             old = res.filename
@@ -62,10 +74,10 @@ def main():
             rename(new, old)
         except FileNotFoundError:
             print("Couldn't find 'h5repack' utility, outputfile is uncompressed")
-    
+
     if MPI_STATUS.root:
         print(res.printinfo)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
