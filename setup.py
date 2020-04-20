@@ -37,8 +37,9 @@ setuptools.setup(
     include_package_data=True,
     data_files=[
         ("share/man/man1", ["docs/man/metarun.1"]),
-        ("share/doc/python3-metadynamici/apidocs", glob("docs/apidocs/*")),
+        ("share/doc/python3-metadynamic/apidocs", glob("docs/apidocs/*")),
         ("share/doc/python3-metadynamic/examples", glob("docs/examples/*")),
+        ("share/doc/python3-metadynamic/tests", glob("docs/tests/*")),
     ],
     classifiers=[
         "Development Status :: 5 - Production/Stable",

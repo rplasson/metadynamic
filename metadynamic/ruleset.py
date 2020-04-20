@@ -71,7 +71,7 @@ import numpy as np
 # from functools import reduce
 
 
-from metadynamic.ends import InitError
+from metadynamic.ends import InitError, BadJSON
 from metadynamic.inval import invalidint
 from metadynamic.logger import LOGGER
 from metadynamic.mpi import MPI_STATUS
@@ -484,32 +484,27 @@ class Model:
         self._create_rules()
 
     def _load_param(self) -> None:
-        """load parameters of the rule module"""
+        """
+        load parameters of the rule module
+
+        @raise InitError: if the file fails to be read as a json file,
+            it will be read as a python file; if a 'default_ruleset'
+            dict is not defined there, an InitError is raised.
+        """
         try:
-            # model given as a module, e.g. metadynamic.models.polymers
-            # path, modfilename = split(abspath(self.modelparam))
-            # modname, _ = splitext(modfilename)
-            # print(f"Will load '{modname}' form '{path}'")
-            # self.rulepath = import_module(modname, package=path)
+            # model given as a json file
+            self.param = RulesetParam.readfile(self.modelparam)
+            self.rulepath = run_path(self.param.rulemodel)
+        except BadJSON:
+            # model given as a python file
             self.rulepath = run_path(self.modelparam)
-            print(f"{self.rulepath} loaded !")
             try:
-                # ruleset = getattr(self.rulepath, "default_ruleset")
                 ruleset = self.rulepath["default_ruleset"]
-            except AttributeError:
+            except KeyError:
                 InitError(
                     f"'{self.modelparam}' module didn't define a 'default_ruleset'"
                 )
             self.param = RulesetParam.readdict(ruleset)
-        except AttributeError:
-            raise InitError(
-                f"Model {self.modelparam} does not provides a 'default_ruleset' dict"
-            )
-        except ModuleNotFoundError:
-            # model given as a json file /!\ won't be reached!, detect file format
-            self.param = RulesetParam.readfile(self.modelparam)
-            # self.rulepath = import_module(self.param.rulemodel)
-            self.rulepath = run_path(self.param.rulemodel)
 
     def _create_descriptors(self) -> None:
         """create the descriptors"""
@@ -517,24 +512,19 @@ class Model:
             try:
                 self.parameters.add_relation(
                     rel, self.rulepath[rel]
-                )  # getattr(self.rulepath, rel))
-            # except AttributeError:
+                )
             except KeyError:
                 LOGGER.error(f"relation '{rel}' not found in {self.modelparam}")
         for catname in self.param.categories:
             try:
                 self.descriptor.add_cat(
                     catname, self.rulepath[catname]
-                )  # getattr(self.rulepath, catname))
-            # except AttributeError:
+                )
             except KeyError:
                 LOGGER.error(f"category '{catname}' not found in {self.modelparam}")
         for propname in self.param.properties:
             try:
-                self.descriptor.add_prop(
-                    propname, self.rulepath[propname]
-                )  # getattr(self.rulepath, propname))
-            # except AttributeError:
+                self.descriptor.add_prop(propname, self.rulepath[propname])
             except KeyError:
                 LOGGER.error(f"'[property '{propname}' not found in {self.modelparam}")
 
@@ -553,15 +543,11 @@ class Model:
                             self.rulepath[ruleparam.builder_func],
                             self.rulepath[ruleparam.builder_const],
                             self.rulepath[ruleparam.builder_variant],
-                            # getattr(self.rulepath, ruleparam.builder_func),
-                            # getattr(self.rulepath, ruleparam.builder_const),
-                            # getattr(self.rulepath, ruleparam.builder_variant),
                         ),
                         descr=ruleparam.descr,
                         parameters=self.parameters,
                         robust=ruleparam.robust,
                     )
-                # except AttributeError:
                 except KeyError:
                     # raise an error if the rule from file is not in the module
                     raise InitError(
