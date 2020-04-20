@@ -51,12 +51,25 @@ A script named 'metarun' is provided for launching a simulation from the command
 
 Usage::
 
-    metarun [-h]
-            [--logdir [logdir]]
-            [--comment [comment]]
-            [--loglevel [loglevel]]
-            [--compress [compress]]
-            parameters
+    metarun [-h] [-c comment] [-d logdir] [-l log_level] [-x compress_level] param_file
+
+    Launch a run from a json or hdf5 file
+
+    positional arguments:
+      param_file            parameter json file, or previous hdf5 result file
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -c comment, --comment comment
+                            run comment string
+      -d logdir, --logdir logdir
+                            Directory for saving log text files
+                            (if set, will override the value from param_file)
+      -l log_level, --loglevel log_level
+                            Logging level: DEBUG, INFO, WARNING, ERROR
+                            (if set, will override the value from param_file)
+      -x compress_level, --compress compress_level
+                            compression level for the hdf5 output file
 
 """
 
