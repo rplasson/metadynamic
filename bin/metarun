@@ -11,7 +11,7 @@ from metadynamic import __version__
 
 def get_parser():
     parser = ArgumentParser(
-        description=f"Launch a matadynamic v{__version__} run from a json or hdf5 file"
+        description=f"Launch a metadynamic run from a json or hdf5 file (metadynamic v{__version__})."
     )
 
     parser.add_argument(

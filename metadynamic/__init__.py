@@ -53,7 +53,7 @@ Usage::
 
     metarun [-h] [-c comment] [-d logdir] [-l log_level] [-x compress_level] param_file
 
-    Launch a run from a json or hdf5 file
+    Launch a metadynamic run from a json or hdf5 file
 
     positional arguments:
       param_file            parameter json file, or previous hdf5 result file
