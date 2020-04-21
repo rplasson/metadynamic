@@ -26,5 +26,5 @@ tag metadynamic package version
 """
 
 
-__version__ = '1.0.0rc7'
+__version__ = '1.0.0'
 """metadynamic version number"""
