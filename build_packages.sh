@@ -9,6 +9,7 @@ fi
 
 # build man
 argparse-manpage --pyfile ./bin/metarun  --function get_parser --project-name metadynamic --author R.Plasson --author-email raphael.plasson@univ-avignon.fr  >> docs/man/metarun.1
+sed -i 's/argparse-manpage/metarun/g' docs/man/metarun.1  # Couldn't figure out correct argparse-manpage parameters...
 
 # build doc
 pydoctor --html-output=./docs/apidocs/ metadynamic

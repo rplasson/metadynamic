@@ -1,31 +1,35 @@
-.TH argparse-manpage "1" Manual
+.TH metarun "1" Manual
 .SH NAME
-argparse-manpage
+metarun
 .SH SYNOPSIS
-.B argparse-manpage
-[-h] [--logdir [logdir]] [--comment [comment]] [--loglevel [loglevel]] [--compress [compress]] parameters
+.B metarun
+[-h] [-c comment] [-d logdir] [-l log_level] [-x compress_level] param_file
 .SH DESCRIPTION
-Launch run from a json file
+Launch a matadynamic v1.0.0rc7 run from a json or hdf5 file
 .SH OPTIONS
 .TP
-\fBparameters\fR
-parameter json file
+\fBparam_file\fR
+parameter json file, or previous hdf5 result file
 
 .TP
-\fB\-\-logdir\fR [logdir]
-log file
+\fB\-c\fR comment, \fB\-\-comment\fR comment
+run comment string
 
 .TP
-\fB\-\-comment\fR [comment]
-comments on the run
+\fB\-d\fR logdir, \fB\-\-logdir\fR logdir
+Directory for saving log text files (if set, will override the value from
+.br
+param_file)
 
 .TP
-\fB\-\-loglevel\fR [loglevel]
-log level
+\fB\-l\fR log_level, \fB\-\-loglevel\fR log_level
+Logging level: DEBUG, INFO, WARNING, ERROR (if set, will override the value
+.br
+from param_file)
 
 .TP
-\fB\-\-compress\fR [compress]
-log level
+\fB\-x\fR compress_level, \fB\-\-compress\fR compress_level
+compression level for the hdf5 output file
 
 .SH AUTHORS
 .B metadynamic
