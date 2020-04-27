@@ -29,17 +29,17 @@ creation/destruction of compounds and reactions.
 Provides
 --------
 
-    - L{launch}: function for launching a simulation from a .json parameter file, a .hdf5 result
+    - :class:`launch`: function for launching a simulation from a .json parameter file, a .hdf5 result
       file from a previous run, with eventual additional parameters, and storing the results in a
       new .hdf5 file.
 
-    - L{ResultReader}: class for reading and extracting data from a .hdf5 result file.
+    - :class:`ResultReader`: class for reading and extracting data from a .hdf5 result file.
 
     - L{System}: class for creating, running, and directly controlling a simmulation.
 
     - L{Crn}: class describing a Chemical Reaction Network.
 
-    - L{LOGGER}: global object for logging messages
+    - :class:`LOGGER`: global object for logging messages
 
     - L{MPI_STATUS}: global object for getting information about the MPI status
 
