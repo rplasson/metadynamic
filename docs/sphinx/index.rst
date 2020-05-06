@@ -11,7 +11,13 @@ Welcome to metadynamic's documentation!
    :caption: Contents:
  
    usage/quickstart	     
-   api/metadynamic
+   api/metadynamic_module
+   api/CLI
+   api/interface
+   api/modeling
+   api/chemical
+   api/io
+   api/utils
 
 
 Indices and tables

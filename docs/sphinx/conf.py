@@ -47,7 +47,12 @@ release = "v1.0.1"
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ["sphinx.ext.autodoc", "cloud_sptheme.ext.autodoc_sections"]
+extensions = [
+    "sphinx.ext.autodoc",
+    "sphinx_autodoc_typehints",
+    "sphinxcontrib.autoprogram",
+    "cloud_sptheme.ext.autodoc_sections"
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -73,13 +78,11 @@ html_static_path = ["_static"]
 # -- Options for LaTeX output -------------------------------------------------
 
 latex_elements = {
-    # The paper size ('letterpaper' or 'a4paper').
-    #
-    'papersize': 'a4paper',
-    'fncychap': '\\usepackage{fncychap}',
-    'fontpkg': '\\usepackage{amsmath,amsfonts,amssymb,amsthm}',
-    'pointsize': '10pt',
-    'preamble': r'''
+    "papersize": "a4paper",
+    "fncychap": "\\usepackage{fncychap}",
+    "fontpkg": "\\usepackage{amsmath,amsfonts,amssymb,amsthm}",
+    "pointsize": "10pt",
+    "preamble": r"""
         \usepackage{amsmath,amsfonts,amssymb,amsthm}
         \usepackage{graphicx}
         \usepackage{ebgaramond}
@@ -91,10 +94,6 @@ latex_elements = {
          \newcommand*\cinzel{\fontfamily{\cinzelfamily}\def\itshape{\fontfamily{CinzelDecorative-LF}\fontshape{n}\selectfont}\selectfont}
          \newcommand*\cinzelblack{\fontfamily{\cinzelfamily}\fontseries{k}\def\itshape{\fontfamily{CinzelDecorative-LF}\fontshape{n}\selectfont}\selectfont}
 
-        %%% reduce spaces for Table of contents, figures and tables
-        %%% it is used "\addtocontents{toc}{\vskip -1.2cm}" etc. in the document
-        \usepackage[notlot,nottoc,notlof]{}
-
         \usepackage{color}
         \usepackage{transparent}
         \usepackage{eso-pic}
@@ -102,7 +101,6 @@ latex_elements = {
         \usepackage[hyphenation, parindent, lastparline, rivers]{impnattypo}
         \usepackage[all]{nowidow}
         \usepackage[activate={true, nocompatibility},babel=true, tracking=true,final]{microtype}
-        
 
          \definecolor{bl}{rgb}{0.10,0.2,0.6}
          \definecolor{dbl}{rgb}{0.05,0.1,0.3}
@@ -110,34 +108,8 @@ latex_elements = {
          \definecolor{drd}{rgb}{0.3,0.05,0.1}
          \definecolor{gn}{rgb}{0.2,0.6,0.1}
          \definecolor{dgn}{rgb}{0.1,0.3,0.05}
-         \definecolor{ddgn}{rgb}{0.025,0.075,0.0125}
-         \definecolor{dyl}{rgb}{0.3,0.3,0.05}
-         \definecolor{lrd}{rgb}{1.,0.95,.95}
-         \definecolor{lgn}{rgb}{0.95,1.,.95}
-         \definecolor{lbl}{rgb}{0.95,0.95,1.}
-         \definecolor{lcy}{rgb}{0.95,1.,1.}
-         \definecolor{lma}{rgb}{1.,0.95,1.}
-         \definecolor{lye}{rgb}{1.,1.,.95}
-         \definecolor{shadecolor}{rgb}{0.95,0.95,1.}
-         \definecolor{fondpaille}{cmyk}{0,0,0.1,0}
-         % "blancs"
-         \definecolor{casse}{RGB}{254,254,226}
-         \definecolor{argent}{RGB}{254,254,254}
-         \definecolor{espagne}{RGB}{254,253,240}
-         \definecolor{lait}{RGB}{251,252,250}
-         \definecolor{meudon}{RGB}{254,253,240}
-         \definecolor{lin}{RGB}{250,240,230}
-         \definecolor{vintpap}{RGB}{234,226,207}
-         \definecolor{parchment}{RGB}{241, 241, 212}
-         \definecolor{blush}{RGB}{255,242,236}
-         \definecolor{cream}{RGB}{255, 253, 232}
-         \definecolor{milkream}{RGB}{253,252,241}
-        \usepackage{datetime}
-        \newdateformat{MonthYearFormat}{%
-            \monthname[\THEMONTH], \THEYEAR}
-    ''',
-    'maketitle': r'''
-    \pagenumbering{Roman} %%% to avoid page 1 conflict with actual page 1
+    """,
+    "maketitle": r"""
     \begin{titlepage}
       \begin{center}
         \pgfornament[color=dgn,width=\textwidth]{88}\\[0.3cm]
@@ -153,17 +125,13 @@ latex_elements = {
         \pgfornament[color=dgn,width=0.75\textwidth]{89}
       \end{center}
     \end{titlepage}
-    \tableofcontents
-    ''',
-    # Latex figure (float) alignment
-    #
-    # 'figure_align': 'htbp',
-    'sphinxsetup': \
-        'hmargin={1.75cm,2.475cm}, vmargin={2.475cm,3.5cm}, \
-        verbatimwithframe=true, \
-        TitleColor={rgb}{0.05,0.1,0.3}, \
-        HeaderFamily=\\rmfamily\\bfseries, \
-        InnerLinkColor={rgb}{0.1,0.3,0.05}, \
-        OuterLinkColor={rgb}{0.3,0.05,0.1}',
-        'tableofcontents':' ',
+    """,
+    "sphinxsetup": """
+    hmargin={1.75cm,2.475cm},
+    vmargin={2.475cm,3.5cm},
+    verbatimwithframe=true,
+    TitleColor={rgb}{0.05,0.1,0.3},
+    InnerLinkColor={rgb}{0.1,0.3,0.05},
+    OuterLinkColor={rgb}{0.3,0.05,0.1}
+    """,
 }
