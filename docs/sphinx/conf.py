@@ -49,7 +49,7 @@ release = "v1.0.1"
 # ones.
 extensions = [
     "sphinx.ext.autodoc",
-    "sphinx_autodoc_typehints",
+#    "sphinx_autodoc_typehints",
     "sphinxcontrib.autoprogram",
     "cloud_sptheme.ext.autodoc_sections"
 ]
