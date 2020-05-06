@@ -1,4 +1,4 @@
-Metadynamic interface submodules
+Metadynamic interface modules
 ================================
 
 Modules

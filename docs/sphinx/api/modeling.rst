@@ -1,11 +1,11 @@
-Metadynamic modeling submodules
+Metadynamic modeling modules
 ===============================
 
 
 Modules
 -------
 
-Several modules are available for performing the simulations
+Several modules are available for performing the simulations:
 
   - :mod:`.proba` implements the Gillespie's algorithm.
   - :mod:`.ruleset` provides the interface for defining sets of rules for creating chemical systems.
