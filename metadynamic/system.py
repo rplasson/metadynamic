@@ -19,20 +19,11 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 
-"""
-metadynamic.system
-==================
+"""Simulation interface.
 
-Simulation interface
-
-Provides
---------
-
- - L{RunStatus}: class for controlling the status of a simulation (time, step, memory)
-
- - L{Statistic}: class for computing, getting and saving statistics on a simulation
-
- - L{System}: class for creating, running, and directly controlling a simulation.
+It provides L{RunStatus}, a class for controlling the status of a simulation (time, step, memory),
+L{Statistic}: a class for computing, getting and saving statistics on a simulation and L{System}, a
+class for creating, running, and directly controlling a simulation.
 
 """
 
@@ -70,12 +61,13 @@ from metadynamic.inval import isvalid, invalidint
 
 
 class RunStatus:
-    """Control the status of a simulation (time, step, memory)"""
+    """Control the status of a simulation (time, step, memory)."""
 
     infonames = ["thread", "ptime", "memuse", "step", "dstep", "time"]
     """List of tracked information"""
 
     def __init__(self) -> None:
+        """Create an empty object, to be initialized later."""
         self.tnext: float = 0.0
         """next time to be reached"""
 
@@ -106,12 +98,11 @@ class RunStatus:
         False: regular GC process) """
 
     def initialize(self, param: Param) -> None:
-        """
-        First initialization of the run from the set of
-        parameters 'param'
+        """First initialization of the run from the set of parameters 'param'.
 
         @param param: parameters
         @type param: Param
+
         """
         self.tnext = 0.0
         self.dstep = 0
@@ -127,14 +118,15 @@ class RunStatus:
 
     @property
     def memuse(self) -> float:
-        """Memory used by the process in Mb"""
+        """Memory used by the process in Mb."""
         return float(Process(getpid()).memory_info().rss) / 1024 / 1024
 
     @property
     def info(self) -> List[Union[float, int]]:
-        """
-        Information summary:
+        """Information summary.
+
         thread number, runtime, memory use, simulation step, stochastic step, time
+
         """
         return [
             MPI_STATUS.rank,
@@ -146,14 +138,14 @@ class RunStatus:
         ]
 
     def logstat(self) -> None:
-        """Log (at INFO level) run information"""
+        """Log (at INFO level) run information."""
         LOGGER.info(
             f"#{self.step}'{self.dstep}'': {self.time} -> {self.tnext}  <{int(self.memuse)}Mb>"
         )
 
     def inc(self, delta_t: float) -> None:
         """
-        Increment time by 'delta_t' and dstep by 1
+        Increment time by 'delta_t' and dstep by 1.
 
         @param delta_t: time increment
         @type delta_t: float
@@ -162,16 +154,17 @@ class RunStatus:
         self.dstep += 1
 
     def next_step(self) -> None:
-        """Increment tnext by tstep if tnext was reached, and step by 1"""
+        """Increment tnext by tstep if tnext was reached, and step by 1."""
         if self.finished:
             self.tnext += self.tstep
         self.step += 1
 
     def checkend(self) -> None:
         """
-        Check if the run reached its final limit:
-        - raise TimesUp if time reached tend
-        - raise RuntimeLim if runtime reached rtlim
+        Check if the run reached its final limit.
+
+        @raise TimesUp: if time reached tend
+        @raise RuntimeLim: if runtime reached rtlim
         """
         if self.time >= self.tend:
             raise TimesUp(f"t={self.time}")
@@ -194,30 +187,30 @@ class RunStatus:
 
     def checkstep(self) -> None:
         """
-        Follow a checklist before starting next step, that is:
+        Follow a checklist before starting next step.
 
-         - check the memory,
-         - update tnext and step,
-         - check if run ends.
+         1. check the memory,
+         2. update tnext and step,
+         3. check if run ends.
         """
         self.checkmem()
         self.next_step()
         self.checkend()
 
     def gcclean(self) -> None:
-        """Call garbage collector for memory cleaning"""
+        """Call garbage collector for memory cleaning."""
         gc.collect()
         if self.gcperio:
             gc.enable()
 
     @property
     def finished(self) -> bool:
-        """True if present time reached the tnext limit"""
+        """Return  True if present time reached the tnext limit."""
         return self.time >= self.tnext
 
 
 class Statistic:
-    """Compute, get and save statustics on a simulation run"""
+    """Compute, get and save statustics on a simulation run."""
 
     def __init__(
         self,
@@ -228,7 +221,7 @@ class Statistic:
         comment: str,
     ):
         """
-        Create the statistic object from:
+        Create the statistic object.
 
         @param crn: chemical reaction network of the simulation
         @type crn: Crn
@@ -270,7 +263,7 @@ class Statistic:
         """Run comment"""
 
     def conc_of(self, compound: str) -> float:
-        """Get the concentration of a given compound
+        """Get the concentration of a given compound.
 
         @param compound: compound name
         @type compound: str
@@ -284,11 +277,11 @@ class Statistic:
 
     @property
     def concentrations(self) -> List[float]:
-        "List of concentrations of compounds to be saved"
+        """List of concentrations of compounds to be saved."""
         return [self.conc_of(comp) for comp in self.param.save]
 
     def startwriter(self) -> None:
-        "Initialize the hdf5 writer"
+        """Initialize the hdf5 writer."""
         self.writer.init_stat(
             datanames=self.lines,
             mapnames=self.mapnames,
@@ -299,7 +292,7 @@ class Statistic:
         )
 
     def writestat(self) -> None:
-        "Write general statistics at present time to hdf5"
+        """Write general statistics at present time to hdf5."""
         res = (
             self.status.info
             + self.concentrations
@@ -318,8 +311,7 @@ class Statistic:
         LOGGER.debug(str(res))
 
     def calcmap(self) -> None:
-        """Calculate map statistics at present time,
-        saved for later writing in hdf5"""
+        """Calculate map statistics at present time, saved for later writing."""
         for name, maps in self.param.mapsparam.items():
             collmap = self.crn.collmap(
                 collection=maps.collection,
@@ -341,15 +333,17 @@ class Statistic:
                     ]
 
     def writemap(self) -> None:
-        """Write all previously calculated map statistics to hdf5"""
+        """Write all previously calculated map statistics to hdf5."""
         for name in self.mapnames:
             # write maps
             categories = MPI_STATUS.sortlist(list(self._mapdict[name].keys()))
             self.writer.add_map(name, categories, self._mapdict[name])
 
     def calcsnapshot(self, final: bool = False) -> None:
-        """Snapshot the CRN at present time, if time reached tsnapshot
-        or if it is the final snapshot.
+        """Snapshot the CRN at present time, if time reached tsnapshot.
+
+        Also saves if it is the final snapshot.
+
         Saved for later writing in hdf5.
 
         @param final: True if this is the last snapshot
@@ -372,7 +366,7 @@ class Statistic:
         return None
 
     def writesnap(self) -> None:
-        """Write all previous snapshots to hdf5"""
+        """Write all previous snapshots to hdf5."""
         # Correct snapshot sizes
         nbsnap = MPI_STATUS.max(self._nbsnap)
         nbcomp = MPI_STATUS.max(self._nbcomp)
@@ -386,13 +380,13 @@ class Statistic:
             self.writer.add_snapshot(comp, reac, col, time)
 
     def calc(self) -> None:
-        """Calculate all statistics: stat, map and snapshots"""
+        """Calculate all statistics: stat, map and snapshots."""
         self.writestat()
         self.calcmap()
         self.calcsnapshot()
 
     def end(self, the_end: Finished) -> None:
-        """Write ending message to hdf5
+        """Write ending message to hdf5.
 
         @param the_end: ending message
         @type the_end: Finished
@@ -406,7 +400,7 @@ class Statistic:
             LOGGER.warning(str(the_end))
 
     def close(self) -> None:
-        """Write all remaining data  in hdf5 file, clean it, then close it"""
+        """Write all remaining data  in hdf5 file, clean it, then close it."""
         LOGGER.info(f"File {self.writer.filename} to be written and closed...")
         self.writesnap()
         self.writemap()
@@ -415,12 +409,12 @@ class Statistic:
 
 
 class System:
-    """Create, run and control a simulation"""
+    """Create, run and control a simulation."""
 
     @classmethod
     def fromjson(cls, filename: str, **kwd: Any) -> "System":
         """
-        Create a System object from a Param json file
+        Create a System object from a Param json file.
 
         Additional parameters can be passed,
         they will override the one defined in the json file.
@@ -440,7 +434,7 @@ class System:
         cls, filename: str, snapnum: int = invalidint, snapstep: int = -1, **kwd: Any,
     ) -> "System":
         """
-        Create a System object from a result hdf5 file
+        Create a System object from a result hdf5 file.
 
         Additional parameters can be passed,
         they will override the one defined in the hdf5 file.
@@ -471,7 +465,7 @@ class System:
     def __init__(
         self, param: Param,
     ):
-        """Create a System from parameters 'param'
+        """Create a System from parameters 'param'.
 
         @param param: parameters
         @type param: Param
@@ -508,11 +502,13 @@ class System:
         """interface to run statistics"""
 
     def _initialize(self) -> None:
-        """
-        Initialize the system before starting the run
+        """Initialize the system before starting the run.
 
-        A double initialization will raise an InternalError.
-        Intended to be launched from self.run, not manually"""
+        Intended to be launched from self.run, not manually
+
+        @raise InternalError: in case of double initialization.
+
+        """
         if not self.initialized:
             self.signcatch.listen()
             self.status.initialize(self.param)
@@ -529,7 +525,7 @@ class System:
 
     def _release(self, end: Finished, fullrelease: bool = True) -> str:
         """
-        Clean data before run ending
+        Clean data before run ending.
 
         A double release will raise an InternalError.
         Intended to be launched from self.run, not manually
@@ -555,7 +551,7 @@ class System:
         raise InternalError("Attempt to release non-initialized system!")
 
     def _process(self) -> None:
-        """Perform a run step"""
+        """Perform a run step."""
         # Check if a cleanup should be done
         if self.param.autoclean:
             self.crn.clean()
@@ -626,7 +622,7 @@ class System:
         return end
 
     def set_param(self, **kwd: Any) -> None:
-        """Set run parameters, overriding the previous ones"""
+        """Set run parameters, overriding the previous ones."""
         try:
             self.param.set_param(**kwd)
         except LockedError:
