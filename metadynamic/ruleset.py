@@ -18,40 +18,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-"""
-metadynamic.ruleset
-===================
+"""Core module for model design.
 
-All elements for designing a set of rule,
-i.e. the Core for model design !
+It implements all the elements for designing a set of rules.
 
-
-Provides:
----------
-
- - classes for the description of a rule model:
-    - L{Parameters}: Maintain a set of parameters {name:values}
-      that can be linked with each other.
-    - L{Descriptor}: Tool for describing a compound from its name
-      (categories and properties)
-    - L{Rule}: Describes a given rule for building a reaction
-    - L{Model}: Full description of a rule model
- - generators to be used for building models:
-    - L{Paramrel} generators:
-      - L{parmul}
-      - L{arrhenius}
-      - L{linproc}
-    - L{ConstBuilder} generators:
-      - L{kinvar}
-      - L{kalternate}
-      - L{kdualchoice}
-    - L{VariantBuilder} generators:
-      - L{novariant_gen}
-      - L{singlevariant}
-      - L{rangevariant}
-    - L{ProdBuilder} generators:
-      - L{joiner}
-      - L{splitter}
+It provides classes for the description of a rule model (L{Parameters}, L{Descriptor}, L{Rule} and
+L{Model}), as well as generic generators to be used for building models.
 
 """
 
@@ -107,14 +79,10 @@ ProdBuilder = Callable[[Compset, int], Compset]
 
 
 class Parameters:
-    """
-    Maintain a set of parameters {name:values}
-    that can be linked with each other.
-    """
+    """Maintain a set of parameters {name:values} that can be linked with each other."""
 
     def __init__(self, paramdict: Paramdict) -> None:
-        """
-        Create a Parameters object from a dictionary
+        """Create a Parameters object from a dictionary.
 
         Defaults parameters will be created:
          - T = 300.0 (temperature)
@@ -124,6 +92,7 @@ class Parameters:
 
         @param paramdict: dictionary of parameters as {name:value}
         @type object: Paramdict
+
         """
         self._paramdict: Paramdict = {}
         """internal parameter values storage"""
@@ -139,8 +108,7 @@ class Parameters:
             self.add_set_param(key, val)
 
     def add_set_param(self, key: str, val: float) -> None:
-        """
-        Create a new parameter and set it.
+        """Create a new parameter and set it.
 
         @param key: parameter name
         @type key: str
@@ -148,18 +116,19 @@ class Parameters:
         @type val: float
 
         @raise KeyError: if the parameter already exists
+
         """
         self.add_param(key)
         self.set_param(key, val)
 
     def add_param(self, key: str) -> None:
-        """
-        Create a new parameter (set to 0.0)
+        """Create a new parameter (set to 0.0).
 
         @param key: parameter name
         @type key: str
 
         @raise KeyError: if the parameter already exists
+
         """
         if key not in self._paramdict:
             self._paramdict[key] = 0.0
@@ -167,8 +136,7 @@ class Parameters:
             raise KeyError(f"Key {key} already registered")
 
     def set_param(self, key: str, val: float, terminate: bool = True) -> None:
-        """
-        Set a parameter value.
+        """Set a parameter value.
 
         This will automatically update parameters defined by a relation
 
@@ -185,6 +153,7 @@ class Parameters:
         @type terminate: bool
 
         @raise KeyError: if the parameter does not exists
+
         """
         if terminate and key in self._relation:
             LOGGER.warning(
@@ -201,7 +170,11 @@ class Parameters:
             self._updating.clear()
 
     def __getitem__(self, key: str) -> float:
-        """Return the value of key. If the key is non existent, it is created and set to 0"""
+        """Return the value of key.
+
+        If the key is non existent, it is created and set to 0
+
+        """
         try:
             return self._paramdict[key]
         except KeyError:  # better dealing of missing keys ???
@@ -209,8 +182,7 @@ class Parameters:
             return 0.0
 
     def add_relation(self, key: str, relation: Paramrel) -> None:
-        """
-        Add a new parameter and set it by a relation.
+        """Add a new parameter and set it by a relation.
 
         If the key already exists, it will be overriden.
 
@@ -218,6 +190,7 @@ class Parameters:
         @type key: str
         @param relation: relation function
         @type relation: Paramrel
+
         """
         try:
             self.add_param(key)
@@ -229,7 +202,7 @@ class Parameters:
         self._param_init()
 
     def _param_init(self) -> None:
-        """Initialize all relation-defined parameters"""
+        """Initialize all relation-defined parameters."""
         for param, func in self._relation.items():
             self.set_param(param, func(self._paramdict), terminate=False)
 
@@ -261,7 +234,7 @@ ReacProp = Tuple[Stoechio, Stoechio, float, bool]
 
 
 class Descriptor:
-    """tool for describing a compound from its name (categories and properties)"""
+    """tool for describing a compound from its name (categories and properties)."""
 
     def __init__(self) -> None:
         self.cat_dict: Dict[str, Categorizer] = {}
@@ -271,16 +244,15 @@ class Descriptor:
 
     @property
     def catlist(self) -> KeysView[str]:
-        """
-        List of possible category names
+        """List of possible category names.
 
         @rtype: KeysView[str]
+
         """
         return self.cat_dict.keys()
 
     def prop(self, propname: str, name: str) -> float:
-        """
-        Return the property from a name
+        """Return the property from a name.
 
         @param propname: name of the property to be computed
         @type propname: str
@@ -288,6 +260,7 @@ class Descriptor:
         @type name: str
         @return: computed property value:
         @rtype: float
+
         """
         try:
             return self.prop_dict[propname](name)
@@ -295,13 +268,13 @@ class Descriptor:
             return float(self.cat_dict[propname](name))
 
     def categories(self, name: str) -> Set[str]:
-        """
-        Return the set of categories a compound belongs to
+        """Return the set of categories a compound belongs to.
 
         @param name: name of the compound to be evaluated
         @type name: str
         @return: set of categories
         @rtype: Set[str]
+
         """
         return {catname for catname, rule in self.cat_dict.items() if rule(name)}
 
@@ -309,26 +282,26 @@ class Descriptor:
         return f"Descriptor: {self.cat_dict.keys()}"
 
     def add_cat(self, catname: str, rule: Categorizer) -> None:
-        """
-        Add a new Categorizer to the Descriptor
+        """Add a new Categorizer to the Descriptor.
 
         @param catname: name of the categorizer
         @type catname: str
         @param rule: Categorizer function
         @type rule: Categorizer
+
         """
         if catname in self.cat_dict:
             raise KeyError(f"Category {catname} already defined")
         self.cat_dict[catname] = rule
 
     def add_prop(self, propname: str, func: Propertizer) -> None:
-        """
-        Add a new Properizer to the Descriptor
+        """Add a new Properizer to the Descriptor.
 
         @param propname: name of the propertizer
         @type propname: str
         @param func: Propertizer function
         @type func: Propertizer
+
         """
         if propname in self.prop_dict:
             raise KeyError(f"Propert {propname} already defined")
@@ -337,7 +310,7 @@ class Descriptor:
 
 @dataclass
 class Rule:
-    """Describes a given rule for building a reaction"""
+    """Describes a given rule for building a reaction."""
 
     name: str
     """rule name"""
@@ -353,8 +326,7 @@ class Rule:
     """robustness"""
 
     def _build_products(self, reactants: Compset, variant: int) -> Compset:
-        """
-        Build the set of products from a set of reactants
+        """Build the set of products from a set of reactants.
 
         @param reactants: set of reactants
         @type reactants: Compset
@@ -362,6 +334,7 @@ class Rule:
         @type variant: int
         @return: set of products
         @rtype: Compset
+
         """
         products: Compset = self.builder[0](reactants, variant)
         if "" in products:
@@ -371,8 +344,7 @@ class Rule:
         return products
 
     def _build_constant(self, reactants: Compset, variant: int) -> float:
-        """
-        Build the chemical constant from a set of reactants
+        """Build the chemical constant from a set of reactants.
 
         @param reactants: set of reactants
         @type reactants: Compset
@@ -380,17 +352,18 @@ class Rule:
         @type variant: int
         @return: constant value
         @rtype: float
+
         """
         return self.builder[1](reactants, self.parameters, variant)
 
     def build(self, description: ReacDescr) -> ReacProp:
-        """
-        Build a reaction from its description
+        """Build a reaction from its description.
 
         @param description: reaction description
         @type description: ReacDescr
         @return: reaction properties
         @rtype: ReacProp
+
         """
         _, reactants, variant = description
         products: Compset = self._build_products(reactants, variant)
@@ -403,26 +376,26 @@ class Rule:
         )
 
     def rebuild_prod(self, description: ReacDescr) -> Stoechio:
-        """
-        (re)build the list of products generated by the reaction
+        """(re)build the list of products generated by the reaction.
 
         @param description: reaction description
         @type description: ReacDescr
         @return: reactants stoechiometry
         @rtype: Stoechio
+
         """
         _, reactants, variant = description
         return self.getstoechio(self._build_products(reactants, variant))
 
     @staticmethod
     def getstoechio(compounds: Compset) -> Stoechio:
-        """
-        Return the stoechiometry of a compound set
+        """Return the stoechiometry of a compound set.
 
         @param compounds: set of compounds
         @type compounds: Compset
         @return: compounds stoechiometry
         @rtype: Stoechio
+
         """
         #  Extend common cases for faster computations
         length = len(compounds)
@@ -442,13 +415,12 @@ class Rule:
 
 
 class Model:
-    """full description of a rule model"""
+    """Full description of a rule model."""
 
     def __init__(
         self, modelparam: str, reactions: List[str], paramdict: Paramdict
     ) -> None:
-        """
-        Create a model
+        """Create a model.
 
         @param modelparam: name of the module containing the rule model code
         @type modelparam: str
@@ -456,6 +428,7 @@ class Model:
         @type reactions: List[str]
         @param paramdict:parameters values
         @type paramdict: Paramdict
+
         """
         self.modelparam: str = modelparam
         """name of the module containing the rule model code"""
@@ -484,12 +457,12 @@ class Model:
         self._create_rules()
 
     def _load_param(self) -> None:
-        """
-        load parameters of the rule module
+        """Load parameters of the rule module.
 
         @raise InitError: if the file fails to be read as a json file,
             it will be read as a python file; if a 'default_ruleset'
             dict is not defined there, an InitError is raised.
+
         """
         try:
             # model given as a json file
@@ -507,19 +480,15 @@ class Model:
             self.param = RulesetParam.readdict(ruleset)
 
     def _create_descriptors(self) -> None:
-        """create the descriptors"""
+        """Create the descriptors."""
         for rel in self.param.relations:
             try:
-                self.parameters.add_relation(
-                    rel, self.rulepath[rel]
-                )
+                self.parameters.add_relation(rel, self.rulepath[rel])
             except KeyError:
                 LOGGER.error(f"relation '{rel}' not found in {self.modelparam}")
         for catname in self.param.categories:
             try:
-                self.descriptor.add_cat(
-                    catname, self.rulepath[catname]
-                )
+                self.descriptor.add_cat(catname, self.rulepath[catname])
             except KeyError:
                 LOGGER.error(f"category '{catname}' not found in {self.modelparam}")
         for propname in self.param.properties:
@@ -529,7 +498,7 @@ class Model:
                 LOGGER.error(f"'[property '{propname}' not found in {self.modelparam}")
 
     def _create_rules(self) -> None:
-        """Read and create rules"""
+        """Read and create rules."""
         for rulename in self.reactions:
             # Get rule from parameter file
             if rulename in self.param.rules:
@@ -562,13 +531,13 @@ class Model:
                 )
 
     def _add_rule(self, rulename: str, rule: Rule) -> None:
-        """
-        Add a new reaction rule
+        """Add a new reaction rule.
 
         @param rulename: name of the rule
         @type param: str
         @param rule: rule object
         @type rule: Rule
+
         """
         if rulename in self.rules:
             raise KeyError(f"Rule {rulename} already defined")
@@ -582,9 +551,7 @@ class Model:
     def get_related(
         self, comp_name: str, coll_cat: Dict[str, Set[str]]
     ) -> Set[ReacDescr]:
-        """
-        Build the description of all reactions that can be performed
-        from a given compound
+        """Build the description of all reactions that can be performed from a given compound.
 
         @param comp_name: name of the compound to react
         @type comp_name: str
@@ -592,6 +559,7 @@ class Model:
         @type coll_cat: Dict[str, Set[str]]
         @return: a set of reaction description
         @rtype: Set[ReacDescr]
+
         """
         # get the categories to which belongs comp_name
         comp_categories = self.descriptor.categories(comp_name)
@@ -625,24 +593,24 @@ class Model:
         return res
 
     def buildreac(self, reacdescr: ReacDescr) -> ReacProp:
-        """
-        Build a reaction from its description
+        """Build a reaction from its description.
 
         @param reacdescr: reaction description
         @type reacdescr: ReacDescr
         @return: reaction properties
         @rtype: ReacProp
+
         """
         return self.rules[reacdescr[0]].build(reacdescr)
 
     def rebuild_prod(self, reacdescr: ReacDescr) -> Stoechio:
-        """
-        (re)build the list of products generated by the reaction
+        """(re)build the list of products generated by the reaction.
 
         @param reacdescr: reaction description
         @type reacdescr: ReacDescr
         @return: reactants stoechiometry
         @rtype: Stoechio
+
         """
         return self.rules[reacdescr[0]].rebuild_prod(reacdescr)
 
@@ -653,8 +621,7 @@ class Model:
 
 
 def parmul(name: str, factor: str) -> Paramrel:
-    """
-    Generate a parameter relation →'name'×'factor'
+    """Generate a parameter relation →'name'×'factor'.
 
     @param name: name of the base parameter.
     @type name: str
@@ -662,14 +629,13 @@ def parmul(name: str, factor: str) -> Paramrel:
     @type factor: str
     @return: Paramrel function
     @rtype: Paramrel
+
     """
     return lambda k: k[name] * k[factor]
 
 
 def arrhenius(k_0: str, eact: str) -> Paramrel:
-    """
-    Generate a parameter relation →'k_0'·e^(-'eact'/(R·'T'))
-    With R=8.314
+    """Generate a parameter relation →'k_0'·e^(-'eact'/(R·'T')) with R=8.314.
 
     @param k_0: name of the Arrhenius pre-exponential factor
     @type k0: str
@@ -677,14 +643,15 @@ def arrhenius(k_0: str, eact: str) -> Paramrel:
     @type eact: str
     @return: Paramrel function
     @rtype: Paramrel
+
     """
     return lambda k: k[k_0] * float(np.exp(-k[eact] / 8.314 / k["T"]))
 
 
 def linproc(start: str, end: str) -> Paramrel:
-    """
-    Generate a parameter relation returning a value proportional to
-    the thread number, ranging from 'start' to 'end'
+    """Generate a parameter relation returning a value proportional to the thread number.
+
+    The values will range from 'start' to 'end'
 
     @param start: name of the parameter given to the first thread
     @type start: str
@@ -692,6 +659,7 @@ def linproc(start: str, end: str) -> Paramrel:
     @type end: str
     @return: Paramrel function
     @rtype: Paramrel
+
     """
     return lambda k: float(np.linspace(k[start], k[end], k["ntot"])[k["num"]])
 
@@ -700,13 +668,13 @@ def linproc(start: str, end: str) -> Paramrel:
 
 
 def kinvar(name: str) -> ConstBuilder:
-    """
-    Generates a Constbuilder giving the same constant 'name' in all situations
+    """Generate a Constbuilder giving the same constant 'name' in all situations.
 
     @param name: name of the constant to return
     @type name: str
     @return: ConstBuilder function
     @rtype: ConstBuilder
+
     """
     return lambda names, k, variant: k[name]
 
@@ -714,9 +682,10 @@ def kinvar(name: str) -> ConstBuilder:
 def kalternate(
     condition: Callable[[Compset, int], bool], name_t: str, name_f: str
 ) -> ConstBuilder:
-    """
-    Generates a Constbuilder giving constant 'name_t' when 'condition' is True,
-    and 'name_f' when 'condition' is False.
+    """Generate a Constbuilder giving constant depending on a condition.
+
+    The returned function will return 'name_t' when 'condition' is True, and 'name_f' when
+    'condition' is False.
 
     @param condition: function that takes as arguments a set of compound names
         (a tuple of strings) and a variant (integer)
@@ -727,6 +696,7 @@ def kalternate(
     @type name_f: str
     @return: ConstBuilder function
     @rtype: ConstBuilder
+
     """
     return (
         lambda names, k, variant: k[name_t] if condition(names, variant) else k[name_f]
@@ -741,10 +711,10 @@ def kdualchoice(
     name_tf: str,
     name_ft: str = "",
 ) -> ConstBuilder:
-    """
-    Generates a Constbuilder giving constant 'name_xy' where x and y are either
-    t or f (True or False), depending on the respective booleam results
-    of 'condition_1' and 'condition_2'.
+    """Generate a Constbuilder giving constants depending on two condtions.
+
+    The returned function will return 'name_xy' where x and y are either t or f (True or False),
+    depending on the respective booleam results of 'condition_1' and 'condition_2'.
 
     @param condition_1: first condition, as a function that takes as arguments
         a set of compound names (a tuple of strings) and a variant (integer)
@@ -762,6 +732,7 @@ def kdualchoice(
     @type name_ft: str
     @return: ConstBuilder function
     @rtype: ConstBuilder
+
     """
     if not name_ft:
         name_ft = name_tf
@@ -784,9 +755,7 @@ def kdualchoice(
 
 
 def novariant_gen() -> VariantBuilder:
-    """
-    Generate a VariantBuilder for reactions with no variant
-    (i.e. only one possible outcome).
+    """Generate a VariantBuilder for reactions with no variant (i.e. only one possible outcome).
 
     The returned VariantBuilder will return a single invalid variant value,
     thus is intended to be used with ProdBuilder and ConstBuilder
@@ -794,14 +763,13 @@ def novariant_gen() -> VariantBuilder:
 
     @return: VariantBuilder function
     @rtype: VariantBuilder
+
     """
     return lambda reactants: (invalidint,)
 
 
 def singlevariant(num: int) -> VariantBuilder:
-    """
-    Generate a VariantBuilder for reactions with a single variant
-    (i.e. only one possible outcome).
+    """Generate a VariantBuilder for reactions with a single variant (i.e. only one possible outcome).
 
     The returned VariantBuilder will return a single valid variant value 'num',
     thus is intended to be used with ProdBuilder and ConstBuilder
@@ -812,6 +780,7 @@ def singlevariant(num: int) -> VariantBuilder:
     @type num: int
     @return: VariantBuilder function
     @rtype: VariantBuilder
+
     """
     return lambda reactants: (num,)
 
@@ -819,10 +788,11 @@ def singlevariant(num: int) -> VariantBuilder:
 def rangevariant(
     reacnum: int, first_offset: int = 0, last_offset: int = 0
 ) -> VariantBuilder:
-    """
-    Generate a VariantBuilder for reactions with as many variants
-    as the length of the reactant number 'reacnum',
-    ranging from 0 to len(reactants[reacnum]).
+    """Generate a VariantBuilder with as many variants as the length of the reactant.
+
+    The reactant number 'reacnum' will be evaluated.
+
+    The variant will range from 0 to len(reactants[reacnum]).
 
     A first_offset can be added to change the first variant.
     A last_offset can be added to change the last variant.
@@ -835,6 +805,7 @@ def rangevariant(
     @type last_offset: int
     @return: VariantBuilder function
     @rtype: VariantBuilder
+
     """
     return lambda reactants: range(first_offset, len(reactants[reacnum]) + last_offset)
 
@@ -843,9 +814,10 @@ def rangevariant(
 
 
 def joiner(sep: str) -> ProdBuilder:
-    """
-    Generate a ProdBuilder that will fuse all reactants into a single
-    compounds joining all the names in one using a 'sep' as a separator string.
+    """Generate a ProdBuilder that will fuse all reactants into a single one.
+
+    The generated compound is created by joining all the names in one using a 'sep' as a separator
+    string.
 
         >>> chainer=joiner("-")
         >>> chainer(["A","B","C"], invalidint)
@@ -855,14 +827,15 @@ def joiner(sep: str) -> ProdBuilder:
     @type str: str
     @return: ProdBuilder function
     @rtype: ProdBuilder
+
     """
     return lambda names, variant: (sep.join(names),)
 
 
 def splitter(sep: str) -> ProdBuilder:
-    """
-    Generate a ProdBuilder that will cut the first reactant into individual compounds
-    by splitting at each 'sep' occurence:
+    """Generate a ProdBuilder that will cut the first reactant into individual compounds.
+
+    The generated compounds will be created by splitting the name at each 'sep' occurence:
 
         >>> cutter=splitter("-")
         >>> cutter(["A-B-C"], invalidint)
@@ -872,5 +845,6 @@ def splitter(sep: str) -> ProdBuilder:
     @type str: str
     @return: ProdBuilder function
     @rtype: ProdBuilder
+
     """
     return lambda names, variant: tuple(names[0].split(sep))
