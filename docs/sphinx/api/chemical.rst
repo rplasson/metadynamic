@@ -32,6 +32,15 @@ chemical module
 Provides
 ~~~~~~~~
 
+
+    - :class:`.CollectofCompound`
+    - :class:`.CollectofReaction`
+    - :class:`.Chemical` 
+    - :class:`.Reaction`         
+    - :class:`.Compound`         
+    - :class:`.Crn`          
+
+
 Module documentation
 ~~~~~~~~~~~~~~~~~~~~
      

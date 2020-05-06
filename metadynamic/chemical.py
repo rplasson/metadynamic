@@ -18,29 +18,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-"""
-metadynamic.chemical
-====================
+"""Class of objects specific to chemical data.
 
-Objects specific to chemical data.
-
-
-Provides
---------
-
-    - L{CollectofCompound}: Collect class for storing a pool of Compound
-
-    - L{CollectofReaction}: Collect class for storing a pool of Reaction
-
-    - L{Chemical}: Collectable class, for objects with chemical properties
-
-    - L{Reaction}: Chemical class, for the description of specific reactions
-
-    - L{Compound}: Chemical class, for the description of specific compounds
-
-    - L{Crn}: Chemical Reaction Network class: high level interface containing
-      a CollectofCompound, a CollectofReaction, and a Model related to a
-      given run.
+It provides L{CollectofCompound} for storing a pool of Compound, L{CollectofReaction} for storing a
+pool of Reaction, L{Chemical} for objects with chemical properties, L{Reaction} for the description
+of specific reactions, L{Compound} for the description of specific compounds, and L{Crn} for the
+complete description of a chemical reaction network.
 
 """
 
@@ -73,12 +56,14 @@ from metadynamic.inputs import Param
 
 
 class Memcalc:
-    """Function memoizer"""
+    """Function memoizer."""
 
     def __init__(self, func: Callable[[int], int]):
-        """
+        """Create a memoized function.
+
         @param func: function to memoize
         @type func:  Callable[[int], int]
+
         """
         self.results: Dict[int, int] = {}
         """results storage"""
@@ -86,13 +71,13 @@ class Memcalc:
         """memoized function"""
 
     def __call__(self, val: int) -> int:
-        """
-        memoized function call
+        """Memoized function call.
 
         @param val: function parameter
         @type val: int
         @return: function result
         @rtype: int
+
         """
         try:
             return self.results[val]
@@ -107,7 +92,7 @@ FACT = Memcalc(factorial)
 
 
 def entro(x: Union[float, int]) -> float:
-    """Return x×ln(x), or 0 if x=0"""
+    """Return x×ln(x), or 0 if x=0."""
     return 0.0 if x == 0 else float(x * np.log(x))
 
 
@@ -118,46 +103,46 @@ C = TypeVar("C", "CollectofCompound", "CollectofReaction")
 
 
 class CollectofCompound(Collect[str, "Compound"]):
-    """L{Collect} class for storing a pool of L{Compound}"""
+    """L{Collect} class for storing a pool of L{Compound}."""
 
     _colltype = "Compound"
 
     def _create(self, key: str) -> "Compound":
-        """
-        Create a Compound from its key
+        """Create a Compound from its key.
 
         @param key: name of the compound to be created
         @type key: str
         @return: newly created Compound object
         @rtype: Compound
+
         """
         newcomp = Compound(key, self.crn)
         return newcomp
 
     def _categorize(self, obj: "Compound") -> Set[str]:
-        """
-        List the categories of the Compound
+        """List the categories of the Compound.
 
         @param obj: object to catagorize
         @type obj: Compound
         @return: set of categories
         @rtype: Set[str]
+
         """
         return self.model.descriptor.categories(obj.description)
 
     def set_crn(self, crn: "Crn") -> None:
-        """
-        set the parent Crn
+        """Set the parent Crn.
 
         @param crn: parent Crn
         @type crn: Crn
+
         """
         self.crn: Crn = crn
         """parent CRN"""
 
     def _getprop(self, prop: str, obj: "Compound") -> float:
-        """
-        Return a given property of a Compound object.
+        """Return a given property of a Compound object.
+
         Shouldn't be directly used (used by proplist method only)
 
         The property may be:
@@ -170,6 +155,7 @@ class CollectofCompound(Collect[str, "Compound"]):
         @type prop: str
         @param obj: object to be probed
         @type obj: "Compound"
+
         """
         return float(
             1.0
@@ -183,48 +169,49 @@ class CollectofCompound(Collect[str, "Compound"]):
 
 
 class CollectofReaction(Collect[ReacDescr, "Reaction"]):
-    """L{Collect} class for storing a pool of L{Reaction}"""
+    """L{Collect} class for storing a pool of L{Reaction}."""
 
     _colltype = "Reaction"
 
     def _create(self, key: ReacDescr) -> "Reaction":
-        """
-        Create a Reaction from its key
+        """Create a Reaction from its key.
 
         @param key: description of the compound to be created
         @type key: ReacDescr
         @return: newly created Reaction object
         @rtype: Reaction
+
         """
         newreac = Reaction(key, self.crn)
         return newreac
 
     def _categorize(self, obj: "Reaction") -> Set[str]:
-        """
-        List the categories of the Reaction.
-        A reaction belongs to a sole category, its reaction type
-        (i.e. the name of the rule that created it)
+        """List the categories of the Reaction.
+
+        A reaction belongs to a sole category, its reaction type (i.e. the name of the rule that
+        created it)
 
         @param obj: object to categorize
         @type obj: Reaction
         @return: set of categories
         @rtype: Set[str]
+
         """
         return {obj.description[0]}
 
     def set_crn(self, crn: "Crn") -> None:
-        """
-        set the parent Crn
+        """Set the parent Crn.
 
         @param crn: parent Crn
         @type crn: Crn
+
         """
         self.crn: Crn = crn
         """Parent CRN"""
 
     def _getprop(self, prop: str, obj: "Reaction") -> float:
-        """
-        Return a given property of a Reaction object.
+        """Return a given property of a Reaction object.
+
         Shouldn't be directly used (used by proplist method only)
 
         The property may be:
@@ -237,6 +224,7 @@ class CollectofReaction(Collect[ReacDescr, "Reaction"]):
         @type prop: str
         @param obj: object to be probed
         @type obj: "Compound"
+
         """
         return float(
             1.0
@@ -252,19 +240,18 @@ class CollectofReaction(Collect[ReacDescr, "Reaction"]):
 
 
 class Chemical(Generic[K], Collectable):
-    """L{Collectable} objects with chemical properties (Generic class)"""
+    """L{Collectable} objects with chemical properties (Generic class)."""
 
     _descrtype = "Chemical"
 
     def __init__(self, description: K, crn: "Crn"):
-        """
-        Create the object from its 'description', to be linked to the
-        parent 'crn'
+        """Create the object from its 'description', to be linked to the parent 'crn'.
 
         @param description: object description
         @type description: K (generic Hashable)
         @param crn: parent chemical reaction network
         @type crn: Crn
+
         """
         self.crn: Crn = crn
         """Parent CRN"""
@@ -280,53 +267,51 @@ class Chemical(Generic[K], Collectable):
         return str(self.description)
 
     def activate(self) -> None:
-        """Activate the chemical object"""
+        """Activate the chemical object."""
         if not self.activated:
             self._activate()
             self.activated = True
 
     def _activate(self) -> None:
-        """
-        Specific actions to be performed for the object activation.
+        """Specific actions to be performed for the object activation.
 
         Does nothing, to be implemented in subclasses when needed.
+
         """
 
     def unactivate(self) -> None:
-        """Unactivate the chemical object"""
+        """Unactivate the chemical object."""
         if self.activated:
             self._unactivate()
             self.activated = False
 
     def _unactivate(self) -> None:
-        """
-        Specific actions to be performed for the object unactivation.
+        """Specific actions to be performed for the object unactivation.
 
         Does nothing, to be implemented in subclasses when needed.
+
         """
 
     def update(self, change: int = 0) -> None:
-        """
-        Perform the object update process.
+        """Perform the object update process.
 
         Must be implemented in subclasses
 
         @param change: change value to be passed for the update (Default value = 0)
         @type change: int
+
         """
         raise NotImplementedError
 
 
 class Reaction(Chemical[ReacDescr]):
-    """L{Chemical} describing a specific reaction"""
+    """L{Chemical} describing a specific reaction."""
 
     _descrtype = "Reaction"
     _updatelist: Dict[Chemical[ReacDescr], int] = {}
 
     def __init__(self, description: ReacDescr, crn: "Crn"):
-        """
-        Create the reaction from its 'description', to be linked to the
-        parent 'crn'
+        """Create the reaction from its 'description', to be linked to the parent 'crn'.
 
         The description is of complex type. This object is intended to be built
         from the description created by Model.get_related, not manually.
@@ -341,6 +326,7 @@ class Reaction(Chemical[ReacDescr]):
         @type description: Tuple[str, Tuple[str,...], int]
         @param crn: parent chemical reaction network
         @type crn: Crn
+
         """
         super().__init__(description, crn)
         self.name: str = ""
@@ -391,12 +377,12 @@ class Reaction(Chemical[ReacDescr]):
             self._unset_proba_pos()
 
     def _unset_proba_pos(self) -> None:
-        """Set the reaction as unregistered to the list of probabilities"""
+        """Set the reaction as unregistered to the list of probabilities."""
         self.proba_pos = invalidint
         self.registered = False
 
     def _activate(self) -> None:
-        """Activate the reaction"""
+        """Activate the reaction."""
         # Get activated in the CRN
         self.crn.reac_collect.activate(self.description)
         # Register to each reactant
@@ -404,7 +390,7 @@ class Reaction(Chemical[ReacDescr]):
             comp.register_reaction(self)
 
     def _unactivate(self) -> None:
-        """Unactivate the reaction"""
+        """Unactivate the reaction."""
         # Get unactivated in the CRN
         self.crn.reac_collect.unactivate(self.description)
         # Unregister to the products
@@ -412,9 +398,9 @@ class Reaction(Chemical[ReacDescr]):
             comp.unregister_reaction(self)
 
     def update(self, change: int = 0) -> None:
-        """
-        Update the reaction: update its probability, and depending on the result,
-        activate or delete it if needed.
+        """Update the reaction.
+
+        Update its probability, and depending on the result, activate or delete it if needed.
 
         The parameter change is unused and kept for compatibility
         with other Chemical objects
@@ -423,6 +409,7 @@ class Reaction(Chemical[ReacDescr]):
 
         @param change: unused (Default value = 0)
         @type change: int
+
         """
         newproba, changed = self.updateproba()
         if changed:
@@ -439,8 +426,7 @@ class Reaction(Chemical[ReacDescr]):
                 self.delete()
 
     def process(self) -> None:
-        """
-        Process the reaction, i.e decrement the reactants, increment the products
+        """Process the reaction, i.e decrement the reactants, increment the products.
 
         The products are created here (if not created yet by other reactions)
         at the first processing of the reaction if robust,
@@ -448,6 +434,7 @@ class Reaction(Chemical[ReacDescr]):
 
         Computation can end here if the process results in reaching a 0 total probability
         (i.e. led to destroy the last reactant of the CRN), raising 'NoMore'
+
         """
         if self.tobeinitialized:
             self.products = [
@@ -468,19 +455,18 @@ class Reaction(Chemical[ReacDescr]):
             raise NoMore(f"after processing {self}")
 
     def _ordern(self, pop: int, order: int) -> int:
-        """
-        Compute stochastic product or order 'n',
-        i.e. pop×(pop-1)×...×(pop-n+1)
+        """Compute stochastic product or order 'n', i.e. pop×(pop-1)×...×(pop-n+1).
 
         @param pop: population
         @type pop: int
         @param order: stochastic order
         @type order: int
+
         """
         return pop if order == 1 else pop * self._ordern(pop - 1, order - 1)
 
     def updateproba(self) -> Tuple[float, bool]:
-        """Update the reaction probability"""
+        """Update the reaction probability."""
         oldproba = self.proba
         self.proba = self.const
         for reactant, stoechnum in self.stoechio:
@@ -493,31 +479,29 @@ class Reaction(Chemical[ReacDescr]):
         return self.proba, self.proba != oldproba
 
     def delete(self) -> None:
-        """Delete the objecte"""
+        """Delete the object."""
         if self.registered:
             self.crn.probalist.unregister(self.proba_pos)
             self._unset_proba_pos()
         self.unactivate()
 
     def serialize(self) -> Any:
-        """
-        Returns the constant and probability of the reaction.
+        """Return the constant and probability of the reaction.
 
         Used for saving the reaction during snapshots.
+
         """
         return self.const, self.proba
 
     @staticmethod
     def _join_compounds(stoechio: Iterable[Tuple[Any, int]]) -> str:
-        """
-        Transform an iterable of the form, e.g.:
-        [('a',1), ('b',2)]
-        as "a+2b"
+        """Transform an iterable of the form, e.g.: [('a',1), ('b',2)] as "a+2b".
 
         Used for converting the reaction to a string
 
         @param stoechio: List of compound names or description with their stoechiometry number
         @type stoechio: Iterable[Tuple[Any, int]]
+
         """
         return "+".join(
             [f"{num}{name}" if num > 1 else str(name) for name, num in stoechio]
@@ -535,7 +519,7 @@ class Reaction(Chemical[ReacDescr]):
 
 
 class Compound(Chemical[str]):
-    """L{Chemical} describing a specific compound"""
+    """L{Chemical} describing a specific compound."""
 
     _descrtype = "Compound"
     _updatelist: Dict[Chemical[str], int] = {}
@@ -545,9 +529,7 @@ class Compound(Chemical[str]):
         return self.description
 
     def __init__(self, description: str, crn: "Crn"):
-        """
-        Create the reaction from its 'description', to be linked to the
-        parent 'crn'
+        """Create the reaction from its 'description', to be linked to the parent 'crn'.
 
         The description is simply the compound name
 
@@ -555,6 +537,7 @@ class Compound(Chemical[str]):
         @type description: str
         @param crn: parent chemical reaction network
         @type crn: Crn
+
         """
         super().__init__(description, crn)
         if self.description == "":
@@ -565,39 +548,39 @@ class Compound(Chemical[str]):
         """compound population"""
 
     def _activate(self) -> None:
-        """Activate the compound"""
+        """Activate the compound."""
         self.crn.comp_collect.activate(self.description)
         # once activated, scans (and creates if needed) all related reactions.
         self.scan_reaction()
 
     def _unactivate(self) -> None:
-        """Unactivate the compound"""
+        """Unactivate the compound."""
         self.crn.comp_collect.unactivate(self.description)
 
     def register_reaction(self, reaction: Reaction) -> None:
-        """
-        Register a reaction in the compound list of the
-        reactions it is involved in as a reactant
-        (self.reactions)
+        """Register a reaction in the compound list of the reactions it is involved in as a reactant.
+
+        (registered in self.reactions)
 
         This enable to trigger the update of necessary reactions
         when the compound population changes.
 
         @param reaction: reaction object to be rgistered
         @type reaction: Reaction
+
         """
         self.reactions.add(reaction)
 
     def unregister_reaction(self, reaction: Reaction) -> None:
-        """
-        Unregister a reaction from the compound list of the
-        reactions it is involved in as a reactant
-        (self.reactions)
+        """Unregister a reaction from the compound list of the reactions it is involved in as a reactant.
+
+        (unregistered from self.reactions)
 
         Called at reaction deactivation.
 
         @param reaction: reaction object to be unregistered
         @type reaction: Reaction
+
         """
         try:
             self.reactions.remove(reaction)
@@ -617,7 +600,7 @@ class Compound(Chemical[str]):
 
     def update(self, change: int = 0) -> None:
         """
-        Update the compound: update its population by 'change' increment
+        Update the compound: update its population by 'change' increment.
 
         Simulation may be stopped here if a negative population is reached
         (this shouldn't happen) by raising DescrZero
@@ -640,7 +623,7 @@ class Compound(Chemical[str]):
 
     def change_pop(self, change: int) -> None:
         """
-        Request for a population change of value 'change'
+        Request for a population change of value 'change'.
 
         The change is not performed at this point,
         but registered for a batch update process
@@ -652,33 +635,33 @@ class Compound(Chemical[str]):
         self.crn.comp_toupdate(self, change)
 
     def delete(self) -> None:
-        """Delete the object"""
+        """Delete the object."""
         self._unactivate()
         self.change_pop(-self.pop)
 
     def serialize(self) -> Any:
-        """
-        Returns the population of the compound.
+        """Return the population of the compound.
 
         Used for saving the reaction during snapshots.
+
         """
         return self.pop
 
 
 class Crn:
-    """
-    Chemical Reaction Network class
+    """Chemical Reaction Network class.
 
     high level interface containing a L{CollectofCompound}, a L{CollectofReaction},
     and a L{Model} related to a given run.
+
     """
 
     def __init__(self, param: Param):
-        """
-        create a Crn object from a L{Param} parameter object
+        """Create a Crn object from a L{Param} parameter object.
 
         @param param: parameter object
         @type param: Param
+
         """
         # declarations
         self.probalist: Probalist
@@ -706,14 +689,14 @@ class Crn:
         LOGGER.debug(f"Initialized with {param}")
 
     def init_collect(self) -> None:
-        """
-        Init the object collections of the Crn
+        """Init the object collections of the Crn.
 
         Automatically called by __init__
 
         Calling this initialization procedure on an existing object
         Will erase all previous information (this is namely used when
         the Crn is closed in order to free some memory)
+
         """
         self.probalist = Probalist(self.vol)
         self.comp_collect = CollectofCompound(self.model, dropmode="keep")
@@ -724,32 +707,32 @@ class Crn:
         self.reac_collect.set_crn(self)
 
     def close(self) -> None:
-        """
-        Close the crn for freeing some memory
+        """Close the crn for freeing some memory.
 
         The only operation performed is to reinit the data collection.
+
         """
         # Really needed? Just call init_collect for cleaning the memory?
         self.init_collect()
 
     def clean(self) -> None:
-        """
-        Cleaning process
+        """Clean the process.
 
         The only operation performed (now) is to recompute the sum of probabilities
         in order to clean previous rounding errors.
+
         """
         self.probalist.clean()
 
     def stepping(self) -> float:
-        """
-        Perform a stochastic step.
+        """Perform a stochastic step.
 
         A reaction is chosen following Gillespies algorithm, then processed.
         The resulting timestep is returned
 
         @return: timestep
         @rtype: float
+
         """
         # choose a random event
         chosen, delta_t = self.probalist.choose()
@@ -761,23 +744,22 @@ class Crn:
         return delta_t
 
     def reac_toupdate(self, reac: Reaction) -> None:
-        """
-        Add Reaction 'reac' to the update list
+        """Add Reaction 'reac' to the update list.
 
         @param reac: reaction to be updated
         @type reac: Reaction
+
         """
         self._reac_update.add(reac)
 
     def comp_toupdate(self, comp: Compound, change: int) -> None:
-        """
-        Add Compound 'comp' to the update list,
-        for a population variation of 'change'
+        """Add Compound 'comp' to the update list, for a population variation of 'change'.
 
         @param comp: compound to be updated
         @type comp: Compound
         @param change: population change value
         @type change: int
+
         """
         try:
             self._comp_update[comp] += change
@@ -785,12 +767,13 @@ class Crn:
             self._comp_update[comp] = change
 
     def update(self) -> None:
-        """Perform a full Crn update
+        """Perform a full Crn update.
 
         It perform the update of all compounds from the update list.
         These updates place reactions to the next update list
         These reactions are updated
         All update lists are then placed to zero
+
         """
         for comp, change in self._comp_update.items():
             # Update compounds
@@ -806,21 +789,18 @@ class Crn:
     def collstat(
         self, collection: str, prop: str, weight: str, method: str, full: bool
     ) -> float:
-        """
-        Get statistics on compounds if 'collection' is set to 'compounds',
-        else on reactions.
+        """Get statistics on compounds if 'collection' is set to 'compounds', else on reactions.
 
-        'prop' is the name of the property to be collected as defined in
-        the corresponding  Collect._getprop
+        'prop' is the name of the property to be collected as defined in the corresponding
+        Collect._getprop
 
-        'weight' is the name of another property that will be used as a
-        weight.
+        'weight' is the name of another property that will be used as a weight.
 
-        'method': '+' returns the weighted sum, 'm' the weighted average,
-        'max' the weighted max value, 'min' the weighted min value
+        'method': '+' returns the weighted sum, 'm' the weighted average, 'max' the weighted max
+        value, 'min' the weighted min value
 
-        'full': if True, the stat is performed on the full pool
-        if False, only perform on active objects
+        'full': if True, the stat is performed on the full pool if False, only perform on active
+        objects
 
         @param collection: 'compounds' or 'reactions'
         @type collection: str
@@ -834,6 +814,7 @@ class Crn:
         @type full: bool
         @return: statistic value
         @rtype: float
+
         """
         return (
             self.comp_collect.stat(prop, weight, method, full)
@@ -850,23 +831,19 @@ class Crn:
         method: str,
         full: bool,
     ) -> Dict[float, float]:
-        """
-        Get statistic map on compounds if 'collection' is set to 'compounds',
-        else on reactions.
+        """Get statistic map on compounds if 'collection' is set to 'compounds', else on reactions.
 
-        'prop' is the name of the property to be collected as defined in
-        the corresponding  Collect._getprop
+        'prop' is the name of the property to be collected as defined in the corresponding
+        Collect._getprop
 
-        'weight' is the name of another property that will be used as a
-        weight.
+        'weight' is the name of another property that will be used as a weight.
 
-        'sort' is the name of the property used for sorting the statistics
-        in categories.
+        'sort' is the name of the property used for sorting the statistics in categories.
 
         'method': '+' returns the weighted sum, 'm' the weighted average
 
-        'full': if True, the stat is performed on the full pool
-        if False, only perform on active objects
+        'full': if True, the stat is performed on the full pool if False, only perform on active
+        objects
 
         @param collection: 'compounds' or 'reactions'
         @type collection: str
@@ -884,6 +861,7 @@ class Crn:
         @type full: bool
         @return: statistic value
         @rtype: float
+
         """
         return (
             self.comp_collect.map(prop, weight, sort, method, full)
