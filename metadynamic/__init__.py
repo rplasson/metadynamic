@@ -18,58 +18,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-"""
-Metadynamic stochastic simulator
-================================
+"""Simulation of chemical systems based on Gillespie's Stochastic algorithm.
 
-Simulation of chemical systems based on Gillespie's Stochastic algorithm, with on-the-fly
-creation/destruction of compounds and reactions.
+This package is for modeling metadynamic systems, with on-the-fly creation/destruction of compounds
+and reactions.
 
-
-Provides
---------
-
-    - :class:`launch`: function for launching a simulation from a .json parameter file, a .hdf5 result
-      file from a previous run, with eventual additional parameters, and storing the results in a
-      new .hdf5 file.
-
-    - :class:`ResultReader`: class for reading and extracting data from a .hdf5 result file.
-
-    - L{System}: class for creating, running, and directly controlling a simmulation.
-
-    - L{Crn}: class describing a Chemical Reaction Network.
-
-    - :class:`LOGGER`: global object for logging messages
-
-    - L{MPI_STATUS}: global object for getting information about the MPI status
-
-
-CLI interaction
----------------
-
-A script named 'metarun' is provided for launching a simulation from the command line.
-
-Usage::
-
-    metarun [-h] [-c comment] [-d logdir] [-l log_level] [-x compress_level] param_file
-
-    Launch a metadynamic run from a json or hdf5 file
-
-    positional arguments:
-      param_file            parameter json file, or previous hdf5 result file
-
-    optional arguments:
-      -h, --help            show this help message and exit
-      -c comment, --comment comment
-                            run comment string
-      -d logdir, --logdir logdir
-                            Directory for saving log text files
-                            (if set, will override the value from param_file)
-      -l log_level, --loglevel log_level
-                            Logging level: DEBUG, INFO, WARNING, ERROR
-                            (if set, will override the value from param_file)
-      -x compress_level, --compress compress_level
-                            compression level for the hdf5 output file
+- A simulation can be simply performed using the function L{launch}, or totally controlled as a
+  L{System} object.
+- Results can be read from a L{ResultReader} object.
+- Chemical reaction networks can be analyzed from L{Crn} objects.
+- L{LOGGER} and L{MPI_STATUS} global objects are available for logging and MPI facilities.
 
 """
 
