@@ -18,16 +18,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-"""
-metadynamic.result
-==================
+"""Interface for processing data from finished runs.
 
-Give access to data resulting from previous runs
-
-Provides
---------
-
-    - L{ResultReader}: class for reading and extracting data from a .hdf5 result file.
+It provides L{ResultReader}, a class for reading and extracting data from a .hdf5 result file.
 
 """
 
@@ -51,11 +44,11 @@ reac_cast: Callable[[Any], Dict[str, List[float]]] = Caster(Dict[str, List[float
 
 
 class ResultReader:
-    """Interface for a hdf5 result file"""
+    """Interface for a hdf5 result file."""
 
     def __init__(self, filename: str) -> None:
         """
-        Create a reader connected to a .hdf5 result file
+        Create a reader connected to a .hdf5 result file.
 
         @param filename: name of the .hdf5 file
         @type filename: str
@@ -101,7 +94,7 @@ class ResultReader:
 
     def __getitem__(self, field: str) -> np.ndarray:
         """
-        Return either a data or a map array corresponding to 'field'
+        Return either a data or a map array corresponding to 'field'.
 
         Valid for field in self.datanames or self.mapnames
         """
@@ -114,6 +107,7 @@ class ResultReader:
     def _loc(self, field: str) -> int:
         """
         Return the index number of the given field name.
+
         Valid fields are listed in self.datanames
 
         @param field: Name of the field
@@ -129,10 +123,10 @@ class ResultReader:
     def get(
         self, field: str = invalidstr, method: str = "m", meanlength: int = invalidint,
     ) -> np.ndarray:
-        """
-        Return the saved result data named 'field'.
-        Valid fields are listed in self.datanames
-        If no field is provided, the full dataset will be returned.
+        """Return the saved result data named 'field'.
+
+        Valid fields are listed in self.datanames If no field is provided, the full dataset will be
+        returned.
 
         'method' can be set to:
             - 'm', the average values over all processes is returned (default).
@@ -153,6 +147,7 @@ class ResultReader:
         @type method: int
         @return: the processed set of data
         @rtype: ndarray
+
         """
         loc = self._loc(field) if isvalid(field) else slice(None, None, None)
         if method == "*":
@@ -186,6 +181,7 @@ class ResultReader:
     ) -> np.ndarray:
         """
         Return the saved property map data named 'field'.
+
         Valid fields are listed in self.mapnames
 
         'method' can be set to:
@@ -236,23 +232,20 @@ class ResultReader:
         )
 
     def getcrn(self, comp: Dict[str, int]) -> Crn:
-        """
-        Generate a Chemical Reaction Network from a dictionnary
-        as {compound_name : population}
+        """Generate a Chemical Reaction Network from a dictionnary as {compound_name : population}.
 
         @param comp: compounds and population
         @type comp: Dict[str: int]
         @return: the corresponding CRN
         @rtype: Crn
+
         """
         param = self.parameters
         param.set_param(init=comp)
         return Crn(param)
 
     def getsnap_comp(self, num: int, step: int) -> Dict[str, int]:
-        """
-        Return the compounds snapshots saved by thread 'num'
-        at step 'step'
+        """Return the compounds snapshots saved by thread 'num' at step 'step'.
 
         @param num: thread number
         @type num: int
@@ -260,6 +253,7 @@ class ResultReader:
         @type step: int
         @return: the snapshot as a dictionnary {compound name: population}
         @rtype: Dict[str, int]
+
         """
         comp = comp_cast(self.compsnap[num, step])
         if "" in comp:
@@ -267,10 +261,10 @@ class ResultReader:
         return comp
 
     def getsnap(self, num: int, step: int, parameterfile: str = "") -> Digraph:
-        """
-        Return the snapshot saved by thread 'num' at step 'step'
-        following the format as described in 'parameterfile'
-        that should point to a file readable as a DotParam json file.
+        """Return the snapshot saved by thread 'num' at step 'step'.
+
+        It follows the format as described in 'parameterfile' that should point to a file readable
+        as a DotParam json file.
 
         @param num: thread number
         @type num: int
@@ -279,6 +273,7 @@ class ResultReader:
         @param parameterfile: filename of a Dotparam json file  (Default value = "")
         @return: the full snapshot as a graphviz object
         @rtype: Digraph
+
         """
         comp = self.getsnap_comp(num, step)
         if self.reacsnapsave[num, step]:
@@ -292,37 +287,38 @@ class ResultReader:
         return Data2dot(comp, reac, parameterfile).crn.dot
 
     def categories(self, field: str) -> np.ndarray:
-        """
-        Get the list of available categories for th given 'field'
+        """Get the list of available categories for th given 'field'.
+
         Valid fields are listed in self.mapnames
 
         @param field: Name of the map field.
         @type field: str
         @return: array of field categories
         @rtype: ndarray
+
         """
         return self.maps[field][0, :, 0]
 
     def ending(self, num: int) -> Tuple[int, str, float]:
-        """
-        Return the details of ending information sent by thread 'num
+        """Return the details of ending information sent by thread 'num'.
 
         @param num: thread number
         @type num: int
         @return: ending number, ending message, ending time
         @rtype: int, str, float
+
         """
         endnum, message, time = self.end[num]
         return endnum, message.decode(), time
 
     def endmsg(self, num: int) -> str:
-        """
-        Return formatted ending information sent by thread 'num
+        """Return formatted ending information sent by thread 'num'.
 
         @param num: thread number
         @type num: int
         @return: formatted ending information
         @rtype: str
+
         """
         endnum, message, time = self.ending(num)
         return f"#{num}: ending n°{endnum} at runtime t={time}s; {message}"
@@ -330,8 +326,7 @@ class ResultReader:
     def table(
         self, maps: str = invalidstr, method: str = "m", meanlength: int = invalidint
     ) -> DataFrame:
-        """
-        Return the requested data formatted in a pandas DataFrame
+        """Return the requested data formatted in a pandas DataFrame.
 
         If maps is set, a dataframe of the corresponding map field will be returned
         Valid values are listed self.mapnames.
@@ -347,6 +342,7 @@ class ResultReader:
         @type meanlength: int
         @return: the processed set of data
         @rtype: DataFrame
+
         """
         if isvalid(maps):
             data = self.getmap(field=maps, method=method, meanlength=meanlength)
@@ -364,9 +360,9 @@ class ResultReader:
         xmethod: str = "m",
         meanlength: int = invalidint,
     ) -> Tuple[np.ndarray, np.ndarray]:
-        """
-        Return two data fields as named in 'x' and 'y', so that
-        they can be directly plotted with matplotlib.
+        """Return two data fields as named in 'x' and 'y'.
+
+        The returned value can be directly plotted with matplotlib.
 
         Valid field names for x and y are listed in self.datanames
 
@@ -385,6 +381,7 @@ class ResultReader:
         @type meanlength: int
         @return: two 1D data arrays for x and y
         @rtype: ndarray, ndarray
+
         """
         x = self.get(field=x, method=xmethod, meanlength=meanlength)
         y = self.get(field=y, method=method, meanlength=meanlength)
@@ -397,10 +394,11 @@ class ResultReader:
         xmethod: str = "m",
         meanlength: int = invalidint,
     ) -> Tuple[np.ndarray, np.ndarray]:
-        """
-        Return two data fields as named in 'x' and 'y', so that
-        they can be directly plotted with matplotlib.
-        'y' contains the indvidual dats as obtained from each thread.
+        """Return two data fields as named in 'x' and 'y'.
+
+        The returned values can be directly plotted with matplotlib.
+
+        'y' contains the individual datas obtained from each thread.
 
         Valid field names for x and y are listed in self.datanames
 
@@ -416,6 +414,7 @@ class ResultReader:
         @type meanlength: int
         @return: 1D data arrays for x and 2D data arrays for y
         @rtype: ndarray, ndarray
+
         """
         x = self.get(field=x, method=xmethod, meanlength=meanlength)
         y = np.array(
@@ -433,9 +432,9 @@ class ResultReader:
         delta: float = 1.0,
         meanlength: int = invalidint,
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        """
-        Return three data fields as named in 'x' and 'y', as x, y+err, y-err
-        so that they can be  plotted with matplotlib with, e.g., fill_between.
+        """Return three data fields as named in 'x' and 'y', as x, y+err, y-err.
+
+        The returned values can be plotted with matplotlib with, e.g., fill_between.
 
         Valid field names for x and y are listed in self.datanames
 
@@ -453,6 +452,7 @@ class ResultReader:
         @type meanlength: int
         @return: three 1D data arrays for x, y+err, y-err
         @rtype: ndarray, ndarray, ndarray
+
         """
         return (
             self.get(field=x, method="m", meanlength=meanlength),
@@ -467,9 +467,9 @@ class ResultReader:
         delta: float = 1.0,
         meanlength: int = invalidint,
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        """
-        Return three data fields as named in 'x' and 'y', as x, y, yerr
-        so that they can be  plotted with matplotlib with, e.g., errorbar.
+        """Return three data fields as named in 'x' and 'y', as x, y, yerr.
+
+        The returned values can be plotted with matplotlib with, e.g., errorbar.
 
         Valid field names for x and y are listed in self.datanames
 
@@ -487,6 +487,7 @@ class ResultReader:
         @type meanlength: int
         @return: three 1D data arrays for x, y, yerr
         @rtype: ndarray, ndarray, ndarray
+
         """
         x = self.get(field=x, method="m", meanlength=meanlength)
         y = self.get(field=y, method=f"m", meanlength=meanlength)
@@ -503,9 +504,10 @@ class ResultReader:
         posinf: Optional[float] = None,
         neginf: Optional[float] = None,
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        """
-        Return three 2D arrays for plotting a map with, e.g., matplotlib plot_surface,
-        as X the time, Y the field category, and Z ther data from 'field'
+        """Return three 2D arrays.
+
+         The retyurned values can be used for plotting a map with, e.g., matplotlib plot_surface, as
+        X the time, Y the field category, and Z the data from 'field'
 
         Valid field names are listed in self.mapnames
 
@@ -532,6 +534,7 @@ class ResultReader:
         @type neginf: float or None
         @return: three 2D mesh data arrays for X, Y, Z
         @rtype: ndarray, ndarray, ndarray
+
         """
         time = self.get(field="time", method=tmethod, meanlength=meanlength)
         categories = self.categories(field)
@@ -552,10 +555,10 @@ class ResultReader:
 
     @property
     def printinfo(self) -> str:
-        """
-        Formated information of the full run
+        """Return formated information of the full run.
 
         @rtype: str
+
         """
         version = self.run.attrs["version"]
         hostname = self.run.attrs["hostname"]
@@ -579,19 +582,19 @@ class ResultReader:
 
     @property
     def runinfo(self) -> Dict[str, Any]:
-        """
-        Structured information of the full run
+        """Structured information of the full run.
 
         @rtype: dict
+
         """
         return dict(self.run.attrs)
 
     @property
     def parameters(self) -> Param:
-        """
-        Parameters used for the run
+        """Parameters used for the run.
 
         @rtype: Param
+
         """
         params = dict(self.params.attrs)
         res = params.copy()
@@ -607,10 +610,10 @@ class ResultReader:
 
     @property
     def ruleset(self) -> RulesetParam:
-        """
-        Parameters used for setting the ruleset
+        """Parameters used for setting the ruleset.
 
         @rtype: RulesetParam
+
         """
         ruleset = dict(self.params["Rules"].attrs)
         res = ruleset.copy()
@@ -628,10 +631,10 @@ class ResultReader:
 
     @property
     def statparam(self) -> Dict[str, StatParam]:
-        """
-        Parameters used for setting the statistics
+        """Parameters used for setting the statistics.
 
         @rtype: Dict[str, StatParam]
+
         """
         return StatParam.multipledict(
             {key: dict(val.attrs) for key, val in self.params["Stats"].items()}
@@ -639,10 +642,10 @@ class ResultReader:
 
     @property
     def mapparam(self) -> Dict[str, MapParam]:
-        """
-        Parameters used for setting the maps
+        """Parameters used for setting the maps.
 
         @rtype: Dict[str, MapParam]
+
         """
         return MapParam.multipledict(
             {key: dict(val.attrs) for key, val in self.params["Maps"].items()}
@@ -650,12 +653,13 @@ class ResultReader:
 
     @property
     def fulllog(self) -> np.ndarray:
-        """
-        Array containing the full log of the run processes
-        fulllog[nb_thread, nb_log_message] gives a given message
-        as message_level, time, runtime, message
+        """Array containing the full log of the run processes.
+
+        fulllog[nb_thread, nb_log_message] gives a given message as message_level, time, runtime,
+        message
 
         @rtype: ndarray
+
         """
         # add simple system for log display/search (depending on level etc) ?
         maxcol = max(self.logcount)
