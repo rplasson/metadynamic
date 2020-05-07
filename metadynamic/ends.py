@@ -18,18 +18,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-"""
-metadynamic.ends
-================
-
-General exceptions to be used in metadynamic code
-
-Provides:
----------
+"""General exceptions to be used in metadynamic code.
 
 Exception categories inherit from Finished:
-HappyEnding, BadEnding, Aborted, InputError
-
  - L{HappyEnding} is intended for normal end of the computation
  - L{Aborted} is intended to signal that the computation ended earlier than expected,
    but lead to a nonetheless correct result
@@ -37,9 +28,9 @@ HappyEnding, BadEnding, Aborted, InputError
  - L{InputError} is intended to signal problems with file read or write, unrelated to
    the computation itself.
 
-All exceptions intended to be used are derived from one
-of these categories. indicating the general context of the
-exception.
+All exceptions intended to be used are derived from one of these categories, indicating the general
+context of the exception.
+
 """
 
 from typing import Union, Callable
@@ -57,7 +48,7 @@ from signal import (
 
 
 class Finished(Exception):
-    """General exception raised at run completion"""
+    """General exception raised at run completion."""
 
     num = -1
     """exception number"""
@@ -65,11 +56,11 @@ class Finished(Exception):
     """exception base message"""
 
     def __init__(self, detail: str = ""):
-        """
-        When the exception is raised, details can be added to the base error mesage
+        """When the exception is raised, details can be added to the base error mesage.
 
         @param detail: details to be added to error message
         @type detail: str
+
         """
         self.detail = detail
         """additional information"""
@@ -77,11 +68,11 @@ class Finished(Exception):
 
     @property
     def message(self) -> str:
-        """
-        Format the exception message
+        """Format the exception message.
 
         @return: full exception message
         @rtype: str
+
         """
         msg = self.error_message
         if self.detail != "":
@@ -89,7 +80,7 @@ class Finished(Exception):
         return msg
 
     def __str__(self) -> str:
-        """Formatted conversion to str"""
+        """Return a formatted ending message."""
         return f"End ({self.num}): {self.message}"
 
 
@@ -97,19 +88,19 @@ class Finished(Exception):
 
 
 class HappyEnding(Finished):
-    """Raised for normal run completion"""
+    """Raised for normal run completion."""
 
 
 class BadEnding(Finished):
-    """Raised for faulty run completion"""
+    """Raised for faulty run completion."""
 
 
 class Aborted(Finished):
-    """Raised for shortened, but correct, run completion"""
+    """Raised for shortened, but correct, run completion."""
 
 
 class InputError(BadEnding):
-    """Raised when problem are encountered when reading input files"""
+    """Raised when problem are encountered when reading input files."""
 
 
 # Exceptions expected to be raised
@@ -118,7 +109,7 @@ class InputError(BadEnding):
 
 
 class InternalError(BadEnding):
-    """Something went bad in the code"""
+    """Something went bad in the code."""
 
     num = 0
     error_message = "Something went bad in the code"
@@ -128,14 +119,14 @@ class InternalError(BadEnding):
 
 
 class TimesUp(HappyEnding):
-    """Time is up"""
+    """Time is up."""
 
     num = 10
     error_message = "Time is up"
 
 
 class NoMore(HappyEnding):
-    """No more reactions can be processed"""
+    """No more reactions can be processed."""
 
     num = 11
     error_message = "No more reactions can be processed"
@@ -145,21 +136,21 @@ class NoMore(HappyEnding):
 
 
 class NotFound(BadEnding):
-    """No reaction could be find"""
+    """No reaction could be find."""
 
     num = 20
     error_message = "No reaction could be find"
 
 
 class RoundError(BadEnding):
-    """Rounding problem/negative probability"""
+    """Rounding problem/negative probability."""
 
     num = 21
     error_message = "Rounding problem/negative probability detected"
 
 
 class DecrZero(BadEnding):
-    """Tried to decrement unpopulated species"""
+    """Tried to decrement unpopulated species."""
 
     num = 22
     error_message = "Tried to decrement unpopulated species"
@@ -169,28 +160,28 @@ class DecrZero(BadEnding):
 
 
 class RuntimeLim(Aborted):
-    """Runtime limit exceeded"""
+    """Runtime limit exceeded."""
 
     num = 30
     error_message = "Runtime limit exceeded"
 
 
 class InitError(Aborted):
-    """Error during initialization"""
+    """Error during initialization."""
 
     num = 31
     error_message = "Error during initialization"
 
 
 class Interrupted(Aborted):
-    """Asked to stop"""
+    """Asked to stop."""
 
     num = 32
     error_message = "Asked to stop"
 
 
 class OOMError(Aborted):
-    """Out of Memory"""
+    """Out of Memory."""
 
     num = 33
     error_message = "Out of Memory"
@@ -207,28 +198,28 @@ class FileNotFound(InputError):
 
 
 class BadFile(InputError):
-    """The provided file is badly formed"""
+    """The provided file is badly formed."""
 
     num = 41
     error_message = "The provided file is badly formed"
 
 
 class BadJSON(InputError):
-    """Bad JSON format"""
+    """Bad JSON format."""
 
     num = 42
     error_message = "Bad JSON format"
 
 
 class FileCreationError(InputError):
-    """The file couldn't be created"""
+    """The file couldn't be created."""
 
     num = 43
     error_message = "The file couldn't be created"
 
 
 class NotAFolder(InputError):
-    """The provided foldername is not a folder"""
+    """The provided foldername is not a folder."""
 
     num = 44
     error_message = "The provided foldername is not a folder"
@@ -241,12 +232,10 @@ SignHandler = Union[Callable[[Signals, FrameType], None], int, Handlers, None]
 
 
 class SignalCatcher:
-    """
-    Instances of this class can be used to temporarily catch SIGTERM and SIGINT signal interruptions
-    """
+    """Catch temporarily SIGTERM and SIGINT signal interruptions."""
 
     def __init__(self) -> None:
-        """Simply create the object, and do not change anything to signal handling"""
+        """Simply create the object, and do not change anything to signal handling."""
         self.alive: bool = False
         """aliveness flag
         (when set in listen state, it is True until SIGINT or SIGTERM is received)"""
@@ -260,42 +249,41 @@ class SignalCatcher:
         """Initial handler to which SIGTINT was connected"""
 
     def reset(self) -> None:
-        """Return to the signal handling state as it was at object creation"""
+        """Return to the signal handling state as it was at object creation."""
         signal(SIGTERM, self._initial_term)
         signal(SIGINT, self._initial_int)
 
     def ignore(self) -> None:
-        """SIGTERM and SIGINT signales to be ignored"""
+        """SIGTERM and SIGINT signals to be ignored."""
         self.init_signal(SIG_IGN)
 
     def release(self) -> None:
-        """SIGTERM and SIGINT signal to be set to default behaviour"""
+        """SIGTERM and SIGINT signal to be set to default behaviour."""
         self.init_signal(SIG_DFL)
 
     def listen(self) -> None:
-        """
-        SIGTERM and SIGINT signal to be set to listen:
+        """SIGTERM and SIGINT signal to be set to listen.
 
-        When a signal is received, L{signal_listen} is called,
-        namely setting the flag alive to False
+        When a signal is received, L{signal_listen} is called, namely setting the flag alive to
+        False
+
         """
         self.alive = True
         self.init_signal(self.signal_listen)
 
     @staticmethod
     def init_signal(handler: SignHandler) -> None:
-        """
-        Connect the SIGTERM and SIGINT signals to a specific handler
+        """Connect the SIGTERM and SIGINT signals to a specific handler.
 
         @param handler: signal handler to connect to
         @type handler: SignHandler
+
         """
         signal(SIGTERM, handler)
         signal(SIGINT, handler)
 
     def signal_listen(self, received_signal: Signals, frame: FrameType) -> None:
-        """
-        Actions to be performed when SIGINT or SIGTERM are received when in 'listen' state.
+        """Actions to be performed when SIGINT or SIGTERM are received when in 'listen' state.
 
         It switches the self.alive flag to False,
         saves the signal name in self.signal,
@@ -306,6 +294,7 @@ class SignalCatcher:
         @type received_signal: Signals
         @param frame: context frame at signal reception
         @type frame: FrameType
+
         """
         self.alive = False
         self.signal = Signals(received_signal).name
