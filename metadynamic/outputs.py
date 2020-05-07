@@ -19,16 +19,9 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 """
-metadynamic.outputs
-===================
+Module for dealing with output files organization.
 
-deal with output files organization
-
-
-Provides:
----------
-
- - L{Output}: access to output files and folders
+It provides an L{Output} class for accessing output files and folders
 
 """
 
@@ -41,11 +34,11 @@ from metadynamic.ends import NotAFolder
 
 
 class Output:
-    """Access to output files and folders"""
+    """Access to output files and folders."""
 
     def __init__(self, param: Param):
         """
-        Generate files structures from parameters
+        Generate files structures from parameters.
 
         @param param: parameters
         @type param: Param
@@ -66,12 +59,14 @@ class Output:
 
     @property
     def process(self) -> str:
-        """
-        return '-p<n>' where n is the process number in a MPI run,
-        or an empty string if the run is not MPI_GATE
+        """Return a tring describing the MPI process rank.
+
+        It will output '-p<n>' where n is the process number in a MPI run, or an empty string if the
+        run is not MPI
 
         @return: process string
         @rtype: str
+
         """
         if MPI_STATUS.ismpi:
             return f"-p{MPI_STATUS.rank}"
@@ -79,32 +74,31 @@ class Output:
 
     @property
     def basename(self) -> str:
-        """
-        file basename, as <run name>-<hostname>-<start time>
+        """File basename, as <run name>-<hostname>-<start time>.
 
         @return: file basename
         @rtype: str
+
         """
         return f"{self.name}-{MPI_STATUS.hostname}-{MPI_STATUS.starttime}"
 
     @property
     def h5file(self) -> str:
-        """
-        hdf5 file name (with full path)
+        """hdf5 file name (with full path).
 
         @return: hdf5 file name
         @rtype: str
+
         """
         return path.join(self.savedir, f"{self.basename}.hdf5")
 
     @property
     def logfile(self) -> str:
-        """
-        log file name (with full path)
-        empty string if log to standard output
+        """Logfile name with full path (or empty string if log to standard output).
 
         @return: log file name
         @rtype: str
+
         """
         if self.logdir and path.isdir(self.logdir):
             return path.join(self.logdir, f"{self.basename}{self.process}.log")
