@@ -224,7 +224,7 @@ class Readerclass:
 
         @param param: parameter name
         @type param: str
-        @return caster to the parameter type
+        @return: caster to the parameter type
         @rtype: Castreader
 
         """
@@ -240,7 +240,7 @@ class Readerclass:
         @param val: value to be checked
         @return: converted value consistent with 'key' type
         @raise BadFile: raised if 'val' cannot be casted, or if 'val' if not of the correct type
-        (in case of an autocast set to False, or of a faulty Caster
+          (in case of an autocast set to False, or of a faulty Caster)
 
         """
         err = ""

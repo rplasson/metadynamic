@@ -43,7 +43,7 @@ def launch(parameters: str, **kwd: Any) -> ResultReader:
 
     @param parameters: name of the parameter file (.json or .hdf5)
     @type parameters: str
-    @param **kwd: additional parameters (override the one defined in parameters file)
+    @param kwd: additional parameters (override the one defined in parameters file)
     @return: Interface object to the generated .hdf5 file.
     @rtype: ResultReader
 

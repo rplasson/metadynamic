@@ -421,7 +421,7 @@ class System:
 
         @param filename: Name of the Param json file
         @type filename: str
-        @param **kwd: Additional parameters
+        @param kwd: Additional parameters
         @return: newly created System object
         @rtype: System
         """
@@ -449,7 +449,7 @@ class System:
         @type snapnum: int
         @param snapstep: snapshot step to start from (Default value = -1)
         @type snapstep: int
-        @param **kwd: Additional parameters
+        @param kwd: Additional parameters
         @return: newly created System object
         @rtype: System
         """
