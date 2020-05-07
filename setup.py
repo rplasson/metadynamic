@@ -44,8 +44,50 @@ setuptools.setup(
         ("share/doc/python3-metadynamic/examples", glob("docs/examples/*")),
         ("share/doc/python3-metadynamic/tests", glob("docs/tests/*")),
         (
+            "share/doc/python3-metadynamic/sphinx",
+            [
+                "docs/sphinx/_build/html/genindex.html",
+                "docs/sphinx/_build/html/index.html",
+                "docs/sphinx/_build/html/objects.inv",
+                "docs/sphinx/_build/html/py-modindex.html",
+                "docs/sphinx/_build/html/search.html",
+                "docs/sphinx/_build/html/searchindex.js",
+            ],
+        ),
+        (
+            "share/doc/python3-metadynamic/sphinx/api",
+            glob("docs/sphinx/_build/html/api/*"),
+        ),
+        (
+            "share/doc/python3-metadynamic/sphinx/usage",
+            glob("docs/sphinx/_build/html/usage/*"),
+        ),
+        (
+            "share/doc/python3-metadynamic/sphinx/_static",
+            glob("docs/sphinx/_build/html/_static/*"),
+        ),
+        (
+            "share/doc/python3-metadynamic/sphinx/_sources",
+            ["docs/sphinx/_build/html/_sources/index.rst.txt"],
+        ),
+        (
+            "share/doc/python3-metadynamic/sphinx/_sources/api",
+            glob("docs/sphinx/_build/html/_sources/api/*"),
+        ),
+        (
+            "share/doc/python3-metadynamic/sphinx/_sources/usage",
+            glob("docs/sphinx/_build/html/_sources/usage/*"),
+        ),
+        (
             "share/doc/python3-metadynamic/",
-            ["README.md", "copyright", "docs/classes.pdf", "docs/packages.pdf"],
+            [
+                "README.md",
+                "copyright",
+                "docs/classes.pdf",
+                "docs/packages.pdf",
+                "docs/sphinx/_build/epub/metadynamic.epub",
+                "docs/sphinx/_build/latex/metadynamic.pdf",
+            ],
         ),
     ],
     classifiers=[

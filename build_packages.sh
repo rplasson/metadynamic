@@ -8,7 +8,13 @@ fi
 
 
 # build doc
-pydoctor --html-output=./docs/apidocs/ metadynamic
+pydoctor --html-output=./docs/apidocs/ --project-name=metadynamic metadynamic
+#cd docs/sphinx
+#make clean
+#make html
+#make epub
+#make latexpdf
+#cd -
 
 # build packages
 rm -r deb_dist/*
