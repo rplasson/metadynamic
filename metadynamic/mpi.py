@@ -67,7 +67,7 @@ class Cont:
 
 
 class MpiGate:
-    """MPI barrier that can be opened/closed by any thread for on-demand requests of synchronization."""
+    """MPI barrier that can be opened/closed by any thread for on-demand synchronization."""
 
     def __init__(
         self,

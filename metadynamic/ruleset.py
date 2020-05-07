@@ -755,7 +755,7 @@ def kdualchoice(
 
 
 def novariant_gen() -> VariantBuilder:
-    """Generate a VariantBuilder for reactions with no variant (i.e. only one possible outcome).
+    """Generate a VariantBuilder for reactions with no variant (only one possible outcome).
 
     The returned VariantBuilder will return a single invalid variant value,
     thus is intended to be used with ProdBuilder and ConstBuilder
@@ -769,7 +769,7 @@ def novariant_gen() -> VariantBuilder:
 
 
 def singlevariant(num: int) -> VariantBuilder:
-    """Generate a VariantBuilder for reactions with a single variant (i.e. only one possible outcome).
+    """Generate a VariantBuilder for reactions with a single variant (only one possible outcome).
 
     The returned VariantBuilder will return a single valid variant value 'num',
     thus is intended to be used with ProdBuilder and ConstBuilder

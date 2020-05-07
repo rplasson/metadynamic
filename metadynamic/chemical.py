@@ -558,9 +558,10 @@ class Compound(Chemical[str]):
         self.crn.comp_collect.unactivate(self.description)
 
     def register_reaction(self, reaction: Reaction) -> None:
-        """Register a reaction in the compound list of the reactions it is involved in as a reactant.
+        """Register a new reaction.
 
-        (registered in self.reactions)
+        Reactions registered in self.reactions are the one the compound is involved in as a
+        reactant.
 
         This enable to trigger the update of necessary reactions
         when the compound population changes.
@@ -572,11 +573,12 @@ class Compound(Chemical[str]):
         self.reactions.add(reaction)
 
     def unregister_reaction(self, reaction: Reaction) -> None:
-        """Unregister a reaction from the compound list of the reactions it is involved in as a reactant.
+        """Unregister a reaction.
 
-        (unregistered from self.reactions)
+        Reactions registered in self.reactions are the one the compound is involved in as a
+        reactant.
 
-        Called at reaction deactivation.
+        Called during reaction deactivation.
 
         @param reaction: reaction object to be unregistered
         @type reaction: Reaction
