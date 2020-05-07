@@ -18,17 +18,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-"""
-metadynamic.hdf5
-================
+"""Interface to hdf5 result file.
 
-interface to hdf5 result file
+It provides the L{ResultWriter} class.
 
-
-Provides:
----------
-
- - L{ResultWriter}: storage for all the simulation data and results
 """
 
 from datetime import datetime
@@ -52,7 +45,7 @@ reac_cast: Callable[[Any], Dict[str, List[float]]] = Caster(Dict[str, List[float
 
 
 class ResultWriter:
-    """Storage for all the simulation data and results"""
+    """Storage for all the simulation data and results."""
 
     def __init__(
         self,
@@ -61,8 +54,7 @@ class ResultWriter:
         lengrow: int = 10,
         timeformat: str = "%H:%M:%S, %d/%m/%y",
     ) -> None:
-        """
-        Open the hdf5 result file
+        """Open the hdf5 result file.
 
         @param filename: name of the hdf5 file
         @type filename: str
@@ -73,6 +65,7 @@ class ResultWriter:
         @type lengrow: int
         @param timeformat: time/date formatting string
         @type timeformat: str
+
         """
         if not isvalid(filename) or filename == "":
             raise FileNotFoundError(f"Plese enter a valid output file name")
@@ -149,13 +142,13 @@ class ResultWriter:
         """hdf5 Dataset 'Logging/logs' (recorded log lines)"""
 
     def init_log(self, maxlog: int) -> None:
-        """
-        Init logging interface to hdf5 file
+        """Init logging interface to hdf5 file.
 
         @param maxlog: (initial) maximum log line to reserve in hdf5 file
             if more space is needed, maxlog more lines will be reserved.
             unused lines will be removed at run end.
         @type maxlog: int
+
         """
         self.maxlog = maxlog
         self.dlog = maxlog
@@ -179,8 +172,11 @@ class ResultWriter:
         self._init_log = True
 
     def add_log_line(self) -> None:
-        """Reserve more lines for logging
-        (function intended to be called as a sync. op. of MPI gate)"""
+        """Reserve more lines for logging.
+
+        This function intended to be called as a synchronized operation of MPI gate.
+
+        """
         self.maxlog = self.maxlog + self.dlog
         try:
             self.logs.resize(self.maxlog, axis=1)
@@ -189,8 +185,7 @@ class ResultWriter:
             self._init_log = False
 
     def write_log(self, level: int, time: str, runtime: float, msg: str) -> None:
-        """
-        Write a log line if the file
+        """Write a log line if the file.
 
         @param level: logging level number
         @type level: int
@@ -200,6 +195,7 @@ class ResultWriter:
         @type runtime: float
         @param msg: logged message
         @type msg: str
+
         """
         try:
             if self._init_log:
@@ -222,7 +218,7 @@ class ResultWriter:
             self._init_log = False
 
     def close_log(self) -> None:
-        """Stop logging in file"""
+        """Stop logging in file."""
         cutline = MPI_STATUS.max(self.logcount[MPI_STATUS.rank])
         self.logs.resize(cutline, axis=1)
         self._init_log = False
@@ -236,8 +232,7 @@ class ResultWriter:
         comment: str,
         nbcol: int,
     ) -> None:
-        """
-        Initialize statistics recording
+        """Initialize statistics recording.
 
         @param datanames: list of data field names
         @type datanames: List[str]
@@ -251,6 +246,7 @@ class ResultWriter:
         @type comment: str
         @param nbcol: initial number of columns to reserve in file
         @type nbcol: int
+
         """
         size = MPI_STATUS.size
         self.nbcol = nbcol + self.lengrow
@@ -324,27 +320,30 @@ class ResultWriter:
         self._init_stat = True
 
     def test_initialized(self) -> None:
-        """
-        Test if the file was intialized for storing statistics
+        """Test if the file was intialized for storing statistics.
 
         @raise InternalError: if not initialized
+
         """
         if not self._init_stat:
             raise InternalError("Attempt to write in HDF5 file before intialization")
 
     def add_col(self) -> None:
-        """Reserve additional columns for storing results
-        (function intended to be called as a sync. op. of MPI gate)"""
+        """Reserve additional columns for storing results.
+
+        This function is intended to be called as a synchronized opweration of MPI gate
+
+        """
         self.nbcol = self.nbcol + self.dcol
         self.data_resize(self.nbcol)
 
     def data_resize(self, nbcol: float = invalidfloat) -> None:
-        """
-        Resize data size of hdf5 datasets
+        """Resize data size of hdf5 datasets.
 
         @param nbcol: number of column to resize to (if invalid, cutout empty lines)
             (Default value = invalidfloat)
         @type nbcol: float
+
         """
         if not isvalid(nbcol):
             nbcol = MPI_STATUS.max(self.currentcol)
@@ -355,8 +354,7 @@ class ResultWriter:
     def add_map(
         self, name: str, categories: List[float], data: Dict[float, List[float]]
     ) -> None:
-        """
-        write a datya map into the file
+        """Write a data map into the file.
 
         @param name: name of the map to save
         @type name: str
@@ -364,6 +362,7 @@ class ResultWriter:
         @type categories: List[float]
         @param data: data map to save
         @type data: Dict[str, List[float]]
+
         """
         self.test_initialized()
         mapsize = len(categories)
@@ -377,8 +376,7 @@ class ResultWriter:
                 pass  # No problem, some categories may have been reached by only some processes
 
     def snapsize(self, maxcomp: int, maxreac: int, maxsnap: int) -> None:
-        """
-        Reserve space for storing snapshots
+        """Reserve space for storing snapshots.
 
         @param maxcomp: maximum number of compounds
         @type maxcomp: int
@@ -386,6 +384,7 @@ class ResultWriter:
         @type maxreac: int
         @param maxsnap: maximum number of snapshots
         @type maxsnap: int
+
         """
         self.test_initialized()
         self.timesnap.resize((MPI_STATUS.size, maxsnap))
@@ -395,7 +394,7 @@ class ResultWriter:
         self._snapsized = True
 
     def close(self) -> None:
-        """Close hdf5 file"""
+        """Close hdf5 file."""
         self.data_resize()
         self.close_log()
         self.run.attrs["end"] = datetime.now().strftime(self.timeformat)
@@ -404,13 +403,13 @@ class ResultWriter:
         self.h5file.close()
 
     def add_data(self, result: List[float]) -> None:
-        """
-        Write a data column
+        """Write a data column.
 
         @param result: dataset to save
         @param type: List[float]
 
         @raise InternalError: if no more space is left for storing data
+
         """
         self.test_initialized()
         try:
@@ -424,13 +423,13 @@ class ResultWriter:
             )
 
     def add_end(self, ending: Finished, time: float) -> None:
-        """
-        Write an ending message
+        """Write an ending message.
 
         @param ending: Finished exception raised for ending the runinfo
         @type ending: Finished
         @param time: ending time
         @type time: float
+
         """
         self.test_initialized()
         self.end[MPI_STATUS.rank] = (
@@ -446,8 +445,7 @@ class ResultWriter:
         col: int,
         time: float,
     ) -> None:
-        """
-        Write a snapshot
+        """Write a snapshot.
 
         @param complist: compound collection as {name:population}
         @type complist: Dict[str, int]
@@ -459,6 +457,7 @@ class ResultWriter:
         @type time: float
 
         @raise InternalError: if attempt to write a snapshot before correct dataset sizing
+
         """
         self.test_initialized()
         if self._snapsized:
@@ -479,8 +478,7 @@ class ResultWriter:
             raise InternalError(f"Snapshots data in hdf5 file wasn't properly sized")
 
     def dict_as_attr(self, group: Group, datas: Dict[str, Any], name: str = "") -> None:
-        """
-        Write the data dictionary as a set of attributes in hdf5 group
+        """Write the data dictionary as a set of attributes in hdf5 group.
 
         In case of embedded dictionary {'key1':{'key2': value}},
         attributes will be flatten as {'key1->key2' : value}
@@ -493,6 +491,7 @@ class ResultWriter:
             intended to be used only by recursive calls)
             Ignored if empty (default).
         @type name: str
+
         """
         for key, val in datas.items():
             if name:
@@ -503,9 +502,9 @@ class ResultWriter:
                 self.dict_as_attr(group, val, name=key)
 
     def multiread_as_attr(self, group: Group, datas: Mapping[str, Readerclass]) -> None:
-        """
-        Write multiple dictionaries from a collection of identical embedded Readerclass fields
-        (typically for the statparams and mapparams field of Param)
+        """Write multiple dictionaries from a collection of identical embedded Readerclass fields.
+
+        This is typically for the statparams and mapparams field of Param.
 
         subgroups will be created for each datas key, and corresponding attributes written there.
 
@@ -513,6 +512,7 @@ class ResultWriter:
         @type group: Group
         @param datas: dictionary to be stored as attributes.
         @type datas: Mapping[str, Readerclass]
+
         """
         for key, val in datas.items():
             subgroup = group.create_group(key)
