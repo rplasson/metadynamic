@@ -13,29 +13,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-"""
-metadynamic.inval
-=================
+"""Define invalid values of any type.
 
-defines invalid values for any type.
-
-Provides:
----------
-
- - L{InvalidError}: error to be raised when an invalid value is found where unexpected
-
- - L{Invalid}: generic Invalid class
-
- - L{isvalid}: function testing the validity of an object
-
- - L{invalidint}: invalid int object.
-   isvalid(isvalidint) returns False; isinstance(invalidint, int) returns True
-
- - L{invalidfloat}: invalid float object.
-   isvalid(isvalidfloat) returns False; isinstance(invalidfloat, float) returns True
-
- - L{invalidstr}: invalid str object.
-   isvalid(isvalidstr) returns False; isinstance(invalidstr, str) returns True
+Invalid objects of type X can be obtained by deriving an "Invalid X" class from both X and
+L{Invalid}. Objects validity can be used with the L{isvalidf} function. L{InvalidError} shall be
+used when an invalid value is found where a valid one is expected.  L{invalidint}, L{invalidfloat}
+and L{invalidstr} are defined as examples.
 
 """
 
@@ -43,12 +26,12 @@ from typing import Any
 
 
 class InvalidError(ValueError):
-    """error to be raised when an invalid value is found where unexpected"""
+    """Error to be raised when an invalid value is found where unexpected."""
 
 
 class Invalid:
-    """
-    For defining Invalid classes of any type.
+    """Define Invalid classes of any type.
+
     An invalid object of type <T> is an instance of a class
     that inherits from both Invalid and <T>
 
@@ -66,6 +49,7 @@ class Invalid:
     parameter, that will be seen as an instance of a regular type
 
     _invalrepr and _invalstr shall be overriden in subclasses
+
     """
 
     _invalrepr = "Invalid Object"
@@ -74,38 +58,39 @@ class Invalid:
     """String conversion of the invalid object"""
 
     def __bool__(self) -> bool:
-        """an invalid object is always False"""
+        """An invalid object is always False."""
         return False
 
     def __str__(self) -> str:
-        """
-        an invalid objects gets converted to self._invalstr.
+        """An invalid objects gets converted to self._invalstr.
 
         defaults to empty string, shall be overriden in subclasses if necessary.
+
         """
         return self._invalstr
 
     def __repr__(self) -> str:
-        """
-        an invalid objects gets represented by self._invalrepr.
+        """An invalid objects gets represented by self._invalrepr.
 
         defaults to 'Invalid Object', shall be overriden in subclasses.
+
         """
         return self._invalrepr
 
 
 def isvalid(obj: Any) -> bool:
-    """Returns False only if the object is an instance of Invalid class
+    """Return False only if the object is an instance of Invalid class.
 
     @param obj: object to be tested
     @return: is the object valid?
     @rtype: bool
+
     """
     return not isinstance(obj, Invalid)
 
 
 class InvalidInt(Invalid, int):
-    """Invalid int class"""
+    """Invalid int class."""
 
     _invalrepr = "Invalid int"
 
@@ -115,7 +100,7 @@ invalidint: InvalidInt = InvalidInt()
 
 
 class InvalidFloat(Invalid, float):
-    """Invalit float class"""
+    """Invalit float class."""
 
     _invalrepr = "Invalid float"
 
@@ -125,7 +110,7 @@ invalidfloat: InvalidFloat = InvalidFloat()
 
 
 class InvalidStr(Invalid, str):
-    """invalid str class"""
+    """invalid str class."""
 
     _invalrepr = "Invalid string"
 
