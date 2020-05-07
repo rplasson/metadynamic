@@ -18,25 +18,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-"""
-metadynamic.mpi
-===============
+"""Module for control the coordination between thread in MPI runs.
 
-Control the coordination between thread in MPI runs
-
-Provides
---------
-
- - L{Cont}: switchable "continue" flag
-
- - L{MpiGate}: MPI barrier that can be opened/closed by any thread, for on-demand requests of
-   synchronization
-
- - L{MpiStatus}: Interface to general MPI operations.
-
- - L{MPI_STATUS}: global MpiStatus object
-
- - L{MPI_GATE}: global MpiGate object
+It provides L{MPI_STATUS}, a global L{MpiStatus} object for interfacing with generic MPI operations,
+and L{MPI_GATE}, a global L{MpiGate} object for defining MPI barrier that can be opened/closed by
+any thread, for on-demand requests of synchronization.
 
 """
 
@@ -52,38 +38,36 @@ import numpy as np
 
 
 def nop() -> None:
-    """'no operation function' (surprisingly useful)"""
+    """'no operation function' (surprisingly useful)."""
 
 
 class Cont:
-    """switchable "continue" flag"""
+    """Switchable 'continue' flag."""
 
     def __init__(self) -> None:
-        """Create an object in initial 'continue' state"""
+        """Create an object in initial 'continue' state."""
         self._cont = True
         """'continue' state flag"""
 
     def stop(self) -> None:
-        """set object to 'stop' state"""
+        """Set object to 'stop' state."""
         self._cont = False
 
     def reset(self) -> None:
-        """reset object to initial 'continue' state"""
+        """Reset object to initial 'continue' state."""
         self._cont = True
 
     def __str__(self) -> str:
-        """convert to a string representing the object state"""
+        """Convert to a string representing the object state."""
         return "continue" if self._cont else "stop"
 
     def __bool__(self) -> bool:
-        """True in 'continue' state, False in 'stop' state"""
+        """Return True in 'continue' state, False in 'stop' state."""
         return self._cont
 
 
 class MpiGate:
-    """
-    MPI barrier that can be opened/closed by any thread, for on-demand requests of synchronization
-    """
+    """MPI barrier that can be opened/closed by any thread for on-demand requests of synchronization."""
 
     def __init__(
         self,
@@ -91,8 +75,7 @@ class MpiGate:
         operations: Optional[Dict[str, Callable[[], None]]] = None,
         sleeptime: float = 0.1,
     ) -> None:
-        """
-        create a gate
+        """Create a gate.
 
         @param taginit: initial tag number. each request will be tagged from tag increments
             starting from this value
@@ -100,6 +83,7 @@ class MpiGate:
         @param operations: Dictionary of synchronisation operations {name: operation}
         @type operation: Dict[str, Callable[[], None]]
         @param sleeptime: time spent (in seconds) in idle loops when waiting before the exit gate
+
         """
         self.comm: MPI.Intracomm = MPI.COMM_WORLD
         """MPI communicator"""
@@ -142,13 +126,13 @@ class MpiGate:
                 self.register_function(name, oper)
 
     def init(self, taginit: int = -1, sleeptime: float = -1) -> None:
-        """
-        Initialize a gate to its starting position
+        """Initialize a gate to its starting position.
 
         @param taginit: initial tag number (if <0 value given, stays untouched)
         @type taginit: int
         @param sleeptime: sleep time  (if <0 value given, stays untouched)
         @type sleeptime: float
+
         """
         self._nb_running = self.size
         self.mem_divide = self.size
@@ -158,7 +142,7 @@ class MpiGate:
             self.sleeptime = sleeptime
 
     def __enter__(self) -> "MpiGate":
-        """Operations performed when entering the gate (via context manager)"""
+        """Operations performed when entering the gate (via context manager)."""
         self.init()
         self.cont.reset()
         return self
@@ -169,10 +153,10 @@ class MpiGate:
         excinst: Optional[BaseException],
         exctb: Optional[TracebackType],
     ) -> None:
-        """
-        Operations performed at gate exit.
+        """Operation performed at gate exit.
 
         The parameters (automatically sent by the context manager) are ignored.
+
         """
         self.running = False
         self.close("final")
@@ -182,32 +166,32 @@ class MpiGate:
         self.launched = False
 
     def register_function(self, opname: str, func: Callable[[], None]) -> None:
-        """
-        register a new synchronisation operation function
+        """Register a new synchronisation operation function.
 
         @param opname: name of the operation (will override a previously registered one)
         @type opname: str
         @param fun: synchronisation operation function
         @type func: Callable[[], None]
+
         """
         funcnum = len(self._op) + 1
         self._op[funcnum] = func
         self._opnum[opname] = funcnum
 
     def _operate(self, funcnum: int) -> None:
-        """
-        Perform synchronisation operation function num 'funcnum'
+        """Perform synchronisation operation function num 'funcnum'.
 
         @param funcnum: synchronisation operation function number
         @type funcnum: int
+
         """
         self._op[funcnum]()
 
     def _oomkill(self) -> None:
-        """
-        Synchronisation operation to be called when too much memory is used.
+        """Synchronise operation to be called when too much memory is used.
 
         Half of still running processes will be kindly asked to stop.
+
         """
         self.mem_divide = self._nb_running
         runningpos = np.where(self.comm.allgather(self.running))
@@ -219,21 +203,21 @@ class MpiGate:
             self.mem_divide = 1
 
     def _check_all_out(self) -> None:
-        """
-        Synchronisation operation function to be called when a thread enters the exit.
+        """Synchronise operation function to be called when a thread enters the exit.
 
         The number of still running threads is updated.
+
         """
         self._nb_running = self.comm.allreduce(self.running, op=MPI.SUM)
 
     def _check_msg(self) -> None:
-        """Check if MPI messages were received"""
+        """Check if MPI messages were received."""
         for src in self.procs:
             received = self.comm.Iprobe(source=src, tag=self.gatenum)
             self._receive_state[src] = received
 
     def _read_msg(self) -> List[int]:
-        """Check if message were received, and store them"""
+        """Check if message were received, and store them."""
         res: List[int] = []
         while self.closed:
             for src in self.procs:
@@ -243,18 +227,18 @@ class MpiGate:
         return res
 
     def _wait_sent(self) -> None:
-        """Check if all sent messages were sent"""
+        """Check if all sent messages were sent."""
         for dest in self.procs:
             for req in self._send_state[dest]:
                 req.Wait()
             self._send_state[dest] = []
 
     def _send_msg(self, msg: str) -> None:
-        """
-        Send a message to all threads
+        """Send a message to all threads.
 
         @param msg: message as the syn operation name
         @type msg: str
+
         """
         for dest in self.procs:
             msgnum = self._opnum[msg]
@@ -264,28 +248,28 @@ class MpiGate:
 
     @property
     def closed(self) -> bool:
-        """True if gate is closed (i.e. messages were received)"""
+        """Return True if gate is closed (i.e. messages were received)."""
         self._check_msg()
         return sum(self._receive_state) > 0
 
     def close(self, msg: str = "nop") -> None:
-        """
-        Request the gate to be closed by sending a message
+        """Request the gate to be closed by sending a message.
 
         @param msg: sync. operation to be performed at gate (Default value = "nop")
         @type msg: str
+
         """
         if not self.launched:
             raise ValueError("Cannot close a gate that has not been launched.")
         self._send_msg(msg)
 
     def _open(self) -> None:
-        """
-        Open a closed gate.
+        """Open a closed gate.
 
         This implies to wait all threads to be present,
         then process synchronously all requested operations
         before opening back the gate and returning to normal operations.
+
         """
         # Wait for everyone for exchanging messages
         if not self.launched:
@@ -303,17 +287,16 @@ class MpiGate:
             self._operate(oper)
 
     def checkpoint(self) -> None:
-        """
-        Check if the gate is closed before passing the checkpoint
-        If the gate is closed, this will imply to perform synchronous operations
-        before continuing.
+        """Check if the gate is closed before passing the checkpoint.
+
+        If the gate is closed, this will imply to perform synchronous operations before continuing.
+
         """
         if self.closed:
             self._open()
 
     def launch(self) -> "MpiGate":
-        """
-        Launch a gated processing
+        """Launch a gated processing.
 
         Intended to be lauched as a context manager:
 
@@ -333,7 +316,7 @@ class MpiStatus:
 
     def __init__(self, rootnum: int = 0) -> None:
         """
-        Create a status object
+        Create a status object.
 
         @param rootnum: set the number of the root process
         @type rootnum: int
@@ -347,52 +330,53 @@ class MpiStatus:
         self._starttime: str = "[not-started]"
 
     def init(self, timeformat: str) -> None:
-        """
-        Initialize the time 0 (synchronized between threads)
+        """Initialize the time 0 (synchronized between threads).
 
         @param timeformat: formatting string for the date/time
         @type timeformat: str
+
         """
         self._starttime = self.bcast(datetime.now().strftime(timeformat))
 
     @property
     def starttime(self) -> str:
-        """
-        Return time 0
+        """Return time 0.
 
         @return: start time
         @rtype: str
+
         """
         return self._starttime
 
     @property
     def root(self) -> bool:
-        """
-        Is this thread the MPI root?
+        """Return True if this thread the MPI root.
 
         @return: True if root
         @rtype: bool
+
         """
         return self.rank == self.rootnum
 
     def max(self, val: Any) -> Any:
-        """
-        Return the max value among threads
+        """Return the max value among threads.
 
         @param val: value to be gathered and compared
         @return: max value
+
         """
         if self.ismpi:
             return self.comm.allreduce(val, op=MPI.MAX)
         return val
 
     def bcast(self, val: Any) -> Any:
-        """
-        Broadcast the value to all threads.
+        """Broadcast the value to all threads.
+
         All will return value sent by the root thread.
 
         @param val: value to be brodcasted
         @return: root thread value
+
         """
         if self.root:
             res = val
@@ -402,14 +386,13 @@ class MpiStatus:
         return res
 
     def sortlist(self, data: List[float]) -> List[float]:
-        """
-        Return a sorted list of all data sent by all threads
-        (removing duplicates)
+        """Return a sorted list of all data sent by all threads (removing duplicates).
 
         @param data: list of values to be gathered and sorted
         @type data: List[float]
         @return: sorted gathered list
         @type: List[float]
+
         """
         if not self.ismpi:
             data.sort()
@@ -438,7 +421,7 @@ class MpiStatus:
 
 
 MPI_STATUS = MpiStatus()
-"""global MpiStatus object"""
+"""Global MpiStatus object"""
 
 MPI_GATE = MpiGate()
-"""global MpiGate object"""
+"""Global MpiGate object"""
