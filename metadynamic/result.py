@@ -506,7 +506,7 @@ class ResultReader:
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Return three 2D arrays.
 
-         The retyurned values can be used for plotting a map with, e.g., matplotlib plot_surface, as
+        The retyurned values can be used for plotting a map with, e.g., matplotlib plot_surface, as
         X the time, Y the field category, and Z the data from 'field'
 
         Valid field names are listed in self.mapnames

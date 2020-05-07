@@ -23,11 +23,11 @@
 This package is for modeling metadynamic systems, with on-the-fly creation/destruction of compounds
 and reactions.
 
-- A simulation can be simply performed using the function L{launch}, or totally controlled as a
-  L{System} object.
-- Results can be read from a L{ResultReader} object.
-- Chemical reaction networks can be analyzed from L{Crn} objects.
-- L{LOGGER} and L{MPI_STATUS} global objects are available for logging and MPI facilities.
+  - A simulation can be simply performed using the function L{launch}, or totally controlled as a
+    L{System} object.
+  - Results can be read from a L{ResultReader} object.
+  - Chemical reaction networks can be analyzed from L{Crn} objects.
+  - L{LOGGER} and L{MPI_STATUS} global objects are available for logging and MPI facilities.
 
 """
 
