@@ -18,17 +18,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-"""
-metadynamic.network
-===================
+"""Module for converting a set of compounds and reaction as a graphvize network representation.
 
-converts a set of compounds and reaction as a graphvize network representation.
-
-
-Provides:
----------
-
- - L{Data2dot}: generate a graphviz Digraph from dict description of compounds/reactions
+It provides the L{Data2dot} class.
 
 """
 
@@ -45,7 +37,7 @@ from metadynamic.inputs import DotParam
 
 
 class Scaler:
-    """convert values from one scale to another"""
+    """Convert values from one scale to another."""
 
     def __init__(
         self,
@@ -55,9 +47,9 @@ class Scaler:
         cutoff: float = 0.0,
         powerscale: float = 1.0,
     ):
-        """
-        Create a scaler from data as the origin dataset
-        to [minimal, maximal] scale with powerscale exponent
+        """Create a scaler from data as the origin dataset.
+
+        Will be set to a [minimal, maximal] scale with powerscale exponent
 
         the origin scale is set from the minimal and maximal values
         of data, once outlier values smaller than cutoff×max(data) are removed.
@@ -71,6 +63,7 @@ class Scaler:
         @type cutoff: float
         @param powerscale: scaling exponent (Default value = 1.0)
         @type powerscale: float
+
         """
         self.minimal: float = minimal
         """min value of the destination scale"""
@@ -103,8 +96,7 @@ class Scaler:
         ) / (self.maxval ** self.pow - self.minval ** self.pow)
 
     def __call__(self, value: float) -> float:
-        """
-        scale as _factor × value^n + _const
+        """Scale as _factor × value^n + _const.
 
         the scaled value will range from minimal to maximal
 
@@ -115,6 +107,7 @@ class Scaler:
         @param type: float
         @return: scaled value
         @rtype: float
+
         """
         if value <= self.minval:
             return self.minimal
@@ -124,11 +117,11 @@ class Scaler:
 
 
 class Graphwriter:
-    """Interface for building a graphviz Digraph from a CRN"""
+    """Interface for building a graphviz Digraph from a CRN."""
 
     def __init__(self, margin: float, concentrate: bool, maxsize: float) -> None:
         """
-        Create the network
+        Create the network.
 
         @param margin: margin size
         @type margin: float
@@ -155,8 +148,7 @@ class Graphwriter:
         margin: float,
         penwidth: float,
     ) -> None:
-        """
-        Add a compound node to the network
+        """Add a compound node to the network.
 
         @param name: compound name
         @type name: str
@@ -170,6 +162,7 @@ class Graphwriter:
         @type margin: float
         @param penwidth: compound box pen width
         @type penwidth: float
+
         """
         self.dot.node(
             name,
@@ -183,8 +176,7 @@ class Graphwriter:
         )
 
     def reaction(self, name: str, width: float, color: str) -> None:
-        """
-        Add a reaction node to the network
+        """Add a reaction node to the network.
 
         @param name: reaction name
         @type name: str
@@ -192,12 +184,12 @@ class Graphwriter:
         @type width: float
         @param color: reaction color
         @type color: str
+
         """
         self.dot.node(name, shape="point", width=str(width), color=color)
 
     def edge(self, start: str, end: str, width: float, color: str) -> None:
-        """
-        Add a chemical flux edge to the network
+        """Add a chemical flux edge to the network.
 
         @param start: node start name
         @type start: str
@@ -207,12 +199,12 @@ class Graphwriter:
         @type width: float
         @param color: edge color
         @type color: str
+
         """
         self.dot.edge(start, end, penwidth=str(width), color=color)
 
     def render(self, filename: str, engine: str = "dot", view: bool = False) -> bool:
-        """
-        render the network in a file.
+        """Render the network in a file.
 
         The output format is guessed from filename extension.
 
@@ -224,6 +216,7 @@ class Graphwriter:
         @type view: bool
         @return: return True if rendering is OK, False if a problem occured
         @rtype: bool
+
         """
         try:
             _, export = path.splitext(filename)
@@ -244,18 +237,18 @@ class Graphwriter:
 
 
 class Data2dot:
-    """generate a graphviz Digraph from dict description of compounds/reaction"""
+    """Generate a graphviz Digraph from dict description of compounds/reaction."""
 
     @classmethod
     def fromjson(cls, filename: str, parameterfile: str = "") -> "Data2dot":
-        """
-        generate a graphviz Digraph from a json file describing compounds/reactions
+        """Generate a graphviz Digraph from a json file describing compounds/reactions.
 
         @param filename: name of json file containing compiunds/reactions
         @type filename: str
         @param parameterfile: Name of json Dotparam file (if empty, use default values)
             (Default value = "")
         @type parameterfile: str
+
         """
         with open(filename) as infile:
             data = load(infile)
@@ -269,8 +262,7 @@ class Data2dot:
         reacdict: Dict[str, List[float]],
         parameterfile: str = "",
     ):
-        """
-        Generate the network
+        """Generate the network.
 
         @param compdict: Chemical compounds {name:population}
         @type compdict: Dict[str, int]
@@ -279,6 +271,7 @@ class Data2dot:
         @param parameterfile: Name of json Dotparam file (if empty, use default values)
             (Default value = "")
         @type parameterfile: str
+
         """
         self.compounds: Dict[str, int] = compdict
         """Chemical compounds {name:population}"""
@@ -307,7 +300,7 @@ class Data2dot:
             self._scan_reactions()
 
     def _scan_fluxes(self) -> None:
-        """scan reaction fluxes and add them to the graph"""
+        """Scan reaction fluxes and add them to the graph."""
         color = self.param.f_color
         scaler = Scaler(
             data=[rate for _, rate in self.reactions.values()],
@@ -351,7 +344,7 @@ class Data2dot:
                         )
 
     def _scan_compounds(self) -> None:
-        """Scan compounds and add them to the graph"""
+        """Scan compounds and add them to the graph."""
         color = self.param.c_color
         scaler = Scaler(
             data=list(self.compounds.values()),
@@ -383,7 +376,7 @@ class Data2dot:
             )
 
     def _scan_reactions(self) -> None:
-        """scan reactions and add them to the graph"""
+        """Scan reactions and add them to the graph."""
         color = self.param.r_color
         scaler = Scaler(
             data=[const for const, _ in self.reactions.values()],
@@ -397,25 +390,23 @@ class Data2dot:
             self.crn.reaction(name=name, width=width, color=color)
 
     def write(self, filename: str) -> bool:
-        """
-        Write the network in a file
-        (format guessed from file extension)
+        """Write the network in a file (format guessed from file extension).
 
         @param filename: name of the output file
         @type filename: str
         @return: return True if rendering is OK, False if a problem occured
         @rtype: bool
+
         """
         return self.crn.render(filename)
 
     def view(self) -> None:
-        """Open a viewer to visualize the network"""
+        """Open a viewer to visualize the network."""
         self.crn.dot.view()
 
     @staticmethod
     def cutdown(name: str) -> Tuple[int, str]:
-        """
-        Identify the stoechiometry+name from a str
+        """Identify the stoechiometry+name from a str.
 
            >>> Data2dot.cutdown("ab3")
            (1, 'ab3')
@@ -426,6 +417,7 @@ class Data2dot:
         @type name: str
         @return: stoechiometry, compound name
         @rtype: Tuple[int, str]
+
         """
         num = ""
         comp = ""
