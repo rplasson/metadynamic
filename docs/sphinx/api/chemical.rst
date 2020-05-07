@@ -1,5 +1,5 @@
-Metadynamic chemical modules
-===============================
+Chemistry modules
+=================
 
 Modules
 -------

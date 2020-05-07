@@ -1,5 +1,5 @@
-Metadynamic utilities modules
-=============================
+Utilities modules
+=================
 
 Modules
 -------

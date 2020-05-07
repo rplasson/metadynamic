@@ -1,5 +1,5 @@
-Metadynamic modeling modules
-===============================
+Modeling modules
+================
 
 
 Modules

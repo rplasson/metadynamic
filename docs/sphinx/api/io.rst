@@ -1,5 +1,5 @@
-Metadynamic I/O modules
-==========================
+I/O modules
+===========
 
 Modules
 -------

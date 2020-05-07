@@ -1,5 +1,5 @@
-Metadynamic interface modules
-================================
+Interface modules
+=================
 
 Modules
 -------
