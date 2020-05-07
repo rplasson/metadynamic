@@ -17,16 +17,9 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
-"""
-metadynamic.caster
-==================
+"""Implentation of casters to arbitrary types.
 
-generic type caster
-
-Provides:
----------
-
- - L{Caster}: generic type-caster generator
+Implement the L{Caster} class object.
 
 """
 
@@ -34,12 +27,10 @@ from typing import Type, Any, List
 
 
 class Caster:
-    """generic type-caster generator"""
+    """Generic type-caster generator."""
 
     def __init__(self, target: Type[Any]):
-        """
-        creates an callable object that will try to cast any value to
-        the given target.
+        """Create an callable object that will try to cast any value to the given target.
 
         >>> caster = Caster(List[int])
         >>> caster([1, "2", 4.5])
@@ -47,6 +38,7 @@ class Caster:
 
         @param target: the target type. may be complexe types based on typing module
         @type target: Type[Any]
+
         """
         self.dest: Type[Any]
         """destination conversion type"""
@@ -63,11 +55,11 @@ class Caster:
             self.args = []
 
     def __call__(self, value: Any) -> Any:
-        """
-        cast the value to the pre-defined target type
+        """Cast the value to the pre-defined target type.
 
         @param value: the value to be casted
         @return: the casted value
+
         """
         if isinstance(value, bytes):
             value = value.decode()
@@ -84,7 +76,7 @@ class Caster:
         return self.dest(value)
 
     def __repr__(self) -> str:
-        """represent a caster as 'TO<destination type>'"""
+        """Represent a caster as 'TO<destination type>'."""
         args = (
             "" if len(self.args) == 0 else " , ".join([str(arg) for arg in self.args])
         )
