@@ -18,12 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-"""
-metadynamic.version
-===================
-
-tag metadynamic package version
-"""
+"""Tag the metadynamic package version."""
 
 
 __version__ = '1.0.1'

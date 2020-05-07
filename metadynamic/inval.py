@@ -58,11 +58,11 @@ class Invalid:
     """String conversion of the invalid object"""
 
     def __bool__(self) -> bool:
-        """An invalid object is always False."""
+        """Return False from any invalid object."""
         return False
 
     def __str__(self) -> str:
-        """An invalid objects gets converted to self._invalstr.
+        """Convert invalid objects to self._invalstr.
 
         defaults to empty string, shall be overriden in subclasses if necessary.
 
@@ -70,7 +70,7 @@ class Invalid:
         return self._invalstr
 
     def __repr__(self) -> str:
-        """An invalid objects gets represented by self._invalrepr.
+        """Represent invalid objects by self._invalrepr.
 
         defaults to 'Invalid Object', shall be overriden in subclasses.
 
