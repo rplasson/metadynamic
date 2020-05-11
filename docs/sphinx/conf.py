@@ -49,10 +49,20 @@ release = "v1.0.2"
 # ones.
 extensions = [
     "sphinx.ext.autodoc",
-#    "sphinx_autodoc_typehints",
+    #    "sphinx_autodoc_typehints",
     "sphinxcontrib.autoprogram",
-    "cloud_sptheme.ext.autodoc_sections"
+    "cloud_sptheme.ext.autodoc_sections",
+    "nbsphinx",
+    # "sphinx.ext.imgconverter",
+    "sphinxcontrib.rsvgconverter"
 ]
+
+nbsphinx_execute_arguments = [
+    "--InlineBackend.figure_formats={'svg', 'pdf'}",
+    "--InlineBackend.rc={'figure.dpi': 96}",
+]
+
+rsvg_converter_args = ["--format=pdf"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -87,7 +97,6 @@ latex_elements = {
         \usepackage{graphicx}
         \usepackage{ebgaramond}
         \usepackage{fourier-orns}
-
         \usepackage{pgfornament}
 
          \def\cinzelfamily{Cinzel-LF}

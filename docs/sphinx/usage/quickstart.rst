@@ -25,9 +25,4 @@ Data processing
 To be written
 
 
-Examples
---------
-
-To be written
-
 
