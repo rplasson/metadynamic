@@ -526,6 +526,39 @@ class Param(Readerclass):
                 self.maxmem_percent * virtual_memory().total / 1024 / 1024 / 100
             )
 
+    def tojson_full(self, filename: str, filename_stat: str, filename_map: str) -> None:
+        """Fully write parameters to json file
+
+        This will include the generation of three files for general parameters, statistic
+        parameters, and statistic parameters
+
+        @param filename: name of the general parameters file
+        @type filename: str
+        @param filename_stat: name of the statistic parameters file
+        @type filename_stat: str
+        @param filename_map: name of the maps parameters file
+        @type filename_map: str
+        """
+        self.tojson(filename)
+        self.stattojson(filename_stat)
+        self.maptojson(filename_map)
+
+    def stattojson(self, filename: str) -> None:
+        """Write statistic parameters to a json file
+
+        @param filename: name of the statistic parameters file
+        @type filename: str
+        """
+        pass
+
+    def maptojson(self, filename: str) -> None:
+        """Write statistic parameters to a json file
+
+        @param filename: name of the statistic parameters file
+        @type filename: str
+        """
+        pass
+
     def set_param(self, **kwd: Any) -> None:
         if "parameters" in kwd:
             oldparams = self.parameters.copy()
