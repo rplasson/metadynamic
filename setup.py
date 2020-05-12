@@ -63,8 +63,16 @@ setuptools.setup(
             glob("docs/sphinx/_build/html/usage/*"),
         ),
         (
+            "share/doc/python3-metadynamic/sphinx/jupyter",
+            glob("docs/sphinx/_build/html/jupyter/*"),
+        ),
+        (
             "share/doc/python3-metadynamic/sphinx/_static",
             glob("docs/sphinx/_build/html/_static/*"),
+        ),
+        (
+            "share/doc/python3-metadynamic/sphinx/_images",
+            glob("docs/sphinx/_build/html/_images/*"),
         ),
         (
             "share/doc/python3-metadynamic/sphinx/_sources",
