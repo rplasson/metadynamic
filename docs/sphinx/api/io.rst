@@ -23,6 +23,7 @@ Provides
  - :exc:`.LockedError`: Exception raised when attempting to modify a locked Readerclass
  - :class:`.Castreader`: Extend a :class:`.caster.Caster` for dealing with :class:`.Readerclass`, converting them as dictionary
  - :class:`.Readerclass`: dataclass with interface for reading its data from json files
+ - :func:`.multiple_tojson`: function for writing a dictionary of readerclass object to a json file.
  - :class:`.RuleParam`: Parameters for a reaction rule
  - :class:`.RulesetParam`: Parameters for a reaction ruleset
  - :class:`.StatParam`: Parameters for statistics

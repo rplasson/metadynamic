@@ -369,6 +369,22 @@ class Readerclass:
         return self._checktype
 
 
+def multiple_tojson(filename: str, data: Dict[str, R]) -> None:
+    """Write a dictionary of parameters to a json file
+
+    @param filename: name of the statistic parameters file
+    @type filename: str
+    @param data: dictionary of readerclass objects
+    @type data: Dict[str, R]
+    """
+    with open(filename, "w") as out:
+        dump(
+            {key: par.asdict() for key, par in data.items()},
+            out,
+            indent=4,
+        )
+
+
 @dataclass
 class RuleParam(Readerclass):
     """Parameters for a reaction rule."""
@@ -549,12 +565,7 @@ class Param(Readerclass):
         @param filename: name of the statistic parameters file
         @type filename: str
         """
-        with open(filename, "w") as out:
-            dump(
-                {key: par.asdict() for key, par in self.statparam.items()},
-                out,
-                indent=4,
-            )
+        multiple_tojson(filename, self.statparam)
 
     def maptojson(self, filename: str) -> None:
         """Write statistic parameters to a json file
@@ -562,12 +573,7 @@ class Param(Readerclass):
         @param filename: name of the statistic parameters file
         @type filename: str
         """
-        with open(filename, "w") as out:
-            dump(
-                {key: par.asdict() for key, par in self.mapparam.items()},
-                out,
-                indent=4,
-            )
+        multiple_tojson(filename, self.mapsparam)
 
     def set_param(self, **kwd: Any) -> None:
         if "parameters" in kwd:
