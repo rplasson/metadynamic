@@ -549,7 +549,12 @@ class Param(Readerclass):
         @param filename: name of the statistic parameters file
         @type filename: str
         """
-        pass
+        with open(filename, "w") as out:
+            dump(
+                {key: par.asdict() for key, par in self.statparam.items()},
+                out,
+                indent=4,
+            )
 
     def maptojson(self, filename: str) -> None:
         """Write statistic parameters to a json file
@@ -557,7 +562,12 @@ class Param(Readerclass):
         @param filename: name of the statistic parameters file
         @type filename: str
         """
-        pass
+        with open(filename, "w") as out:
+            dump(
+                {key: par.asdict() for key, par in self.mapparam.items()},
+                out,
+                indent=4,
+            )
 
     def set_param(self, **kwd: Any) -> None:
         if "parameters" in kwd:
