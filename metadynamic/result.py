@@ -25,6 +25,7 @@ It provides L{ResultReader}, a class for reading and extracting data from a .hdf
 """
 
 from typing import List, Dict, Tuple, Any, Callable, Optional
+from tempfile import NamedTemporaryFile
 from pandas import DataFrame
 from h5py import File, Group, Dataset
 from graphviz import Digraph
@@ -32,7 +33,7 @@ from graphviz import Digraph
 import numpy as np
 
 from metadynamic.inval import invalidstr, invalidint, isvalid
-from metadynamic.inputs import StatParam, MapParam, Param, RulesetParam
+from metadynamic.inputs import StatParam, MapParam, Param, RulesetParam, multiple_tojson
 from metadynamic.caster import Caster
 from metadynamic.network import Data2dot
 from metadynamic.chemical import Crn
@@ -596,8 +597,10 @@ class ResultReader:
         @rtype: Param
 
         """
+        # Read parameters saved as HDF5 attributes
         params = dict(self.params.attrs)
         res = params.copy()
+        # "unflatten" enbedded as dictionary saved as "'prekey->postkey' : val" entries
         for key, val in params.items():
             if "->" in key:
                 prekey, postkey = key.split("->")
@@ -606,7 +609,16 @@ class ResultReader:
                 except KeyError:
                     res[prekey] = {postkey: val}
                 res.pop(key)
-        return Param.readdict(res)
+        # recover stat and map parameters saved in self.statparam/self.mapsparam
+        # into temporary files
+        with NamedTemporaryFile() as tempstat, NamedTemporaryFile() as tempmap:
+            # write temporary stat and map json parameter files
+            multiple_tojson(tempstat.name, self.statparam)
+            multiple_tojson(tempmap.name, self.mapparam)
+            res["stat"] = tempstat.name
+            res["maps"] = tempmap.name
+            param = Param.readdict(res)
+        return param
 
     @property
     def ruleset(self) -> RulesetParam:
