@@ -8,3 +8,4 @@ dist/
 metadynamic.egg-info/
 deb_dist/
 packages/
+*.ipynb_checkpoints
