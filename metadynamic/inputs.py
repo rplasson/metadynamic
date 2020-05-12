@@ -379,9 +379,7 @@ def multiple_tojson(filename: str, data: Dict[str, R]) -> None:
     """
     with open(filename, "w") as out:
         dump(
-            {key: par.asdict() for key, par in data.items()},
-            out,
-            indent=4,
+            {key: par.asdict() for key, par in data.items()}, out, indent=4,
         )
 
 
@@ -533,10 +531,23 @@ class Param(Readerclass):
     """timeformat used in log files"""
 
     def __post_init__(self) -> None:
+        """(Re)Calculate data after fields init or change.
+
+        the statparam and mapparam field will be only set if stat and maps
+        filenames were changed (no re-read of same file!)
+        """
+        self._last_stat: str
+        """last read stat filename"""
+        self._last_maps: str
+        """last read maps filename"""
         self.ptot = sum([pop * len(comp) for comp, pop in self.init.items()])
         self.vol = self.ptot / self.conc
-        self.statparam = StatParam.readmultiple(self.stat)
-        self.mapsparam = MapParam.readmultiple(self.maps)
+        if not (hasattr(self, "_last_stat")) or (self.stat != self._last_stat):
+            self.statparam = StatParam.readmultiple(self.stat)
+            self._last_stat = self.stat
+        if not (hasattr(self, "_last_maps")) or (self.maps != self._last_maps):
+            self.mapsparam = MapParam.readmultiple(self.maps)
+            self._last_maps = self.maps
         if self.maxmem == 0:
             self.maxmem = int(
                 self.maxmem_percent * virtual_memory().total / 1024 / 1024 / 100
