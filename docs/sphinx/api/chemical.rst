@@ -10,6 +10,13 @@ Several modules are available for describing chemical objects:
   - :mod:`.chemical` for describing chemical compounds and reactions.
 
 
+Inheritance diagram
+------------------------
+
+.. inheritance-diagram:: metadynamic.collector metadynamic.chemical
+   :parts: 1
+
+
 collector module
 ----------------
 

@@ -19,6 +19,7 @@ Provides
 
  - :func:`metadynamic.launcher.launch`
 
+
 Module documentation
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -49,7 +50,7 @@ Provides
 ~~~~~~~~
 
  - :class:`.ResultReader`
-
+   
 Module documentation
 ~~~~~~~~~~~~~~~~~~~~
 

@@ -31,6 +31,12 @@ Provides
  - :class:`.Param`: Run parameters
  - :class:`.DotParam`: Parameters for graphviz CRN representation
 
+Inheritance diagram
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. inheritance-diagram:: metadynamic.inputs
+   :parts: 1
+
 Module documentation
 ~~~~~~~~~~~~~~~~~~~~
 

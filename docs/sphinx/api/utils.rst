@@ -48,6 +48,11 @@ Provides
  - :exc:`.InputError` is intended to signal problems with file read or write, unrelated to
    the computation itself.
 
+Inheritance diagram
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. inheritance-diagram:: metadynamic.ends
+   :parts: 1
 
 Module documentation
 ~~~~~~~~~~~~~~~~~~~~
@@ -88,6 +93,11 @@ Provides
  - :data:`.invalidstr`: invalid str object.  isvalid(isvalidstr) returns False;
    isinstance(invalidstr, str) returns True
 
+Inheritance diagram
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. inheritance-diagram:: metadynamic.inval
+   :parts: 1			    
 
 Module documentation
 ~~~~~~~~~~~~~~~~~~~~

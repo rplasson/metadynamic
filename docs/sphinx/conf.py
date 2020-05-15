@@ -50,6 +50,7 @@ release = "v1.0.2"
 extensions = [
     "sphinx.ext.autodoc",
     #    "sphinx_autodoc_typehints",
+    "sphinx.ext.inheritance_diagram",
     "sphinxcontrib.autoprogram",
     "cloud_sptheme.ext.autodoc_sections",
     "nbsphinx",
@@ -72,6 +73,7 @@ templates_path = ["_templates"]
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
+inheritance_graph_attrs = dict(fontsize=32, size='"16.0, 20.0"')
 
 # -- Options for HTML output -------------------------------------------------
 

@@ -20,3 +20,13 @@ Module documentation
 .. automodule:: metadynamic
    :members:
 
+
+Inheritance diagram
+------------------------
+      
+.. inheritance-diagram:: metadynamic metadynamic.launcher metadynamic.system metadynamic.result
+			 metadynamic.collector metadynamic.chemical metadynamic.inputs
+			 metadynamic.outputs metadynamic.logger metadynamic.hdf5 metadynamic.network
+			 metadynamic.proba metadynamic.ruleset metadynamic.mpi metadynamic.ends
+			 metadynamic.caster metadynamic.inval
+   :parts: 1
