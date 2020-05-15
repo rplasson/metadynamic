@@ -21,9 +21,23 @@ Module documentation
    :members:
 
 
+Diagrams
+-----------
+
+Packages
+~~~~~~~~~~~
+
+.. image:: ../svg/packages.svg
+   :target: ../_images/packages.svg
+
+UML classes
+~~~~~~~~~~~~~~
+
+.. image:: ../svg/classes.svg
+   :target: ../_images/classes.svg
+	   
 Inheritance diagram
-------------------------
-      
+~~~~~~~~~~~~~~~~~~~~~~~      
 .. inheritance-diagram:: metadynamic metadynamic.launcher metadynamic.system metadynamic.result
 			 metadynamic.collector metadynamic.chemical metadynamic.inputs
 			 metadynamic.outputs metadynamic.logger metadynamic.hdf5 metadynamic.network
