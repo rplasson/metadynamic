@@ -18,6 +18,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
+"""APED model definition module
+
+This system is defined by:
+ - Activation reaction; e.g.  A -> A*
+ - Activated polymerisation reaction; e.g.  A* + BcD -> ABcD
+ - Epimerization reaction; e.g.  ABcD -> aBcD
+ - Depolymerization reaction; e.g.  aBcD -> aBc + D
+"""
+
 from typing import Dict, Any
 
 from metadynamic.ruleset import (
@@ -32,16 +41,60 @@ from metadynamic.ruleset import (
     novariant_gen,
     singlevariant,
     rangevariant,
-    joiner,
 )
 
-# Categorizer
+# Definition of Categorizer functions
 
 polym: Categorizer = lambda name: name.isalpha()
+"""Definition of a polymer
+
+Return True if the name is an alphabetic string:
+>>> polym("AaDcs")
+True
+>>> polym("A2")
+False
+"""
+
 mono: Categorizer = lambda name: polym(name) and len(name) == 1
+"""Definition of a monomer
+
+Return True if the name is polymer of length one:
+>>> mono("Abc")
+False
+>>> mono("b")
+True
+"""
+
 actpol: Categorizer = lambda name: name[-1] == "*" and name[:-1].isalpha()
+"""Definition of an activated polymer
+
+Return True if the name is an alphabetic string + a '*' char at its end:
+>>> actpol("AbcD")
+False
+>>> actpol("Abcd*")
+True
+"""
+
+
 actmono: Categorizer = lambda name: actpol(name) and len(name) == 2
+"""Definition of an activated monomer
+
+Return True is the name is an activated polymer of length 2:
+>>> actmono("Abcd*")
+False
+>>> actmono("A*")
+True
+"""
+
 longpol: Categorizer = lambda name: polym(name) and len(name) > 1
+"""Definition of a long polymer
+
+Return True if the name is a polymer of length 2 or more:
+>>> longpol("A")
+False
+>>> longpol("Abcd")
+True
+"""
 
 # Propertizer
 
