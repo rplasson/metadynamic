@@ -58,11 +58,6 @@ extensions = [
     "sphinxcontrib.rsvgconverter",
 ]
 
-nbsphinx_execute_arguments = [
-    "--InlineBackend.figure_formats={'svg', 'pdf'}",
-    "--InlineBackend.rc={'figure.dpi': 96}",
-]
-
 rsvg_converter_args = ["--format=pdf"]
 
 # Add any paths that contain templates here, relative to this directory.

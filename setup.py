@@ -35,6 +35,7 @@ setuptools.setup(
         "psutil>=5.0.1",
         "graphviz>=0.8.4",
         "numba>=0.48.0",
+        "mpi4py>=2.0.0"
     ],
     scripts=["bin/metarun"],
     include_package_data=True,
