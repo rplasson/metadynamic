@@ -90,9 +90,14 @@ latex_elements = {
     "fontpkg": "\\usepackage{amsmath,amsfonts,amssymb,amsthm}",
     "pointsize": "10pt",
     "preamble": r"""
-        \usepackage{amsmath,amsfonts,amssymb,amsthm}
+        \usepackage[T1]{fontenc}
+        \usepackage{anyfontsize}
+        %\usepackage{amsmath,amsfonts,amssymb,amsthm}
         \usepackage{graphicx}
-        \usepackage{ebgaramond}
+        \usepackage[cmintegrals,cmbraces]{newtxmath}
+        \usepackage{ebgaramond-maths}
+        %\usepackage{ascii}
+        \renewcommand*\ttdefault{lcmtt}
         \usepackage{fourier-orns}
         \usepackage{pgfornament}
 
