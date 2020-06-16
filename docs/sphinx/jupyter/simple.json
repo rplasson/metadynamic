@@ -1,0 +1,21 @@
+{
+    "name" : "Simple",
+    "savedir" : "",
+    "logdir" : "runlog",
+    "init" :
+    {
+	"abc": 1000
+    },
+    "conc" : 1.0,
+    "tend" : 10.0,
+    "tstep" : 0.1,
+    "save" : ["a", "b", "c", "abc", "ab", "bc"],
+    "stat" : "simple-stat.json",
+    "rulemodel" : "polym_minimal.py",
+    "reactions" : "H",
+   "parameters" :{
+	"khyd_head" : 1.0,
+	"khyd_queue" : 0.5
+    }
+}
+
