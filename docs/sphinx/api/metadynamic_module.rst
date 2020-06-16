@@ -23,19 +23,13 @@ Module documentation
 
 Diagrams
 -----------
-
-Packages
-~~~~~~~~~~~
-
-.. image:: ../svg/packages.svg
-   :target: ../_images/packages.svg
-
+   
 UML classes
 ~~~~~~~~~~~~~~
 
-.. image:: ../svg/classes.svg
-   :target: ../_images/classes.svg
-	   
+.. image:: ../pyreverse/classes.svg
+   :width: 100%
+
 Inheritance diagram
 ~~~~~~~~~~~~~~~~~~~~~~~      
 .. inheritance-diagram:: metadynamic metadynamic.launcher metadynamic.system metadynamic.result
