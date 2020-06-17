@@ -569,16 +569,16 @@ class ResultReader:
         end = self.run.attrs["end"]
         endline = "\n"
         return (
-            f"----------------\n"
+            f"---------------\n"
             f"{comment}\n"
-            f"----------------\n"
+            f"---------------\n"
             f"metadynamic version {version}, "
             f"ran on {threads} threads on {hostname}\n"
             f"from {start} to {end}\n"
             f"results saved in '{self.filename}'\n"
-            f"----------------\n"
+            f"---------------\n"
             f"{endline.join([self.endmsg(i) for i in range(threads)])}\n"
-            f"----------------"
+            f"---------------"
         )
 
     @property

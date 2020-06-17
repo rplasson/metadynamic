@@ -480,7 +480,10 @@ class System:
         self.output: Output = Output(self.param)
         """Access to output files and folders"""
         self.writer: ResultWriter = ResultWriter(
-            self.output.h5file, self.param.maxstrlen, self.param.lengrow
+            self.output.h5file,
+            self.param.maxstrlen,
+            self.param.lengrow,
+            self.param.timeformat,
         )
         """Writer to HDF5 file."""
         self.writer.init_log(self.param.maxlog)
