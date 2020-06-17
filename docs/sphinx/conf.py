@@ -97,7 +97,8 @@ latex_elements = {
         \usepackage[cmintegrals,cmbraces]{newtxmath}
         \usepackage{ebgaramond-maths}
         %\usepackage{ascii}
-        \renewcommand*\ttdefault{lcmtt}
+        %\renewcommand*\ttdefault{lcmtt}
+        \usepackage[osf,scale=0.85]{sourcecodepro}
         \usepackage{fourier-orns}
         \usepackage{pgfornament}
 

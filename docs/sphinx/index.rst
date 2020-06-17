@@ -11,8 +11,7 @@ Welcome to metadynamic's documentation!
    :caption: Contents:
  
    usage/quickstart
-   jupyter/simple.ipynb
-   jupyter/aped.ipynb
+   jupyter/metadynamic-notebook.ipynb
    api/metadynamic_module
    api/CLI
    api/interface

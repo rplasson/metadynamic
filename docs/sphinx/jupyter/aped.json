@@ -1,0 +1,30 @@
+{
+    "name" : "APED",
+    "savedir" : "",
+    "logdir" : "testlog",
+    "init" :
+    {
+	"a": 10000,
+	"A": 10000
+    },
+    "conc" : 3.0,
+    "tend" : 1000.0,
+    "tstep" : 5.0,
+    "sstep" : 50.0,
+    "save" : ["a", "aa", "aaa", "aaaa", "A", "Aa", "aA", "AA", "a*", "A*"],
+    "stat" : "aped-stat.json",
+    "maps" : "aped-maps.json",
+    "rtlim" : 6000.0,
+    "rulemodel" : "aped.py",
+    "reactions" : ["A", "H", "E", "a"],
+    "parameters" :{
+	"kpola_same": 1.0,
+	"kpola_diff": 0.1,
+	"khyd_same": 1.0,
+	"kepi_diff": 1.0,
+	"kact_mono": 1.0
+    },
+    "dropmode" : "drop",
+    "maxsteps" : 100000,
+    "maxlog" : 1000
+}

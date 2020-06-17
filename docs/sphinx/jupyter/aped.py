@@ -1,23 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
-# Copyright 2019 by Raphaël Plasson
-#
-# This file is part of metadynamic
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, see <http://www.gnu.org/licenses/>.
-
 """APED model definition module
 
 This system is defined by:
@@ -43,7 +23,7 @@ from metadynamic.ruleset import (
     rangevariant,
 )
 
-# Definition of Categorizer functions
+# Definition of Categorizer and Propertizer functions
 
 polym: Categorizer = lambda name: name.isalpha()
 """Definition of a polymer
@@ -96,14 +76,43 @@ False
 True
 """
 
-# Propertizer
 
 length: Propertizer = lambda name: (
-    1 if mono(name) else len(name) if polym(name) else len(name) - 1 if actpol(name) else 0
+    1
+    if mono(name)
+    else len(name)
+    if polym(name)
+    else len(name) - 1
+    if actpol(name)
+    else 0
 )
+"""Definition of length property
+
+Return the length of a monomer, polymer or activated polymer:
+>>> length('A')
+1
+>>> length('AbCD')
+4
+>>> length('Ab*')
+3
+>>> length('A2')
+0
+"""
 
 
 def asym(name: str) -> int:  # Propertizer
+    """Definition of asymmetry property
+
+    Each upper char in the name is counted as +1, each lower char as -1:
+    >>> asym('AAAa')
+    2
+    >>> asym('AAAA')
+    4
+    >>>> asym('aaaa')
+    -4
+    >>>> asym('aAAa')
+    0
+    """
     res = 0
     for char in name:
         if char.isupper():
@@ -114,9 +123,19 @@ def asym(name: str) -> int:  # Propertizer
 
 
 right: Categorizer = lambda name: asym(name) > 0
-left: Categorizer = lambda name: asym(name) < 0
+"""Definition of right category
 
-# ProdBuilder
+Return True if the name has a positive asymmetry property.
+"""
+
+left: Categorizer = lambda name: asym(name) < 0
+"""Definition of left category
+
+Return True if the name has a negative asymmetry property.
+"""
+
+
+# Definition of ProdBuilder functions
 
 cut: ProdBuilder = lambda names, variant: (names[0][:variant], names[0][variant:])
 act_polym: ProdBuilder = lambda names, variant: (names[0][:-1] + names[1],)

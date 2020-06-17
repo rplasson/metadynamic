@@ -11,7 +11,7 @@
     "tstep" : 0.1,
     "save" : ["a", "b", "c", "abc", "ab", "bc"],
     "stat" : "simple-stat.json",
-    "rulemodel" : "polym_minimal.py",
+    "rulemodel" : "simple.py",
     "reactions" : "H",
    "parameters" :{
 	"khyd_head" : 1.0,
